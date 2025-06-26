@@ -1,0 +1,351 @@
+{
+    "asset" : {
+        "generator" : "Khronos glTF Blender I/O v3.3.27",
+        "version" : "2.0"
+    },
+    "scene" : 0,
+    "scenes" : [
+        {
+            "name" : "Scene",
+            "nodes" : [
+                5,
+                6
+            ]
+        }
+    ],
+    "nodes" : [
+        {
+            "name" : "cloth_01",
+            "rotation" : [
+                -0.70710688829422,
+                0,
+                0,
+                0.7071066498756409
+            ],
+            "scale" : [
+                100,
+                99.99998474121094,
+                99.99998474121094
+            ]
+        },
+        {
+            "mesh" : 0,
+            "name" : "cloth_04_MI_Cloth_01_0"
+        },
+        {
+            "children" : [
+                1
+            ],
+            "name" : "cloth_04",
+            "rotation" : [
+                -0.70710688829422,
+                0,
+                0,
+                0.7071066498756409
+            ],
+            "scale" : [
+                100,
+                99.99998474121094,
+                99.99998474121094
+            ],
+            "translation" : [
+                38.68695068359375,
+                0,
+                0
+            ]
+        },
+        {
+            "children" : [
+                0,
+                2
+            ],
+            "name" : "RootNode"
+        },
+        {
+            "children" : [
+                3
+            ],
+            "name" : "22bd3773af8d465bb31b20c8ccacc41e.fbx",
+            "rotation" : [
+                0.70710688829422,
+                0,
+                0,
+                0.7071066498756409
+            ],
+            "scale" : [
+                0.009999999776482582,
+                0.009999999776482582,
+                0.009999999776482582
+            ]
+        },
+        {
+            "children" : [
+                4
+            ],
+            "name" : "Sketchfab_model",
+            "rotation" : [
+                -0.70710688829422,
+                0,
+                0,
+                0.7071066498756409
+            ]
+        },
+        {
+            "mesh" : 1,
+            "name" : "Mesh",
+            "rotation" : [
+                0.7751364707946777,
+                0.3517339825630188,
+                0.1729349046945572,
+                0.49552014470100403
+            ],
+            "scale" : [
+                0.006800226401537657,
+                0.0068002245388925076,
+                0.00680022407323122
+            ],
+            "translation" : [
+                -0.4864678382873535,
+                0.06405268609523773,
+                0.9904012680053711
+            ]
+        }
+    ],
+    "materials" : [
+        {
+            "name" : "MI_Cloth_01",
+            "normalTexture" : {
+                "index" : 0
+            },
+            "pbrMetallicRoughness" : {
+                "baseColorFactor" : [
+                    0.012165166437625885,
+                    0.0161429550498724,
+                    0.07027420401573181,
+                    1
+                ],
+                "metallicFactor" : 0,
+                "metallicRoughnessTexture" : {
+                    "index" : 1
+                }
+            }
+        },
+        {
+            "doubleSided" : true,
+            "name" : "standardSurface2",
+            "pbrMetallicRoughness" : {
+                "baseColorTexture" : {
+                    "index" : 2
+                },
+                "metallicFactor" : 0,
+                "roughnessFactor" : 0.5527864098548889
+            }
+        }
+    ],
+    "meshes" : [
+        {
+            "name" : "cloth_04_MI_Cloth_01_0",
+            "primitives" : [
+                {
+                    "attributes" : {
+                        "POSITION" : 0,
+                        "NORMAL" : 1,
+                        "TEXCOORD_0" : 2,
+                        "TEXCOORD_1" : 3
+                    },
+                    "indices" : 4,
+                    "material" : 0
+                }
+            ]
+        },
+        {
+            "name" : "Mesh",
+            "primitives" : [
+                {
+                    "attributes" : {
+                        "POSITION" : 5,
+                        "NORMAL" : 6,
+                        "TEXCOORD_0" : 7
+                    },
+                    "indices" : 8,
+                    "material" : 1
+                }
+            ]
+        }
+    ],
+    "textures" : [
+        {
+            "sampler" : 0,
+            "source" : 0
+        },
+        {
+            "sampler" : 0,
+            "source" : 1
+        },
+        {
+            "sampler" : 0,
+            "source" : 2
+        }
+    ],
+    "images" : [
+        {
+            "mimeType" : "image/png",
+            "name" : "MI_Cloth_01_normal",
+            "uri" : "MI_Cloth_01_normal.png"
+        },
+        {
+            "mimeType" : "image/png",
+            "name" : "MI_Cloth_01_metallicRoughness",
+            "uri" : "MI_Cloth_01_metallicRoughness.png"
+        },
+        {
+            "mimeType" : "image/jpeg",
+            "name" : "Rolled_Glove_1",
+            "uri" : "Rolled_Glove_1.jpg"
+        }
+    ],
+    "accessors" : [
+        {
+            "bufferView" : 0,
+            "componentType" : 5126,
+            "count" : 317,
+            "max" : [
+                0.5379253029823303,
+                0.9354236125946045,
+                0.21981588006019592
+            ],
+            "min" : [
+                -0.967769205570221,
+                -1.0344295501708984,
+                -0.1346932351589203
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 1,
+            "componentType" : 5126,
+            "count" : 317,
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 2,
+            "componentType" : 5126,
+            "count" : 317,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 3,
+            "componentType" : 5126,
+            "count" : 317,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 4,
+            "componentType" : 5123,
+            "count" : 1452,
+            "type" : "SCALAR"
+        },
+        {
+            "bufferView" : 5,
+            "componentType" : 5126,
+            "count" : 6721,
+            "max" : [
+                129.89854431152344,
+                -43.807098388671875,
+                189.31910705566406
+            ],
+            "min" : [
+                -10.826193809509277,
+                -207.60108947753906,
+                -5.079165935516357
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 6,
+            "componentType" : 5126,
+            "count" : 6721,
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 7,
+            "componentType" : 5126,
+            "count" : 6721,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 8,
+            "componentType" : 5123,
+            "count" : 26565,
+            "type" : "SCALAR"
+        }
+    ],
+    "bufferViews" : [
+        {
+            "buffer" : 0,
+            "byteLength" : 3804,
+            "byteOffset" : 0,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 3804,
+            "byteOffset" : 3804,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 2536,
+            "byteOffset" : 7608,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 2536,
+            "byteOffset" : 10144,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 2904,
+            "byteOffset" : 12680,
+            "target" : 34963
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 80652,
+            "byteOffset" : 15584,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 80652,
+            "byteOffset" : 96236,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 53768,
+            "byteOffset" : 176888,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 53130,
+            "byteOffset" : 230656,
+            "target" : 34963
+        }
+    ],
+    "samplers" : [
+        {
+            "magFilter" : 9729,
+            "minFilter" : 9987
+        }
+    ],
+    "buffers" : [
+        {
+            "byteLength" : 283788,
+            "uri" : "rag2.bin"
+        }
+    ]
+}
