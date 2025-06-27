@@ -321,10 +321,11 @@ export default function Home() {
           ref={controlsRef} 
           maxPolarAngle={Math.PI / 2} 
           minPolarAngle={Math.PI / 6}
-          enablePan={!showIntro} // Intro가 보일 때는 OrbitControls 비활성화
-          enableZoom={!showIntro}
-          enableRotate={!showIntro}
+          enablePan={!showIntro && !activeCleaningZone}
+          enableZoom={!showIntro && !activeCleaningZone}
+          enableRotate={!showIntro && !activeCleaningZone}
         />
+
       </Scene>
 
       {/* Intro 오버레이 - 로딩 완료 후 표시 */}
