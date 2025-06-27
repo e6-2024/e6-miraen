@@ -16,7 +16,6 @@ interface ModelProps {
 export const Model = ({ splashOpacities, scale = 1, position = [0, 0, 0] }: ModelProps) => {
   const gltf = useGLTF('/models/6-1-1/New_Clean_Room/New_Room.gltf')
   const modelRef = useRef<THREE.Group>(null)
-  
   useEffect(() => {
     if (modelRef.current && splashOpacities) {
       
@@ -119,6 +118,17 @@ export const Model = ({ splashOpacities, scale = 1, position = [0, 0, 0] }: Mode
       })
     }
   }, [splashOpacities])
+
+    useEffect(() => {
+    if (modelRef.current && gltf.scene) {
+      if (gltf.scene.children.length > 0) {
+
+        gltf.scene.remove(gltf.scene.children[1]);
+      }
+    }
+  }, [gltf.scene])
+  
+
   
   // 간단한 디버깅 (한 번만)
   useEffect(() => {

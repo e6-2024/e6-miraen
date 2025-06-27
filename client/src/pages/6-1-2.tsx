@@ -8,6 +8,7 @@ import { useState, useRef, useEffect } from 'react'
 import * as THREE from 'three'
 import { LensFlare } from '@andersonmancini/lens-flare'
 import { EffectComposer } from '@react-three/postprocessing'
+import CameraLogger from '@/components/CameraLogger'
 
 // 로딩 상태를 추적하는 컴포넌트
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
@@ -24,108 +25,112 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
 
 // 카메라 컨트롤 컴포넌트
 function CameraController({
-  targetName,
-  isFollowing,
+  viewMode,
+  isAnimationPlaying,
   sceneRef,
   showIntro
 }: {
-  targetName: string | null
-  isFollowing: boolean
+  viewMode: 'start' | 'following' | 'approaching' | 'free'
+  isAnimationPlaying: boolean
   sceneRef: React.RefObject<THREE.Group>
   showIntro: boolean
 }) {
   const { camera } = useThree()
   const orbitControlsRef = useRef<any>()
+  const timeRef = useRef(0)
 
-  // 각 오브젝트별 카메라 오프셋 설정
-  const getCameraOffset = (targetName: string) => {
-    switch (targetName) {
-      case 'Mesh123': // 말
-        return { x: 0, y: 2.5, z: -1 }
-      case 'Wheel_A': // 자동차
-        return { x: -1.2, y: 2, z: -2.9 }
-      case 'female_genericMesh2': // 사람
-        return { x: 0, y: 1.5, z: -3 }
-      case 'Male_Head': // 자전거
-        return { x: 0, y: 1.5, z: -3 }
-      case 'bridge': // 기차
-        return { x: 0, y: -0.2, z: -14 }
-      default:
-        return { x: 0, y: 2, z: -5 }
-    }
-  }
+  // 말의 위치를 찾는 함수 (기준 물체로 사용)
+  const getHorsePosition = () => {
+    if (!sceneRef.current) return new THREE.Vector3(0, 0, 0)
 
-  // 특정 이름의 오브젝트를 찾는 함수
-  const findTargetByName = (targetName: string) => {
-    if (!sceneRef.current) return null
-
-    let targetObject: THREE.Object3D | null = null
-
+    let horseObject: THREE.Object3D | null = null
     sceneRef.current.traverse((child) => {
-      if (child instanceof THREE.Mesh && child.name === targetName) {
-        targetObject = child
+      if (child instanceof THREE.Mesh && child.name === 'Mesh123') {
+        horseObject = child
       }
     })
 
-    if (targetObject) {
-      console.log(`Object with name "${targetName}" not found`)
-      // 사용 가능한 객체들을 다시 보여줌
-      const allObjects: string[] = []
-      sceneRef.current.traverse((child) => {
-        if (child instanceof THREE.Mesh && child.name) {
-          allObjects.push(child.name)
-        }
-      })
-      console.log('Available object names:', allObjects.slice(0, 250)) // 처음 20개만 표시
+    if (horseObject) {
+      const position = new THREE.Vector3()
+      horseObject.getWorldPosition(position)
+      return position
     }
-
-    return targetObject
+    return new THREE.Vector3(0, 0, 0)
   }
 
-  useFrame(() => {
-    if (isFollowing && targetName && sceneRef.current) {
-      const targetObject = findTargetByName(targetName)
+  useFrame((state, delta) => {
+    if (!isAnimationPlaying || showIntro) return
 
-      if (targetObject) {
-        // 타겟 오브젝트의 위치 가져오기
-        const targetPosition = new THREE.Vector3()
-        targetObject.getWorldPosition(targetPosition)
+    timeRef.current += delta
 
-        // 오브젝트별 맞춤 offset 적용 (카메라 위치만 조절)
-        const offsetConfig = getCameraOffset(targetName)
-        const offset = new THREE.Vector3(offsetConfig.x, offsetConfig.y, offsetConfig.z)
-        const cameraPosition = targetPosition.clone().add(offset)
-
-        // 카메라 위치를 즉시 업데이트 (lerp 제거로 지연 없음)
-        camera.position.copy(cameraPosition)
-
-        // 카메라가 항상 +X축 방향을 바라보도록 설정 (절대 방향)
-        const lookAtDirection = camera.position.clone().add(new THREE.Vector3(0, 0, 1))
-        camera.lookAt(lookAtDirection)
-
-        // OrbitControls 타겟도 즉시 업데이트
+    switch (viewMode) {
+      case 'start':
+        // 1. 시작지점에서 멀어지는 것 관찰
+        // 고정된 시작점에서 물체들이 멀어지는 모습을 관찰
+        camera.position.set(20.78, 12.35, -42.22)
+        camera.lookAt(0, 0, -0) // 물체들이 이동하는 방향을 바라봄
+        
         if (orbitControlsRef.current) {
-          orbitControlsRef.current.target.copy(lookAtDirection)
+          orbitControlsRef.current.target.set(0, 0, 0)
         }
-      }
+        break
+
+      case 'following':
+        // 2. 물체들을 따라서 같이 움직이는 카메라 (말의 속도로)
+        // 말의 현재 위치를 기준으로 카메라가 같이 이동
+        const horsePos = getHorsePosition()
+        
+        // 카메라는 말과 같은 속도로 이동하되, 옆에서 관찰
+        camera.position.set(
+          horsePos.x + 12,  // 말의 왼쪽 옆
+          horsePos.y + 2,  // 말보다 약간 위
+          horsePos.z       // 말과 같은 Z축 위치
+        )
+        
+        // 카메라가 바라보는 방향을 물체들이 있는 영역으로 설정
+        const lookAtTarget = new THREE.Vector3(horsePos.x + 2, horsePos.y+2, horsePos.z)
+        camera.lookAt(lookAtTarget)
+        
+        if (orbitControlsRef.current) {
+          orbitControlsRef.current.target.copy(lookAtTarget)
+        }
+        break
+
+      case 'approaching':
+        // 3. 물체들이 다가오는 곳에서 관찰
+        // 물체들의 이동 경로 앞쪽에 고정된 카메라
+        // 물체들이 카메라쪽으로 다가오는 모습을 관찰
+        camera.position.set(-2.814,1.80,398.85) // 물체들의 이동 경로 앞쪽
+        camera.lookAt(0, 1, 0) // 물체들이 오는 방향을 바라봄
+        
+        if (orbitControlsRef.current) {
+          orbitControlsRef.current.target.set(0, 1, 0)
+        }
+        break
+
+      case 'free':
+        // 자유 시점 - OrbitControls 활성화
+        break
     }
   })
 
   return (
     <OrbitControls
       ref={orbitControlsRef}
-      enabled={!isFollowing && !showIntro} // 따라가기 모드이거나 Intro가 보일 때는 수동 조작 비활성화
+      enabled={viewMode === 'free' && !showIntro} // 자유 시점일 때만 수동 조작 가능
+      enablePan={viewMode === 'free'}
+      enableZoom={viewMode === 'free'}
+      enableRotate={viewMode === 'free'}
     />
   )
 }
 
 export default function Home() {
   const [isAnimationPlaying, setIsAnimationPlaying] = useState(false)
-  const [currentView, setCurrentView] = useState<string | null>(null)
-  const [isFollowing, setIsFollowing] = useState(false)
+  const [viewMode, setViewMode] = useState<'start' | 'following' | 'approaching' | 'free'>('start')
   const sceneRef = useRef<THREE.Group>(null)
 
-  // Intro 관련 상태 추가
+  // Intro 관련 상태
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
 
@@ -145,101 +150,89 @@ export default function Home() {
     }
   }
 
-  
   const handleEnterExperience = () => {
-    // 효과음 재생
     playClickSound()
-    
-    // 효과음이 재생될 시간을 확보한 후 Intro 숨김
     setTimeout(() => {
       setShowIntro(false)
-    }, 300) // 300ms 지연
+    }, 300)
   }
 
   const handleStartAnimation = () => {
     setIsAnimationPlaying(true)
   }
 
-  const handleViewChange = (targetName: string) => {
-    setCurrentView(targetName)
-    setIsFollowing(true)
+  const handleViewChange = (mode: 'start' | 'following' | 'approaching' | 'free') => {
+    setViewMode(mode)
   }
 
-  const handleResetView = () => {
-    setIsFollowing(false)
-    setCurrentView(null)
-  }
 
-  const handleOffsetChange = (axis: 'x' | 'y' | 'z', value: number) => {
-    // UI 조정 기능 제거됨 - 이제 코드에서 직접 설정
-  }
-
-  const viewButtons = [
-    { name: '달리는 말 시점', targetName: 'Mesh123' }, // 말의 몸체
-    { name: '자동차 시점', targetName: 'Wheel_A' }, // 자동차 메인 메쉬
-    { name: '달리는 사람 시점', targetName: 'female_genericMesh2' }, // 사람 베이스 메쉬
-    { name: '자전거 시점', targetName: 'Male_Head' }, // 자전거 바퀴
-    { name: '기차 시점', targetName: 'bridge' }, // 기차 브릿지/본체
-  ]
-
-  const presetOffsets = [
-    // UI 조정 기능 제거됨 - 이제 코드에서 직접 설정
+  const viewButtons: Array<{
+  name: string
+  mode: 'start' | 'following' | 'approaching' | 'free'
+  }> = [
+    { 
+      name: '시작점에서 관찰하기', 
+      mode: 'start' as const
+    },
+    { 
+      name: '함께 이동하며 관찰하기', 
+      mode: 'following' as const
+    },
+    { 
+      name: '도착점에서 관찰하기', 
+      mode: 'approaching' as const
+    }
   ]
 
   return (
     <div className='w-screen h-screen bg-white relative'>
       {/* 컨트롤 패널 - Intro가 보일 때는 숨김 */}
       {!showIntro && (
-        <div className='absolute top-4 right-4 z-10 space-y-2 bg-white/90 p-4 rounded-lg shadow-lg max-w-xs'>
+        <div className='absolute top-4 right-4 z-10 space-y-3 bg-white/95 p-4 rounded-xl shadow-lg max-w-sm'>
           <button
             onClick={handleStartAnimation}
             disabled={isAnimationPlaying}
-            className={`w-full px-4 py-2 rounded-lg font-medium transition-all ${
+            className={`w-full px-6 py-3 rounded-lg font-medium transition-all ${
               isAnimationPlaying
                 ? 'bg-green-500 text-white cursor-not-allowed'
                 : 'bg-blue-500 hover:bg-blue-600 text-white'
             }`}>
-            {isAnimationPlaying ? '속도 관찰' : '시작하기'}
+            {isAnimationPlaying ? '물체 운동 관찰 중' : '운동 시작하기'}
           </button>
 
           {isAnimationPlaying && (
-            <>
-              <div className='space-y-1'>
-                {viewButtons.map((button, idx) => (
+            <div className='space-y-2'>
+              <h3 className='text-sm font-semibold text-gray-700 mb-2'>관찰 시점 선택</h3>
+              {viewButtons.map((button, idx) => (
+                <div key={idx} className='space-y-1'>
                   <button
-                    key={idx}
-                    onClick={() => handleViewChange(button.targetName)}
-                    className={`block w-full px-4 py-2 rounded-lg font-medium transition-all ${
-                      currentView === button.targetName
-                        ? 'bg-orange-500 text-white'
+                    onClick={() => handleViewChange(button.mode)}
+                    className={`block w-full px-4 py-3 rounded-lg font-medium transition-all text-left ${
+                      viewMode === button.mode
+                        ? 'bg-orange-500 text-white shadow-md'
                         : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
                     }`}>
-                    {button.name}
+                    <div className='font-semibold'>{button.name}</div>
+                    <div className={`text-xs mt-1 ${
+                      viewMode === button.mode ? 'text-orange-100' : 'text-gray-600'
+                    }`}>
+                    </div>
                   </button>
-                ))}
-
-                <button
-                  onClick={handleResetView}
-                  className='block w-full px-4 py-2 rounded-lg font-medium bg-gray-500 hover:bg-gray-600 text-white transition-all'>
-                  자유 시점
-                </button>
-              </div>
-
-              {/* 카메라 오프셋 조정 패널 제거됨 - 이제 코드에서 직접 설정 */}
-            </>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       )}
 
-      <Scene camera={{ position: [16, 3, 20], fov: 50 }} shadows='soft'>
-        {/* 로딩 추적 컴포넌트 추가 */}
+      <Scene camera={{ position: [20.78, 12.35, -42.22], fov: 50 }} shadows='soft'>
         <LoadingTracker onLoadingComplete={handleLoadingComplete} />
         
         <ambientLight intensity={0.2} />
 
         <directionalLight
           position={[5, 5, 5]}
-          intensity={1}
+          intensity={3}
           castShadow
           shadow-mapSize={[4096, 4096]}
           shadow-camera-far={50}
@@ -247,7 +240,7 @@ export default function Home() {
           shadow-camera-right={20}
           shadow-camera-top={20}
           shadow-camera-bottom={-20}
-          shadow-bias={-0.0001}
+          shadow-bias={-0.0009}
         />
 
         <group ref={sceneRef}>
@@ -261,8 +254,8 @@ export default function Home() {
         </group>
 
         <CameraController 
-          targetName={currentView} 
-          isFollowing={isFollowing} 
+          viewMode={viewMode}
+          isAnimationPlaying={isAnimationPlaying}
           sceneRef={sceneRef}
           showIntro={showIntro}
         />
@@ -278,15 +271,18 @@ export default function Home() {
           mieDirectionalG={0.85}
         />
         <Environment preset={'apartment'} />
+
+        <CameraLogger/>
       </Scene>
 
-      {/* Intro 오버레이 - 로딩 완료 후 표시 */}
+      {/* Intro 오버레이 */}
       {isLoaded && showIntro && (
         <Intro 
           onEnter={handleEnterExperience}
           title="물체의 운동"
           description={[
-            "운동하는 물체의 이동 거리와 속도를 다양한 시점에서 관찰해 봅시다."
+            "다양한 시점에서 물체들의 운동을 관찰해보세요.",
+            "시작점, 함께 이동, 정면 관찰의 세 가지 시점으로 운동을 이해할 수 있습니다."
           ]}
           simbolSvgPath="/img/icon/물체의운동.svg"
         />
