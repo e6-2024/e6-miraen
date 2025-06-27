@@ -39,6 +39,11 @@ export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
 
+  // 모드가 변경될 때마다 rayVisible을 false로 리셋
+  useEffect(() => {
+    setRayVisible(false);
+  }, [activeMode]);
+
   const handleLoadingComplete = () => {
     setIsLoaded(true)
   }
