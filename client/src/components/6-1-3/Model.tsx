@@ -70,15 +70,7 @@ export function Model(props: JSX.IntrinsicElements['group']) {
         position={[0, -0.636, 0]}
         scale={8.736}
       />
-      <mesh
-        castShadow
-        receiveShadow
-        geometry={nodes.pSphere1.geometry}
-        material={materials.surfaceShader1}
-        position={[0.653, 8.345, 1.317]}
-        rotation={[Math.PI / 2, 0, 0]}
-        scale={[25.057, 25.057, 18.038]}
-      />
+
       <mesh
         castShadow
         receiveShadow
