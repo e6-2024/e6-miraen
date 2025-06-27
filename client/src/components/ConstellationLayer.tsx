@@ -95,7 +95,7 @@ export function ConstellationLayer({
   })
 
   // 별자리 텍스처 로드
-  const texturePath = '/textures/constellation_figures_64k_2 1.png'
+  const texturePath = '/textures/constellation_figures.jpg'
   const tex = useMemo(
     () => (activeSeason ? new THREE.TextureLoader().load(texturePath) : null),
     [activeSeason]
