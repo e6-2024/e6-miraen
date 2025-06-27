@@ -153,8 +153,8 @@ export default function Home() {
       lookAt: new THREE.Vector3(0, 0, 0)
     },
     leaf: {
-      position: new THREE.Vector3(4, 10, 8),
-      lookAt: new THREE.Vector3(1.5, 9.5, 1.4) // 잎 부분 중심
+      position: new THREE.Vector3(4, 10, 6),
+      lookAt: new THREE.Vector3(3, 8.5, 1.4) // 잎 부분 중심
     },
     root: {
       position: new THREE.Vector3(8, -4, 12),

@@ -73,7 +73,7 @@ export default function Home() {
       {!showIntro && (
         <div className="absolute bottom-5 right-5 flex flex-col gap-2 z-10">
           <div className="flex gap-2">
-            {[0, 1, 2].map((level) => (
+            {[0, 2, 1].map((level) => (
               <button
                 key={level}
                 className={`px-4 py-2 rounded text-white transition-colors ${
