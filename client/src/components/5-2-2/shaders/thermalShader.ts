@@ -63,7 +63,7 @@ export const thermalFragmentShader = `
     
     if (isHeating) {
       // 가열 진행도 (0 ~ 1, 더 천천히)
-      float heatProgress = min(heatingTime / 20.0, 1.0); // 20초로 더 느리게
+      float heatProgress = min(heatingTime / 30.0, 1.0); // 20초로 더 느리게
       
       // 중앙에서부터 퍼져나가는 열 웨이브 - 더 급격한 감소
       float heatWave = heatProgress * 2.0;

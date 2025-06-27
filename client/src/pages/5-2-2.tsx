@@ -9,6 +9,8 @@ import Model from '@/components/5-1-4-1/Model'
 import Scene from '@/components/canvas/Scene'
 import Flame from '@/components/5-2-2/Flame'
 import Intro from '@/components/intro/Intro'
+import PanFish from '@/components/5-2-2/models/PanFish'
+import PanMeat from '@/components/5-2-2/models/PanMeat'
 
 // 로딩 상태를 추적하는 컴포넌트
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
@@ -216,6 +218,20 @@ export default function Home() {
           heatingTime={heatingTime}
         />
         <Stove 
+          scale={2} 
+          position={[0, 0, 0]} 
+          thermalMode={isThermalMode}
+          isHeating={isHeating}
+          heatingTime={heatingTime}
+        />
+        <PanFish
+          scale={2} 
+          position={[0, 0, 0]} 
+          thermalMode={isThermalMode}
+          isHeating={isHeating}
+          heatingTime={heatingTime}
+        />
+        <PanMeat
           scale={2} 
           position={[0, 0, 0]} 
           thermalMode={isThermalMode}
