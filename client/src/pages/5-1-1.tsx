@@ -80,8 +80,8 @@ const cameraPositions = [
   new THREE.Vector3(-34.01, 3.108, -5.557), //씬 0
   new THREE.Vector3(14, 19, 14),   // 씬 1
   new THREE.Vector3(14, 19, 14),   // 씬 2
-  new THREE.Vector3(24.8, 5.2, -1.3),   // 씬 3
-  new THREE.Vector3(14.498, 8.874, -2.258),   // 씬 4
+  new THREE.Vector3(10.45, 4.68, 4.93),   // 씬 3
+  new THREE.Vector3(16.498, 8.874, 4.258),   // 씬 4
 ]
 
 function SceneCameraController({ sceneIndex }: { sceneIndex: number }) {
