@@ -436,7 +436,7 @@ export default function Home() {
           enablePan={!showIntro && !isViewingSpecificPart}
           enableRotate={!showIntro && !isViewingSpecificPart}
           minDistance={5}
-          maxDistance={50}
+          maxDistance={22}
           maxPolarAngle={Math.PI / 2}
           minPolarAngle={0}
           target={[0, 0, 0]}
