@@ -296,7 +296,7 @@ export default function Home() {
               position={[10.22, 0, 0.33]}
               pointColor='#25e5c2'
               html='<mark>변기용 세제</mark>로 변기 청소하기'
-              onBubbleClick={() => moveToTarget([9, 1.0, -0.33], [8, 1.2, -0.33], 'rag', 'splash02')}
+              onBubbleClick={() => moveToTarget([10, 2.0, -0.33], [10, 2.2, -0.33], 'rag', 'splash02')}
             />
 
             <SpeechBubble
