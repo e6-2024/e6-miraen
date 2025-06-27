@@ -30,32 +30,32 @@ function FlowArrow({
 }) {
   const arrowRef = useRef<THREE.Group>(null)
 
-  useEffect(() => {
-    if (arrowRef.current) {
-      // 화살표가 이동 방향을 향하도록 회전
-      const lookAtTarget = position.clone().add(direction.normalize())
-      arrowRef.current.lookAt(lookAtTarget)
-      arrowRef.current.rotateX(Math.PI / 2) // 화살표 방향 보정
-    }
-  }, [position, direction])
+  // 방향 벡터로부터 회전 행렬 계산
+  const rotation = React.useMemo(() => {
+    if (direction.length() === 0) return [0, 0, 0] as [number, number, number]
+    
+    const normalizedDirection = direction.clone().normalize()
+    
+    // Z축이 화살표의 기본 방향이라고 가정
+    const defaultDirection = new THREE.Vector3(0, 1, 0)
+    
+    // 두 벡터 사이의 회전 계산
+    const quaternion = new THREE.Quaternion()
+    quaternion.setFromUnitVectors(defaultDirection, normalizedDirection)
+    
+    // 쿼터니언을 오일러 각으로 변환
+    const euler = new THREE.Euler()
+    euler.setFromQuaternion(quaternion)
+    
+    return [euler.x, euler.y, euler.z] as [number, number, number]
+  }, [direction])
 
   return (
-    <group ref={arrowRef} position={position} scale={scale}>
-      {/* 화살표 몸체 (원통) */}
-      <mesh position={[0, 0, 0]}>
-        <cylinderGeometry args={[0.012, 0.012, 0.06, 8]} />
-        <meshStandardMaterial
-          color='#4fc3f7'
-          emissive='#4fc3f7'
-          emissiveIntensity={0.4}
-          transparent
-          opacity={opacity}
-        />
-      </mesh>
+    <group ref={arrowRef} position={position} scale={scale} rotation={rotation}>
 
-      {/* 화살표 머리 (원뿔) */}
-      <mesh position={[0, 0.04, 0]}>
-        <coneGeometry args={[0.025, 0.05, 8]} />
+      {/* 화살표 머리 (원뿔) - Z축 방향 앞쪽 */}
+      <mesh position={[0, 0, 0]}>
+        <coneGeometry args={[0.03, 0.05, 8]} />
         <meshStandardMaterial
           color='#2196f3'
           emissive='#2196f3'
@@ -68,7 +68,7 @@ function FlowArrow({
       {/* 발광 효과를 위한 추가 구체 */}
       <mesh position={[0, 0, 0]}>
         <sphereGeometry args={[0.02, 8, 8]} />
-        <meshBasicMaterial color='#81d4fa' transparent opacity={opacity * 0.3} />
+        <meshBasicMaterial color='#81d4fa' transparent opacity={opacity * 0.9} />
       </mesh>
     </group>
   )
@@ -171,7 +171,13 @@ export function WaterFlowAnimation({
         const scale = Math.max(0.6, 1 - (i / trailCount) * 0.4) // 점진적으로 작아짐
 
         arrows.push(
-          <FlowArrow key={i} position={trailPos} direction={trailDir} scale={arrowSize * scale} opacity={opacity} />,
+          <FlowArrow 
+            key={i} 
+            position={trailPos} 
+            direction={trailDir} 
+            scale={arrowSize * scale} 
+            opacity={opacity}
+          />,
         )
       }
     }
@@ -204,39 +210,17 @@ export function WaterFlowAnimation({
       {isAnimating && (
         <>
           {/* 메인 화살표 */}
-          <FlowArrow position={position} direction={direction} scale={arrowSize} />
+          <FlowArrow 
+            position={position} 
+            direction={direction} 
+            scale={arrowSize}
+          />
 
           {/* 트레일 화살표들 */}
           {trailArrows}
         </>
       )}
 
-      {/* 경로 제어점 표시 (개발 모드에서만) */}
-      {process.env.NODE_ENV === 'development' && showPath && (
-        <>
-          {pathPoints?.map((point, index) => (
-            <mesh key={`control-point-${index}`} position={point}>
-              <sphereGeometry args={[0.025, 8, 8]} />
-              <meshBasicMaterial
-                color={
-                  index === 0
-                    ? '#f44336' // 시작점 (빨강)
-                    : index === pathPoints.length - 1
-                    ? '#4caf50' // 끝점 (초록)
-                    : '#ff9800' // 중간점 (주황)
-                }
-              />
-            </mesh>
-          ))}
-
-          {/* 제어점 레이블 */}
-          {pathPoints?.map((point, index) => (
-            <group key={`label-${index}`} position={[point.x, point.y + 0.1, point.z]}>
-              <meshBasicMaterial attach='material' color='black' />
-            </group>
-          ))}
-        </>
-      )}
     </group>
   )
 }

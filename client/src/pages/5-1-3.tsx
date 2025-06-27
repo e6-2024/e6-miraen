@@ -441,7 +441,7 @@ export default function Home() {
 
         {leftBeaker.isCompleted && (
           <DirectTomato
-            startPosition={[-1.5, 0.75, -0.1]}
+            startPosition={[-1.5, 0.85, -0.05]}
             sugarConcentration={leftConcentration}
             beakerRadius={0.32}
             waterLevel={0.4}
@@ -464,14 +464,14 @@ export default function Home() {
 
         <Spoon 
           scale={20} 
-          position={[-1.9, 0.8, -0.08]} 
-          rotation={[Math.PI / 2 + leftSpoon.rotation, 0, -Math.PI / 2]} 
+          position={[-1.9, 1.0, -0.08]} 
+          rotation={[Math.PI / 2 + leftSpoon.rotation, -Math.PI/12, -Math.PI / 2]} 
         />
 
         <Spoon 
           scale={20} 
-          position={[1.9, 0.8, -0.01]} 
-          rotation={[Math.PI / 2 + rightSpoon.rotation, 0, Math.PI / 2]} 
+          position={[1.9, 1.0, -0.01]} 
+          rotation={[Math.PI / 2 + rightSpoon.rotation, Math.PI/12, Math.PI / 2]} 
         />
 
         <Model
@@ -496,14 +496,14 @@ export default function Home() {
 
         {rightBeaker.isCompleted && (
           <DirectTomato
-            startPosition={[1.2, 0.75, 0.0]}
+            startPosition={[1.1, 0.85, 0.0]}
             sugarConcentration={rightConcentration}
             beakerRadius={0.32}
             waterLevel={0.56}
             beakerPosition={[1.3, -0.4, 0]}
             isDropped={rightTomato.isDropped}
             onDrop={rightTomato.handleTomatoInWater}
-            maxRiseHeight={-0.1}
+            maxRiseHeight={-0.15}
             riseSpeed={0.1}
             riseSpringStiffness={10}
             riseSpringDamping={15}

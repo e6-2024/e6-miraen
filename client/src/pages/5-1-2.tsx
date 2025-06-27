@@ -33,7 +33,7 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
 export default function Home() {
   const [activeMode, setActiveMode] = useState<'direct' | 'reflection' | 'refraction'>('reflection');
   const [lensType, setLensType] = useState<'convex' | 'concave'>('convex'); 
-  const [rayVisible, setRayVisible] = useState(true);
+  const [rayVisible, setRayVisible] = useState(false);
 
   // Intro 관련 상태 추가
   const [isLoaded, setIsLoaded] = useState(false)

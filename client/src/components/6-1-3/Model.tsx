@@ -23,7 +23,7 @@ type GLTFResult = GLTF & {
 }
 
 export function Model(props: JSX.IntrinsicElements['group']) {
-  const { nodes, materials } = useGLTF('/models/6-1-3/tree.glb') as GLTFResult
+  const { nodes, materials } = useGLTF('/models/6-1-3/Tree.gltf') as GLTFResult
   return (
     <group {...props} dispose={null}>
       <mesh
