@@ -65,7 +65,7 @@ export default function Home() {
       <div style={{
         position: 'absolute',
         display: 'flex',
-        bottom: '4%',
+        bottom: '5%',
         left: '50%',
         transform: 'translateX(-50%)',
         gap: '30px'
