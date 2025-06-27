@@ -12,7 +12,7 @@ export default function TiltController({ groupRef, setGravity }: Props) {
   const [isDragging, setIsDragging] = useState(false);
   const startPosition = useRef(new Vector2());
   const currentPosition = useRef(new Vector2());
-  const tiltLimit = 0.25; // 최대 기울기 제한 (라디안)
+  const tiltLimit = 0.15; // 최대 기울기 제한 (라디안)
   
   // 시작 회전값 저장
   const startRotation = useRef({ x: 0, z: 0 });
@@ -53,7 +53,7 @@ export default function TiltController({ groupRef, setGravity }: Props) {
       const deltaY = currentPosition.current.y - startPosition.current.y;
       
       // 초기 회전값 + 드래그에 따른 추가 회전
-      const sensitivity = 1.5; // 감도 조절
+      const sensitivity = 9.5; // 감도 조절
       const newRotationZ = startRotation.current.z + deltaX * sensitivity;
       const newRotationX = startRotation.current.x - deltaY * sensitivity;
       
@@ -61,7 +61,7 @@ export default function TiltController({ groupRef, setGravity }: Props) {
       const clampedZ = Math.max(-tiltLimit, Math.min(tiltLimit, newRotationZ));
       const clampedX = Math.max(-tiltLimit, Math.min(tiltLimit, newRotationX));
       
-      // 체 회전 적용
+      // 그룹 전체 회전 (시각적 모델 + 물리 충돌체)
       groupRef.current.rotation.z = clampedZ;
       groupRef.current.rotation.x = clampedX;
       
@@ -121,23 +121,16 @@ export default function TiltController({ groupRef, setGravity }: Props) {
       setIsDragging(false);
     };
     
-    // 수정된 중력 계산 함수
+    // 중력 계산 함수
     const updateGravityFromRotation = (angleX: number, angleZ: number) => {
-      const gravityMagnitude = 9.81;
+      const gravityMagnitude = 20;
       
-      // 부호 수정: 체가 오른쪽으로 기울면(+Z 회전) 공은 왼쪽으로 굴러가야 함(-X 중력)
       const gravityX = -Math.sin(angleZ) * gravityMagnitude;
-      
-      // 부호 수정: 체가 앞으로 기울면(-X 회전) 공은 앞으로 굴러가야 함(+Z 중력)
       const gravityZ = Math.sin(angleX) * gravityMagnitude;
       
       // Y 방향 중력
       const totalAngle = Math.sqrt(angleX * angleX + angleZ * angleZ);
       const gravityY = -gravityMagnitude * Math.cos(totalAngle);
-      
-      // 디버깅 로그
-      console.log(`Rotation - X: ${angleX.toFixed(2)}, Z: ${angleZ.toFixed(2)}`);
-      console.log(`Gravity - X: ${gravityX.toFixed(2)}, Y: ${gravityY.toFixed(2)}, Z: ${gravityZ.toFixed(2)}`);
       
       setGravity([gravityX, gravityY, gravityZ]);
     };
@@ -176,7 +169,7 @@ export default function TiltController({ groupRef, setGravity }: Props) {
     if (groupRef.current && 
         groupRef.current.rotation.x === 0 && 
         groupRef.current.rotation.z === 0) {
-      setGravity([0, -9.81, 0]);
+      setGravity([0, -20.81, 0]);
     }
   }, [groupRef, setGravity]);
   

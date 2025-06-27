@@ -7,6 +7,7 @@ interface SieveModelProps {
   selectedLevel: number;
   position?: [number, number, number];
   rotation?: [number, number, number];
+  showColliders?: boolean;
 }
 
 type Hole = {
@@ -89,127 +90,94 @@ const holeDataByLevel: Record<number, Hole[]> = {
     { position: [-2.25, 0, 0.75], radius: 0.21 },
     { position: [-2.25, 0, 1.5], radius: 0.21 },
     { position: [-2.25, 0, -1.5], radius: 0.2 },
-
   ],
 };
 
-// 구멍 시각화 컴포넌트
-function HoleVisual({ position, radius }: Hole) {
-  return (
-    <mesh position={[position[0], -0.6, position[2]]}>
-      <cylinderGeometry args={[radius, radius, 0.1, 32]} />
-      <meshStandardMaterial color="red" transparent opacity={0.4} />
-    </mesh>
-  );
-}
-
-// 개별 충돌 셀 컴포넌트
+// 개별 충돌 셀 컴포넌트 - 위치만 받고 회전은 상위에서 처리
 function SolidCell({ 
   position, 
-  sievePosition = [0, 0, 0], 
-  sieveRotation = [0, 0, 0] 
+  showColliders = false
 }: { 
   position: [number, number, number];
-  sievePosition?: [number, number, number];
-  sieveRotation?: [number, number, number];
+  showColliders?: boolean;
 }) {
   const ref = useRef(null);
   const [, api] = useBox(() => ({
     type: 'Static',
     args: [0.3 * 0.95, 0.05, 0.3 * 0.95],
-    position: [
-      position[0] + sievePosition[0], 
-      position[1] + sievePosition[1], 
-      position[2] + sievePosition[2]
-    ],
-    rotation: sieveRotation,
+    position: position,
     friction: 0.1,
   }), ref);
   
-  // 체의 위치가 변경될 때마다 충돌체도 업데이트
-  useEffect(() => {
-    api.position.set(
-      position[0] + sievePosition[0], 
-      position[1] + sievePosition[1], 
-      position[2] + sievePosition[2]
+  // 충돌체 시각화
+  if (showColliders) {
+    return (
+      <mesh ref={ref} position={position}>
+        <boxGeometry args={[0.3 * 0.95, 0.05, 0.3 * 0.95]} />
+        <meshBasicMaterial color="red" transparent opacity={0.3} />
+      </mesh>
     );
-    api.rotation.set(sieveRotation[0], sieveRotation[1], sieveRotation[2]);
-  }, [sievePosition, sieveRotation, api, position]);
+  }
   
-  return null;
+  return <mesh ref={ref} />;
 }
 
-// 외벽 세그먼트 컴포넌트
+// 외벽 세그먼트 컴포넌트 - 상대 위치만 계산
 function WallSegment({ 
   index, 
   segments, 
   radius, 
   height, 
   thickness,
-  sievePosition = [0, 0, 0],
-  sieveRotation = [0, 0, 0]
+  showColliders = false
 }: { 
   index: number;
   segments: number;
   radius: number;
   height: number;
   thickness: number;
-  sievePosition?: [number, number, number];
-  sieveRotation?: [number, number, number];
+  showColliders?: boolean;
 }) {
   const ref = useRef(null);
   const angle = (index / segments) * Math.PI * 2;
   const x = Math.cos(angle) * radius;
   const z = Math.sin(angle) * radius;
-  const rotation: [number, number, number] = [
-    sieveRotation[0], 
-    -angle + sieveRotation[1], 
-    sieveRotation[2]
-  ];
   
   const [, api] = useBox(() => ({
     type: 'Static',
     args: [thickness, height, (2 * Math.PI * radius) / segments],
-    position: [
-      x + sievePosition[0], 
-      height / 2 + sievePosition[1], 
-      z + sievePosition[2]
-    ],
-    rotation,
+    position: [x, height / 2 - 0.25, z],
+    rotation: [0, -angle, 0],
   }), ref);
   
-  // 체의 위치가 변경될 때마다 외벽도 업데이트
-  useEffect(() => {
-    api.position.set(
-      x + sievePosition[0], 
-      height / 2 + sievePosition[1], 
-      z + sievePosition[2]
-    );
-    api.rotation.set(rotation[0], rotation[1], rotation[2]);
-  }, [sievePosition, sieveRotation, api, x, z, height, rotation]);
-  
   return (
-    <mesh key={index} ref={ref} position={[x, height / 2, z]} rotation={rotation}>
+    <mesh 
+      ref={ref} 
+      position={[x, height / 2 - 0.25, z]} 
+      rotation={[0, -angle, 0]}
+    >
       <boxGeometry args={[thickness, height, (2 * Math.PI * radius) / segments]} />
-      <meshStandardMaterial wireframe color="white" transparent opacity={0.0} />
+      <meshStandardMaterial 
+        wireframe 
+        color={showColliders ? "blue" : "white"} 
+        transparent 
+        opacity={showColliders ? 0.2 : 0.0} 
+      />
     </mesh>
   );
 }
 
 // 외벽 컴포넌트
 function CurvedWallCollider({ 
-  sievePosition = [0, 0, 0], 
-  sieveRotation = [0, 0, 0] 
+  showColliders = false
 }: {
-  sievePosition?: [number, number, number];
-  sieveRotation?: [number, number, number];
+  showColliders?: boolean;
 }) {
   const segments = 32;
-  const radius = 2.85;
-  const height = 5;
-  const thickness = 0.15;
+  const radius = 2.85; // 이 값을 조정하여 실제 체 모델과 맞춤
+  const height = 5;     // 높이도 필요시 조정
+  const thickness = 0.15; // 벽 두께
   
-  // 세그먼트 수에 맞게 인덱스 배열 생성
   const indices = useMemo(() => Array.from({ length: segments }, (_, i) => i), []);
   
   return (
@@ -222,8 +190,7 @@ function CurvedWallCollider({
           radius={radius} 
           height={height} 
           thickness={thickness}
-          sievePosition={sievePosition}
-          sieveRotation={sieveRotation}
+          showColliders={showColliders}
         />
       ))}
     </>
@@ -233,14 +200,11 @@ function CurvedWallCollider({
 // 체의 물리 구조 생성 컴포넌트
 function SievePhysics({ 
   selectedLevel, 
-  sievePosition = [0, 0, 0], 
-  sieveRotation = [0, 0, 0] 
+  showColliders = false
 }: { 
   selectedLevel: number;
-  sievePosition?: [number, number, number];
-  sieveRotation?: [number, number, number];
+  showColliders?: boolean;
 }) {
-  // Grid positions 계산
   const gridCells = useMemo(() => {
     const cells: { position: [number, number, number]; key: string }[] = [];
     const gridSize = 3.0;
@@ -276,8 +240,7 @@ function SievePhysics({
         <SolidCell 
           key={cell.key} 
           position={cell.position}
-          sievePosition={sievePosition}
-          sieveRotation={sieveRotation}
+          showColliders={showColliders}
         />
       ))}
     </>
@@ -287,37 +250,31 @@ function SievePhysics({
 export default function SieveModel({ 
   selectedLevel, 
   position = [0, 0, 0], 
-  rotation = [0, 0, 0] 
+  rotation = [0, 0, 0],
+  showColliders = false
 }: SieveModelProps) {
-  const visualRef = useRef<Group>(null);
   const { scene } = useGLTF('/models/material/Strainers.gltf');
   const mesh = scene.children[selectedLevel]?.clone();
-  const holes = holeDataByLevel[selectedLevel];
 
   return (
     <>
+      {/* 시각적 메시 */}
       {mesh && (
         <primitive 
           object={mesh} 
-          ref={visualRef} 
-          position={[0, -0.9, 0]} 
+          position={[0, -0.68, 0]} 
           scale={0.22} 
         />
       )}
 
+      {/* 물리 충돌체들 - 별도 그룹 없이 직접 배치 */}
       <SievePhysics 
         selectedLevel={selectedLevel} 
-        sievePosition={position}
-        sieveRotation={rotation}
+        showColliders={showColliders}
       />
 
-      {/* {holes.map((hole, i) => (
-        <HoleVisual key={`hole-${i}`} position={hole.position} radius={hole.radius} />
-      ))} */}
-
       <CurvedWallCollider 
-        sievePosition={position}
-        sieveRotation={rotation}
+        showColliders={showColliders}
       />
     </>
   );

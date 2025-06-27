@@ -30,7 +30,7 @@ export default function SieveSimulation({
   const spawnParticles = () => {
     const newParticles = Array.from({ length: 10 }, () => {
       const radius = [0.35, 0.25, 0.15][Math.floor(Math.random() * 3)];
-      const x = (Math.random() - 0.5) * 3; // 생성 범위 줄임
+      const x = (Math.random() - 0.5) * 3;
       const z = (Math.random() - 0.5) * 3;
       const y = 3 + Math.random() * 2;
       return {
@@ -57,11 +57,16 @@ export default function SieveSimulation({
 
   return (
     <>
+      {/* 시각적 모델과 물리 충돌체를 같은 그룹에서 관리 */}
       <group ref={groupRef}>
-        <SieveModel selectedLevel={selectedLevel} />
+        <SieveModel 
+          selectedLevel={selectedLevel} 
+          rotation={[0, 0, 0]} // 내부 회전은 0으로 설정
+          showColliders={false} 
+        />
       </group>
       
-      {/* 기울이기 컨트롤러 */}
+      {/* TiltController는 groupRef만 회전시킴 - onRotationChange 제거 */}
       <TiltController 
         groupRef={groupRef} 
         setGravity={setGravity}
@@ -75,7 +80,6 @@ export default function SieveSimulation({
           radius={p.radius}
         />
       ))}
-      
     </>
   );
 }
