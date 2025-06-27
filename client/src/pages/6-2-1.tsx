@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, useGLTF, useProgress } from '@react-three/drei';
+import { OrbitControls, useGLTF, useProgress, Billboard, Text} from '@react-three/drei';
 import * as THREE from 'three';
 import Scene from '@/components/canvas/Scene';
 import CameraController from '@/components/cameraController';
@@ -17,7 +17,6 @@ const timeData = [
   { time: '15:30', azimuth: 236, altitude: 35, shadowDirection: 56, shadowLength: 14, temperature: 27.5 }
 ];
 
-// 로딩 상태를 추적하는 컴포넌트
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
   const { progress, active } = useProgress()
   
@@ -30,10 +29,36 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
   return null
 }
 
+function CompassBillboard() {
+  const compassData = [
+    { position: [0, 0.2, 2] as [number, number, number], text: '북', color: '#ff4444' },
+    { position: [2, 0.2, 0] as [number, number, number], text: '동', color: '#44ff44' },
+    { position: [0, 0.2, -2] as [number, number, number], text: '남', color: '#4444ff' },
+    { position: [-2, 0.2, 0] as [number, number, number], text: '서', color: '#ffff44' }
+  ];
+
+  return (
+    <>
+      {compassData.map((compass, index) => (
+        <Billboard key={index} position={compass.position}>
+          <Text 
+            fontSize={0.1}
+            color={compass.color}
+            anchorX="center"
+            anchorY="middle"
+          >
+            {compass.text}
+          </Text>
+        </Billboard>
+      ))}
+    </>
+  );
+}
+
 function Sun({ azimuth, altitude }) {
   const sunRef = useRef<THREE.Mesh>(null);
   
-  const sunDistance = 15;
+  const sunDistance = 1.0;
   const azimuthRad = (azimuth - 180) * (Math.PI / 180);
   const altitudeRad = altitude * (Math.PI / 180);
   
@@ -53,7 +78,7 @@ function Sun({ azimuth, altitude }) {
   return (
     <group position={[sunX, sunY, sunZ]}>
       <mesh ref={sunRef}>
-        <sphereGeometry args={[0.5, 16, 16]} />
+        <sphereGeometry args={[0.05, 16, 16]} />
         <meshStandardMaterial 
           color="#FFD700" 
           emissive="#FFD700" 
@@ -98,17 +123,15 @@ function SunLight({ azimuth, altitude }) {
 }
 
 function Model({ currentData, onSceneLoaded, child2Scale, child2Position }) {
-  const { scene } = useGLTF('models/6-2-1/pole.gltf');
+  const { scene } = useGLTF('models/6-2-1/pole2.glb');
   
   React.useEffect(() => {
     if (scene) {
 
-      if (scene.children.length > 1) {
-        scene.remove(scene.children[1]);
-      }
-      
+      scene.position.set(0,-0.4,0);
+
       if (scene.children[1]) {
-        scene.children[1].scale.set(4, 4, 4);
+        scene.children[1].scale.set(0.0005, 0.0005, 0.0005);
       }
       
       // children[2]의 스케일과 위치 설정
@@ -295,7 +318,7 @@ export default function ShadowSimulation() {
 
       {/* 3D 캔버스 */}
       <Scene 
-        camera={{ position: [0.17601469682326884, 1.565454534595299,  2.1829341284978634], fov: 50 }}
+        camera={{ position: [0.017, 0.06,  -1.6], fov: 50 }}
         shadows
       >
         {/* 로딩 추적 컴포넌트 추가 */}
@@ -304,6 +327,8 @@ export default function ShadowSimulation() {
         <ambientLight intensity={0.6} />
         <SunLight azimuth={currentData.azimuth} altitude={currentData.altitude} />
         <Sun azimuth={currentData.azimuth} altitude={currentData.altitude} />
+
+        
         
 
         <Model 
@@ -312,14 +337,20 @@ export default function ShadowSimulation() {
           child2Scale={child2Scale}
           child2Position={child2Position}
         />
-        
-        <OrbitControls
-          enabled={!showIntro} // Intro가 보일 때는 OrbitControls 비활성화
+        <CompassBillboard />
+
+
+        <OrbitControls 
+          enabled={!showIntro}
+          // minPolarAngle={Math.PI / 3 + Math.PI / 10}
+          maxPolarAngle={Math.PI / 2}
+          minDistance={0.2} 
+          maxDistance={3}
         />
-        {/* <CameraLogger/> */}
+
+        <CameraLogger/>
       </Scene>
 
-      {/* 하단 컨트롤 - Intro가 보일 때는 숨김 */}
       {!showIntro && (
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 bg-white bg-opacity-90 p-4 rounded-lg shadow-lg">
           <div className="flex items-center gap-4 mb-2">
