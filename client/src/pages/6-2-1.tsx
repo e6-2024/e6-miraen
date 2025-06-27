@@ -32,9 +32,9 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
 function CompassBillboard() {
   const compassData = [
     { position: [0, 0.2, 2] as [number, number, number], text: '북', color: '#ff4444' },
-    { position: [2, 0.2, 0] as [number, number, number], text: '동', color: '#44ff44' },
+    { position: [2, 0.2, 0] as [number, number, number], text: '서', color: '#44ff44' },
     { position: [0, 0.2, -2] as [number, number, number], text: '남', color: '#4444ff' },
-    { position: [-2, 0.2, 0] as [number, number, number], text: '서', color: '#ffff44' }
+    { position: [-2, 0.2, 0] as [number, number, number], text: '동', color: '#ffff44' }
   ];
 
   return (
