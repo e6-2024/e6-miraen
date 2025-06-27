@@ -121,7 +121,7 @@ export default function Home() {
             className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded" 
             onClick={handleSpawn}
           >
-            Particle 뿌리기
+            모래와 자갈 넣기
           </button>
         </div>
       )}
