@@ -125,7 +125,7 @@ export default function Home() {
         </div>
       )}
       
-      <Canvas shadows camera={{ position: [0, 0.5, 0.5], fov: 75 }} style={{ width: '100%', height: '100%' }}>
+      <Canvas shadows camera={{ position: [0, 0.2, 0.4], fov: 75 }} style={{ width: '100%', height: '100%' }}>
       <fog attach="fog" args={['#f0f0f0', 0.3, 0.9]} />
         <ambientLight intensity={2.0} />
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.2, 0]} receiveShadow>

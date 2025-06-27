@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react'
 import { useGLTF, useAnimations, Billboard, Html } from '@react-three/drei'
-import { Group, Object3D, Vector3, Mesh, Material, MeshStandardMaterial, LineSegments } from 'three'
+import { Group, Object3D, Vector3, Mesh, Material, MeshStandardMaterial, LineSegments, Box3 } from 'three'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 
@@ -9,10 +9,6 @@ type Props = {
   scale?: number
   actionName: 'extend' | 'fold'
   position?: [number, number, number]
-  lineTargetPosA?: [number, number, number]
-  lineTargetPosB?: [number, number, number]
-  lineStartPosA?: [number, number, number]
-  lineStartPosB?: [number, number, number]
   rotation?: [number, number, number]
 }
 
@@ -22,24 +18,16 @@ export default function AnimatedModel2({
   actionName,
   position = [0, 0, 0],
   rotation = [0, Math.PI/2, 0],
-  lineTargetPosA = [-0.03, 0.00, -0.02],
-  lineTargetPosB = [0.03, -0.05, 0.01],
-  lineStartPosA = [-0.04, 0.073, 0.08],
-  lineStartPosB = [-0.04, 0.073, 0.08],
 }: Props) {
   const group = useRef<Group>(null)
   const { scene, animations } = useGLTF(url)
   const { actions } = useAnimations(animations, group)
 
-  const armRefA = useRef<Object3D>(null)
-  const armRefB = useRef<Object3D>(null)
   const textRefA = useRef<Group>(null)
   const textRefB = useRef<Group>(null)
-  const lineRefA = useRef<LineSegments>(null)
-  const lineRefB = useRef<LineSegments>(null)
 
-  const textOffsetA = new THREE.Vector3(-0.06, 0.06, 0.08)
-  const textOffsetB = new THREE.Vector3(0.06, 0.06, 0.08)
+  const textOffsetA = new THREE.Vector3(-0.09, 0.00, 0.00)
+  const textOffsetB = new THREE.Vector3(0.09, 0.00, 0.00)
 
   const prevTextPosA = useRef(new THREE.Vector3())
   const prevTextPosB = useRef(new THREE.Vector3())
@@ -47,16 +35,76 @@ export default function AnimatedModel2({
   const [armReady, setArmReady] = useState(false)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  const redTargetRef = useRef<Mesh>(null)
-  const blueTargetRef = useRef<Mesh>(null)
+  const muscle001Ref = useRef<Mesh>(null)
+  const muscle002Ref = useRef<Mesh>(null)
 
-  const forceHighlightColor = (mesh: Mesh, color: string) => {    
+  // 애니메이션용 상태
+  const pulseTimeA = useRef(0)
+  const pulseTimeB = useRef(0)
+
+  // SkinnedMesh의 실시간 중심점을 계산하는 함수 (본 기반)
+  const getSkinnedMeshCenter = (mesh: Mesh): THREE.Vector3 => {
+    mesh.updateMatrixWorld(true)
+    
+    // SkinnedMesh인 경우 skeleton의 본들을 확인
+    if (mesh.type === 'SkinnedMesh' && (mesh as any).skeleton) {
+      const skeleton = (mesh as any).skeleton
+      const bones = skeleton.bones
+      
+      if (bones && bones.length > 0) {
+        // 모든 본의 평균 위치 계산
+        const avgPos = new THREE.Vector3()
+        let boneCount = 0
+        
+        bones.forEach((bone: any) => {
+          bone.updateMatrixWorld(true)
+          const bonePos = new THREE.Vector3()
+          bone.getWorldPosition(bonePos)
+          avgPos.add(bonePos)
+          boneCount++
+        })
+        
+        if (boneCount > 0) {
+          avgPos.divideScalar(boneCount)
+          return avgPos
+        }
+      }
+    }
+    
+    // 본이 없거나 실패한 경우 기존 방법 사용
+    const box = new Box3()
+    mesh.geometry.computeBoundingBox()
+    if (mesh.geometry.boundingBox) {
+      box.copy(mesh.geometry.boundingBox)
+      box.applyMatrix4(mesh.matrixWorld)
+      const boxCenter = new THREE.Vector3()
+      box.getCenter(boxCenter)
+      return boxCenter
+    }
+    
+    // 마지막 수단으로 월드 위치 사용
+    const worldPos = new THREE.Vector3()
+    mesh.getWorldPosition(worldPos)
+    return worldPos
+  }
+
+  const forceHighlightColor = (mesh: Mesh, color: string, isActive: boolean = false, pulseIntensity: number = 0) => {    
     const apply = (mat: Material | null | undefined) => {
       if (!mat) return mat;
       if (mat instanceof MeshStandardMaterial) {
         mat.emissive.set(color);
-        mat.emissiveIntensity = 1.0;
-        mat.opacity =0.3;
+        
+        // 활성 상태일 때 펄스 효과
+        if (isActive) {
+          const baseIntensity = 0.8;
+          const pulseAmount = Math.sin(pulseIntensity) * 0.8; // 0.4 ~ 1.2 사이로 펄스
+          mat.emissiveIntensity = baseIntensity + pulseAmount;
+          mat.opacity = 0.6 + pulseAmount * 0.3;
+        } else {
+          mat.emissiveIntensity = 0.3;
+          mat.opacity = 0.4;
+        }
+        
         mat.transparent = true;
         mat.color.set(color);
         mat.needsUpdate = true;
@@ -127,72 +175,38 @@ export default function AnimatedModel2({
   useEffect(() => {
     if (!scene || !group.current) return
     
-    // Muscle 그룹에서 메시 찾기
-    let meshA, meshB;
-    
+    // GLTF 구조에 맞게 메시 찾기
     scene.traverse((obj) => {
-      if (obj.name === 'Mesh002' && obj.type === 'SkinnedMesh') {
-        meshA = obj as Mesh;
+      if (obj.name === 'Muscle001' && obj.type === 'SkinnedMesh') {
+        muscle001Ref.current = obj as Mesh;
+        console.log('Found Muscle001:', obj);
       }
-      if (obj.name === 'Mesh002_1' && obj.type === 'SkinnedMesh') {
-        meshB = obj as Mesh;
+      if (obj.name === 'Muscle002' && obj.type === 'SkinnedMesh') {
+        muscle002Ref.current = obj as Mesh;
+        console.log('Found Muscle002:', obj);
       }
     });
-    
-    if (meshA && meshB) {
-      redTargetRef.current = meshA;
-      blueTargetRef.current = meshB;
-    } else {
 
-      const muscleGroup = scene.getObjectByName('Muscle');
-      if (muscleGroup) {
-        const meshes: Mesh[] = [];
-        muscleGroup.traverse((obj) => {
-          if (obj.type === 'SkinnedMesh') {
-            meshes.push(obj as Mesh);
-          }
-        });
-        
-        if (meshes.length >= 2) {
-          redTargetRef.current = meshes[0];
-          blueTargetRef.current = meshes[1];
-        }
-      }
+    if (muscle001Ref.current && muscle002Ref.current) {
+      setArmReady(true);
+      console.log('Both muscles found and ready');
     }
   }, [scene, group])
   
-
   useEffect(() => {
-    const meshA = redTargetRef.current
-    const meshB = blueTargetRef.current
-  
-  
+    if (!muscle001Ref.current || !muscle002Ref.current) return;
+
+    // 색상과 효과 업데이트
     if (actionName === 'fold') {
-      forceHighlightColor(meshA, 'red')
-      forceHighlightColor(meshB, 'blue')
+      forceHighlightColor(muscle001Ref.current, '#ff3333', true, pulseTimeA.current) // 빨간색 활성
+      forceHighlightColor(muscle002Ref.current, '#3333ff', false, pulseTimeB.current) // 파란색 비활성
     } else {
-      forceHighlightColor(meshA, 'blue')
-      forceHighlightColor(meshB, 'red')
+      forceHighlightColor(muscle001Ref.current, '#3333ff', false, pulseTimeA.current) // 파란색 비활성
+      forceHighlightColor(muscle002Ref.current, '#ff3333', true, pulseTimeB.current) // 빨간색 활성
     }
-  }, [actionName])
+  }, [actionName, armReady])
   
-
   useEffect(() => {
-    if (redTargetRef.current && blueTargetRef.current) {
-      armRefA.current = redTargetRef.current;
-      armRefB.current = blueTargetRef.current;
-      setArmReady(true);
-    } else {
-      const bicep = scene.getObjectByName('Bicep');
-      const tricep = scene.getObjectByName('Tricep');
-      
-      if (bicep && tricep) {
-        armRefA.current = bicep;
-        armRefB.current = tricep;
-        setArmReady(true);
-      }
-    }
-    
     // 그림자 설정
     scene.traverse((obj) => {
       obj.frustumCulled = false;
@@ -203,66 +217,76 @@ export default function AnimatedModel2({
     });
   }, [scene])
 
-  useFrame(({ camera }) => {
-    if (!armReady) return
+  useFrame(({ camera }, delta) => {
+    if (!armReady || !muscle001Ref.current || !muscle002Ref.current) return
+
+    // 펄스 애니메이션 업데이트
+    pulseTimeA.current += delta * 4; // 펄스 속도
+    pulseTimeB.current += delta * 4;
+
+    // 재질 업데이트 (펄스 효과)
+    if (actionName === 'fold') {
+      forceHighlightColor(muscle001Ref.current, '#ff3333', true, pulseTimeA.current)
+      forceHighlightColor(muscle002Ref.current, '#3333ff', false, pulseTimeB.current)
+    } else {
+      forceHighlightColor(muscle001Ref.current, '#3333ff', false, pulseTimeA.current)
+      forceHighlightColor(muscle002Ref.current, '#ff3333', true, pulseTimeB.current)
+    }
   
-    const updateTextAndLine = (
-      armRef: Object3D | null,
+    const updateText = (
+      meshRef: Mesh,
       textRef: Group | null,
-      lineRef: THREE.LineSegments | null,
-      offset: THREE.Vector3,
-      prevPosRef: React.MutableRefObject<THREE.Vector3>,
-      startPosition: [number, number, number]
+      textOffset: THREE.Vector3,
+      prevPosRef: React.MutableRefObject<THREE.Vector3>
     ) => {
-      if (!textRef || !lineRef) return
+      if (!textRef || !meshRef) return
   
-      const targetTextPos = new THREE.Vector3()
-      const startWorldPos = new THREE.Vector3(...startPosition)
+      // SkinnedMesh의 실시간 중심점 계산
+      const meshCenter = getSkinnedMeshCenter(meshRef)
       
-      if (armRef) {
-        const armWorldPos = new THREE.Vector3()
-        armRef.updateMatrixWorld(true)
-        armRef.getWorldPosition(armWorldPos)
-        targetTextPos.copy(armWorldPos).add(offset)
-      } else {
-        targetTextPos.copy(startWorldPos).add(offset)
-      }
-  
+      // 텍스트 위치 계산
+      const targetTextPos = new THREE.Vector3().copy(meshCenter).add(textOffset)
       prevPosRef.current.lerp(targetTextPos, 0.1)
       textRef.position.copy(prevPosRef.current)
   
+      // 텍스트가 카메라를 향하도록
       textRef.quaternion.copy(camera.quaternion)
-  
-      lineRef.geometry.setFromPoints([startWorldPos, prevPosRef.current])
-      lineRef.geometry.attributes.position.needsUpdate = true
     }
   
-    updateTextAndLine(
-      null, 
+    updateText(
+      muscle001Ref.current, 
       textRefA.current,
-      lineRefA.current,
       textOffsetA,
-      prevTextPosA,
-      lineStartPosA
+      prevTextPosA
     )
   
-    updateTextAndLine(
-      null, 
+    updateText(
+      muscle002Ref.current, 
       textRefB.current,
-      lineRefB.current,
       textOffsetB,
-      prevTextPosB,
-      lineStartPosB
+      prevTextPosB
     )
   })
-  
-  
 
   const getBalloonText = (isA: boolean) => {
     if (actionName === 'extend') {
       return isA ? '근육이 늘어나요' : '근육이 줄어들어요'
     } else {
       return isA ? '근육이 줄어들어요' : '근육이 늘어나요'
+    }
+  }
+
+  const getTextStyle = (isA: boolean) => {
+    const isActive = actionName === 'extend' ? isA : !isA;
+    
+    return {
+      color: isActive ? 'rgba(255, 100, 100, 0.95)' : 'rgba(100, 100, 255, 0.95)',
+      background : 'white',
+      padding: '6px 12px',
+      borderRadius: '6px',
+      fontSize: '32px',
+      whiteSpace: 'nowrap' as const,
+      fontWeight: isActive ? 'bold' : 'normal',
     }
   }
 
@@ -278,63 +302,23 @@ export default function AnimatedModel2({
             <Billboard ref={textRefA}>
               <Html
                 center
-                style={{
-                  background: 'rgba(255, 255, 255, 0.9)',
-                  padding: '4px 8px',
-                  borderRadius: '4px',
-                  fontSize: '12px',
-                  fontFamily: 'Arial, sans-serif',
-                  color: 'black',
-                  border: '1px solid #ccc',
-                  whiteSpace: 'nowrap'
-                }}
+                style={getTextStyle(true)}
               >
                 {getBalloonText(true)}
               </Html>
             </Billboard>
           </group>
-          <lineSegments ref={lineRefA}>
-            <bufferGeometry>
-              <bufferAttribute
-                attach="attributes-position"
-                count={2}
-                array={new Float32Array([0, 0, 0, 0, 0, 0])}
-                itemSize={3}
-              />
-            </bufferGeometry>
-            <lineBasicMaterial color="black" linewidth={2} />
-          </lineSegments>
 
           <group>
             <Billboard ref={textRefB}>
               <Html
                 center
-                style={{
-                  background: 'rgba(255, 255, 255, 0.9)',
-                  padding: '4px 8px',
-                  borderRadius: '4px',
-                  fontSize: '12px',
-                  fontFamily: 'Arial, sans-serif',
-                  color: 'black',
-                  border: '1px solid #ccc',
-                  whiteSpace: 'nowrap'
-                }}
+                style={getTextStyle(false)}
               >
                 {getBalloonText(false)}
               </Html>
             </Billboard>
           </group>
-          <lineSegments ref={lineRefB}>
-            <bufferGeometry>
-              <bufferAttribute
-                attach="attributes-position"
-                count={2}
-                array={new Float32Array([0, 0, 0, 0, 0, 0])}
-                itemSize={3}
-              />
-            </bufferGeometry>
-            <lineBasicMaterial color="black" linewidth={2} />
-          </lineSegments>
         </>
       )}
     </>

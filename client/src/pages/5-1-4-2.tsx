@@ -33,7 +33,7 @@ export default function Home() {
     <>
       <Canvas 
         shadows 
-        camera={{ position: [-0.1, 0.1, 0.5], fov: 50 }} 
+        camera={{ position: [-0.1, 0.1, 0.3], fov: 50 }} 
         style={{ width: '100vw', height: '100vh' }}
         gl={{ preserveDrawingBuffer: true }}
       >
@@ -47,29 +47,35 @@ export default function Home() {
           actionName={action}
           scale={1.5}
           position={[0, -0.35, 0]}
-          lineTargetPosA={lineTargetPosA}
-          lineTargetPosB={lineTargetPosB}
         />
 
         <Model/>
 
-        <OrbitControls />
+        <OrbitControls 
+          minAzimuthAngle={-Math.PI / 4}
+          maxAzimuthAngle={Math.PI / 4}
+          minPolarAngle={Math.PI / 3 + Math.PI / 10}
+          maxPolarAngle={Math.PI / 2}
+          minDistance={0.1} 
+          maxDistance={0.7}
+        />
+        
       </Canvas>
 
-      {/* Buttons */}
       <div style={{
         position: 'absolute',
         display: 'flex',
         bottom: '4%',
         left: '50%',
         transform: 'translateX(-50%)',
-        gap: '10px'
+        gap: '30px'
       }}>
         <button
           onClick={handleFold}
           style={{
-            backgroundColor: '#4CAF50',
-            color: 'white',
+            backgroundColor: 'white',
+            color: 'black',
+            fontSize: '32px',
             padding: '10px 20px',
             border: 'none',
             borderRadius: '8px',
@@ -81,8 +87,9 @@ export default function Home() {
         <button
           onClick={handleExtend}
           style={{
-            backgroundColor: '#4CAF50',
-            color: 'white',
+            backgroundColor: 'white',
+            color: 'black',
+            fontSize: '32px',
             padding: '10px 20px',
             border: 'none',
             borderRadius: '8px',
