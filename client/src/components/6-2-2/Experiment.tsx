@@ -27,9 +27,45 @@ export default function Experiment({ setUiText, lightCandle, setLightCandle }: E
   const [rightFlameOpacity, setRightFlameOpacity] = useState(1)
   const [rightFlameScale, setRightFlameScale] = useState(1)
 
-
   const [hovered, setHovered] = useState(false)
   useCursor(hovered)
+
+  // 타이머 참조 추가 (정리용)
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+
+  // 컴포넌트 언마운트 시 타이머 정리
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+      }
+    }
+  }, [])
+
+  // lightCandle이 false로 변경될 때 상태 초기화
+  useEffect(() => {
+    if (!lightCandle) {
+      // 모든 타이머 정리
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+        timeoutRef.current = null
+      }
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
+      
+      // 상태 초기화
+      setShowFlame(false)
+      setLeftFlameOpacity(1)
+      setRightFlameOpacity(1)
+      setRightFlameScale(1)
+    }
+  }, [lightCandle])
 
   // 버튼으로 촛불 켜기
   useEffect(() => {
@@ -37,26 +73,30 @@ export default function Experiment({ setUiText, lightCandle, setLightCandle }: E
       setShowFlame(true)
       setLeftFlameOpacity(1)
       setRightFlameOpacity(1)
+      setRightFlameScale(1)
       setUiText('촛불이 켜졌습니다! 2초 후 오른쪽 촛불이 사라집니다.')
       
-      setTimeout(() => {
-      let startTime = Date.now()
-      const fadeDuration = 2000
-      
-      const rightFadeInterval = setInterval(() => {
-        const elapsed = Date.now() - startTime
-        const progress = Math.min(elapsed / fadeDuration, 1)
-        const remaining = 1 - progress
+      timeoutRef.current = setTimeout(() => {
+        let startTime = Date.now()
+        const fadeDuration = 2000
         
-        setRightFlameOpacity(remaining)
-        setRightFlameScale(remaining) // scale도 함께 줄이기
-        
-        if (progress >= 1) {
-          clearInterval(rightFadeInterval)
-          setUiText('오른쪽 촛불이 꺼졌습니다!')
-        }
-      }, 16)
-    }, 2000)
+        intervalRef.current = setInterval(() => {
+          const elapsed = Date.now() - startTime
+          const progress = Math.min(elapsed / fadeDuration, 1)
+          const remaining = 1 - progress
+          
+          setRightFlameOpacity(remaining)
+          setRightFlameScale(remaining) // scale도 함께 줄이기
+          
+          if (progress >= 1) {
+            if (intervalRef.current) {
+              clearInterval(intervalRef.current)
+              intervalRef.current = null
+            }
+            setUiText('왼쪽 촛불이 꺼졌습니다!')
+          }
+        }, 16)
+      }, 2000)
     }
   }, [lightCandle, showFlame, setUiText])
 

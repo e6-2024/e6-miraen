@@ -27,6 +27,9 @@ export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
 
+  // 리셋을 위한 키 상태 추가
+  const [experimentKey, setExperimentKey] = useState(0)
+
   const playClickSound = (audioPath: string = '/sounds/Enter_Cute.mp3') => {
     try {
       const audio = new Audio(audioPath)
@@ -58,10 +61,12 @@ export default function Home() {
   }
 
   const handleResetCandle = () => {
+    // 모든 상태를 초기 값으로 리셋
     setLightCandle(false)
-    setUiText('촛불이 리셋되었습니다. 버튼을 클릭해서 다시 켜보세요!')
-    // 페이지 새로고침으로 완전 리셋
-    window.location.reload()
+    setUiText('버튼을 클릭해서 촛불을 켜보세요!')
+    
+    // Experiment 컴포넌트를 강제로 재렌더링하기 위해 key 변경
+    setExperimentKey(prev => prev + 1)
   }
 
   return (
@@ -80,6 +85,7 @@ export default function Home() {
         />
 
         <Experiment 
+          key={experimentKey} // key prop 추가로 컴포넌트 강제 재렌더링
           setUiText={setUiText} 
           lightCandle={lightCandle}
           setLightCandle={setLightCandle}
