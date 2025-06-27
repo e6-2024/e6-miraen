@@ -1,8 +1,10 @@
-// components/Light1.tsx
-import { useGLTF } from '@react-three/drei'
+import { useGLTF, useAnimations } from '@react-three/drei'
 import { GroupProps, ThreeEvent } from '@react-three/fiber'
 import { useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
+import { OrbitControls, ContactShadows, useProgress } from '@react-three/drei'
+import { Text } from '@react-three/drei'
+
 
 interface Light1Props extends GroupProps {
   lightIntensity?: number
@@ -12,29 +14,56 @@ export default function Light1({
   lightIntensity = 1.0,
   ...props
 }: Light1Props) {
-  // GLTF 로드
-  const { scene } = useGLTF('models/6-2-3/Light_1.gltf')
   const groupRef = useRef<THREE.Group>(null)
-
-  // 불 켜짐 여부 상태
+  const { scene, animations } = useGLTF('models/6-2-3/Light_1.gltf')
+  const { actions, mixer } = useAnimations(animations, groupRef)
   const [lightOn, setLightOn] = useState(false)
 
-  // 스위치 그룹 회전으로 시각적 토글 표현
+  // 애니메이션 제어
   useEffect(() => {
-    const switchGroup = scene.getObjectByName('Switch') as THREE.Group | undefined
-    if (switchGroup) {
-      switchGroup.rotation.x = lightOn ? Math.PI / 6 : 0
+    if (actions && Object.keys(actions).length > 0) {
+      const actionName = Object.keys(actions)[0] // 첫 번째 애니메이션 사용
+      const action = actions[actionName]
+      
+      if (action) {
+        const animationDuration = action.getClip().duration
+        const halfDuration = animationDuration / 2
+        
+        action.reset()
+        action.setLoop(THREE.LoopOnce, 1)
+        action.clampWhenFinished = true
+        action.timeScale = 1
+        
+        if (lightOn) {
+          // 스위치 닫기 (0초부터 절반까지)
+          action.time = 0
+          action.play()
+          // 절반 지점에서 멈추기 위한 타이머
+          setTimeout(() => {
+            if (action) {
+              action.paused = true
+            }
+          }, halfDuration * 1000)
+        } else {
+          // 스위치 열기 (절반부터 끝까지)
+          action.time = halfDuration
+          action.play()
+        }
+      }
     }
-  }, [lightOn, scene])
+  }, [lightOn, actions])
 
-  // 클릭 이벤트 핸들러: 클릭된 오브젝트가 Switch 그룹 하위인지 검사
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
-    e.stopPropagation()  // 이벤트 전파 차단
+    e.stopPropagation()
+    e.nativeEvent.stopImmediatePropagation()
+    
     let obj: THREE.Object3D | null = e.object
+    
     while (obj) {
-      if (obj.name === 'Switch') {
+      if (obj.name === 'Switch' && scene.getObjectById(obj.id)) {
+        console.log('Light1 Switch clicked - toggling light and animation')
         setLightOn((prev) => !prev)
-        break
+        return
       }
       obj = obj.parent
     }
@@ -42,13 +71,16 @@ export default function Light1({
 
   return (
     <group ref={groupRef} {...props}>
-      {/* GLTF 전체를 렌더링하며 클릭 리스너 연결 */}
       <primitive
         object={scene}
         onPointerDown={handlePointerDown}
+        onClick={(e: ThreeEvent<MouseEvent>) => {
+          e.stopPropagation()
+          e.nativeEvent.stopImmediatePropagation()
+        }}
       />
 
-      {/* 전구 발광체: lightOn에 따라 emissiveIntensity와 opacity 조절 */}
+      {/* 전구 발광체 */}
       <mesh position={[0.1, 1.0, -2.0]}>
         <sphereGeometry args={[0.03, 16, 16]} />
         <meshStandardMaterial
@@ -60,7 +92,18 @@ export default function Light1({
         />
       </mesh>
 
-      {/* 실제 조명 역할을 하는 포인트 라이트 */}
+          <Text
+            position={[5, 3, 3]} // 스위치 위쪽 위치
+            fontSize={0.3}
+            color="white"
+            anchorX="center"
+            anchorY="middle"
+          >
+            스위치를 눌러보세요!
+          </Text>
+
+
+      {/* 포인트 라이트 */}
       <pointLight
         position={[0.1, 1.0, -2.0]}
         intensity={lightOn ? lightIntensity * 2 : 0}

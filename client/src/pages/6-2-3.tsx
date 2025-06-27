@@ -60,49 +60,42 @@ export default function Home() {
     }, 300) // 300ms 지연
   }
 
-  // 컴포넌트들을 memoize하여 불필요한 재렌더링 방지
-  const lightComponents = useMemo(() => (
-    <>
-      <Light1 
-        key="light1"
-        scale={1} 
-        position={[-5, -0.1, 0]} 
-        lightIntensity={light1Intensity}
-      />
-      <Light2 
-        key="light2"
-        scale={1} 
-        position={[5, -0.1, 0]} 
-        lightIntensity={light2Intensity}
-      />
-    </>
-  ), [light1Intensity, light2Intensity])
-
-  const buzzerComponents = useMemo(() => (
-    <>
-      <Buzzer1 key="buzzer1" scale={1} position={[-5, -0.1, 0]} />
-      <Buzzer2 key="buzzer2" scale={1} position={[5, -0.1, 0]} />
-    </>
-  ), [])
-
-  const fanComponents = useMemo(() => (
-    <>
-      <Fan1 key="fan1" scale={1} position={[-5, -0.1, 0]} />
-      <Fan2 key="fan2" scale={1} position={[5, -0.1, 0]} />
-    </>
-  ), [])
-
-  // 현재 모드에 따른 컴포넌트 선택
+  // 현재 모드에 따라 컴포넌트를 조건부 렌더링 (visible 대신 완전히 제거)
   const getCurrentComponents = () => {
     switch (mode) {
       case 'light':
-        return lightComponents
+        return (
+          <>
+            <Light1 
+              key="light1"
+              scale={1} 
+              position={[-5, -0.1, 0]} 
+              lightIntensity={light1Intensity}
+            />
+            <Light2 
+              key="light2"
+              scale={1} 
+              position={[5, -0.1, 0]} 
+              lightIntensity={light2Intensity}
+            />
+          </>
+        )
       case 'buzzer':
-        return buzzerComponents
+        return (
+          <>
+            <Buzzer1 key="buzzer1" scale={1} position={[-5, -0.1, 0]} />
+            <Buzzer2 key="buzzer2" scale={1} position={[5, -0.1, 0]} />
+          </>
+        )
       case 'fan':
-        return fanComponents
+        return (
+          <>
+            <Fan1 key="fan1" scale={1} position={[-5, -0.1, 0]} />
+            <Fan2 key="fan2" scale={1} position={[5, -0.1, 0]} />
+          </>
+        )
       default:
-        return lightComponents
+        return null
     }
   }
 
@@ -147,9 +140,9 @@ export default function Home() {
       {/* 3D Scene */}
       <div className="flex-1 relative overflow-hidden">
         <Scene
-          key={mode}
+          key={mode} // 모드 변경 시 Scene 전체를 리렌더링
           shadows 
-          camera={{ position: [0, 12, 15], fov: 50 }}
+          camera={{ position: [0, 10, 15], fov: 50 }}
         >
           <LoadingTracker onLoadingComplete={handleLoadingComplete} />
           
@@ -177,26 +170,13 @@ export default function Home() {
             shadow-camera-bottom={-10}
           />
 
-          {/* 모드별 컴포넌트 렌더링 - 모든 모드를 렌더링하되 visible로 제어 */}
-          <group visible={mode === 'light'}>
-            {lightComponents}
-          </group>
-          
-          <group visible={mode === 'buzzer'}>
-            {buzzerComponents}
-          </group>
-          
-          <group visible={mode === 'fan'}>
-            {fanComponents}
-          </group>
+          {/* 현재 모드의 컴포넌트만 렌더링 */}
+          {getCurrentComponents()}
 
           <OrbitControls 
-            enablePan={!showIntro} // Intro가 보일 때는 OrbitControls 비활성화
-            enableZoom={!showIntro}
-            enableRotate={!showIntro}
+            enablePan={!showIntro}
             minDistance={5}
             maxDistance={30}
-            maxPolarAngle={Math.PI / 2}
           />
         </Scene>
       </div>
