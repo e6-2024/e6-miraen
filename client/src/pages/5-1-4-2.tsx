@@ -3,6 +3,7 @@ import { OrbitControls, AccumulativeShadows, RandomizedLight, Environment, Perfo
 import AnimatedModel2 from '../components/AnimatedModel2'
 import { useState } from 'react'
 import { Model } from '@/components/5-1-4-2/Model'
+import Link from 'next/link'
 
 export default function Home() {
   const [action, setAction] = useState<'extend' | 'fold'>('fold')
@@ -61,6 +62,13 @@ export default function Home() {
         />
         
       </Canvas>
+      <div className='absolute top-2 left-2'>
+        <Link href="/5-1-4">
+          <button className="px-4 py-2 bg-white-500 text-black rounded hover:bg-black hover:text-white">
+            되돌아가기
+          </button>
+        </Link>
+      </div>
 
       <div style={{
         position: 'absolute',

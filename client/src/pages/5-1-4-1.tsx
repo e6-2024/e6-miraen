@@ -3,7 +3,7 @@ import { OrbitControls, useGLTF } from '@react-three/drei'
 import AnimatedModel from '../components/AnimatedModel'
 import { useState, useEffect } from 'react'
 import {Model} from '@/components/5-1-4-2/Model'
-
+import Link from 'next/link'
 
 type ModelType = 'boy' | 'muscle' | 'bone'
 type AnimationState = 'walk' | 'pose'
@@ -177,7 +177,13 @@ export default function Home() {
         <OrbitControls minDistance={0.23} maxDistance={0.53} />
       </Canvas>
 
-      {/* UI */}
+      <div className='absolute top-2 left-2'>
+        <Link href="/5-1-4">
+          <button className="px-4 py-2 bg-white-500 text-black rounded hover:bg-black hover:text-white">
+            되돌아가기
+          </button>
+        </Link>
+      </div>
       <div
         style={{
           position: 'absolute',
