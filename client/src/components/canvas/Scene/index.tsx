@@ -43,7 +43,7 @@ const LoadingProgressSimple = () => {
       <S.LoadingContainer>
         <S.LottieContainer>
           <DotLottieReact
-            src="/animations/loading.lottie"
+            src="/animations/loading.json"
             loop
             autoplay
           />
