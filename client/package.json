@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@andersonmancini/lens-flare": "^1.0.1",
+    "@lottiefiles/dotlottie-react": "^0.14.2",
     "@react-spring/three": "^10.0.0",
     "@react-three/cannon": "^6.6.0",
     "@react-three/drei": "^9.56.15",

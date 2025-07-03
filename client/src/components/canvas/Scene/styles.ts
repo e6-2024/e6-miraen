@@ -24,6 +24,69 @@ export const LoadingContainer = styled.div`
   `}
 `
 
+// 로티 애니메이션 컨테이너
+export const LottieContainer = styled.div`
+  ${tw`
+    w-64
+    h-64
+    mb-4
+    flex
+    justify-center
+    items-center
+  `}
+`
+
+// 프로그레스 바와 로티 애니메이션을 함께 표시하는 래퍼
+export const ProgressWrapper = styled.div`
+  ${tw`
+    relative
+    w-full
+    my-4
+  `}
+`
+
+// 로티 애니메이션 오버레이
+export const LottieOverlay = styled.div`
+  ${tw`
+    absolute
+    top-1/2
+    left-1/2
+    transform
+    -translate-x-1/2
+    -translate-y-1/2
+    pointer-events-none
+    z-10
+    w-16
+    h-16
+  `}
+`
+
+// 컴팩트한 로딩 UI를 위한 스타일
+export const CompactWrapper = styled.div`
+  ${tw`
+    flex
+    items-center
+    gap-5
+    md:flex-row
+    flex-col
+    md:gap-5
+    gap-4
+  `}
+  
+  > div:first-child {
+    ${tw`w-20 h-20`}
+  }
+`
+
+export const LoadingInfo = styled.div`
+  ${tw`
+    flex
+    flex-col
+    items-center
+    min-w-[200px]
+  `}
+`
+
 export const LoadingText = styled.div`
   ${tw`
     text-lg
@@ -38,11 +101,13 @@ export const ProgressBarContainer = styled.div`
     h-2
     rounded-full
     overflow-hidden
+    md:w-64
+    w-60
   `}
   background-color: rgba(0, 0, 0, 0.1);
 `
 
-export const ProgressBar = styled.div`
+export const ProgressBar = styled.div<{ progress: number }>`
   ${tw`
     h-full
     rounded-full
@@ -58,6 +123,7 @@ export const PercentageText = styled.div`
   ${tw`
     text-sm
     font-mono
+    text-center
   `}
   color: #6b7280;
 `

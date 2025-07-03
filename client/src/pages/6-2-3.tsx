@@ -142,7 +142,7 @@ export default function Home() {
         <Scene
           key={mode} // 모드 변경 시 Scene 전체를 리렌더링
           shadows 
-          camera={{ position: [0, 10, 15], fov: 50 }}
+          camera={{ position: [10, 8, 15], fov: 50 }}
         >
           <LoadingTracker onLoadingComplete={handleLoadingComplete} />
           
@@ -174,7 +174,10 @@ export default function Home() {
           {getCurrentComponents()}
 
           <OrbitControls 
-            enablePan={!showIntro}
+            enabled={!showIntro}  // Intro가 보일 때만 비활성화
+            enablePan={true}      // 항상 pan 허용
+            enableRotate={true}   // 항상 회전 허용
+            enableZoom={true}     // 항상 줌 허용
             minDistance={5}
             maxDistance={30}
           />

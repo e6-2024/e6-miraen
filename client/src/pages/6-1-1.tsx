@@ -269,10 +269,9 @@ export default function Home() {
       )}
 
       <Scene camera={{ position: initialCamera.position, fov: 50 }}>
-        {/* 로딩 추적 컴포넌트 추가 */}
         <LoadingTracker onLoadingComplete={handleLoadingComplete} />
         
-        <ambientLight intensity={0.6} />
+        <ambientLight intensity={1.0} />
         <directionalLight position={[2, 2, 2]} intensity={1} />
         <Model scale={1} position={[0, 0, 0]} splashOpacities={splashOpacities} />
 
