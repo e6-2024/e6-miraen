@@ -1,4 +1,4 @@
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 import tw from 'twin.macro'
 
 export const SpinnerCover = styled.div`
@@ -24,7 +24,6 @@ export const LoadingContainer = styled.div`
   `}
 `
 
-// 로티 애니메이션 컨테이너
 export const LottieContainer = styled.div`
   ${tw`
     w-64
@@ -45,7 +44,7 @@ export const ProgressWrapper = styled.div`
   `}
 `
 
-// 로티 애니메이션 오버레이
+// 로티 애니메이션 오버레이 - 크기 증가
 export const LottieOverlay = styled.div`
   ${tw`
     absolute
@@ -56,12 +55,12 @@ export const LottieOverlay = styled.div`
     -translate-y-1/2
     pointer-events-none
     z-10
-    w-16
-    h-16
+    w-24
+    h-24
   `}
 `
 
-// 컴팩트한 로딩 UI를 위한 스타일
+// 컴팩트한 로딩 UI를 위한 스타일 - 크기 증가
 export const CompactWrapper = styled.div`
   ${tw`
     flex
@@ -74,7 +73,7 @@ export const CompactWrapper = styled.div`
   `}
   
   > div:first-child {
-    ${tw`w-20 h-20`}
+    ${tw`w-32 h-32`}
   }
 `
 
@@ -126,4 +125,22 @@ export const PercentageText = styled.div`
     text-center
   `}
   color: #6b7280;
+`
+
+// 로티 로딩 실패 시 사용할 CSS 스피너 애니메이션
+const spin = keyframes`
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+`
+
+export const FallbackSpinner = styled.div`
+  ${tw`
+    w-16
+    h-16
+    border-4
+    border-blue-200
+    rounded-full
+  `}
+  border-top-color: #3b82f6;
+  animation: ${spin} 1s ease-in-out infinite;
 `

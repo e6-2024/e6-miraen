@@ -5,23 +5,24 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Cloud, Html, OrbitControls, OrthographicCamera, Preload, useProgress } from '@react-three/drei'
 import { DotLottieReact } from '@lottiefiles/dotlottie-react'
 
-// 로딩 프로그레스 컴포넌트 (로티 애니메이션 포함)
 const LoadingProgress = () => {
   const { progress, active, loaded, total } = useProgress()
 
   return (
     <S.SpinnerCover>
       <S.LoadingContainer>
-        {/* 로티 애니메이션 추가 */}
+        {/* 로컬 dotLottie 파일 사용 */}
         <S.LottieContainer>
           <DotLottieReact
-            src="https://lottie.host/ccf3930c-5aac-4b8b-8586-fcf219882a21/VVUV7mJFAl.lottie"
+            src="/animations/loading.lottie"
             loop
             autoplay
+            // 로딩 실패 시 대체 콘텐츠
+            renderConfig={{
+              freezeOnOffscreen: false            
+            }}
           />
         </S.LottieContainer>
-        
-        <S.LoadingText>Loading...</S.LoadingText>
         <S.ProgressBarContainer>
           <S.ProgressBar progress={progress} />
         </S.ProgressBarContainer>
@@ -40,11 +41,13 @@ const LoadingProgressSimple = () => {
   return (
     <S.SpinnerCover>
       <S.LoadingContainer>
-        <DotLottieReact
-          src="https://lottie.host/ccf3930c-5aac-4b8b-8586-fcf219882a21/VVUV7mJFAl.lottie"
-          loop
-          autoplay
-        />
+        <S.LottieContainer>
+          <DotLottieReact
+            src="/animations/loading.lottie"
+            loop
+            autoplay
+          />
+        </S.LottieContainer>
         <S.LoadingText>Loading... {Math.round(progress)}%</S.LoadingText>
       </S.LoadingContainer>
     </S.SpinnerCover>
@@ -67,7 +70,7 @@ const LoadingProgressWithOverlay = () => {
           
           <S.LottieOverlay>
             <DotLottieReact
-              src="https://lottie.host/ccf3930c-5aac-4b8b-8586-fcf219882a21/VVUV7mJFAl.lottie"
+              src="/animations/loading.lottie"
               loop
               autoplay
             />
@@ -91,7 +94,7 @@ const LoadingProgressCompact = () => {
       <S.LoadingContainer>
         <S.CompactWrapper>
           <DotLottieReact
-            src="https://lottie.host/ccf3930c-5aac-4b8b-8586-fcf219882a21/VVUV7mJFAl.lottie"
+            src="/assets/animations/loading.lottie"
             loop
             autoplay
           />
@@ -111,6 +114,42 @@ const LoadingProgressCompact = () => {
   )
 }
 
+const LoadingProgressRandom = () => {
+  const { progress, active, loaded, total } = useProgress()
+  const [selectedAnimation, setSelectedAnimation] = useState('')
+
+  useEffect(() => {
+    // 여러 애니메이션 중 랜덤 선택
+    const animations = [
+      '/assets/animations/loading1.lottie',
+      '/assets/animations/loading2.lottie',
+      '/assets/animations/loading3.lottie',
+    ]
+    const randomAnimation = animations[Math.floor(Math.random() * animations.length)]
+    setSelectedAnimation(randomAnimation)
+  }, [])
+
+  return (
+    <S.SpinnerCover>
+      <S.LoadingContainer>
+        <S.LottieContainer>
+          <DotLottieReact
+            src={selectedAnimation}
+            loop
+            autoplay
+          />
+        </S.LottieContainer>
+        <S.ProgressBarContainer>
+          <S.ProgressBar progress={progress} />
+        </S.ProgressBarContainer>
+        <S.PercentageText>
+          {Math.round(progress)}% ({loaded}/{total})
+        </S.PercentageText>
+      </S.LoadingContainer>
+    </S.SpinnerCover>
+  )
+}
+
 const Scene = ({ children, ...props }) => {
   const canvasRef = useRef()
   return (
@@ -119,7 +158,7 @@ const Scene = ({ children, ...props }) => {
         <Suspense
           fallback={
             <Html center>
-              <LoadingProgress />
+              <LoadingProgressSimple />
             </Html>
           }>
           {children}
