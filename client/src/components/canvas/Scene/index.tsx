@@ -17,7 +17,7 @@ const LoadingProgressSimple = () => {
       <S.LoadingContainer>
         <S.LottieContainer>
           {!lottieError ? (
-            <Lottie loop animationData={lottieJson} play />
+            <Lottie loop animationData={lottieJson} play goTo={150}/>
           ) : (
             <S.FallbackSpinner />
           )}
