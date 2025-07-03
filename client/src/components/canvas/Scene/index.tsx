@@ -5,48 +5,56 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Cloud, Html, OrbitControls, OrthographicCamera, Preload, useProgress } from '@react-three/drei'
 import { DotLottieReact } from '@lottiefiles/dotlottie-react'
 
-const LoadingProgress = () => {
-  const { progress, active, loaded, total } = useProgress()
-
-  return (
-    <S.SpinnerCover>
-      <S.LoadingContainer>
-        {/* 로컬 dotLottie 파일 사용 */}
-        <S.LottieContainer>
-          <DotLottieReact
-            src="/animations/loading.lottie"
-            loop
-            autoplay
-            // 로딩 실패 시 대체 콘텐츠
-            renderConfig={{
-              freezeOnOffscreen: false            
-            }}
-          />
-        </S.LottieContainer>
-        <S.ProgressBarContainer>
-          <S.ProgressBar progress={progress} />
-        </S.ProgressBarContainer>
-        <S.PercentageText>
-          {Math.round(progress)}% ({loaded}/{total})
-        </S.PercentageText>
-      </S.LoadingContainer>
-    </S.SpinnerCover>
-  )
-}
-
-// 대안 1: 로티만 사용하는 심플한 버전
+// 방법 1: 절대 경로 사용 (추천)
 const LoadingProgressSimple = () => {
   const { progress, active, loaded, total } = useProgress()
+  const [lottieError, setLottieError] = useState(false)
+  const [lottieLoaded, setLottieLoaded] = useState(false)
+
+  // 배포 환경에 맞는 경로 설정
+  const getLottiePath = () => {
+    // Vercel, Netlify 등 배포 환경에서는 절대 경로 사용
+    const basePath = process.env.NODE_ENV === 'production' 
+      ? `${window.location.origin}/assets/animations/loading.lottie`
+      : '/assets/animations/loading.lottie'
+    
+    return basePath
+  }
+
+  // 파일 존재 여부 체크
+  useEffect(() => {
+    const checkFile = async () => {
+      try {
+        const response = await fetch(getLottiePath(), { method: 'HEAD' })
+        if (!response.ok) {
+          setLottieError(true)
+        }
+      } catch (error) {
+        console.error('Lottie file not accessible:', error)
+        setLottieError(true)
+      }
+    }
+    
+    checkFile()
+  }, [])
 
   return (
     <S.SpinnerCover>
       <S.LoadingContainer>
         <S.LottieContainer>
-          <DotLottieReact
-            src="/animations/loading.json"
-            loop
-            autoplay
-          />
+          {!lottieError ? (
+            <DotLottieReact
+              src={getLottiePath()}
+              loop
+              autoplay
+              style={{
+                width: '100%',
+                height: '100%',
+              }}
+            />
+          ) : (
+            <S.FallbackSpinner />
+          )}
         </S.LottieContainer>
         <S.LoadingText>Loading... {Math.round(progress)}%</S.LoadingText>
       </S.LoadingContainer>
@@ -54,101 +62,6 @@ const LoadingProgressSimple = () => {
   )
 }
 
-// 대안 2: 프로그레스 바 위에 오버레이
-const LoadingProgressWithOverlay = () => {
-  const { progress, active, loaded, total } = useProgress()
-
-  return (
-    <S.SpinnerCover>
-      <S.LoadingContainer>
-        <S.LoadingText>Loading...</S.LoadingText>
-        
-        <S.ProgressWrapper>
-          <S.ProgressBarContainer>
-            <S.ProgressBar progress={progress} />
-          </S.ProgressBarContainer>
-          
-          <S.LottieOverlay>
-            <DotLottieReact
-              src="/animations/loading.lottie"
-              loop
-              autoplay
-            />
-          </S.LottieOverlay>
-        </S.ProgressWrapper>
-        
-        <S.PercentageText>
-          {Math.round(progress)}% ({loaded}/{total})
-        </S.PercentageText>
-      </S.LoadingContainer>
-    </S.SpinnerCover>
-  )
-}
-
-// 대안 3: 컴팩트한 가로 배치
-const LoadingProgressCompact = () => {
-  const { progress, active, loaded, total } = useProgress()
-
-  return (
-    <S.SpinnerCover>
-      <S.LoadingContainer>
-        <S.CompactWrapper>
-          <DotLottieReact
-            src="/assets/animations/loading.lottie"
-            loop
-            autoplay
-          />
-          
-          <S.LoadingInfo>
-            <S.LoadingText>Loading...</S.LoadingText>
-            <S.ProgressBarContainer>
-              <S.ProgressBar progress={progress} />
-            </S.ProgressBarContainer>
-            <S.PercentageText>
-              {Math.round(progress)}%
-            </S.PercentageText>
-          </S.LoadingInfo>
-        </S.CompactWrapper>
-      </S.LoadingContainer>
-    </S.SpinnerCover>
-  )
-}
-
-const LoadingProgressRandom = () => {
-  const { progress, active, loaded, total } = useProgress()
-  const [selectedAnimation, setSelectedAnimation] = useState('')
-
-  useEffect(() => {
-    // 여러 애니메이션 중 랜덤 선택
-    const animations = [
-      '/assets/animations/loading1.lottie',
-      '/assets/animations/loading2.lottie',
-      '/assets/animations/loading3.lottie',
-    ]
-    const randomAnimation = animations[Math.floor(Math.random() * animations.length)]
-    setSelectedAnimation(randomAnimation)
-  }, [])
-
-  return (
-    <S.SpinnerCover>
-      <S.LoadingContainer>
-        <S.LottieContainer>
-          <DotLottieReact
-            src={selectedAnimation}
-            loop
-            autoplay
-          />
-        </S.LottieContainer>
-        <S.ProgressBarContainer>
-          <S.ProgressBar progress={progress} />
-        </S.ProgressBarContainer>
-        <S.PercentageText>
-          {Math.round(progress)}% ({loaded}/{total})
-        </S.PercentageText>
-      </S.LoadingContainer>
-    </S.SpinnerCover>
-  )
-}
 
 const Scene = ({ children, ...props }) => {
   const canvasRef = useRef()
