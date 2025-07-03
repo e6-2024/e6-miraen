@@ -15,8 +15,8 @@ const LoadingProgressSimple = () => {
   const getLottiePath = () => {
     // Vercel, Netlify 등 배포 환경에서는 절대 경로 사용
     const basePath = process.env.NODE_ENV === 'production' 
-      ? `${window.location.origin}/assets/animations/loading.lottie`
-      : '/assets/animations/loading.lottie'
+      ? `${window.location.origin}/animations/loading.lottie`
+      : '/animations/loading.lottie'
     
     return basePath
   }
