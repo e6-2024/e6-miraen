@@ -49,14 +49,7 @@ export default function Intro2({
 
           {/* 텍스트와 아이콘 */}
           <div className="absolute top-[80px] left-1/2 transform -translate-x-1/2 z-10 w-[600px] max-w-full text-center flex flex-col items-center">
-            <div className="w-[86px] h-[86px] mb-4">
-              <img
-                src={symbolSvgPath}
-                alt="symbol"
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <h1 className="text-4xl font-black mb-4 text-black leading-tight">
+            <h1 className="text-4xl mb-4 text-black leading-tight">
               {title}
             </h1>
             <div className="text-base text-blue-700 leading-relaxed">
@@ -69,15 +62,8 @@ export default function Intro2({
       {/* Mobile Layout */}
       <div className="md:hidden w-full h-full bg-white bg-opacity-90 backdrop-blur-sm pointer-events-auto">
         <div className="w-full h-full flex flex-col items-center justify-center px-6 py-8 text-center">
-          <div className="w-20 h-20 mb-6">
-            <img 
-              src={symbolSvgPath} 
-              alt="symbol" 
-              className="w-full h-full object-contain"
-            />
-          </div>
 
-          <h1 className="text-3xl sm:text-4xl font-black mb-4 text-black leading-tight">
+          <h1 className="text-3xl sm:text-4xl mb-4 text-black leading-tight">
             {title}
           </h1>
 

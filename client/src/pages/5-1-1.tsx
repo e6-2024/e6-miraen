@@ -1,4 +1,4 @@
-import { OrbitControls, useGLTF, Environment, useProgress } from '@react-three/drei'
+import { OrbitControls, useGLTF, Environment, useProgress, Sky } from '@react-three/drei'
 import { useThree, useFrame } from '@react-three/fiber'
 import Model from '../components/5-1-1/Model'
 import Ocean from '../components/5-1-1/Ocean'
@@ -8,9 +8,11 @@ import * as THREE from 'three'
 import CameraLogger from '@/components/CameraLogger'
 import Scene from '@/components/canvas/Scene'
 import Intro from '@/components/intro/Intro'
+import { EffectComposer, TiltShift2, N8AO} from '@react-three/postprocessing'
+import { BlendFunction } from 'postprocessing'
+
 
 const modelPaths = [
-  'models/5-1-1/0/Dino.gltf',
   'models/5-1-1/1/Dino.gltf',
   'models/5-1-1/2/Dino.gltf',
   'models/5-1-1/3/Dino.gltf',
@@ -18,11 +20,10 @@ const modelPaths = [
 ]
 
 const sceneDescriptions = [
-  "공룡이 살아있을 때의 모습입니다",
-  "죽은 생물의 몸체가 호수나 바다에 가라 앉습니다",
-  "생물의 몸체 위로 퇴적물이 빠르게 쌓입니다", 
-  "퇴적물이 계속 쌓여 지층이 만들어지고, 지층 속에 있던 생물의 몸체는 화석이 됩니다",
-  "지층이 드러난 다음 지층이 깎여 화석이 보입니다"
+  "공룡이 살아있을 때의 모습입니다.",
+  "죽은 공룡의 몸체가 호수나 바다 밑에 가라 앉습니다.",
+  "시간이 지나면서 죽은 생물의 몸체 위로 퇴적물이 쌓입니다.", 
+  "시간이 지나 지층이 깎여서 사라지면 지층 속에 있던 화석이 지표에 드러나 발견됩니다."
 ]
 
 // 로딩 상태를 추적하는 컴포넌트
@@ -77,7 +78,7 @@ function BoxWithoutTop({ position = [0, 0, 0] as [number, number, number]  }) {
 }
 
 const cameraPositions = [
-  new THREE.Vector3(-34.01, 3.108, -5.557), //씬 0
+  new THREE.Vector3(-30.01, 3.108, -5.557), //씬 0
   new THREE.Vector3(14, 19, 14),   // 씬 1
   new THREE.Vector3(14, 19, 14),   // 씬 2
   new THREE.Vector3(10.45, 4.68, 4.93),   // 씬 3
@@ -97,7 +98,6 @@ function SceneCameraController({ sceneIndex }: { sceneIndex: number }) {
   return null
 }
 
-// 애니메이션 컨트롤러 컴포넌트
 function AnimationController({ 
   sceneIndex, 
   modelLoaded, 
@@ -145,8 +145,6 @@ function AnimationController({
 
   return null
 }
-
-// Scene 내부의 모든 컨텐츠
 function SceneContent({ 
   sceneIndex, 
   modelLoaded, 
@@ -166,14 +164,12 @@ function SceneContent({
   showWater: boolean
   showIntro: boolean
 }) {
-  // 디버깅을 위한 로그 추가
   console.log('SceneContent rendering:', {
     sceneIndex,
     modelPath: modelPaths[sceneIndex],
     pathExists: !!modelPaths[sceneIndex]
   })
 
-  // 유효한 sceneIndex인지 확인
   if (sceneIndex < 0 || sceneIndex >= modelPaths.length) {
     console.error('Invalid sceneIndex:', sceneIndex)
     return null
@@ -188,49 +184,29 @@ function SceneContent({
 
   return (
     <>
-      {/* 로딩 추적 컴포넌트 추가 */}
-      <LoadingTracker onLoadingComplete={() => {}} />
-      
       <SceneCameraController sceneIndex={sceneIndex} />
       <AnimationController 
         sceneIndex={sceneIndex}
         modelLoaded={modelLoaded}
         onWaterLevelUpdate={handleWaterLevelUpdate}
       />
-      <CameraLogger />
-
+      
       {!showWater && (
         <>
-          <ambientLight intensity={0.3} />
-          <directionalLight 
-            castShadow 
-            position={[10, 20, 5]} 
-            intensity={1.2}
-            shadow-mapSize-width={2048}
-            shadow-mapSize-height={2048}
-            shadow-camera-left={-20}
-            shadow-camera-right={20}
-            shadow-camera-top={20}
-            shadow-camera-bottom={-20}
-            shadow-camera-near={0.1}
-            shadow-camera-far={50}
-            shadow-bias={-0.0001}
-          />
-          <pointLight 
-            position={[-10, 10, -10]} 
-            intensity={0.5}
-            castShadow
-            shadow-mapSize-width={1024}
-            shadow-mapSize-height={1024}
-          />
+          <fog attach="fog" args={['black', 0, 3000]} />
+          <hemisphereLight intensity={0.5} color="white" groundColor="#f88" />
+          <directionalLight color="orange" intensity={2} position={[30, 20, 30]} castShadow shadow-mapSize={1024} shadow-bias={-0.0004}>
+          </directionalLight>
+          <EffectComposer multisampling={8}>
+          <N8AO aoRadius={10} distanceFalloff={0.9} intensity={3} screenSpaceRadius halfRes />
+            <TiltShift2 />
+          </EffectComposer>
+          <Sky />
         </>
       )}
 
-      <fogExp2 attach="fog" args={['#001122', 0.01]} />
-
-      {/* 모델 로딩 - 안전성 검사 추가 */}
       <Model
-        key={`${sceneIndex}-${currentModelPath}`} // 더 구체적인 key
+        key={`${sceneIndex}-${currentModelPath}`}
         path={currentModelPath}
         scale={3.7}
         position={modelPosition}
@@ -248,27 +224,30 @@ function SceneContent({
             waterLevel={waterLevel}
           />
           <BoxWithoutTop />
-
           <UnderwaterEnvironment sceneIndex={sceneIndex} />
         </>
       )}
 
-      <Environment preset='sunset' />
+      {/* 커스텀 Environment 설정 */}
+      <Environment 
+        preset='sunset'
+        background
+        blur={0.6}
+      />
 
       {!showWater && (
         <mesh 
           position={[0, -2, 0]} 
           rotation={[-Math.PI / 2, 0, 0]} 
           receiveShadow
-        />
+        >
+        </mesh>
       )}
 
       <OrbitControls 
-        enablePan={!showIntro} // Intro가 보일 때는 OrbitControls 비활성화
+        enablePan={!showIntro}
         enableZoom={!showIntro}
         enableRotate={!showIntro}
-        minDistance={10}
-        maxDistance={100}
       />
     </>
   )
@@ -284,7 +263,7 @@ export default function FossilViewer() {
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
 
-  const showWater = sceneIndex === 1 || sceneIndex === 2
+  const showWater = sceneIndex === 1
 
   // 전체 모델 프리로드
   useEffect(() => {
@@ -315,7 +294,7 @@ export default function FossilViewer() {
   }
 
   const modelPosition: [number, number, number] = 
-    sceneIndex === 2
+    sceneIndex === 1
       ? [-2.0, -7, -2.0]
       : [1.5, -7, -2.0]
 
@@ -351,16 +330,16 @@ export default function FossilViewer() {
 
 
   return (
-    <div className="w-screen h-screen bg-black flex flex-col overflow-hidden">
+    <div className="w-screen h-screen flex flex-col overflow-hidden">
       {/* 상단 컨트롤 패널 - Intro가 보일 때는 숨김 */}
       {!showIntro && (
         <div className="flex justify-center gap-2 p-4 bg-gray-900/90 text-white z-10">
-          {[0, 1, 2, 3, 4].map((num) => (
+          {[1, 2, 3, 4].map((num) => (
             <button
-              key={num}
-              onClick={() => setSceneIndex(num)}
+              key={num-1}
+              onClick={() => setSceneIndex(num-1)}
               className={`px-4 py-2 rounded-lg transition-all ${
-                sceneIndex === num 
+                sceneIndex === num -1
                   ? 'bg-blue-500 shadow-lg' 
                   : 'bg-gray-700/80 hover:bg-gray-600'
               }`}
@@ -383,7 +362,7 @@ export default function FossilViewer() {
       <div className="flex-1">
         <Scene
           shadows
-          camera={{ position: [0, 0, 0], fov: 50 }}
+          camera={{ position: [0, 0, 0], fov: 50, far: 10000 }}
           gl={{ antialias: true }}
           onCreated={({ gl }) => {
             gl.shadowMap.enabled = true

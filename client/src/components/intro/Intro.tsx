@@ -38,25 +38,10 @@ export default function Intro({
           relative
         ">
           <div className="absolute top-0">
-            <div className="relative -top-30 -left-0 w-[762px] h-[462px]">
-              <img 
-                src={bubbleSvgPath} 
-                alt="bubble" 
-                className="w-full h-full object-contain"
-              />
-            </div>
-          
             <div className='absolute flex-row top-0'>
               <div className="relative flex flex-col items-center justify-center top-7 left-20 gap-2">
-                <div className="relative -top-30 -left-0 w-[86px] h-[86px]">
-                  <img 
-                    src={simbolSvgPath} 
-                    alt="simbol" 
-                    className="w-full h-full object-contain"
-                  />
-                </div>
                 <div className='relative flex flex-col'>
-                  <h1 className="text-6xl font-black mb-7 text-black leading-tight text-left">
+                  <h1 className="text-6xl mb-7 text-black leading-tight text-left">
                     {title}
                   </h1>
                   <div className="text-gray-800 mb-7 text-left max-w-md">
@@ -96,15 +81,8 @@ export default function Intro({
           px-6 py-8
           text-center
         ">
-          <div className="w-20 h-20 mb-6">
-            <img 
-              src={simbolSvgPath} 
-              alt="simbol" 
-              className="w-full h-full object-contain"
-            />
-          </div>
 
-          <h1 className="text-3xl sm:text-4xl font-black mb-4 text-black leading-tight">
+          <h1 className="text-2xl sm:text-4xl mb-4 text-black leading-tight">
             {title}
           </h1>
 

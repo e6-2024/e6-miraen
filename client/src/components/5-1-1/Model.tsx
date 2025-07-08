@@ -21,14 +21,9 @@ export default function Model({ path, scale = 4, position = [0, 0, 0], sceneInde
 
   const clonedScene = useMemo(() => {
     console.log(`Creating cloned scene for scene ${sceneIndex} with path: ${path}`)
-    console.log(`Available animations:`, animations?.map((anim, idx) => ({ index: idx, name: anim.name, duration: anim.duration })))
     
-    // ⭐ clone 대신 originalScene을 직접 사용해보기
+    // 일관성을 위해 항상 clone 사용 (씬 0일 때만 예외)
     const sceneToUse = sceneIndex === 0 ? originalScene : originalScene.clone(true)
-    
-    // 본(Bone) 구조 확인
-    let boneCount = 0
-    let skinnedMeshCount = 0
     
     sceneToUse.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
@@ -36,21 +31,49 @@ export default function Model({ path, scale = 4, position = [0, 0, 0], sceneInde
         mesh.castShadow = true
         mesh.receiveShadow = true
         
+        // Scene 1(물 속 씬)에서 DoubleSide 설정
+        if (sceneIndex === 0) {
+          if (mesh.material) {
+            if (Array.isArray(mesh.material)) {
+              // 여러 머티리얼이 있는 경우
+              mesh.material.forEach((material) => {
+                if (material instanceof THREE.Material) {
+                  material.side = THREE.DoubleSide
+                }
+              })
+            } else {
+              // 단일 머티리얼인 경우
+              if (mesh.material instanceof THREE.Material) {
+                mesh.material.side = THREE.DoubleSide
+              }
+            }
+          }
+        } else {
+          // 다른 씬에서는 기본값(FrontSide) 사용
+          if (mesh.material) {
+            if (Array.isArray(mesh.material)) {
+              mesh.material.forEach((material) => {
+                if (material instanceof THREE.Material) {
+                  material.side = THREE.FrontSide
+                }
+              })
+            } else {
+              if (mesh.material instanceof THREE.Material) {
+                mesh.material.side = THREE.FrontSide
+              }
+            }
+          }
+        }
+        
         if (!isLoadedRef.current) {
           isLoadedRef.current = true
           console.log(`Mesh loaded for scene ${sceneIndex}`)
         }
       }
-      
-      if (child.type === 'Bone') {
-        boneCount++
-      }
     })
-    
-    console.log(`Scene analysis - Bones: ${boneCount}, SkinnedMeshes: ${skinnedMeshCount}`)
 
     return sceneToUse
-  }, [originalScene, sceneIndex, path, animations])
+  }, [originalScene, sceneIndex, path])
 
   // 씬이 변경되었을 때 상태 리셋
   useEffect(() => {
@@ -65,6 +88,7 @@ export default function Model({ path, scale = 4, position = [0, 0, 0], sceneInde
         actionsRef.current.forEach(action => action.stop())
         actionsRef.current = []
         mixer.current.stopAllAction()
+        mixer.current.uncacheRoot(mixer.current.getRoot())
         mixer.current = null
       }
     }
@@ -78,38 +102,27 @@ export default function Model({ path, scale = 4, position = [0, 0, 0], sceneInde
     }
     
     console.log(`Setting up animations for scene ${sceneIndex}`)
-    console.log('Total animations available:', animations.length)
     
     // 기존 애니메이션 완전히 정리
     if (mixer.current) {
       mixer.current.stopAllAction()
-      mixer.current.uncacheRoot(clonedScene)
+      mixer.current.uncacheRoot(mixer.current.getRoot())
       mixer.current = null
     }
     actionsRef.current = []
     
-    // ⭐ 중요: originalScene으로 믹서를 생성하되, 애니메이션은 clonedScene에 적용
-    mixer.current = new THREE.AnimationMixer(originalScene)
+    // 수정: 일관되게 clonedScene으로 믹서 생성
+    mixer.current = new THREE.AnimationMixer(clonedScene)
     
     // 0번 애니메이션 가져오기
     const targetClip = animations[0]
-    console.log(`Forcing animation 0: ${targetClip.name}`)
-    console.log(`Animation duration: ${targetClip.duration}s`)
-    console.log(`Animation tracks: ${targetClip.tracks.length}`)
+    console.log(`Using animation 0: ${targetClip.name}`)
     
-    // 애니메이션 트랙 상세 분석
-    targetClip.tracks.forEach((track, index) => {
-      if (index < 3) { // 처음 3개 트랙만 로그
-        console.log(`Track ${index}: ${track.name} (${track.constructor.name})`)
-      }
-    })
-    
-    // ⭐ clonedScene을 타겟으로 하는 액션 생성
-    const action = mixer.current.clipAction(targetClip, clonedScene)
+    // 수정: 타겟 씬 일관성 유지
+    const action = mixer.current.clipAction(targetClip)
     
     // 씬별 애니메이션 처리
     if (sceneIndex === 0) {
-      
       action.reset()
       action.setLoop(THREE.LoopRepeat, Infinity)
       action.clampWhenFinished = false
@@ -117,8 +130,6 @@ export default function Model({ path, scale = 4, position = [0, 0, 0], sceneInde
       action.setEffectiveTimeScale(2.0)
       action.setEffectiveWeight(1.0)
       action.play()
-      const root = action.getRoot()
-      
     } else {
       action.reset()
       action.setLoop(THREE.LoopOnce, 1)
@@ -132,46 +143,27 @@ export default function Model({ path, scale = 4, position = [0, 0, 0], sceneInde
     }
     
     actionsRef.current = [action]
-    
 
-  }, [animations, clonedScene, sceneIndex, originalScene])
+  }, [animations, clonedScene, sceneIndex])
 
-  // 모델 로드 완료 처리 (onLoaded 콜백만)
+  // 모델 로드 완료 처리
   useEffect(() => {
-    // onLoaded 콜백 호출 (씬당 한 번만)
-    if (onLoaded && !hasCalledOnLoaded.current && clonedScene) {
+    if (onLoaded && !hasCalledOnLoaded.current && clonedScene && isLoadedRef.current) {
       hasCalledOnLoaded.current = true
       
-      // 다음 프레임에 호출하여 렌더링이 완료된 후 실행되도록 함
       const timeoutId = setTimeout(() => {
         onLoaded()
       }, 100)
 
       return () => clearTimeout(timeoutId)
     }
-  }, [onLoaded, sceneIndex, clonedScene])
+  }, [onLoaded, sceneIndex, clonedScene, isLoadedRef.current])
 
   useFrame((_, delta) => {
     if (mixer.current) {
       // STEP 0에서만 애니메이션 업데이트
       if (sceneIndex === 0) {
-        mixer.current.update(delta*0.8)
-        
-        // 5초마다 애니메이션 상태 및 변환 매트릭스 출력
-        if (Math.floor(mixer.current.time * 2) % 10 === 0 && actionsRef.current.length > 0) {
-          const action = actionsRef.current[0]
-          console.log(`🎬 Animation running - Time: ${action.time.toFixed(2)}s/${action.getClip().duration.toFixed(2)}s, Active: ${action.isRunning()}`)
-          
-          // 본 변환 확인 (첫 번째 본만)
-          if (clonedScene) {
-            clonedScene.traverse((child) => {
-              if (child.type === 'Bone' && (child.name.includes('Spine') || child.name.includes('Hip') || child.name.includes('Root'))) {
-                console.log(`Bone ${child.name} position:`, child.position.x.toFixed(3), child.position.y.toFixed(3), child.position.z.toFixed(3))
-                return // 첫 번째만 출력
-              }
-            })
-          }
-        }
+        mixer.current.update(delta * 0.8)
         
         // 애니메이션이 멈춘 경우 다시 시작
         if (actionsRef.current.length > 0) {
@@ -183,7 +175,6 @@ export default function Model({ path, scale = 4, position = [0, 0, 0], sceneInde
           }
         }
       }
-      // 다른 씬에서는 믹서 업데이트 안 함 (정적 포즈 유지)
     }
   })
 
@@ -194,6 +185,7 @@ export default function Model({ path, scale = 4, position = [0, 0, 0], sceneInde
         actionsRef.current.forEach(action => action.stop())
         actionsRef.current = []
         mixer.current.stopAllAction()
+        mixer.current.uncacheRoot(mixer.current.getRoot())
         mixer.current = null
       }
     }
@@ -204,9 +196,4 @@ export default function Model({ path, scale = 4, position = [0, 0, 0], sceneInde
   }
 
   return <primitive object={clonedScene} scale={scale} position={position} />
-}
-
-// 프리로드 함수 export
-export const preloadModel = (path: string) => {
-  return useGLTF.preload(path)
 }
