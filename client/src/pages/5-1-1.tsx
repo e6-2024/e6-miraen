@@ -8,6 +8,8 @@ import * as THREE from 'three'
 import Scene from '@/components/canvas/Scene'
 import Intro from '@/components/intro/Intro'
 import { EffectComposer, TiltShift2, N8AO} from '@react-three/postprocessing'
+import { SpeechBubble } from '../components/6-1-1/SpeechBubble'
+import CameraLogger from '@/components/CameraLogger'
 
 const modelPaths = [
   'models/5-1-1/1/Dino.gltf',
@@ -26,9 +28,8 @@ const sceneDescriptions = [
 const cameraPositions = [
   new THREE.Vector3(-30.01, 3.108, -5.557),
   new THREE.Vector3(14, 19, 14),
-  new THREE.Vector3(14, 19, 14),
-  new THREE.Vector3(10.45, 4.68, 4.93),
-  new THREE.Vector3(16.498, 8.874, 4.258),
+  new THREE.Vector3(23.613311588485445, 13.162826461554463, 22.863629867778908),
+  new THREE.Vector3(10.45, 4.68, 4.93)
 ]
 
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
@@ -96,25 +97,138 @@ function SceneCameraController({ sceneIndex }: { sceneIndex: number }) {
   return null
 }
 
+function LayerRevealShader({ 
+  modelRef, 
+  animationProgress 
+}: {
+  modelRef: React.RefObject<THREE.Group>
+  animationProgress: number
+}) {
+  useFrame(() => {
+    if (!modelRef.current) return
+
+    modelRef.current.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        const mesh = child as THREE.Mesh
+        
+        const worldPosition = new THREE.Vector3()
+        mesh.getWorldPosition(worldPosition)
+        
+        const box = new THREE.Box3().setFromObject(modelRef.current!)
+        const minY = box.min.y
+        const maxY = box.max.y
+        const totalHeight = maxY - minY
+        
+        const normalizedY = (worldPosition.y - minY) / totalHeight
+        
+        const revealThreshold = animationProgress
+        
+        if (normalizedY <= revealThreshold) {
+          const fadeZone = 0.1 
+          const fadeStart = Math.max(0, revealThreshold - fadeZone)
+          const opacity = normalizedY >= fadeStart 
+            ? (revealThreshold - normalizedY) / fadeZone 
+            : 1.0
+          
+          if (Array.isArray(mesh.material)) {
+            mesh.material.forEach(mat => {
+              mat.transparent = true
+              mat.opacity = Math.max(0, Math.min(1, opacity))
+              mat.needsUpdate = true
+            })
+          } else {
+            mesh.material.transparent = true
+            mesh.material.opacity = Math.max(0, Math.min(1, opacity))
+            mesh.material.needsUpdate = true
+          }
+          
+          mesh.visible = true
+        } else {
+          mesh.visible = false
+        }
+      }
+    })
+  })
+
+  return null
+}
+
+// 카메라 이동 컴포넌트
+function CameraController({ 
+  targetPosition, 
+  onMoveComplete 
+}: {
+  targetPosition: THREE.Vector3 | null
+  onMoveComplete: () => void
+}) {
+  const { camera } = useThree()
+  const startPosition = useRef<THREE.Vector3>(new THREE.Vector3())
+  const animationProgress = useRef(0)
+  const isAnimating = useRef(false)
+
+  useFrame((state, delta) => {
+    if (!targetPosition || !isAnimating.current) return
+
+    const duration = 2.0 // 2초 동안 이동
+    animationProgress.current += delta / duration
+
+    if (animationProgress.current >= 1) {
+      // 애니메이션 완료
+      camera.position.copy(targetPosition)
+      camera.lookAt(0, 0, 0)
+      isAnimating.current = false
+      animationProgress.current = 0
+      onMoveComplete()
+      return
+    }
+
+    // 부드러운 easing
+    const t = animationProgress.current
+    const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+
+    // 위치 보간
+    const currentPosition = startPosition.current.clone().lerp(targetPosition, eased)
+    camera.position.copy(currentPosition)
+    camera.lookAt(0, 0, 0)
+  })
+
+  useEffect(() => {
+    if (targetPosition) {
+      startPosition.current.copy(camera.position)
+      animationProgress.current = 0
+      isAnimating.current = true
+    }
+  }, [targetPosition, camera])
+
+  return null
+}
+
 // 각 STEP별 애니메이션 컨트롤러
 function StepAnimationController({ 
   sceneIndex, 
   modelLoaded, 
   onWaterLevelUpdate, 
   animationTrigger, 
-  onModelAnimationTrigger 
+  onModelAnimationTrigger,
+  onLayerAnimationComplete,
+  layerAnimationProgress,
+  setLayerAnimationProgress
 }: {
   sceneIndex: number;
   modelLoaded: boolean;
   onWaterLevelUpdate: (level: number) => void;
   animationTrigger: boolean;
   onModelAnimationTrigger?: (trigger: number) => void;
+  onLayerAnimationComplete: () => void;
+  layerAnimationProgress: number;
+  setLayerAnimationProgress: (progress: number) => void;
 }) {
   const animationStateRef = useRef({
     isAnimating: false,
     currentWaterLevel: -2.0,
     lastSceneIndex: -1,
-    animationIntervalId: null
+    animationIntervalId: null,
+    layerAnimationId: null
   })
 
   // 씬 변경 시 초기화
@@ -125,9 +239,14 @@ function StepAnimationController({
       state.lastSceneIndex = sceneIndex
       state.isAnimating = false
       
+      // 기존 애니메이션 정리
       if (state.animationIntervalId) {
         clearInterval(state.animationIntervalId)
         state.animationIntervalId = null
+      }
+      if (state.layerAnimationId) {
+        clearInterval(state.layerAnimationId)
+        state.layerAnimationId = null
       }
       
       // 각 씬별 초기 상태 설정
@@ -140,8 +259,9 @@ function StepAnimationController({
       }
       
       onWaterLevelUpdate(state.currentWaterLevel)
+      setLayerAnimationProgress(0) // 지층 애니메이션 진행도 초기화
     }
-  }, [sceneIndex, onWaterLevelUpdate])
+  }, [sceneIndex, onWaterLevelUpdate, setLayerAnimationProgress])
 
   // Play 버튼 클릭 시 각 STEP에 맞는 애니메이션 실행
   useEffect(() => {
@@ -157,8 +277,8 @@ function StepAnimationController({
           case 1: // STEP 2 - 물 레벨 애니메이션
             startWaterLevelAnimation(state, onWaterLevelUpdate)
             break
-          case 2: // STEP 3 - 퇴적물 애니메이션 (구현 예정)
-            startSedimentAnimation()
+          case 2: // STEP 3 - 지층 누적 애니메이션
+            startLayerAccumulationAnimation(state)
             break
           case 3: // STEP 4 - 화석 발견 애니메이션 (구현 예정)
             startFossilDiscoveryAnimation()
@@ -166,14 +286,13 @@ function StepAnimationController({
         }
       }, 300)
     }
-  }, [animationTrigger, modelLoaded, sceneIndex, onWaterLevelUpdate])
+  }, [animationTrigger, modelLoaded, sceneIndex, onWaterLevelUpdate, setLayerAnimationProgress])
 
   // STEP 1: 공룡 모델 애니메이션
   const startDinosaurAnimation = () => {
     console.log('공룡 애니메이션 시작')
     const newTrigger = Date.now()
     console.log(`Triggering model animation with: ${newTrigger}`)
-    // Model 컴포넌트에 애니메이션 트리거 신호 전송 (매번 새로운 값으로)
     onModelAnimationTrigger && onModelAnimationTrigger(newTrigger)
   }
 
@@ -211,18 +330,40 @@ function StepAnimationController({
     }, 50)
   }
 
-  // STEP 3: 퇴적물 애니메이션 (구현 예정)
-  const startSedimentAnimation = () => {
-    console.log('퇴적물 애니메이션 시작 (구현 예정)')
-    // TODO: 퇴적물이 쌓이는 애니메이션 구현
-    // 예: 파티클 시스템으로 퇴적물이 천천히 쌓이는 효과
+  // STEP 3: 지층 누적 애니메이션
+  const startLayerAccumulationAnimation = (state: any) => {
+    if (state.isAnimating || state.layerAnimationId) return
+    
+    console.log('지층 누적 애니메이션 시작')
+    state.isAnimating = true
+    
+    const duration = 8000 // 8초 동안 지층 누적
+    const startTime = Date.now()
+    
+    state.layerAnimationId = setInterval(() => {
+      const elapsed = Date.now() - startTime
+      const progress = Math.min(elapsed / duration, 1.0)
+      
+      // 부드러운 easing 적용
+      const eased = progress < 0.5 
+        ? 2 * progress * progress 
+        : 1 - Math.pow(-2 * progress + 2, 2) / 2
+      
+      setLayerAnimationProgress(eased)
+
+      if (progress >= 1.0) {
+        clearInterval(state.layerAnimationId)
+        state.layerAnimationId = null
+        state.isAnimating = false
+        console.log('지층 누적 애니메이션 완료')
+        onLayerAnimationComplete()
+      }
+    }, 50)
   }
 
   // STEP 4: 화석 발견 애니메이션 (구현 예정)
   const startFossilDiscoveryAnimation = () => {
     console.log('화석 발견 애니메이션 시작 (구현 예정)')
-    // TODO: 지층이 깎이면서 화석이 드러나는 애니메이션 구현
-    // 예: 지층 메쉬가 서서히 사라지면서 화석이 드러나는 효과
   }
 
   useEffect(() => {
@@ -230,6 +371,9 @@ function StepAnimationController({
       const state = animationStateRef.current
       if (state.animationIntervalId) {
         clearInterval(state.animationIntervalId)
+      }
+      if (state.layerAnimationId) {
+        clearInterval(state.layerAnimationId)
       }
     }
   }, [])
@@ -243,7 +387,14 @@ function SceneContent({
   handleWaterLevelUpdate, 
   handleModelLoaded, 
   showIntro, 
-  animationTrigger 
+  animationTrigger,
+  layerAnimationProgress,
+  setLayerAnimationProgress,
+  onLayerAnimationComplete,
+  showSpeechBubble,
+  onSpeechBubbleClick,
+  cameraTarget,
+  onCameraMoveComplete
 }: {
   sceneIndex: number;
   waterLevel: number;
@@ -251,8 +402,16 @@ function SceneContent({
   handleModelLoaded: () => void;
   showIntro: boolean;
   animationTrigger: boolean;
+  layerAnimationProgress: number;
+  setLayerAnimationProgress: (progress: number) => void;
+  onLayerAnimationComplete: () => void;
+  showSpeechBubble: boolean;
+  onSpeechBubbleClick: () => void;
+  cameraTarget: THREE.Vector3 | null;
+  onCameraMoveComplete: () => void;
 }) {
-  const [modelAnimationTrigger, setModelAnimationTrigger] = useState(0) // number로 변경
+  const [modelAnimationTrigger, setModelAnimationTrigger] = useState(0)
+  const modelRef = useRef<THREE.Group>(null!) // step3 모델 참조용
   const showWater = sceneIndex === 1
   const currentModelPath = modelPaths[sceneIndex]
   const modelLoaded = true
@@ -279,6 +438,15 @@ function SceneContent({
         onWaterLevelUpdate={handleWaterLevelUpdate}
         animationTrigger={animationTrigger}
         onModelAnimationTrigger={handleModelAnimationTrigger}
+        layerAnimationProgress={layerAnimationProgress}
+        setLayerAnimationProgress={setLayerAnimationProgress}
+        onLayerAnimationComplete={onLayerAnimationComplete}
+      />
+      
+      {/* 카메라 컨트롤러 */}
+      <CameraController 
+        targetPosition={cameraTarget}
+        onMoveComplete={onCameraMoveComplete}
       />
       
       {!showWater && (
@@ -300,15 +468,46 @@ function SceneContent({
         </>
       )}
 
-      <Model
-        key={`model-${sceneIndex}-${currentModelPath}`}
-        path={currentModelPath}
-        scale={3.7}
-        position={modelPosition}
-        sceneIndex={sceneIndex}
-        onLoaded={handleModelLoaded}
-        animationTrigger={sceneIndex === 0 ? modelAnimationTrigger : 0}
-      />
+      {/* Step3에서는 특별한 처리를 위해 별도로 렌더링 */}
+      {sceneIndex === 2 ? (
+        <group ref={modelRef}>
+          <Model
+            key={`model-${sceneIndex}-${currentModelPath}`}
+            path={currentModelPath}
+            scale={3.7}
+            position={modelPosition}
+            sceneIndex={sceneIndex}
+            onLoaded={handleModelLoaded}
+            animationTrigger={0} // step3에서는 모델 애니메이션 사용 안함
+          />
+          {/* Step3 모델에 지층 쌓이는 효과 적용 */}
+          <LayerRevealShader 
+            modelRef={modelRef}
+            animationProgress={layerAnimationProgress}
+          />
+        </group>
+      ) : (
+        <Model
+          key={`model-${sceneIndex}-${currentModelPath}`}
+          path={currentModelPath}
+          scale={3.7}
+          position={modelPosition}
+          sceneIndex={sceneIndex}
+          onLoaded={handleModelLoaded}
+          animationTrigger={sceneIndex === 0 ? modelAnimationTrigger : 0}
+        />
+      )}
+
+      {/* STEP 3에서 지층 애니메이션 완료 후 말풍선 표시 */}
+      {sceneIndex === 2 && showSpeechBubble && (
+        <SpeechBubble
+          position={[0, 0, 0]}
+          pointColor='#ff6b6b'
+          html='<mark>지층을 자세히 관찰</mark>해보세요!'
+          onBubbleClick={onSpeechBubbleClick}
+          bubbleOffset={[0, 2, 0]}
+        />
+      )}
 
       {showWater && (
         <>
@@ -335,6 +534,8 @@ function SceneContent({
         maxPolarAngle={Math.PI / 2.2}
         minPolarAngle={Math.PI / 6}
       />
+
+      <CameraLogger/>
     </>
   )
 }
@@ -344,8 +545,11 @@ export default function FossilViewer() {
   const [waterLevel, setWaterLevel] = useState(-2.0)
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
-  const [animationTrigger, setAnimationTrigger] = useState(false) // boolean으로 변경
+  const [animationTrigger, setAnimationTrigger] = useState(false)
   const [isPlayButtonPressed, setIsPlayButtonPressed] = useState(false)
+  const [layerAnimationProgress, setLayerAnimationProgress] = useState(0)
+  const [showSpeechBubble, setShowSpeechBubble] = useState(false)
+  const [cameraTarget, setCameraTarget] = useState<THREE.Vector3 | null>(null)
 
   const handleLoadingComplete = () => {
     setIsLoaded(true)
@@ -355,7 +559,10 @@ export default function FossilViewer() {
     console.log(`Changing scene from ${sceneIndex} to ${newSceneIndex}`)
     setSceneIndex(newSceneIndex)
     setIsLoaded(false)
-    setAnimationTrigger(false) // 씬 변경 시 애니메이션 트리거 초기화
+    setAnimationTrigger(false)
+    setLayerAnimationProgress(0)
+    setShowSpeechBubble(false)
+    setCameraTarget(null)
     console.log('Animation trigger reset to false')
   }
 
@@ -365,6 +572,23 @@ export default function FossilViewer() {
 
   const handleModelLoaded = () => {
     // 모델 로드 완료 처리
+  }
+
+  const handleLayerAnimationComplete = () => {
+    console.log('지층 애니메이션 완료 - 말풍선 표시')
+    setShowSpeechBubble(true)
+  }
+
+  const handleSpeechBubbleClick = () => {
+    console.log('말풍선 클릭 - 카메라 이동')
+    const targetPosition = new THREE.Vector3(5, 2, 5) // 지층을 가까이서 볼 수 있는 위치
+    setCameraTarget(targetPosition)
+    setShowSpeechBubble(false)
+  }
+
+  const handleCameraMoveComplete = () => {
+    console.log('카메라 이동 완료')
+    setCameraTarget(null)
   }
 
   const playClickSound = (audioPath: string = '/sounds/Enter_Cute.mp3') => {
@@ -396,13 +620,13 @@ export default function FossilViewer() {
     setTimeout(() => {
       setIsPlayButtonPressed(false)
       console.log('Setting animationTrigger to true')
-      setAnimationTrigger(true) // 애니메이션 트리거를 true로 설정
+      setAnimationTrigger(true)
       
       // 트리거를 즉시 false로 리셋하여 한 번만 실행되도록
       setTimeout(() => {
         console.log('Resetting animationTrigger to false')
         setAnimationTrigger(false)
-      }, 200) // 100ms에서 200ms로 증가
+      }, 200)
     }, 150)
   }
 
@@ -478,6 +702,13 @@ export default function FossilViewer() {
             handleModelLoaded={handleModelLoaded}
             showIntro={showIntro}
             animationTrigger={animationTrigger}
+            layerAnimationProgress={layerAnimationProgress}
+            setLayerAnimationProgress={setLayerAnimationProgress}
+            onLayerAnimationComplete={handleLayerAnimationComplete}
+            showSpeechBubble={showSpeechBubble}
+            onSpeechBubbleClick={handleSpeechBubbleClick}
+            cameraTarget={cameraTarget}
+            onCameraMoveComplete={handleCameraMoveComplete}
           />
         </Scene>
       </div>
