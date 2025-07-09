@@ -17,7 +17,7 @@ export default function UnderwaterEnvironment({ sceneIndex }: UnderwaterEnvironm
       return new THREE.ShaderMaterial({
         uniforms: {
           time: { value: 0.0 },
-          opacity: { value: 0.3 }
+          opacity: { value: 0.1 }
         },
         vertexShader: `
           varying vec2 vUv;
@@ -64,7 +64,7 @@ export default function UnderwaterEnvironment({ sceneIndex }: UnderwaterEnvironm
         rotation={[-Math.PI / 2, 0, 0]}
         material={causticMaterial}
       >
-        <planeGeometry args={[100, 100]} />
+        <planeGeometry args={[20, 20]} />
       </mesh>
     )
   }
@@ -105,7 +105,6 @@ export default function UnderwaterEnvironment({ sceneIndex }: UnderwaterEnvironm
         shadow-mapSize-height={1024}
       />
       
-      {/* 측면 조명 */}
       <spotLight
         position={[-10, 5, 10]}
         target-position={[0, 0, 0]}
@@ -117,22 +116,6 @@ export default function UnderwaterEnvironment({ sceneIndex }: UnderwaterEnvironm
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
       />
-
-      {/* 검정색 바닥 평면 (그림자 받기) */}
-      <mesh 
-        position={[0,-5, 0]} 
-        rotation={[-Math.PI / 2, 0, 0]}
-        receiveShadow
-      >
-        <planeGeometry args={[200, 200]} />
-        <meshStandardMaterial 
-          color="#493A24"
-          roughness={0.9}
-          metalness={0.1}
-        />
-      </mesh>
-      
-      {/* 물 속 광선 효과 */}
       <CausticPlane />
     </group>
   )

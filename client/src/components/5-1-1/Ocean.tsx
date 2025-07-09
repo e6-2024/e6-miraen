@@ -327,14 +327,14 @@ export default function Ocean({
             
             // 기본 물 색상 계산
             vec3 deepWaterColor = vec3(0.0, 0.4, 0.7);
-            vec3 shallowWaterColor = vec3(0.3, 0.7, 0.9);
+            vec3 shallowWaterColor = vec3(0.3, 0.9, 0.9);
             vec3 foamColor = vec3(0.9, 0.95, 1.0);
             
             float depth = clamp(vWaterNormalAndHeight.w * 2.0, 0.0, 1.0);
             vec3 waterColor = mix(shallowWaterColor, deepWaterColor, depth);
             
             // 외부 텍스처 적용
-            if (uHasTexture > 0.5) {
+            if (uHasTexture > 0.1) {
                 // 흐름에 따라 텍스처 UV 왜곡
                 vec2 textureUV = worldUV * uTextureScale;
                 textureUV += vFlowRate * g_fTime * 0.1; // 흐름 방향으로 텍스처 이동
@@ -364,7 +364,7 @@ export default function Ocean({
             finalColor *= brightness;
             
             // 햇빛 반사 효과
-            float sunReflection = max(0.0, vWaterNormalAndHeight.y) * 0.5;
+            float sunReflection = max(0.0, vWaterNormalAndHeight.y) * 0.1;
             finalColor += vec3(1.0, 0.9, 0.7) * sunReflection;
             
             // 프레넬 반사
@@ -401,6 +401,12 @@ export default function Ocean({
     }
   })
 
+  useEffect(() => {
+  if (meshRef.current) {
+    meshRef.current.position.y = waterLevel
+  }
+}, [waterLevel])
+
   return (
     <mesh 
       ref={meshRef}
@@ -410,7 +416,7 @@ export default function Ocean({
       castShadow
       receiveShadow
     >
-      <planeGeometry args={[24, 24, 3, 3]} />
+      <planeGeometry args={[22.5, 23.5, 3, 3]} />
     </mesh>
   )
 }
