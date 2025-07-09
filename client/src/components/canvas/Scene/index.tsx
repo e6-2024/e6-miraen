@@ -36,7 +36,7 @@ const Scene = ({ children, ...props }) => {
       <Canvas {...props} ref={canvasRef} {...props} shadows>
         <Suspense
           fallback={
-            <Html center>
+            <Html center >
               <LoadingProgressSimple />
             </Html>
           }>

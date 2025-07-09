@@ -38,21 +38,14 @@ export default function AnimatedModel2({
   const muscle001Ref = useRef<Mesh>(null)
   const muscle002Ref = useRef<Mesh>(null)
 
-  // 애니메이션용 상태
-  const pulseTimeA = useRef(0)
-  const pulseTimeB = useRef(0)
-
-  // SkinnedMesh의 실시간 중심점을 계산하는 함수 (본 기반)
   const getSkinnedMeshCenter = (mesh: Mesh): THREE.Vector3 => {
     mesh.updateMatrixWorld(true)
     
-    // SkinnedMesh인 경우 skeleton의 본들을 확인
     if (mesh.type === 'SkinnedMesh' && (mesh as any).skeleton) {
       const skeleton = (mesh as any).skeleton
       const bones = skeleton.bones
       
       if (bones && bones.length > 0) {
-        // 모든 본의 평균 위치 계산
         const avgPos = new THREE.Vector3()
         let boneCount = 0
         
@@ -71,7 +64,6 @@ export default function AnimatedModel2({
       }
     }
     
-    // 본이 없거나 실패한 경우 기존 방법 사용
     const box = new Box3()
     mesh.geometry.computeBoundingBox()
     if (mesh.geometry.boundingBox) {
@@ -82,44 +74,9 @@ export default function AnimatedModel2({
       return boxCenter
     }
     
-    // 마지막 수단으로 월드 위치 사용
     const worldPos = new THREE.Vector3()
     mesh.getWorldPosition(worldPos)
     return worldPos
-  }
-
-  const forceHighlightColor = (mesh: Mesh, color: string, isActive: boolean = false, pulseIntensity: number = 0) => {    
-    const apply = (mat: Material | null | undefined) => {
-      if (!mat) return mat;
-      if (mat instanceof MeshStandardMaterial) {
-        mat.emissive.set(color);
-        
-        // 활성 상태일 때 펄스 효과
-        if (isActive) {
-          const baseIntensity = 0.8;
-          const pulseAmount = Math.sin(pulseIntensity) * 0.8; // 0.4 ~ 1.2 사이로 펄스
-          mat.emissiveIntensity = baseIntensity + pulseAmount;
-          mat.opacity = 0.6 + pulseAmount * 0.3;
-        } else {
-          mat.emissiveIntensity = 0.3;
-          mat.opacity = 0.4;
-        }
-        
-        mat.transparent = true;
-        mat.color.set(color);
-        mat.needsUpdate = true;
-        return mat;
-      }
-      return mat;
-    }
-
-    if (Array.isArray(mesh.material)) {
-      mesh.material.forEach(apply);
-    } else {
-      mesh.material = apply(mesh.material);
-    }
-    
-    mesh.geometry.attributes.position.needsUpdate = true;
   }
 
   useEffect(() => {
@@ -175,39 +132,21 @@ export default function AnimatedModel2({
   useEffect(() => {
     if (!scene || !group.current) return
     
-    // GLTF 구조에 맞게 메시 찾기
     scene.traverse((obj) => {
       if (obj.name === 'Muscle001' && obj.type === 'SkinnedMesh') {
         muscle001Ref.current = obj as Mesh;
-        console.log('Found Muscle001:', obj);
       }
       if (obj.name === 'Muscle002' && obj.type === 'SkinnedMesh') {
         muscle002Ref.current = obj as Mesh;
-        console.log('Found Muscle002:', obj);
       }
     });
 
     if (muscle001Ref.current && muscle002Ref.current) {
       setArmReady(true);
-      console.log('Both muscles found and ready');
     }
   }, [scene, group])
   
   useEffect(() => {
-    if (!muscle001Ref.current || !muscle002Ref.current) return;
-
-    // 색상과 효과 업데이트
-    if (actionName === 'fold') {
-      forceHighlightColor(muscle001Ref.current, '#ff3333', true, pulseTimeA.current) // 빨간색 활성
-      forceHighlightColor(muscle002Ref.current, '#3333ff', false, pulseTimeB.current) // 파란색 비활성
-    } else {
-      forceHighlightColor(muscle001Ref.current, '#3333ff', false, pulseTimeA.current) // 파란색 비활성
-      forceHighlightColor(muscle002Ref.current, '#ff3333', true, pulseTimeB.current) // 빨간색 활성
-    }
-  }, [actionName, armReady])
-  
-  useEffect(() => {
-    // 그림자 설정
     scene.traverse((obj) => {
       obj.frustumCulled = false;
       if ((obj as Mesh).isMesh || obj.type === 'SkinnedMesh') {
@@ -220,19 +159,6 @@ export default function AnimatedModel2({
   useFrame(({ camera }, delta) => {
     if (!armReady || !muscle001Ref.current || !muscle002Ref.current) return
 
-    // 펄스 애니메이션 업데이트
-    pulseTimeA.current += delta * 4; // 펄스 속도
-    pulseTimeB.current += delta * 4;
-
-    // 재질 업데이트 (펄스 효과)
-    if (actionName === 'fold') {
-      forceHighlightColor(muscle001Ref.current, '#ff3333', true, pulseTimeA.current)
-      forceHighlightColor(muscle002Ref.current, '#3333ff', false, pulseTimeB.current)
-    } else {
-      forceHighlightColor(muscle001Ref.current, '#3333ff', false, pulseTimeA.current)
-      forceHighlightColor(muscle002Ref.current, '#ff3333', true, pulseTimeB.current)
-    }
-  
     const updateText = (
       meshRef: Mesh,
       textRef: Group | null,
@@ -241,15 +167,12 @@ export default function AnimatedModel2({
     ) => {
       if (!textRef || !meshRef) return
   
-      // SkinnedMesh의 실시간 중심점 계산
       const meshCenter = getSkinnedMeshCenter(meshRef)
       
-      // 텍스트 위치 계산
       const targetTextPos = new THREE.Vector3().copy(meshCenter).add(textOffset)
       prevPosRef.current.lerp(targetTextPos, 0.1)
       textRef.position.copy(prevPosRef.current)
   
-      // 텍스트가 카메라를 향하도록
       textRef.quaternion.copy(camera.quaternion)
     }
   

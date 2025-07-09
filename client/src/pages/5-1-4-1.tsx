@@ -16,14 +16,11 @@ const preloadModelUrls = [
   '/models/Anatomy/Muscle_Pose.gltf'
 ]
 
-
-
 // 각 URL에 대해 bone 버전도 캐시 키 추가
 const allPreloadUrls = [
   ...preloadModelUrls,
   ...preloadModelUrls.map(url => `${url}#bone`)
 ]
-
 
 export default function Home() {
   const [modelType, setModelType] = useState<ModelType>('boy')
@@ -69,8 +66,6 @@ export default function Home() {
     // 애니메이션 상태에 따른 접미사
     const anim = animState === 'walk' ? 'Walking' : 'Pose'
     
-
-    
     return `${base}_${anim}`
   }
 
@@ -86,21 +81,29 @@ export default function Home() {
 
   // 애니메이션 인덱스 (필요하면 정확하게 설정)
   const animIndexMap: Record<string, number> = {
-    Boy_Walking: 1,
+    Boy_Walking: 0,
     Boy_Pose: 0,
     Muscle_Walking: 1,
     Muscle_Pose: 0
   }
 
-
-
+  // 모델 타입별 스케일 설정
   const getModelScale = () => {
-    return 0.5;
+    switch (modelType) {
+      case 'boy':
+        return 0.6;      // 피부 모델 스케일
+      case 'muscle':
+        return 0.006;     // 근육 모델 스케일 (조금 더 크게)
+      case 'bone':
+        return 0.006;     // 뼈 모델 스케일 (조금 더 작게 )
+      default:
+        return 0.1;
+    }
   }
 
   // 위치도 필요하다면 조정 가능
   const getModelPosition = (): [number, number, number] => {
-    return [0, -0.2, 0];
+    return [0, -0.208, 0];
   }
 
   const animIndex = animIndexMap[modelKey] ?? 0
@@ -125,14 +128,13 @@ export default function Home() {
         </div>
       )}
       
-      <Canvas shadows camera={{ position: [0, 0.2, 0.4], fov: 75 }} style={{ width: '100%', height: '100%' }}>
+      <Canvas shadows camera={{ position: [0, 0.3, 0.8], fov: 75 }} style={{ width: '100%', height: '100%' }}>
       <fog attach="fog" args={['#f0f0f0', 0.3, 0.9]} />
         <ambientLight intensity={2.0} />
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.2, 0]} receiveShadow>
           <planeGeometry args={[5, 5]} />
           <shadowMaterial opacity={0.4} />
         </mesh>
-
 
         <directionalLight
           position={[-0.8, 0.2, 0.3]} // 왼쪽 위에서 비추는 느낌
@@ -172,7 +174,6 @@ export default function Home() {
             removeMuscleLayer={modelType === 'bone'} // bone일 때만 muscle 레이어 제거
           />
         )}
-        <Model/>
 
         <OrbitControls minDistance={0.23} maxDistance={0.53} />
       </Canvas>
@@ -188,8 +189,7 @@ export default function Home() {
         style={{
           position: 'absolute',
           bottom: '20px',
-          left: '50%',
-          transform: 'translateX(-50%)',
+          right: '0%',
           display: 'flex',
           flexDirection: 'column',
           gap: '10px',
@@ -199,7 +199,7 @@ export default function Home() {
         }}>
         {/* 애니메이션 버튼 */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-          {['walk', 'pose'].map((state) => (
+          {['pose', 'walk'].map((state) => (
             <button
               key={state}
               onClick={() => setAnimState(state as AnimationState)}
@@ -220,7 +220,7 @@ export default function Home() {
 
         {/* 모델 타입 버튼 */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-          {(['boy', 'muscle', 'bone'] as ModelType[]).map((type) => (
+          {(['boy', 'bone', 'muscle'] as ModelType[]).map((type) => (
             <button
               key={type}
               onClick={() => setModelType(type)}
@@ -236,9 +236,9 @@ export default function Home() {
               }}
               disabled={isLoading}
             >
-              {type === 'boy' ? '피부' : 
+              {type === 'boy' ? '겉모습' : 
                type === 'muscle' ? '근육' : 
-               type === 'bone' ? '뼈' : '장기'}
+               type === 'bone' ? '뼈' : ''}
             </button>
           ))}
         </div>

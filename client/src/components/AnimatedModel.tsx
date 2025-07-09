@@ -95,7 +95,7 @@ export default function AnimatedModel({
 
   useFrame((state, delta) => {
     if (mixer) {
-      mixer.update(delta)
+      mixer.update(delta*0.3)
     }
   })
 

@@ -26,7 +26,6 @@ const sceneDescriptions = [
   "시간이 지나 지층이 깎여서 사라지면 지층 속에 있던 화석이 지표에 드러나 발견됩니다."
 ]
 
-// 로딩 상태를 추적하는 컴포넌트
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
   const { progress, active } = useProgress()
   
@@ -145,6 +144,7 @@ function AnimationController({
 
   return null
 }
+
 function SceneContent({ 
   sceneIndex, 
   modelLoaded, 
@@ -153,7 +153,8 @@ function SceneContent({
   handleModelLoaded, 
   modelPosition, 
   showWater,
-  showIntro
+  showIntro,
+  sceneChangeId
 }: {
   sceneIndex: number
   modelLoaded: boolean
@@ -163,11 +164,13 @@ function SceneContent({
   modelPosition: [number, number, number]
   showWater: boolean
   showIntro: boolean
+  sceneChangeId: number
 }) {
   console.log('SceneContent rendering:', {
     sceneIndex,
     modelPath: modelPaths[sceneIndex],
-    pathExists: !!modelPaths[sceneIndex]
+    pathExists: !!modelPaths[sceneIndex],
+    sceneChangeId
   })
 
   if (sceneIndex < 0 || sceneIndex >= modelPaths.length) {
@@ -201,12 +204,11 @@ function SceneContent({
           <N8AO aoRadius={10} distanceFalloff={0.9} intensity={3} screenSpaceRadius halfRes />
             <TiltShift2 />
           </EffectComposer>
-          <Sky />
         </>
       )}
 
       <Model
-        key={`${sceneIndex}-${currentModelPath}`}
+        key={`model-${sceneIndex}-${currentModelPath}-${sceneChangeId}`}
         path={currentModelPath}
         scale={3.7}
         position={modelPosition}
@@ -248,6 +250,10 @@ function SceneContent({
         enablePan={!showIntro}
         enableZoom={!showIntro}
         enableRotate={!showIntro}
+        minDistance={0.1}
+        maxDistance={35}
+        maxPolarAngle={Math.PI / 2.2}
+        minPolarAngle={Math.PI / 6}
       />
     </>
   )
@@ -255,39 +261,36 @@ function SceneContent({
 
 export default function FossilViewer() {
   const [sceneIndex, setSceneIndex] = useState(0)
-  const [globalLoaded, setGlobalLoaded] = useState(false) // 전체 프리로드 상태
-  const [currentModelLoaded, setCurrentModelLoaded] = useState(false) // 현재 모델 로드 상태
+  const [globalLoaded, setGlobalLoaded] = useState(false)
+  const [modelLoadedStates, setModelLoadedStates] = useState<{ [key: number]: boolean }>({})
   const [waterLevel, setWaterLevel] = useState(-5)
+  const [sceneChangeId, setSceneChangeId] = useState(0)
 
-  // Intro 관련 상태 추가
+  // Intro 관련 상태
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
 
   const showWater = sceneIndex === 1
 
-  // 전체 모델 프리로드
-  useEffect(() => {
-    async function preloadAll() {
-      try {
-        console.log('모든 모델 프리로드 시작...')
-        await Promise.all(modelPaths.map((path) => useGLTF.preload(path)))
-        console.log('모든 모델 프리로드 완료!')
-        setGlobalLoaded(true)
-        setIsLoaded(true) // 프리로드 완료 시 isLoaded도 true로 설정
-      } catch (err) {
-        console.error('모델 로딩 실패:', err)
-        setGlobalLoaded(true)
-        setIsLoaded(true)
-      }
-    }
-    preloadAll()
-  }, [])
+  const handleLoadingComplete = () => {
+    setIsLoaded(true)
+  }
 
-  // 씬이 변경될 때마다 현재 모델 로드 상태 리셋
-  useEffect(() => {
-    console.log('씬 변경:', sceneIndex)
-    setCurrentModelLoaded(false)
-  }, [sceneIndex])
+  // 씬 변경 함수 수정
+  const handleSceneChange = (newSceneIndex: number) => {
+    console.log('씬 변경 요청:', newSceneIndex)
+    setSceneIndex(newSceneIndex)
+    setSceneChangeId(prev => prev + 1) // 강제 리마운트를 위한 ID 증가
+    
+    // 해당 씬의 모델 로드 상태를 false로 리셋
+    setModelLoadedStates(prev => ({
+      ...prev,
+      [newSceneIndex]: false
+    }))
+  }
+
+  // 현재 씬의 모델 로드 상태 가져오기
+  const currentModelLoaded = modelLoadedStates[sceneIndex] || false
 
   const handleWaterLevelUpdate = (level: number) => {
     setWaterLevel(level)
@@ -300,9 +303,10 @@ export default function FossilViewer() {
 
   const handleModelLoaded = () => {
     console.log('Model loaded for scene:', sceneIndex)
-    if (!currentModelLoaded) {
-      setCurrentModelLoaded(true)
-    }
+    setModelLoadedStates(prev => ({
+      ...prev,
+      [sceneIndex]: true
+    }))
   }
 
   const playClickSound = (audioPath: string = '/sounds/Enter_Cute.mp3') => {
@@ -317,27 +321,22 @@ export default function FossilViewer() {
     }
   }
 
-  
   const handleEnterExperience = () => {
-    // 효과음 재생
     playClickSound()
-    
-    // 효과음이 재생될 시간을 확보한 후 Intro 숨김
     setTimeout(() => {
       setShowIntro(false)
-    }, 300) // 300ms 지연
+    }, 300)
   }
-
 
   return (
     <div className="w-screen h-screen flex flex-col overflow-hidden">
-      {/* 상단 컨트롤 패널 - Intro가 보일 때는 숨김 */}
+      {/* 상단 컨트롤 패널 */}
       {!showIntro && (
-        <div className="flex justify-center gap-2 p-4 bg-gray-900/90 text-white z-10">
+        <div className="absolute flex justify-center gap-2 p-4 text-white z-10">
           {[1, 2, 3, 4].map((num) => (
             <button
               key={num-1}
-              onClick={() => setSceneIndex(num-1)}
+              onClick={() => handleSceneChange(num-1)}
               className={`px-4 py-2 rounded-lg transition-all ${
                 sceneIndex === num -1
                   ? 'bg-blue-500 shadow-lg' 
@@ -348,27 +347,21 @@ export default function FossilViewer() {
             </button>
           ))}
         </div>
-      )}
-
-      {/* 설명 텍스트 - Intro가 보일 때는 숨김 */}
-      {!showIntro && (
-        <div className="text-center p-4 bg-black text-white">
-          <p className="text-lg font-medium">
-            {sceneDescriptions[sceneIndex]}
-          </p>
-        </div>
-      )}
+      )}      
 
       <div className="flex-1">
-        <Scene
+         <Scene 
           shadows
-          camera={{ position: [0, 0, 0], fov: 50, far: 10000 }}
-          gl={{ antialias: true }}
-          onCreated={({ gl }) => {
-            gl.shadowMap.enabled = true
-            gl.shadowMap.type = THREE.PCFSoftShadowMap
+          camera={{ position: [0, 10, 10], fov: 50, near: 0.1, far: 5000 }}
+          gl={{ 
+            shadowMap: { 
+              enabled: true, 
+              type: THREE.PCFSoftShadowMap
+            } 
           }}
         >
+          <LoadingTracker onLoadingComplete={handleLoadingComplete} />
+
           <SceneContent
             sceneIndex={sceneIndex}
             modelLoaded={currentModelLoaded}
@@ -378,9 +371,18 @@ export default function FossilViewer() {
             modelPosition={modelPosition}
             showWater={showWater}
             showIntro={showIntro}
+            sceneChangeId={sceneChangeId}
           />
         </Scene>
       </div>
+
+      {!showIntro && (
+        <div className="text-center p-4 bg-black text-white">
+          <p className="text-lg font-medium">
+            {sceneDescriptions[sceneIndex]}
+          </p>
+        </div>
+      )}
 
       {isLoaded && showIntro && (
         <Intro 

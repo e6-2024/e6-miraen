@@ -105,7 +105,6 @@ export default function Model({ onToggle, mode, ...props }: ModelProps) {
           color="white"
           anchorX="center"
           anchorY="middle"
-          font='/fonts/Maplestory Bold.ttf'
         >
           버튼을 눌러보세요!
         </Text>

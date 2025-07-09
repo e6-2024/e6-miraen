@@ -50,8 +50,6 @@ export default function Home() {
           position={[0, -0.35, 0]}
         />
 
-        <Model/>
-
         <OrbitControls 
           minAzimuthAngle={-Math.PI / 4}
           maxAzimuthAngle={Math.PI / 4}
@@ -74,8 +72,7 @@ export default function Home() {
         position: 'absolute',
         display: 'flex',
         bottom: '5%',
-        left: '50%',
-        transform: 'translateX(-50%)',
+        right: '0%',
         gap: '30px'
       }}>
         <button
@@ -90,7 +87,7 @@ export default function Home() {
             cursor: 'pointer',
             marginBottom: '10px',
           }}>
-          팔 펴기
+          팔을 펼 때
         </button>
         <button
           onClick={handleExtend}
@@ -104,7 +101,7 @@ export default function Home() {
             cursor: 'pointer',
             marginBottom: '10px',
           }}>
-          팔 접기
+          팔을 구부릴 때
         </button>
       </div>
     </>

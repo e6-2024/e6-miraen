@@ -37,7 +37,7 @@ export default function Intro({
           px-0 -top-0
           relative
         ">
-          <div className="absolute top-0">
+          <div className="absolute top-0 left-0 w-full h-full">
             <div className='absolute flex-row top-0'>
               <div className="relative flex flex-col items-center justify-center top-7 left-20 gap-2">
                 <div className='relative flex flex-col'>

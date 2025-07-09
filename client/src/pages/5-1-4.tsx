@@ -41,7 +41,7 @@ const LinkButton: React.FC<ButtonProps> = ({ label, link }) => {
       target="_blank"
       rel="noopener noreferrer"
     > 
-      <div className="flex-1 text-center justify-start text-blue-600 text-xl font-bold font-['Maplestory']">
+      <div className="flex-1 text-center justify-start text-blue-600 text-xl font-bold">
         {label}
       </div>
     </a>
@@ -51,11 +51,11 @@ const LinkButton: React.FC<ButtonProps> = ({ label, link }) => {
 const CenteredButtons: React.FC = () => {
   const buttons: ButtonProps[] = [
     { 
-      label: '뼈와 근육 생김새 관찰', 
+      label: '뼈와 근육의 생김새 관찰', 
       link: '/5-1-4-1' 
     },
     { 
-      label: '근육과 뼈 움직임 보기', 
+      label: '팔이 움직이는 원리 알아보기', 
       link: '/5-1-4-2' 
     },
   ];
