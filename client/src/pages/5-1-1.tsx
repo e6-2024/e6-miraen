@@ -31,7 +31,7 @@ const cameraPositions = [
   new THREE.Vector3(16.498, 8.874, 4.258),
 ]
 
-function LoadingTracker({ onLoadingComplete }) {
+function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
   const { progress, active } = useProgress()
   
   useEffect(() => {
@@ -43,12 +43,15 @@ function LoadingTracker({ onLoadingComplete }) {
   return null
 }
 
-function BoxWithoutTop({ position = [0, 0, 0], waterLevel = -2.0 }) {
+function BoxWithoutTop({ position = [0, 0, 0], waterLevel = -2.0 }: {
+  position?: [number, number, number];
+  waterLevel?: number;
+}) {
   const width = 22.5
   const height = 3.5
   const depth = 23.5
   
-  const adjustedPosition = [position[0], waterLevel - height/2, position[2]]
+  const adjustedPosition: [number, number, number] = [position[0], waterLevel - height/2, position[2]]
   
   return (
     <group position={adjustedPosition}>
@@ -80,7 +83,7 @@ function BoxWithoutTop({ position = [0, 0, 0], waterLevel = -2.0 }) {
   )
 }
 
-function SceneCameraController({ sceneIndex }) {
+function SceneCameraController({ sceneIndex }: { sceneIndex: number }) {
   const { camera } = useThree()
 
   useEffect(() => {
@@ -94,7 +97,19 @@ function SceneCameraController({ sceneIndex }) {
 }
 
 // 각 STEP별 애니메이션 컨트롤러
-function StepAnimationController({ sceneIndex, modelLoaded, onWaterLevelUpdate, animationTrigger, onModelAnimationTrigger }) {
+function StepAnimationController({ 
+  sceneIndex, 
+  modelLoaded, 
+  onWaterLevelUpdate, 
+  animationTrigger, 
+  onModelAnimationTrigger 
+}: {
+  sceneIndex: number;
+  modelLoaded: boolean;
+  onWaterLevelUpdate: (level: number) => void;
+  animationTrigger: boolean;
+  onModelAnimationTrigger?: (trigger: number) => void;
+}) {
   const animationStateRef = useRef({
     isAnimating: false,
     currentWaterLevel: -2.0,
@@ -130,6 +145,7 @@ function StepAnimationController({ sceneIndex, modelLoaded, onWaterLevelUpdate, 
 
   // Play 버튼 클릭 시 각 STEP에 맞는 애니메이션 실행
   useEffect(() => {
+    console.log(`StepAnimationController - animationTrigger: ${animationTrigger}, sceneIndex: ${sceneIndex}, modelLoaded: ${modelLoaded}`)
     if (animationTrigger && modelLoaded) {
       const state = animationStateRef.current
       
@@ -155,12 +171,14 @@ function StepAnimationController({ sceneIndex, modelLoaded, onWaterLevelUpdate, 
   // STEP 1: 공룡 모델 애니메이션
   const startDinosaurAnimation = () => {
     console.log('공룡 애니메이션 시작')
+    const newTrigger = Date.now()
+    console.log(`Triggering model animation with: ${newTrigger}`)
     // Model 컴포넌트에 애니메이션 트리거 신호 전송 (매번 새로운 값으로)
-    onModelAnimationTrigger && onModelAnimationTrigger(Date.now())
+    onModelAnimationTrigger && onModelAnimationTrigger(newTrigger)
   }
 
   // STEP 2: 물 레벨 애니메이션
-  const startWaterLevelAnimation = (state, updateCallback) => {
+  const startWaterLevelAnimation = (state: any, updateCallback: (level: number) => void) => {
     if (state.isAnimating || state.animationIntervalId) return
     
     console.log('물 레벨 애니메이션 시작')
@@ -219,15 +237,36 @@ function StepAnimationController({ sceneIndex, modelLoaded, onWaterLevelUpdate, 
   return null
 }
 
-function SceneContent({ sceneIndex, waterLevel, handleWaterLevelUpdate, handleModelLoaded, showIntro, animationTrigger }) {
+function SceneContent({ 
+  sceneIndex, 
+  waterLevel, 
+  handleWaterLevelUpdate, 
+  handleModelLoaded, 
+  showIntro, 
+  animationTrigger 
+}: {
+  sceneIndex: number;
+  waterLevel: number;
+  handleWaterLevelUpdate: (level: number) => void;
+  handleModelLoaded: () => void;
+  showIntro: boolean;
+  animationTrigger: boolean;
+}) {
   const [modelAnimationTrigger, setModelAnimationTrigger] = useState(0) // number로 변경
   const showWater = sceneIndex === 1
   const currentModelPath = modelPaths[sceneIndex]
   const modelLoaded = true
   
-  const modelPosition = sceneIndex === 1 ? [-2.6, -7, -2.0] : [1.5, -7, -2.0]
+  const modelPosition: [number, number, number] = sceneIndex === 1 ? [-2.6, -7, -2.0] : [1.5, -7, -2.0]
 
-  const handleModelAnimationTrigger = (trigger) => {
+  // sceneIndex가 변경될 때마다 modelAnimationTrigger 초기화
+  useEffect(() => {
+    console.log(`Scene changed to ${sceneIndex}, resetting modelAnimationTrigger`)
+    setModelAnimationTrigger(0)
+  }, [sceneIndex])
+
+  const handleModelAnimationTrigger = (trigger: number) => {
+    console.log(`Setting modelAnimationTrigger to: ${trigger}`)
     setModelAnimationTrigger(trigger)
   }
 
@@ -305,20 +344,22 @@ export default function FossilViewer() {
   const [waterLevel, setWaterLevel] = useState(-2.0)
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
-  const [animationTrigger, setAnimationTrigger] = useState(0)
+  const [animationTrigger, setAnimationTrigger] = useState(false) // boolean으로 변경
   const [isPlayButtonPressed, setIsPlayButtonPressed] = useState(false)
 
   const handleLoadingComplete = () => {
     setIsLoaded(true)
   }
 
-  const handleSceneChange = (newSceneIndex) => {
+  const handleSceneChange = (newSceneIndex: number) => {
+    console.log(`Changing scene from ${sceneIndex} to ${newSceneIndex}`)
     setSceneIndex(newSceneIndex)
     setIsLoaded(false)
     setAnimationTrigger(false) // 씬 변경 시 애니메이션 트리거 초기화
+    console.log('Animation trigger reset to false')
   }
 
-  const handleWaterLevelUpdate = (level) => {
+  const handleWaterLevelUpdate = (level: number) => {
     setWaterLevel(level)
   }
 
@@ -326,7 +367,7 @@ export default function FossilViewer() {
     // 모델 로드 완료 처리
   }
 
-  const playClickSound = (audioPath = '/sounds/Enter_Cute.mp3') => {
+  const playClickSound = (audioPath: string = '/sounds/Enter_Cute.mp3') => {
     try {
       const audio = new Audio(audioPath)
       audio.volume = 0.7
@@ -347,13 +388,21 @@ export default function FossilViewer() {
 
   // Play 버튼 클릭 핸들러
   const handlePlayButtonClick = () => {
+    console.log(`Play button clicked for scene ${sceneIndex}`)
     playClickSound()
     setIsPlayButtonPressed(true)
     
     // 버튼 눌림 효과
     setTimeout(() => {
       setIsPlayButtonPressed(false)
-      setAnimationTrigger(prev => !prev) // 애니메이션 트리거
+      console.log('Setting animationTrigger to true')
+      setAnimationTrigger(true) // 애니메이션 트리거를 true로 설정
+      
+      // 트리거를 즉시 false로 리셋하여 한 번만 실행되도록
+      setTimeout(() => {
+        console.log('Resetting animationTrigger to false')
+        setAnimationTrigger(false)
+      }, 200) // 100ms에서 200ms로 증가
     }, 150)
   }
 
