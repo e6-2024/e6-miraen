@@ -114,6 +114,7 @@ export default function Model({
         }
       }
     })
+
   }, [sceneIndex, scene])
 
   return (

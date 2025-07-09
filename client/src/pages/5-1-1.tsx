@@ -29,7 +29,7 @@ const cameraPositions = [
   new THREE.Vector3(-30.01, 3.108, -5.557),
   new THREE.Vector3(14, 19, 14),
   new THREE.Vector3(23.613311588485445, 13.162826461554463, 22.863629867778908),
-  new THREE.Vector3(10.45, 4.68, 4.93)
+  new THREE.Vector3(14, 12.25, 15.685)
 ]
 
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
@@ -263,9 +263,7 @@ function StepAnimationController({
     }
   }, [sceneIndex, onWaterLevelUpdate, setLayerAnimationProgress])
 
-  // Play 버튼 클릭 시 각 STEP에 맞는 애니메이션 실행
   useEffect(() => {
-    console.log(`StepAnimationController - animationTrigger: ${animationTrigger}, sceneIndex: ${sceneIndex}, modelLoaded: ${modelLoaded}`)
     if (animationTrigger && modelLoaded) {
       const state = animationStateRef.current
       
@@ -288,11 +286,8 @@ function StepAnimationController({
     }
   }, [animationTrigger, modelLoaded, sceneIndex, onWaterLevelUpdate, setLayerAnimationProgress])
 
-  // STEP 1: 공룡 모델 애니메이션
   const startDinosaurAnimation = () => {
-    console.log('공룡 애니메이션 시작')
     const newTrigger = Date.now()
-    console.log(`Triggering model animation with: ${newTrigger}`)
     onModelAnimationTrigger && onModelAnimationTrigger(newTrigger)
   }
 
@@ -300,7 +295,6 @@ function StepAnimationController({
   const startWaterLevelAnimation = (state: any, updateCallback: (level: number) => void) => {
     if (state.isAnimating || state.animationIntervalId) return
     
-    console.log('물 레벨 애니메이션 시작')
     state.isAnimating = true
     
     const startLevel = -0.5
@@ -325,7 +319,6 @@ function StepAnimationController({
         clearInterval(state.animationIntervalId)
         state.animationIntervalId = null
         state.isAnimating = false
-        console.log('물 레벨 애니메이션 완료')
       }
     }, 50)
   }
@@ -334,7 +327,6 @@ function StepAnimationController({
   const startLayerAccumulationAnimation = (state: any) => {
     if (state.isAnimating || state.layerAnimationId) return
     
-    console.log('지층 누적 애니메이션 시작')
     state.isAnimating = true
     
     const duration = 8000 // 8초 동안 지층 누적
@@ -355,7 +347,6 @@ function StepAnimationController({
         clearInterval(state.layerAnimationId)
         state.layerAnimationId = null
         state.isAnimating = false
-        console.log('지층 누적 애니메이션 완료')
         onLayerAnimationComplete()
       }
     }, 50)
@@ -503,7 +494,7 @@ function SceneContent({
         <SpeechBubble
           position={[0, 0, 0]}
           pointColor='#ff6b6b'
-          html='<mark>지층을 자세히 관찰</mark>해보세요!'
+          html='<mark>화석을 자세히 관찰</mark>해보세요!'
           onBubbleClick={onSpeechBubbleClick}
           bubbleOffset={[0, 2, 0]}
         />
@@ -556,14 +547,12 @@ export default function FossilViewer() {
   }
 
   const handleSceneChange = (newSceneIndex: number) => {
-    console.log(`Changing scene from ${sceneIndex} to ${newSceneIndex}`)
     setSceneIndex(newSceneIndex)
     setIsLoaded(false)
     setAnimationTrigger(false)
     setLayerAnimationProgress(0)
     setShowSpeechBubble(false)
     setCameraTarget(null)
-    console.log('Animation trigger reset to false')
   }
 
   const handleWaterLevelUpdate = (level: number) => {
@@ -575,19 +564,16 @@ export default function FossilViewer() {
   }
 
   const handleLayerAnimationComplete = () => {
-    console.log('지층 애니메이션 완료 - 말풍선 표시')
     setShowSpeechBubble(true)
   }
 
   const handleSpeechBubbleClick = () => {
-    console.log('말풍선 클릭 - 카메라 이동')
     const targetPosition = new THREE.Vector3(5, 2, 5) // 지층을 가까이서 볼 수 있는 위치
     setCameraTarget(targetPosition)
     setShowSpeechBubble(false)
   }
 
   const handleCameraMoveComplete = () => {
-    console.log('카메라 이동 완료')
     setCameraTarget(null)
   }
 
@@ -612,19 +598,16 @@ export default function FossilViewer() {
 
   // Play 버튼 클릭 핸들러
   const handlePlayButtonClick = () => {
-    console.log(`Play button clicked for scene ${sceneIndex}`)
     playClickSound()
     setIsPlayButtonPressed(true)
     
     // 버튼 눌림 효과
     setTimeout(() => {
       setIsPlayButtonPressed(false)
-      console.log('Setting animationTrigger to true')
       setAnimationTrigger(true)
       
       // 트리거를 즉시 false로 리셋하여 한 번만 실행되도록
       setTimeout(() => {
-        console.log('Resetting animationTrigger to false')
         setAnimationTrigger(false)
       }, 200)
     }, 150)
