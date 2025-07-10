@@ -1,4 +1,3 @@
-// FossilViewer.tsx
 import { OrbitControls, useGLTF, Environment, useProgress } from '@react-three/drei'
 import { useThree, useFrame } from '@react-three/fiber'
 import Model from '../components/5-1-1/Model'
@@ -11,8 +10,8 @@ import Intro from '@/components/intro/Intro'
 import { EffectComposer, TiltShift2, N8AO} from '@react-three/postprocessing'
 import { SpeechBubble } from '../components/6-1-1/SpeechBubble'
 import CameraLogger from '@/components/CameraLogger'
+import NavigationUI from '@/components/5-1-1/NavigationUI'
 
-// ====== 상수들 ======
 const modelPaths = [
   'models/5-1-1/1/Dino.gltf',
   'models/5-1-1/2/Dino.gltf',
@@ -55,7 +54,7 @@ function WaterBox({ position = [0, 0, 0], waterLevel = -2.0 }: {
   waterLevel?: number;
 }) {
   const width = 22.5
-  const height = 3.5
+  const height = 4.0
   const depth = 23.5
   
   const adjustedPosition: [number, number, number] = [position[0], waterLevel - height/2, position[2]]
@@ -104,7 +103,6 @@ function SceneCameraController({ sceneIndex }: { sceneIndex: number }) {
   return null
 }
 
-// 카메라 이동 컴포넌트
 function CameraController({ 
   targetPosition, 
   onMoveComplete 
@@ -670,61 +668,6 @@ function SceneContent({
   )
 }
 
-// UI 컴포넌트들
-function NavigationUI({ sceneIndex, onSceneChange, onPlayClick, isPlayButtonPressed }: {
-  sceneIndex: number;
-  onSceneChange: (index: number) => void;
-  onPlayClick: () => void;
-  isPlayButtonPressed: boolean;
-}) {
-  return (
-    <div className="absolute flex flex-row left-1/2 top-4 transform -translate-x-1/2 z-10 justify-center items-center">
-      <div className="flex items-center justify-center p-4 text-white z-10">
-        {[1, 2, 3, 4].map((num) => (
-          <>
-            <button
-              key={num-1}
-              onClick={() => onSceneChange(num-1)}
-              className={`px-4 py-2 rounded-lg transition-all ${
-                sceneIndex === num -1
-                  ? 'bg-blue-500 shadow-lg' 
-                  : 'bg-gray-700/80 hover:bg-gray-600'
-              }`}
-            >
-              STEP {num}
-            </button>
-            {num < 4 && (
-              <div className={`w-5 h-0.5 bg-white`} />
-            )}
-          </>
-        ))}
-      </div>
-
-      <button
-        onClick={onPlayClick}
-        className="w-20 h-20 relative ml-4 z-10 cursor-pointer transition-all duration-150 hover:scale-105"
-      >
-        <div className={`w-full h-full left-0 absolute bg-amber-700 rounded-full transition-all duration-150 ${
-          isPlayButtonPressed ? 'top-0' : 'top-[5px]'
-        }`}></div>
-        
-        <div className={`w-full h-full left-0 absolute bg-gradient-to-b from-amber-400 to-amber-600 rounded-full transition-all duration-150 ${
-          isPlayButtonPressed ? 'top-[3px] scale-95' : 'top-0'
-        }`}></div>
-        
-        <img 
-          src='/img/icon/Polygon 1.svg' 
-          alt="지층 아이콘" 
-          className={`w-10 h-10 absolute ml-1 left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-150 ${
-            isPlayButtonPressed ? 'scale-90' : ''
-          }`} 
-        />
-      </button>
-    </div>
-  )
-}
-
-// ====== 메인 컴포넌트 ======
 export default function FossilViewer() {
   const [sceneIndex, setSceneIndex] = useState(0)
   const [waterLevel, setWaterLevel] = useState(-2.0)
@@ -783,6 +726,18 @@ export default function FossilViewer() {
     }
   }
 
+  const playClickButtonSound = (audioPath: string = '/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3') => {
+    try {
+      const audio = new Audio(audioPath)
+      audio.volume = 0.7
+      audio.play().catch(error => {
+        console.log('버튼 클릭 효과음 재생 실패:', error.name)
+      })
+    } catch (error) {
+      console.log('버튼 클릭 효과음 생성 실패:', error)
+    }
+  }
+
   const handleEnterExperience = () => {
     playClickSound()
     setTimeout(() => {
@@ -791,7 +746,7 @@ export default function FossilViewer() {
   }
 
   const handlePlayButtonClick = () => {
-    playClickSound()
+    playClickButtonSound()
     setIsPlayButtonPressed(true)
     
     setTimeout(() => {

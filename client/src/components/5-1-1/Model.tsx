@@ -87,7 +87,7 @@ export default function Model({
   // 애니메이션 업데이트 및 완료 체크
   useFrame((_, delta) => {
     if (mixer.current && isAnimationPlayingRef.current) {
-      mixer.current.update(delta * 1.5)
+      mixer.current.update(delta * 2.0)
       
       // Step 1에서 애니메이션이 끝났는지 확인
       if (sceneIndex === 0 && actionsRef.current.length > 0) {
