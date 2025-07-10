@@ -11,7 +11,6 @@ import Intro from '@/components/intro/Intro'
 import { EffectComposer, TiltShift2, N8AO} from '@react-three/postprocessing'
 import { SpeechBubble } from '../components/6-1-1/SpeechBubble'
 import CameraLogger from '@/components/CameraLogger'
-import CameraEntryAnimation from '@/components/5-1-1/CameraEntryAnimation'
 
 // ====== 상수들 ======
 const modelPaths = [
@@ -91,32 +90,19 @@ function WaterBox({ position = [0, 0, 0], waterLevel = -2.0 }: {
   )
 }
 
-function SceneCameraController({ 
-  sceneIndex, 
-  showIntro,
-  disabled = false  // CameraEntryAnimation이 완료된 후에만 활성화
-}: { 
-  sceneIndex: number
-  showIntro: boolean
-  disabled?: boolean
-}) {
+// 카메라 컨트롤러 컴포넌트
+function SceneCameraController({ sceneIndex }: { sceneIndex: number }) {
   const { camera } = useThree()
 
   useEffect(() => {
-    // Intro가 보이거나 비활성화된 경우 실행하지 않음
-    if (showIntro || disabled) return
-    
     const pos = cameraPositions[sceneIndex]
     camera.position.copy(pos)
     camera.lookAt(0, 0, 0)
     camera.updateProjectionMatrix()
-    console.log('SceneCameraController: 카메라 위치 설정', pos)
-  }, [sceneIndex, camera, showIntro, disabled])
+  }, [sceneIndex, camera])
 
   return null
 }
-
-
 
 // 카메라 이동 컴포넌트
 function CameraController({ 
@@ -240,7 +226,7 @@ function FossilDiscoveryAnimation({
    const sceneGroup = modelRef.current.children[0]?.children[0]
    if (sceneGroup) {
      // 지층 그룹(index 1) 내부의 index 0 저장
-     const layerGroup = sceneGroup.children[1]
+     const layerGroup = sceneGroup.children[0]
      if (layerGroup && layerGroup.children[0]) {
        originalPositionsRef.current.set('layer-0', layerGroup.children[0].position.clone())
      }
@@ -598,37 +584,23 @@ function SceneContent({
   }
 
   return (
-  <>
-    {/* SceneCameraController를 CameraEntryAnimation보다 먼저 실행 */}
-    <SceneCameraController 
-      sceneIndex={sceneIndex} 
-      showIntro={showIntro}
-      disabled={true}  // CameraEntryAnimation 사용 시 비활성화
-    />
-    
-    {/* CameraEntryAnimation이 showIntro 상태에 따라 동작 */}
-    <CameraEntryAnimation 
-      showIntro={showIntro}
-      sceneIndex={sceneIndex}  // 현재 씬 인덱스 전달
-      duration={2.0}
-    />
-    
-    <AnimationController 
-      sceneIndex={sceneIndex}
-      modelLoaded={modelLoaded}
-      onWaterLevelUpdate={handleWaterLevelUpdate}
-      animationTrigger={animationTrigger}
-      onModelAnimationTrigger={handleModelAnimationTrigger}
-      animationProgress={layerAnimationProgress}
-      setAnimationProgress={setLayerAnimationProgress}
-      onAnimationComplete={onLayerAnimationComplete}
-    />
-    
-    <CameraController 
-      targetPosition={cameraTarget}
-      onMoveComplete={onCameraMoveComplete}
-    />
-
+    <>
+      <SceneCameraController sceneIndex={sceneIndex} />
+      <AnimationController 
+        sceneIndex={sceneIndex}
+        modelLoaded={modelLoaded}
+        onWaterLevelUpdate={handleWaterLevelUpdate}
+        animationTrigger={animationTrigger}
+        onModelAnimationTrigger={handleModelAnimationTrigger}
+        animationProgress={layerAnimationProgress}
+        setAnimationProgress={setLayerAnimationProgress}
+        onAnimationComplete={onLayerAnimationComplete}
+      />
+      
+      <CameraController 
+        targetPosition={cameraTarget}
+        onMoveComplete={onCameraMoveComplete}
+      />
       
       {!showWater && (
         <>
@@ -751,6 +723,7 @@ function NavigationUI({ sceneIndex, onSceneChange, onPlayClick, isPlayButtonPres
     </div>
   )
 }
+
 // ====== 메인 컴포넌트 ======
 export default function FossilViewer() {
   const [sceneIndex, setSceneIndex] = useState(0)
@@ -762,9 +735,6 @@ export default function FossilViewer() {
   const [layerAnimationProgress, setLayerAnimationProgress] = useState(0)
   const [showSpeechBubble, setShowSpeechBubble] = useState(false)
   const [cameraTarget, setCameraTarget] = useState<THREE.Vector3 | null>(null)
-
-  // Intro용 고정 카메라 위치로 Scene 설정 (변경하지 않음)
-  const introChameraPosition: [number, number, number] = [0, 10, 10]
 
   const handleLoadingComplete = () => {
     setIsLoaded(true)
@@ -817,7 +787,7 @@ export default function FossilViewer() {
     playClickSound()
     setTimeout(() => {
       setShowIntro(false)
-    }, 1000) // Intro 애니메이션과 맞춤 (1초)
+    }, 300)
   }
 
   const handlePlayButtonClick = () => {
@@ -848,13 +818,7 @@ export default function FossilViewer() {
       <div className="flex-1">
         <Scene 
           shadows
-          // Scene 카메라를 Intro 위치로 고정 (SceneCameraController가 씬별 이동 담당)
-          camera={{ 
-            position: introChameraPosition, 
-            fov: 50, 
-            near: 0.1, 
-            far: 5000 
-          }}
+          camera={{ position: [0, 10, 10], fov: 50, near: 0.1, far: 5000 }}
           gl={{ 
             shadowMap: { 
               enabled: true, 

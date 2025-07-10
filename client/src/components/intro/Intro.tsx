@@ -1,5 +1,5 @@
 // components/Intro.tsx
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 interface IntroProps {
   onEnter: () => void;
@@ -17,46 +17,20 @@ export default function Intro({
   simbolSvgPath = '/img/Group 2.svg'
 }: IntroProps) {
   const [isVisible, setIsVisible] = useState(true);
-  const [isExiting, setIsExiting] = useState(false);
 
   const handleEnter = () => {
-    setIsExiting(true);
-    
-    // 애니메이션 완료 후 onEnter 호출
-    setTimeout(() => {
-      onEnter();
-      setIsVisible(false);
-    }, 1000); // 애니메이션 지속 시간과 맞춤
+    onEnter();
   };
 
   if (!isVisible) return null;
 
   return (
     <div className={`
-      fixed inset-0 z-50
+      absolute inset-0 z-50
       transition-opacity duration-300
       ${isVisible ? 'opacity-100' : 'opacity-0'}
     `}>
-      {/* 배경 SVG - 전체 화면 */}
-      <div className={`
-        absolute inset-0 w-full h-full
-        transition-transform duration-1000 ease-in-out
-        ${isExiting ? 'scale-150' : 'scale-100'}
-      `}>
-        <img 
-          src={simbolSvgPath} 
-          alt="Background" 
-          className="w-full h-full object-cover"
-        />
-      </div>
-
-      {/* 오버레이 - 데스크톱 */}
-      <div className={`
-        hidden md:block absolute inset-0 
-        bg-white bg-opacity-70 backdrop-blur-sm
-        transition-all duration-1000 ease-in-out
-        ${isExiting ? 'bg-opacity-0 backdrop-blur-0' : 'bg-opacity-70'}
-      `}>
+      <div className="hidden md:block w-full h-full bg-white bg-opacity-20 ">
         <div className="
           w-full h-full
           flex flex-col justify-center
@@ -65,11 +39,7 @@ export default function Intro({
         ">
           <div className="absolute top-0 left-0 w-full h-full">
             <div className='absolute flex-row top-0'>
-              <div className={`
-                relative flex flex-col items-center justify-center top-7 left-20 gap-2
-                transition-all duration-1000 ease-in-out
-                ${isExiting ? 'opacity-0 scale-75' : 'opacity-100 scale-100'}
-              `}>
+              <div className="relative flex flex-col items-center justify-center top-7 left-20 gap-2">
                 <div className='relative flex flex-col'>
                   <h1 className="text-6xl mb-7 text-black leading-tight text-left">
                     {title}
@@ -86,17 +56,15 @@ export default function Intro({
                   </div>
                 </div>
                 <button
-                  onClick={handleEnter}
-                  disabled={isExiting}
-                  className={`
+                  onClick={onEnter}
+                  className="
                     bg-[#E4F0FF]
                     text-blue-600 font-bold
                     px-12 py-4 rounded-full
                     transition-all duration-300
                     w-fit
                     hover:bg-blue-50
-                    ${isExiting ? 'opacity-50 cursor-not-allowed' : ''}
-                  `}
+                  "
                 >
                   시작하기
                 </button>
@@ -106,21 +74,14 @@ export default function Intro({
         </div>
       </div>
 
-      {/* 오버레이 - 모바일 */}
-      <div className={`
-        md:hidden absolute inset-0 
-        bg-white bg-opacity-80 backdrop-blur-sm
-        transition-all duration-1000 ease-in-out
-        ${isExiting ? 'bg-opacity-0 backdrop-blur-0' : 'bg-opacity-80'}
-      `}>
-        <div className={`
+      <div className="md:hidden w-full h-full bg-white bg-opacity-80 backdrop-blur-sm">
+        <div className="
           w-full h-full
           flex flex-col items-center justify-center
           px-6 py-8
           text-center
-          transition-all duration-1000 ease-in-out
-          ${isExiting ? 'opacity-0 scale-75' : 'opacity-100 scale-100'}
-        `}>
+        ">
+
           <h1 className="text-2xl sm:text-4xl mb-4 text-black leading-tight">
             {title}
           </h1>
@@ -137,9 +98,8 @@ export default function Intro({
           </div>
 
           <button
-            onClick={handleEnter}
-            disabled={isExiting}
-            className={`
+            onClick={onEnter}
+            className="
               bg-[#E4F0FF]
               text-blue-600 font-bold
               px-8 py-3 rounded-full
@@ -148,8 +108,7 @@ export default function Intro({
               hover:bg-blue-50
               active:scale-95
               text-sm sm:text-base
-              ${isExiting ? 'opacity-50 cursor-not-allowed' : ''}
-            `}
+            "
           >
             시작하기
           </button>
