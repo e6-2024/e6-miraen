@@ -1,3 +1,4 @@
+// FossilViewer.tsx
 import { OrbitControls, useGLTF, Environment, useProgress } from '@react-three/drei'
 import { useThree, useFrame } from '@react-three/fiber'
 import Model from '../components/5-1-1/Model'
@@ -11,6 +12,7 @@ import { EffectComposer, TiltShift2, N8AO} from '@react-three/postprocessing'
 import { SpeechBubble } from '../components/6-1-1/SpeechBubble'
 import CameraLogger from '@/components/CameraLogger'
 
+// ====== 상수들 ======
 const modelPaths = [
   'models/5-1-1/1/Dino.gltf',
   'models/5-1-1/2/Dino.gltf',
@@ -32,6 +34,9 @@ const cameraPositions = [
   new THREE.Vector3(14, 12.25, 15.685)
 ]
 
+// ====== 하위 컴포넌트들 ======
+
+// 로딩 트래커 컴포넌트
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
   const { progress, active } = useProgress()
   
@@ -44,7 +49,8 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
   return null
 }
 
-function BoxWithoutTop({ position = [0, 0, 0], waterLevel = -2.0 }: {
+// 물 상자 컴포넌트
+function WaterBox({ position = [0, 0, 0], waterLevel = -2.0 }: {
   position?: [number, number, number];
   waterLevel?: number;
 }) {
@@ -84,6 +90,7 @@ function BoxWithoutTop({ position = [0, 0, 0], waterLevel = -2.0 }: {
   )
 }
 
+// 카메라 컨트롤러 컴포넌트
 function SceneCameraController({ sceneIndex }: { sceneIndex: number }) {
   const { camera } = useThree()
 
@@ -97,7 +104,55 @@ function SceneCameraController({ sceneIndex }: { sceneIndex: number }) {
   return null
 }
 
-function LayerRevealShader({ 
+// 카메라 이동 컴포넌트
+function CameraController({ 
+  targetPosition, 
+  onMoveComplete 
+}: {
+  targetPosition: THREE.Vector3 | null
+  onMoveComplete: () => void
+}) {
+  const { camera } = useThree()
+  const startPosition = useRef<THREE.Vector3>(new THREE.Vector3())
+  const animationProgress = useRef(0)
+  const isAnimating = useRef(false)
+
+  useFrame((state, delta) => {
+    if (!targetPosition || !isAnimating.current) return
+
+    const duration = 2.0
+    animationProgress.current += delta / duration
+
+    if (animationProgress.current >= 1) {
+      camera.position.copy(targetPosition)
+      camera.lookAt(0, 0, 0)
+      isAnimating.current = false
+      animationProgress.current = 0
+      onMoveComplete()
+      return
+    }
+
+    const t = animationProgress.current
+    const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+
+    const currentPosition = startPosition.current.clone().lerp(targetPosition, eased)
+    camera.position.copy(currentPosition)
+    camera.lookAt(0, 0, 0)
+  })
+
+  useEffect(() => {
+    if (targetPosition) {
+      startPosition.current.copy(camera.position)
+      animationProgress.current = 0
+      isAnimating.current = true
+    }
+  }, [targetPosition, camera])
+
+  return null
+}
+
+// Step 3 지층 누적 애니메이션
+function LayerAccumulationAnimation({ 
   modelRef, 
   animationProgress 
 }: {
@@ -120,7 +175,6 @@ function LayerRevealShader({
         const totalHeight = maxY - minY
         
         const normalizedY = (worldPosition.y - minY) / totalHeight
-        
         const revealThreshold = animationProgress
         
         if (normalizedY <= revealThreshold) {
@@ -153,75 +207,120 @@ function LayerRevealShader({
   return null
 }
 
-// 카메라 이동 컴포넌트
-function CameraController({ 
-  targetPosition, 
-  onMoveComplete 
+// Step 4 화석 발견 애니메이션
+function FossilDiscoveryAnimation({ 
+ modelRef, 
+ animationProgress,
+ onAnimationComplete 
 }: {
-  targetPosition: THREE.Vector3 | null
-  onMoveComplete: () => void
+ modelRef: React.RefObject<THREE.Group>
+ animationProgress: number
+ onAnimationComplete?: () => void
 }) {
-  const { camera } = useThree()
-  const startPosition = useRef<THREE.Vector3>(new THREE.Vector3())
-  const animationProgress = useRef(0)
-  const isAnimating = useRef(false)
+ const originalPositionsRef = useRef<Map<string, THREE.Vector3>>(new Map())
+ const hasCompletedRef = useRef(false)
 
-  useFrame((state, delta) => {
-    if (!targetPosition || !isAnimating.current) return
+ useEffect(() => {
+   if (!modelRef.current) return
+   
+   const sceneGroup = modelRef.current.children[0]?.children[0]
+   if (sceneGroup) {
+     // 지층 그룹(index 1) 내부의 index 0 저장
+     const layerGroup = sceneGroup.children[1]
+     if (layerGroup && layerGroup.children[0]) {
+       originalPositionsRef.current.set('layer-0', layerGroup.children[0].position.clone())
+     }
+     
+     // 식물들(index 2+) 저장
+     sceneGroup.children.forEach((child, index) => {
+       if (index >= 2 && child.position) {
+         originalPositionsRef.current.set(`scene-${index}`, child.position.clone())
+       }
+     })
+   }
+ }, [modelRef.current])
 
-    const duration = 2.0 // 2초 동안 이동
-    animationProgress.current += delta / duration
+ useFrame(() => {
+   if (!modelRef.current || originalPositionsRef.current.size === 0) return
 
-    if (animationProgress.current >= 1) {
-      // 애니메이션 완료
-      camera.position.copy(targetPosition)
-      camera.lookAt(0, 0, 0)
-      isAnimating.current = false
-      animationProgress.current = 0
-      onMoveComplete()
-      return
-    }
+   const sceneGroup = modelRef.current.children[0]?.children[0]
+   if (!sceneGroup) return
 
-    // 부드러운 easing
-    const t = animationProgress.current
-    const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+   const moveDistance = animationProgress * -0.5
 
-    // 위치 보간
-    const currentPosition = startPosition.current.clone().lerp(targetPosition, eased)
-    camera.position.copy(currentPosition)
-    camera.lookAt(0, 0, 0)
-  })
+   const layerGroup = sceneGroup.children[1]
+   if (layerGroup && layerGroup.children[0]) {
+     const originalPos = originalPositionsRef.current.get('layer-0')
+     if (originalPos) {
+       layerGroup.children[0].position.y = originalPos.y - moveDistance
+     }
+   }
 
-  useEffect(() => {
-    if (targetPosition) {
-      startPosition.current.copy(camera.position)
-      animationProgress.current = 0
-      isAnimating.current = true
-    }
-  }, [targetPosition, camera])
+   sceneGroup.children.forEach((child, index) => {
+     if (index >= 2) {
+       const originalPos = originalPositionsRef.current.get(`scene-${index}`)
+       if (child && originalPos) {
+         child.position.x = originalPos.x + moveDistance
+       }
+     }
+   })
 
-  return null
+   if (animationProgress >= 1.0 && !hasCompletedRef.current) {
+     hasCompletedRef.current = true
+     onAnimationComplete?.()
+   }
+ })
+
+ useEffect(() => {
+   if (animationProgress === 0) {
+     hasCompletedRef.current = false
+     
+     const sceneGroup = modelRef.current?.children[0]?.children[0]
+     if (sceneGroup) {
+       // 지층 그룹 내부 index 0 복원
+       const layerGroup = sceneGroup.children[1]
+       if (layerGroup && layerGroup.children[0]) {
+         const originalPos = originalPositionsRef.current.get('layer-0')
+         if (originalPos) {
+           layerGroup.children[0].position.copy(originalPos)
+         }
+       }
+       
+       // 식물들 복원
+       sceneGroup.children.forEach((child, index) => {
+         if (index >= 2) {
+           const originalPos = originalPositionsRef.current.get(`scene-${index}`)
+           if (child && originalPos) {
+             child.position.copy(originalPos)
+           }
+         }
+       })
+     }
+   }
+ }, [animationProgress])
+
+ return null
 }
 
-// 각 STEP별 애니메이션 컨트롤러
-function StepAnimationController({ 
+// 애니메이션 컨트롤러
+function AnimationController({ 
   sceneIndex, 
   modelLoaded, 
   onWaterLevelUpdate, 
   animationTrigger, 
   onModelAnimationTrigger,
-  onLayerAnimationComplete,
-  layerAnimationProgress,
-  setLayerAnimationProgress
+  onAnimationComplete,
+  animationProgress,
+  setAnimationProgress
 }: {
   sceneIndex: number;
   modelLoaded: boolean;
   onWaterLevelUpdate: (level: number) => void;
   animationTrigger: boolean;
   onModelAnimationTrigger?: (trigger: number) => void;
-  onLayerAnimationComplete: () => void;
-  layerAnimationProgress: number;
-  setLayerAnimationProgress: (progress: number) => void;
+  onAnimationComplete: () => void;
+  animationProgress: number;
+  setAnimationProgress: (progress: number) => void;
 }) {
   const animationStateRef = useRef({
     isAnimating: false,
@@ -239,7 +338,6 @@ function StepAnimationController({
       state.lastSceneIndex = sceneIndex
       state.isAnimating = false
       
-      // 기존 애니메이션 정리
       if (state.animationIntervalId) {
         clearInterval(state.animationIntervalId)
         state.animationIntervalId = null
@@ -249,7 +347,6 @@ function StepAnimationController({
         state.layerAnimationId = null
       }
       
-      // 각 씬별 초기 상태 설정
       if (sceneIndex === 1) {
         state.currentWaterLevel = -0.5
       } else if (sceneIndex === 2) {
@@ -259,9 +356,16 @@ function StepAnimationController({
       }
       
       onWaterLevelUpdate(state.currentWaterLevel)
-      setLayerAnimationProgress(0) // 지층 애니메이션 진행도 초기화
+
+      if (sceneIndex === 2) {
+        setAnimationProgress(1.0)
+      } else if (sceneIndex === 3) {
+        setAnimationProgress(0)
+      } else {
+        setAnimationProgress(0)
+      }
     }
-  }, [sceneIndex, onWaterLevelUpdate, setLayerAnimationProgress])
+  }, [sceneIndex, onWaterLevelUpdate, setAnimationProgress])
 
   useEffect(() => {
     if (animationTrigger && modelLoaded) {
@@ -269,29 +373,26 @@ function StepAnimationController({
       
       setTimeout(() => {
         switch (sceneIndex) {
-          case 0: // STEP 1 - 공룡 모델 애니메이션
+          case 0:
             startDinosaurAnimation()
             break
-          case 1: // STEP 2 - 물 레벨 애니메이션
+          case 1:
             startWaterLevelAnimation(state, onWaterLevelUpdate)
             break
-          case 2: // STEP 3 - 지층 누적 애니메이션
-            startLayerAccumulationAnimation(state)
-            break
-          case 3: // STEP 4 - 화석 발견 애니메이션 (구현 예정)
-            startFossilDiscoveryAnimation()
+          case 2:
+          case 3:
+            startLayerAnimation(state)
             break
         }
       }, 300)
     }
-  }, [animationTrigger, modelLoaded, sceneIndex, onWaterLevelUpdate, setLayerAnimationProgress])
+  }, [animationTrigger, modelLoaded, sceneIndex, onWaterLevelUpdate, setAnimationProgress])
 
   const startDinosaurAnimation = () => {
     const newTrigger = Date.now()
     onModelAnimationTrigger && onModelAnimationTrigger(newTrigger)
   }
 
-  // STEP 2: 물 레벨 애니메이션
   const startWaterLevelAnimation = (state: any, updateCallback: (level: number) => void) => {
     if (state.isAnimating || state.animationIntervalId) return
     
@@ -323,38 +424,31 @@ function StepAnimationController({
     }, 50)
   }
 
-  // STEP 3: 지층 누적 애니메이션
-  const startLayerAccumulationAnimation = (state: any) => {
+  const startLayerAnimation = (state: any) => {
     if (state.isAnimating || state.layerAnimationId) return
     
     state.isAnimating = true
     
-    const duration = 8000 // 8초 동안 지층 누적
+    const duration = 8000
     const startTime = Date.now()
     
     state.layerAnimationId = setInterval(() => {
       const elapsed = Date.now() - startTime
       const progress = Math.min(elapsed / duration, 1.0)
       
-      // 부드러운 easing 적용
       const eased = progress < 0.5 
         ? 2 * progress * progress 
         : 1 - Math.pow(-2 * progress + 2, 2) / 2
       
-      setLayerAnimationProgress(eased)
+      setAnimationProgress(eased)
 
       if (progress >= 1.0) {
         clearInterval(state.layerAnimationId)
         state.layerAnimationId = null
         state.isAnimating = false
-        onLayerAnimationComplete()
+        onAnimationComplete()
       }
     }, 50)
-  }
-
-  // STEP 4: 화석 발견 애니메이션 (구현 예정)
-  const startFossilDiscoveryAnimation = () => {
-    console.log('화석 발견 애니메이션 시작 (구현 예정)')
   }
 
   useEffect(() => {
@@ -372,6 +466,80 @@ function StepAnimationController({
   return null
 }
 
+// 3D 모델 렌더링 컴포넌트
+function ModelRenderer({ 
+  sceneIndex, 
+  modelAnimationTrigger, 
+  animationProgress, 
+  onModelLoaded, 
+  onAnimationComplete 
+}: {
+  sceneIndex: number;
+  modelAnimationTrigger: number;
+  animationProgress: number;
+  onModelLoaded: () => void;
+  onAnimationComplete: () => void;
+}) {
+  const modelRef = useRef<THREE.Group>(null!)
+  const currentModelPath = modelPaths[sceneIndex]
+  const modelPosition: [number, number, number] = sceneIndex === 1 ? [-2.6, -7, -2.0] : [1.5, -7, -2.0]
+
+  if (sceneIndex === 2) {
+    // Step 3: 지층 누적 애니메이션
+    return (
+      <group ref={modelRef}>
+        <Model
+          key={`model-${sceneIndex}-${currentModelPath}`}
+          path={currentModelPath}
+          scale={3.7}
+          position={modelPosition}
+          sceneIndex={sceneIndex}
+          onLoaded={onModelLoaded}
+          animationTrigger={0}
+        />
+        <LayerAccumulationAnimation 
+          modelRef={modelRef}
+          animationProgress={animationProgress}
+        />
+      </group>
+    )
+  } else if (sceneIndex === 3) {
+    // Step 4: 화석 발견 애니메이션
+    return (
+      <group ref={modelRef}>
+        <Model
+          key={`model-${sceneIndex}-${currentModelPath}`}
+          path={currentModelPath}
+          scale={3.7}
+          position={modelPosition}
+          sceneIndex={sceneIndex}
+          onLoaded={onModelLoaded}
+          animationTrigger={0}
+        />
+        <FossilDiscoveryAnimation
+          modelRef={modelRef}
+          animationProgress={animationProgress}
+          onAnimationComplete={onAnimationComplete}
+        />
+      </group>
+    )
+  } else {
+    // Step 1, 2: 일반 모델 렌더링
+    return (
+      <Model
+        key={`model-${sceneIndex}-${currentModelPath}`}
+        path={currentModelPath}
+        scale={3.7}
+        position={modelPosition}
+        sceneIndex={sceneIndex}
+        onLoaded={onModelLoaded}
+        animationTrigger={sceneIndex === 0 ? modelAnimationTrigger : 0}
+      />
+    )
+  }
+}
+
+// 3D 씬 컨텐츠
 function SceneContent({ 
   sceneIndex, 
   waterLevel, 
@@ -402,14 +570,9 @@ function SceneContent({
   onCameraMoveComplete: () => void;
 }) {
   const [modelAnimationTrigger, setModelAnimationTrigger] = useState(0)
-  const modelRef = useRef<THREE.Group>(null!) // step3 모델 참조용
   const showWater = sceneIndex === 1
-  const currentModelPath = modelPaths[sceneIndex]
   const modelLoaded = true
-  
-  const modelPosition: [number, number, number] = sceneIndex === 1 ? [-2.6, -7, -2.0] : [1.5, -7, -2.0]
 
-  // sceneIndex가 변경될 때마다 modelAnimationTrigger 초기화
   useEffect(() => {
     console.log(`Scene changed to ${sceneIndex}, resetting modelAnimationTrigger`)
     setModelAnimationTrigger(0)
@@ -423,18 +586,17 @@ function SceneContent({
   return (
     <>
       <SceneCameraController sceneIndex={sceneIndex} />
-      <StepAnimationController 
+      <AnimationController 
         sceneIndex={sceneIndex}
         modelLoaded={modelLoaded}
         onWaterLevelUpdate={handleWaterLevelUpdate}
         animationTrigger={animationTrigger}
         onModelAnimationTrigger={handleModelAnimationTrigger}
-        layerAnimationProgress={layerAnimationProgress}
-        setLayerAnimationProgress={setLayerAnimationProgress}
-        onLayerAnimationComplete={onLayerAnimationComplete}
+        animationProgress={layerAnimationProgress}
+        setAnimationProgress={setLayerAnimationProgress}
+        onAnimationComplete={onLayerAnimationComplete}
       />
       
-      {/* 카메라 컨트롤러 */}
       <CameraController 
         targetPosition={cameraTarget}
         onMoveComplete={onCameraMoveComplete}
@@ -459,37 +621,14 @@ function SceneContent({
         </>
       )}
 
-      {/* Step3에서는 특별한 처리를 위해 별도로 렌더링 */}
-      {sceneIndex === 2 ? (
-        <group ref={modelRef}>
-          <Model
-            key={`model-${sceneIndex}-${currentModelPath}`}
-            path={currentModelPath}
-            scale={3.7}
-            position={modelPosition}
-            sceneIndex={sceneIndex}
-            onLoaded={handleModelLoaded}
-            animationTrigger={0} // step3에서는 모델 애니메이션 사용 안함
-          />
-          {/* Step3 모델에 지층 쌓이는 효과 적용 */}
-          <LayerRevealShader 
-            modelRef={modelRef}
-            animationProgress={layerAnimationProgress}
-          />
-        </group>
-      ) : (
-        <Model
-          key={`model-${sceneIndex}-${currentModelPath}`}
-          path={currentModelPath}
-          scale={3.7}
-          position={modelPosition}
-          sceneIndex={sceneIndex}
-          onLoaded={handleModelLoaded}
-          animationTrigger={sceneIndex === 0 ? modelAnimationTrigger : 0}
-        />
-      )}
+      <ModelRenderer
+        sceneIndex={sceneIndex}
+        modelAnimationTrigger={modelAnimationTrigger}
+        animationProgress={layerAnimationProgress}
+        onModelLoaded={handleModelLoaded}
+        onAnimationComplete={onLayerAnimationComplete}
+      />
 
-      {/* STEP 3에서 지층 애니메이션 완료 후 말풍선 표시 */}
       {sceneIndex === 2 && showSpeechBubble && (
         <SpeechBubble
           position={[0, 0, 0]}
@@ -509,7 +648,7 @@ function SceneContent({
             flowSpeed={0.9}
             waterLevel={waterLevel}
           />
-          <BoxWithoutTop waterLevel={waterLevel} />
+          <WaterBox waterLevel={waterLevel} />
           <UnderwaterEnvironment sceneIndex={sceneIndex} />
         </>
       )}
@@ -531,6 +670,61 @@ function SceneContent({
   )
 }
 
+// UI 컴포넌트들
+function NavigationUI({ sceneIndex, onSceneChange, onPlayClick, isPlayButtonPressed }: {
+  sceneIndex: number;
+  onSceneChange: (index: number) => void;
+  onPlayClick: () => void;
+  isPlayButtonPressed: boolean;
+}) {
+  return (
+    <div className="absolute flex flex-row left-1/2 top-4 transform -translate-x-1/2 z-10 justify-center items-center">
+      <div className="flex items-center justify-center p-4 text-white z-10">
+        {[1, 2, 3, 4].map((num) => (
+          <>
+            <button
+              key={num-1}
+              onClick={() => onSceneChange(num-1)}
+              className={`px-4 py-2 rounded-lg transition-all ${
+                sceneIndex === num -1
+                  ? 'bg-blue-500 shadow-lg' 
+                  : 'bg-gray-700/80 hover:bg-gray-600'
+              }`}
+            >
+              STEP {num}
+            </button>
+            {num < 4 && (
+              <div className={`w-5 h-0.5 bg-white`} />
+            )}
+          </>
+        ))}
+      </div>
+
+      <button
+        onClick={onPlayClick}
+        className="w-20 h-20 relative ml-4 z-10 cursor-pointer transition-all duration-150 hover:scale-105"
+      >
+        <div className={`w-full h-full left-0 absolute bg-amber-700 rounded-full transition-all duration-150 ${
+          isPlayButtonPressed ? 'top-0' : 'top-[5px]'
+        }`}></div>
+        
+        <div className={`w-full h-full left-0 absolute bg-gradient-to-b from-amber-400 to-amber-600 rounded-full transition-all duration-150 ${
+          isPlayButtonPressed ? 'top-[3px] scale-95' : 'top-0'
+        }`}></div>
+        
+        <img 
+          src='/img/icon/Polygon 1.svg' 
+          alt="지층 아이콘" 
+          className={`w-10 h-10 absolute ml-1 left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-150 ${
+            isPlayButtonPressed ? 'scale-90' : ''
+          }`} 
+        />
+      </button>
+    </div>
+  )
+}
+
+// ====== 메인 컴포넌트 ======
 export default function FossilViewer() {
   const [sceneIndex, setSceneIndex] = useState(0)
   const [waterLevel, setWaterLevel] = useState(-2.0)
@@ -568,7 +762,7 @@ export default function FossilViewer() {
   }
 
   const handleSpeechBubbleClick = () => {
-    const targetPosition = new THREE.Vector3(5, 2, 5) // 지층을 가까이서 볼 수 있는 위치
+    const targetPosition = new THREE.Vector3(5, 2, 5)
     setCameraTarget(targetPosition)
     setShowSpeechBubble(false)
   }
@@ -596,17 +790,14 @@ export default function FossilViewer() {
     }, 300)
   }
 
-  // Play 버튼 클릭 핸들러
   const handlePlayButtonClick = () => {
     playClickSound()
     setIsPlayButtonPressed(true)
     
-    // 버튼 눌림 효과
     setTimeout(() => {
       setIsPlayButtonPressed(false)
       setAnimationTrigger(true)
       
-      // 트리거를 즉시 false로 리셋하여 한 번만 실행되도록
       setTimeout(() => {
         setAnimationTrigger(false)
       }, 200)
@@ -614,55 +805,14 @@ export default function FossilViewer() {
   }
 
   return (
-    <div className="w-screen h-screen flex flex-col overflow-hidden ">
+    <div className="w-screen h-screen flex flex-col overflow-hidden">
       {!showIntro && (
-        <div className="absolute flex flex-row left-1/2 top-4 transform -translate-x-1/2 z-10 justify-center items-center">
-          <div className="flex items-center justify-center p-4 text-white z-10">
-            {[1, 2, 3, 4].map((num) => (
-              <>
-                <button
-                  key={num-1}
-                  onClick={() => handleSceneChange(num-1)}
-                  className={`px-4 py-2 rounded-lg transition-all ${
-                    sceneIndex === num -1
-                      ? 'bg-blue-500 shadow-lg' 
-                      : 'bg-gray-700/80 hover:bg-gray-600'
-                  }`}
-                >
-                  STEP {num}
-                </button>
-                {num < 4 && (
-                  <div className={`w-5 h-0.5 bg-white`} />
-                )}
-              </>
-            ))}
-          </div>
-
-          {/* Play 버튼 */}
-          <button
-            onClick={handlePlayButtonClick}
-            className="w-20 h-20 relative ml-4 z-10 cursor-pointer transition-all duration-150 hover:scale-105"
-          >
-            {/* 그림자 효과 */}
-            <div className={`w-full h-full left-0 absolute bg-amber-700 rounded-full transition-all duration-150 ${
-              isPlayButtonPressed ? 'top-0' : 'top-[5px]'
-            }`}></div>
-            
-            {/* 메인 버튼 */}
-            <div className={`w-full h-full left-0 absolute bg-gradient-to-b from-amber-400 to-amber-600 rounded-full transition-all duration-150 ${
-              isPlayButtonPressed ? 'top-[3px] scale-95' : 'top-0'
-            }`}></div>
-            
-            {/* 아이콘 */}
-            <img 
-              src='/img/icon/Polygon 1.svg' 
-              alt="지층 아이콘" 
-              className={`w-10 h-10 absolute ml-1 left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-150 ${
-                isPlayButtonPressed ? 'scale-90' : ''
-              }`} 
-            />
-          </button>
-        </div>
+        <NavigationUI
+          sceneIndex={sceneIndex}
+          onSceneChange={handleSceneChange}
+          onPlayClick={handlePlayButtonClick}
+          isPlayButtonPressed={isPlayButtonPressed}
+        />
       )}      
 
       <div className="flex-1">
