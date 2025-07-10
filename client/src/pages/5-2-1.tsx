@@ -1,14 +1,14 @@
+// src/pages/5-2-1.tsx
 import { useState, useRef, useEffect } from 'react';
-import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/cannon';
-import { Environment, useProgress } from '@react-three/drei';
-import dynamic from 'next/dynamic';
+import { useProgress } from '@react-three/drei';
 import * as THREE from 'three';
 import Scene from '@/components/canvas/Scene';
+import SieveSimulation from '@/scenes/SieveSimulation';
 import Intro from '@/components/intro/Intro';
+import { Environment } from '@react-three/drei';
 
-const SieveSimulation = dynamic(() => import('../scenes/SieveSimulation'), { ssr: false });
-
+// 로딩 상태를 추적하는 컴포넌트
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
   const { progress, active } = useProgress();
   
@@ -21,32 +21,29 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
   return null;
 }
 
+// 그림자용 조명 컴포넌트
 function ShadowLighting() {
   return (
     <>
+      <ambientLight intensity={0.6} />
       <directionalLight
         position={[10, 10, 5]}
-        intensity={1.5}
+        intensity={1}
         castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-        shadow-camera-left={-10}
-        shadow-camera-right={10}
-        shadow-camera-top={10}
-        shadow-camera-bottom={-10}
-        shadow-camera-near={0.1}
+        shadow-mapSize={[2048, 2048]}
         shadow-camera-far={50}
-        shadow-bias={-0.0001}
+        shadow-camera-left={-20}
+        shadow-camera-right={20}
+        shadow-camera-top={20}
+        shadow-camera-bottom={-20}
       />
-      <ambientLight intensity={0.1} />
     </>
   );
 }
 
 export default function Home() {
   const [triggerSpawn, setTriggerSpawn] = useState(false);
-  const [selectedLevel, setSelectedLevel] = useState(1);
-  const [enableTilt, setEnableTilt] = useState(true);
+  const [selectedLevel, setSelectedLevel] = useState(0);
   const [gravity, setGravity] = useState<[number, number, number]>([0, -9.81, 0]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
@@ -82,12 +79,25 @@ export default function Home() {
     }, 300);
   };
 
+  const handleReset = () => {
+    // 중력을 초기값으로 리셋
+    setGravity([0, -9.81, 0]);
+    // 선택된 레벨을 초기값으로 리셋
+    setSelectedLevel(0);
+    // 기존 파티클 모두 제거
+    // 파티클 재생성을 위해 트리거
+    setTimeout(() => {
+      setTriggerSpawn(true);
+    }, 100);
+  };
+
   return (
-    <div className="w-screen h-screen relative">
+    <div className='w-screen h-screen relative'>
+      {/* 버튼 UI - Intro가 보일 때는 숨김 */}
       {!showIntro && (
-        <div className="absolute bottom-5 right-5 flex flex-col gap-2 z-10">
-          <div className="flex gap-2">
-            {[0, 2, 1].map((level) => (
+        <div className='absolute bottom-5 right-5 flex flex-col gap-2 z-10'>
+          <div className='flex gap-2'>
+            {[0, 1, 2].map((level) => (
               <button
                 key={level}
                 className={`px-4 py-2 rounded text-white transition-colors ${
@@ -97,7 +107,9 @@ export default function Home() {
                 }`}
                 onClick={() => setSelectedLevel(level)}
               >
-                {level === 0 ? '눈의 크기가 큰 구슬보다 큰 체' : level === 1 ? '눈의 크기가 작은 구슬보다 작은 체' : '눈의 크기가 큰 구슬보다 작고 작은 구슬보다 큰 체'}
+                {level === 0 ? '큰 체 (모든 입자 통과)' : 
+                 level === 1 ? '작은 체 (입자 통과 안됨)' : 
+                 '중간 체 (초록색만 통과)'}
               </button>
             ))}
           </div> 
@@ -106,15 +118,15 @@ export default function Home() {
             className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded" 
             onClick={handleSpawn}
           >
-          구슬 혼합물 넣기
+            구슬 혼합물 넣기
           </button>
-        </div>
-      )}
 
-      {/* 기울이기 안내 */}
-      {!showIntro && (
-        <div className="absolute top-5 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-70 text-white py-2 px-4 rounded">
-          체를 마우스로 드래그하여 기울일 수 있습니다.
+          <button 
+            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded" 
+            onClick={handleReset}
+          >
+            다시하기 (리셋)
+          </button>
         </div>
       )}
 
@@ -137,8 +149,9 @@ export default function Home() {
         <Physics 
           gravity={gravity} 
           allowSleep={false}
+          iterations={10}
           defaultContactMaterial={{
-            friction: 0.2,
+            friction: 0.4,
             restitution: 0.3,
           }}
         >

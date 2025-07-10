@@ -1,99 +1,17 @@
-import { useRef, useMemo, useEffect } from 'react';
+// src/components/5-2-1/SieveModel.tsx
 import { useGLTF } from '@react-three/drei';
 import { useBox } from '@react-three/cannon';
-import { Group } from 'three';
+import { useRef, useMemo } from 'react';
 
 interface SieveModelProps {
   selectedLevel: number;
   position?: [number, number, number];
   rotation?: [number, number, number];
   showColliders?: boolean;
+  enableFloorColliders?: boolean;
 }
 
-type Hole = {
-  position: [number, number, number];
-  radius: number;
-};
-
-const holeDataByLevel: Record<number, Hole[]> = {
-  0: [
-    { position: [0, 0, 0.4], radius: 0.43 },
-    { position: [0.03, 0, -0.6], radius: 0.43 },
-    { position: [0.67, 0, -0.15], radius: 0.43 },
-    { position: [-0.67, 0, -0.15], radius: 0.43},
-
-    { position: [-0.7, 0, 0.5], radius: 0.2 },
-    { position: [-0.7, 0, -0.75], radius: 0.3 },
-    { position: [0.7, 0, -0.8], radius: 0.2 },
-    { position: [0.7, 0, 0.5], radius: 0.3 },
-
-    { position: [0, 0, 1.4], radius: 0.43 },
-    { position: [-1.2, 0, -1.2], radius: 0.43 },
-    { position: [-1.5, 0, 0], radius: 0.43 },
-    { position: [-1.2, 0, 0.9], radius: 0.43 },
-    { position: [0, 0, -1.5], radius: 0.43 },
-    { position: [1.2, 0, -1.2], radius: 0.43 },
-    { position: [1.6, 0, -0.2], radius: 0.43 },
-    { position: [1.2, 0, 1.1], radius: 0.43 },
-    
-    { position: [0, 0, 2.4], radius: 0.45 },
-    { position: [1.1, 0, 2.2], radius: 0.45 },
-    { position: [1.9, 0, 1.7], radius: 0.45 },
-    { position: [2.3, 0, 0.8], radius: 0.45 },
-    { position: [2.5, 0, -0.1], radius: 0.45 },
-    { position: [2.3, 0, -1.1], radius: 0.45 },
-    { position: [1.7, 0, -1.7], radius: 0.45 },
-    { position: [0.9, 0, -2.2], radius: 0.45 },
-    { position: [0, 0, -2.4], radius: 0.45 },
-    { position: [-0.9, 0, -2.2], radius: 0.45 },
-    { position: [-1.7, 0, -1.9], radius: 0.45 },
-    { position: [-2.3, 0, -1.1], radius: 0.45 },
-    { position: [-2.4, 0, 0], radius: 0.45 },
-    { position: [-2.2, 0, 0.8], radius: 0.45 },
-    { position: [-1.9, 0, 1.6], radius: 0.45 },
-    { position: [-0.9, 0, 2.2], radius: 0.45 },
-  ],
-  1: [], // 막힘
-  2: [
-    { position: [0, 0, 0], radius: 0.21 },
-    { position: [0, 0, 0.75], radius: 0.21 },
-    { position: [0, 0, 1.5], radius: 0.21 },
-    { position: [0, 0, -0.75], radius: 0.21 },
-    { position: [0, 0, -1.5], radius: 0.21 },
-    { position: [0.75, 0, 0], radius: 0.21 },
-    { position: [1.5, 0, 0], radius: 0.21 },
-    { position: [-0.75, 0, 0], radius: 0.212 },
-    { position: [-1.5, 0, 0], radius: 0.212 },
-    { position: [0.75, 0, 0.75], radius: 0.212 },
-    { position: [0.75, 0, 1.5], radius: 0.212 },
-    { position: [1.5, 0, 1.5], radius: 0.212 },
-    { position: [1.5, 0, 0.75], radius: 0.212 },
-    { position: [-0.75, 0, 0.75], radius: 0.21 },
-    { position: [-0.75, 0, 1.5], radius: 0.21 },
-    { position: [-1.5, 0, 1.5], radius: 0.21 },
-    { position: [-1.5, 0, 0.75], radius: 0.21 },
-    { position: [-0.75, 0, -0.75], radius: 0.21 },
-    { position: [-0.75, 0, -1.5], radius: 0.21 },
-    { position: [-1.5, 0, -1.5], radius: 0.21 },
-    { position: [-1.5, 0, -0.75], radius: 0.21 },
-    { position: [0.75, 0, -0.75], radius: 0.21 },
-    { position: [0.75, 0, -1.5], radius: 0.21 },
-    { position: [1.5, 0, -1.5], radius: 0.21 },
-    { position: [1.5, 0, -0.75], radius: 0.21 },
-    { position: [2.25, 0, -0.75], radius: 0.21 },
-    { position: [2.25, 0, 0], radius: 0.21 },
-    { position: [2.25, 0, 0.75], radius: 0.21 },
-    { position: [2.25, 0, 1.5], radius: 0.21 },
-    { position: [2.25, 0, -1.5], radius: 0.2 },
-    { position: [-2.25, 0, -0.75], radius: 0.21 },
-    { position: [-2.25, 0, 0], radius: 0.21 },
-    { position: [-2.25, 0, 0.75], radius: 0.21 },
-    { position: [-2.25, 0, 1.5], radius: 0.21 },
-    { position: [-2.25, 0, -1.5], radius: 0.2 },
-  ],
-};
-
-// 개별 충돌 셀 컴포넌트 - 위치만 받고 회전은 상위에서 처리
+// 개별 충돌 셀 컴포넌트
 function SolidCell({ 
   position, 
   showColliders = false
@@ -104,7 +22,7 @@ function SolidCell({
   const ref = useRef(null);
   const [, api] = useBox(() => ({
     type: 'Static',
-    args: [0.3 * 0.95, 0.05, 0.3 * 0.95],
+    args: [0.12, 0.05, 0.12], // 작은 충돌체 크기
     position: position,
     friction: 0.1,
   }), ref);
@@ -113,7 +31,7 @@ function SolidCell({
   if (showColliders) {
     return (
       <mesh ref={ref} position={position}>
-        <boxGeometry args={[0.3 * 0.95, 0.05, 0.3 * 0.95]} />
+        <boxGeometry args={[0.12, 0.05, 0.12]} />
         <meshBasicMaterial color="red" transparent opacity={0.3} />
       </mesh>
     );
@@ -197,32 +115,53 @@ function CurvedWallCollider({
   );
 }
 
-// 체의 물리 구조 생성 컴포넌트
+// 체의 물리 구조 생성 컴포넌트 - 레벨에 따른 간단한 필터링
 function SievePhysics({ 
   selectedLevel, 
-  showColliders = false
+  showColliders = false,
+  enableFloorColliders = true
 }: { 
   selectedLevel: number;
   showColliders?: boolean;
+  enableFloorColliders?: boolean;
 }) {
   const gridCells = useMemo(() => {
+    if (!enableFloorColliders) {
+      return [];
+    }
+
     const cells: { position: [number, number, number]; key: string }[] = [];
     const gridSize = 3.0;
-    const spacing = 0.3;
-    const holes = holeDataByLevel[selectedLevel];
-    
-    for (let x = -gridSize; x <= gridSize; x += spacing) {
-      for (let z = -gridSize; z <= gridSize; z += spacing) {
-        const pos: [number, number, number] = [x, -0.2, z];
-        
-        const isHole = holes.some(hole => {
-          const dx = hole.position[0] - pos[0];
-          const dz = hole.position[2] - pos[2];
-          const distance = Math.sqrt(dx * dx + dz * dz);
-          return distance < hole.radius;
-        });
-        
-        if (!isHole) {
+    const spacing = 0.15; // 촘촘한 격자
+
+    // 레벨에 따른 처리
+    if (selectedLevel === 0) {
+      // 큰 체 - 구멍이 많음 (모든 파티클 통과)
+      for (let x = -gridSize; x <= gridSize; x += spacing * 3) { // 성긴 격자
+        for (let z = -gridSize; z <= gridSize; z += spacing * 3) {
+          const pos: [number, number, number] = [x, -0.2, z];
+          cells.push({
+            position: pos,
+            key: `${x.toFixed(2)}-${z.toFixed(2)}`
+          });
+        }
+      }
+    } else if (selectedLevel === 1) {
+      // 작은 체 - 구멍 없음 (모든 파티클 막힘)
+      for (let x = -gridSize; x <= gridSize; x += spacing) {
+        for (let z = -gridSize; z <= gridSize; z += spacing) {
+          const pos: [number, number, number] = [x, -0.2, z];
+          cells.push({
+            position: pos,
+            key: `${x.toFixed(2)}-${z.toFixed(2)}`
+          });
+        }
+      }
+    } else if (selectedLevel === 2) {
+      // 중간 체 - 작은 구멍들 (작은 파티클만 통과)
+      for (let x = -gridSize; x <= gridSize; x += spacing * 1.8) { // 중간 밀도
+        for (let z = -gridSize; z <= gridSize; z += spacing * 1.8) {
+          const pos: [number, number, number] = [x, -0.2, z];
           cells.push({
             position: pos,
             key: `${x.toFixed(2)}-${z.toFixed(2)}`
@@ -232,7 +171,7 @@ function SievePhysics({
     }
     
     return cells;
-  }, [selectedLevel]);
+  }, [selectedLevel, enableFloorColliders]);
 
   return (
     <>
@@ -251,7 +190,8 @@ export default function SieveModel({
   selectedLevel, 
   position = [0, 0, 0], 
   rotation = [0, 0, 0],
-  showColliders = false
+  showColliders = false,
+  enableFloorColliders = true // 기본값을 true로 변경
 }: SieveModelProps) {
   const { scene } = useGLTF('/models/material/Strainers.gltf');
   const mesh = scene.children[selectedLevel]?.clone();
@@ -267,12 +207,14 @@ export default function SieveModel({
         />
       )}
 
-      {/* 물리 충돌체들 - 별도 그룹 없이 직접 배치 */}
+      {/* 물리 충돌체들 - 레벨에 따른 간단한 격자 밀도로 필터링 */}
       <SievePhysics 
         selectedLevel={selectedLevel} 
         showColliders={showColliders}
+        enableFloorColliders={enableFloorColliders}
       />
 
+      {/* 외벽은 항상 유지 */}
       <CurvedWallCollider 
         showColliders={showColliders}
       />

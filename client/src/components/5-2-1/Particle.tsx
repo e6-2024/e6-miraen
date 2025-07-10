@@ -1,5 +1,6 @@
+// src/components/5-2-1/Particle.tsx
 import { useSphere } from '@react-three/cannon';
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { Mesh } from 'three';
 
 interface Props {
@@ -10,13 +11,15 @@ interface Props {
 export default function Particle({ position, radius }: Props) {
   const ref = useRef<Mesh>(null);
   
-  const colliderScale = radius > 0.3 ? 0.9 : 0.95; 
-  
-  useSphere(() => ({
-    mass: 1,
+  const [, api] = useSphere(() => ({
+    mass: radius > 0.3 ? 2 : 1, // 큰 파티클이 더 무겁게
     position,
-    args: [radius * colliderScale],
+    args: [radius],
     allowSleep: false,
+    material: {
+      friction: 0.4,
+      restitution: 0.3,
+    },
   }), ref);
 
   return (
@@ -25,10 +28,8 @@ export default function Particle({ position, radius }: Props) {
       <meshStandardMaterial
         color={
           radius > 0.3
-            ? 'orange'      
-            : radius > 0.2
-            ? 'skyblue'  
-            : 'limegreen'  
+            ? 'orange'      // 큰 파티클 (0.35) - 주황색
+            : 'limegreen'   // 작은 파티클 (0.15) - 초록색
         }
       />
     </mesh>
