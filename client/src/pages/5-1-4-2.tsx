@@ -47,7 +47,7 @@ export default function Home() {
           url="/models/Anatomy/Arm/Flexing.glb"
           actionName={action}
           scale={1.5}
-          position={[0, -0.35, 0]}
+          position={[0, -0.375, 0]}
         />
 
         <OrbitControls 
@@ -71,16 +71,17 @@ export default function Home() {
       <div style={{
         position: 'absolute',
         display: 'flex',
-        bottom: '5%',
-        right: '0%',
-        gap: '30px'
+        top: '2%',
+        right: '2%',
+        gap: '5px',
+        flexDirection: 'column'
       }}>
         <button
           onClick={handleFold}
           style={{
-            backgroundColor: 'white',
-            color: 'black',
-            fontSize: '32px',
+            backgroundColor: 'black',
+            color: 'white',
+            fontSize: '16px',
             padding: '10px 20px',
             border: 'none',
             borderRadius: '8px',
@@ -92,9 +93,9 @@ export default function Home() {
         <button
           onClick={handleExtend}
           style={{
-            backgroundColor: 'white',
-            color: 'black',
-            fontSize: '32px',
+            backgroundColor: 'black',
+            color: 'white',
+            fontSize: '16px',
             padding: '10px 20px',
             border: 'none',
             borderRadius: '8px',

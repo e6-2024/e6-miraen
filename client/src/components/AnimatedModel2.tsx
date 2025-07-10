@@ -38,6 +38,9 @@ export default function AnimatedModel2({
   const muscle001Ref = useRef<Mesh>(null)
   const muscle002Ref = useRef<Mesh>(null)
 
+  // 말풍선 상태 관리
+  const [showSpeechBubbles, setShowSpeechBubbles] = useState(false)
+
   const getSkinnedMeshCenter = (mesh: Mesh): THREE.Vector3 => {
     mesh.updateMatrixWorld(true)
     
@@ -105,6 +108,8 @@ export default function AnimatedModel2({
         if (action.time >= halfDuration) {
           action.paused = true
           clearInterval(intervalRef.current!)
+          // 애니메이션 완료 후 말풍선 표시
+          setShowSpeechBubbles(true)
         }
       }, 16)
     }
@@ -116,6 +121,8 @@ export default function AnimatedModel2({
         if (action.time >= clip.duration) {
           action.paused = true
           clearInterval(intervalRef.current!)
+          // 애니메이션 완료 후 말풍선 표시
+          setShowSpeechBubbles(true)
         }
       }, 16)
     }
@@ -128,6 +135,7 @@ export default function AnimatedModel2({
       }
     }
   }, [actions, animations, actionName])
+
 
   useEffect(() => {
     if (!scene || !group.current) return
@@ -193,24 +201,19 @@ export default function AnimatedModel2({
 
   const getBalloonText = (isA: boolean) => {
     if (actionName === 'extend') {
-      return isA ? '근육이 늘어나요' : '근육이 줄어들어요'
+      return isA ? '팔을 구부릴 때 바깥쪽 근육이 늘어납니다' : '팔을 구부릴 때 안쪽 근육이 줄어듭니다'
     } else {
-      return isA ? '근육이 줄어들어요' : '근육이 늘어나요'
+      return isA ? '팔을 펼 때 바깥쪽 근육이 줄어듭니다' : '팔을 펼 때 안쪽 근육이 늘어납니다'
     }
   }
 
-  const getTextStyle = (isA: boolean) => {
+  const getTextColor = (isA: boolean) => {
     const isActive = actionName === 'extend' ? isA : !isA;
-    
-    return {
-      color: isActive ? 'rgba(255, 100, 100, 0.95)' : 'rgba(100, 100, 255, 0.95)',
-      background : 'white',
-      padding: '6px 12px',
-      borderRadius: '6px',
-      fontSize: '32px',
-      whiteSpace: 'nowrap' as const,
-      fontWeight: isActive ? 'bold' : 'normal',
-    }
+    return isActive ? '#ff6b6b' : '#4fc3f7';
+  }
+
+  const handleBubbleClick = () => {
+    setShowSpeechBubbles(false)
   }
 
   return (
@@ -219,26 +222,48 @@ export default function AnimatedModel2({
       <primitive object={scene} />
     </group>
 
-      {armReady && (
+      {armReady && showSpeechBubbles && (
         <>
           <group>
             <Billboard ref={textRefA}>
-              <Html
-                center
-                style={getTextStyle(true)}
-              >
-                {getBalloonText(true)}
+              <Html center>
+                <div
+                  style={{
+                    borderColor: getTextColor(true),
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                    MozUserSelect: 'none',
+                    msUserSelect: 'none',
+                  }}
+                  className='bg-white p-3 rounded-xl shadow-xl border-2 relative cursor-pointer hover:scale-105 active:scale-95 transition-all'
+                  onClick={handleBubbleClick}
+                >
+                  <div className='text-sm text-gray-800 whitespace-nowrap'>
+                    {getBalloonText(true)}
+                  </div>
+                </div>
               </Html>
             </Billboard>
           </group>
 
           <group>
             <Billboard ref={textRefB}>
-              <Html
-                center
-                style={getTextStyle(false)}
-              >
-                {getBalloonText(false)}
+              <Html center>
+                <div
+                  style={{
+                    borderColor: getTextColor(false),
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                    MozUserSelect: 'none',
+                    msUserSelect: 'none',
+                  }}
+                  className='bg-white p-3 rounded-xl shadow-xl border-2 relative cursor-pointer hover:scale-105 active:scale-95 transition-all'
+                  onClick={handleBubbleClick}
+                >
+                  <div className='text-sm text-gray-800 whitespace-nowrap'>
+                    {getBalloonText(false)}
+                  </div>
+                </div>
               </Html>
             </Billboard>
           </group>
