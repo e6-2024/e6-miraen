@@ -1,9 +1,9 @@
+/* 폰트 임포트 - @layer 밖에서 먼저 임포트 */
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* 폰트 임포트 */
-
 
 @layer base {
   * {
@@ -27,11 +27,24 @@
     font-style: normal;
   }
 
+  .nanum-gothic-regular {
+    font-family: "Nanum Gothic", sans-serif !important;
+    font-weight: 400 !important;
+    font-style: normal !important;
+  }
+  
+  .nanum-gothic-bold {
+    font-family: "Nanum Gothic", sans-serif !important;
+    font-weight: 700 !important;
+    font-style: normal !important;
+  }
+
   html,
   body,
   #__next {
     width: 100%;
-    font-family: 'HakgyoansimDunggeunmisoTTF-R', sans-serif;
+    font-family: "Nanum Gothic", sans-serif;
+    font-weight: 700;
   }
 
 }
