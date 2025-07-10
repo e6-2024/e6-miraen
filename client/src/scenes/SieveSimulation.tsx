@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { Group } from 'three';
 import { useFrame } from '@react-three/fiber';
-import SieveModel from '@/components/material/SieveModel';
-import Particle from '@/components/material/Particle';
-import TiltController from '@/components/material/TiltController';
+import SieveModel from '@/components/5-2-1/SieveModel';
+import Particle from '@/components/5-2-1/Particle';
+import TiltController from '@/components/5-2-1/TiltController';
 
 interface Props {
   triggerSpawn: boolean;
@@ -29,9 +29,9 @@ export default function SieveSimulation({
   
   const spawnParticles = () => {
     const newParticles = Array.from({ length: 10 }, () => {
-      const radius = [0.35, 0.25, 0.15][Math.floor(Math.random() * 3)];
-      const x = (Math.random() - 0.5) * 3;
-      const z = (Math.random() - 0.5) * 3;
+      const radius = [0.35, 0.15][Math.floor(Math.random() * 2)];
+      const x = (Math.random() - 0.5) * 2;
+      const z = (Math.random() - 0.5) * 2;
       const y = 3 + Math.random() * 2;
       return {
         id: crypto.randomUUID(),

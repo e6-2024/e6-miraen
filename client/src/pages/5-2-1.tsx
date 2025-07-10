@@ -9,7 +9,6 @@ import Intro from '@/components/intro/Intro';
 
 const SieveSimulation = dynamic(() => import('../scenes/SieveSimulation'), { ssr: false });
 
-// 로딩 상태를 추적하는 컴포넌트
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
   const { progress, active } = useProgress();
   
@@ -22,11 +21,9 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
   return null;
 }
 
-// 그림자용 조명 설정 컴포넌트
 function ShadowLighting() {
   return (
     <>
-      {/* 주요 방향성 조명 (그림자 생성) */}
       <directionalLight
         position={[10, 10, 5]}
         intensity={1.5}
@@ -41,10 +38,7 @@ function ShadowLighting() {
         shadow-camera-far={50}
         shadow-bias={-0.0001}
       />
-      
-      {/* 보조 조명 (그림자 없음, 전체적인 밝기) */}
       <ambientLight intensity={0.1} />
-      
     </>
   );
 }
@@ -54,8 +48,6 @@ export default function Home() {
   const [selectedLevel, setSelectedLevel] = useState(1);
   const [enableTilt, setEnableTilt] = useState(true);
   const [gravity, setGravity] = useState<[number, number, number]>([0, -9.81, 0]);
-  
-  // Intro 관련 상태
   const [isLoaded, setIsLoaded] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
 
@@ -92,7 +84,6 @@ export default function Home() {
 
   return (
     <div className="w-screen h-screen relative">
-      {/* 버튼 UI */}
       {!showIntro && (
         <div className="absolute bottom-5 right-5 flex flex-col gap-2 z-10">
           <div className="flex gap-2">
