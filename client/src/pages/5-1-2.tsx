@@ -88,8 +88,8 @@ export default function Home() {
   if (showIntro) {
     return (
       <Intro 
-        title="5-1-2 빛의 실험"
-        description="레이저 빛의 직진, 반사, 굴절을 관찰해보세요"
+        title="빛의 직진, 반사, 굴절 관찰하기"
+        description="빛이 공기 중에서 나아갈 때, 거울과 같은 물체에 부딪쳤을 때, 렌즈를 통과할 때 어떻게 나아가는지 알아봅시다."
         onEnter={handleEnterExperience}
       />
     )
