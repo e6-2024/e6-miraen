@@ -1,114 +1,118 @@
-// components/Model.tsx
-import { useGLTF,  Billboard, Text} from '@react-three/drei'
+// components/5-1-2/Model.tsx
+import { useGLTF, Billboard, Text } from '@react-three/drei'
 import { GroupProps, ThreeEvent } from '@react-three/fiber'
 import { useEffect, useState, useRef } from 'react'
 import * as THREE from 'three'
 
 interface ModelProps extends GroupProps {
-  onToggle?: () => void
+  onToggle?: (buttonIndex: number) => void
   mode?: 'direct' | 'reflection' | 'refraction'
+  rayStates?: [boolean, boolean, boolean] // 각 Ray의 상태를 배열로 관리
 }
 
-export default function Model({ onToggle, mode, ...props }: ModelProps) {
-  const { scene } = useGLTF('models/Light/GLTFs/Light_Experiment.gltf')
-  const [hovered, setHovered] = useState(false)
-  const buttonObjectRef = useRef<THREE.Object3D | null>(null)
+export default function Model({ onToggle, mode, rayStates = [false, false, false], ...props }: ModelProps) {
+  const { scene } = useGLTF('models/5-1-2/Other_equipment.glb')
+  const [hoveredButton, setHoveredButton] = useState<number | null>(null)
+  
+  // 각 버튼 객체의 참조를 저장
+  const buttonObjectRefs = useRef<(THREE.Object3D | null)[]>([null, null, null])
 
   useEffect(() => {
     const holeLaserPointer = scene.getObjectByName('_holeLaser_Pointer002')
     const table = scene.getObjectByName('Table')
     const paper = scene.getObjectByName('Plane')
+    const frame = scene.getObjectByName("Sketchfab_model")
+
+    console.log(scene.children)
     
     if (holeLaserPointer) {
       if (mode === 'reflection') {
-        holeLaserPointer.position.set(-1.0, 0, 0)
+        holeLaserPointer.position.set(0.0, 0, 0)
         holeLaserPointer.rotation.set(Math.PI/2, 0, Math.PI/4)
       } else {
-        holeLaserPointer.position.set(0.3, 0, 2.7)
+        holeLaserPointer.position.set(0.0, 0, 0.0)
         holeLaserPointer.rotation.set(Math.PI/2, 0, 0)
       }
     } 
+
+    if (frame) {
+      frame.position.set(-0.6, -1.7, 1.0)
+    }
     
-    if(table){
-      table.position.set(0,-0.5,0)
+    if (table) {
+      table.position.set(0, -2.4, 0)
     }
 
-    if(paper){
-      paper.position.set(0,-0.7,0)
+    if (paper) {
+      paper.position.set(0, -0.7, 0)
     }
 
-    if (scene.children[1] && scene.children[1].children && scene.children[1].children[1]) {
-      buttonObjectRef.current = scene.children[1].children[1]
+    // 세 개의 버튼 객체 참조 설정
+    if (scene.children[1] && scene.children[1].children) {
+      buttonObjectRefs.current[0] = scene.children[1].children[2]
+      buttonObjectRefs.current[1] = scene.children[1].children[3]
+      buttonObjectRefs.current[2] = scene.children[1].children[1]
     }
   }, [scene, mode])
 
   // 커서 포인터 전환
   useEffect(() => {
-    document.body.style.cursor = hovered ? 'pointer' : 'auto'
-  }, [hovered])
+    document.body.style.cursor = hoveredButton !== null ? 'pointer' : 'auto'
+  }, [hoveredButton])
 
-  const handleButtonClick = (e: ThreeEvent<MouseEvent>) => {
+  const handleButtonClick = (e: ThreeEvent<MouseEvent>, buttonIndex: number) => {
     e.stopPropagation()
     if (onToggle) {
-      onToggle()
+      onToggle(buttonIndex)
     }
   }
 
-  const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
+  const handlePointerOver = (e: ThreeEvent<PointerEvent>, buttonIndex: number) => {
     e.stopPropagation()
-    setHovered(true)
+    setHoveredButton(buttonIndex)
   }
 
   const handlePointerOut = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation()
-    setHovered(false)
+    setHoveredButton(null)
   }
 
-  const getBillboardPosition = () => {
-    if (mode === 'reflection') {
-      return [-2.0, 1.5, -4.5] as [number, number, number] 
-    } else {
-      return [-6, 1.5, 0] as [number, number, number]
+  const getButtonIndex = (clickedObject: THREE.Object3D): number | null => {
+    for (let i = 0; i < 3; i++) {
+      if (buttonObjectRefs.current[i] && clickedObject === buttonObjectRefs.current[i]) {
+        return i
+      }
     }
+    return null
   }
-
-  console.log(scene.children)
 
   return (
     <>
       <primitive 
         object={scene} 
-        position={[0, -1, 0]}          
+        position={[0, 0, 0]}          
         rotation={[0, Math.PI / 2, 0]} 
         scale={[1, 1, 1]}   
         onClick={(e: ThreeEvent<MouseEvent>) => {
-          if (buttonObjectRef.current && e.object === buttonObjectRef.current) {
-            handleButtonClick(e)
+          const buttonIndex = getButtonIndex(e.object)
+          if (buttonIndex !== null) {
+            handleButtonClick(e, buttonIndex)
           }
         }}
         onPointerOver={(e: ThreeEvent<PointerEvent>) => {
-          if (buttonObjectRef.current && e.object === buttonObjectRef.current) {
-            handlePointerOver(e)
+          const buttonIndex = getButtonIndex(e.object)
+          if (buttonIndex !== null) {
+            handlePointerOver(e, buttonIndex)
           }
         }}
         onPointerOut={(e: ThreeEvent<PointerEvent>) => {
-          if (buttonObjectRef.current && e.object === buttonObjectRef.current) {
+          const buttonIndex = getButtonIndex(e.object)
+          if (buttonIndex !== null) {
             handlePointerOut(e)
           }
         }}
         {...props} 
       />
-      
-      <Billboard position={getBillboardPosition()}>
-        <Text 
-          fontSize={0.3}
-          color="white"
-          anchorX="center"
-          anchorY="middle"
-        >
-          버튼을 눌러보세요!
-        </Text>
-      </Billboard>
     </>
   )
 }

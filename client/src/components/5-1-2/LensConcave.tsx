@@ -18,7 +18,7 @@ export function LensConcave({
   scale2 = 0.2,
   positionOffset =  [0, -0.93, 0],
 }: LensConcaveProps) {
-  const { scene } = useGLTF('/models/Light/concave lens.gltf');
+  const { scene } = useGLTF('/models/5-1-2/Concave_lens.glb');
   const meshRef = useRef<THREE.Group>(null);
   
   const adjustedPosition = [

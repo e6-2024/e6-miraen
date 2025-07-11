@@ -18,10 +18,10 @@ export default function NavigationUI({ sceneIndex, onSceneChange, onPlayClick, i
   };
 
   const stepAudioFiles = {
-    0: ['/sounds/5-1-1/5-1-1-0_0626.mp3'],
-    1: ['/sounds/5-1-1/5-1-1-A.mp3', '/sounds/5-1-1/5-1-1-2-1_lake-beach-waves-28492.mp3'],
-    2: ['/sounds/5-1-1/5-1-1-B.mp3', '/sounds/5-1-1/5-1-1-3_forest-atmosphere-003localization-poland-329746.mp3'],
-    3: ['/sounds/5-1-1/5-1-1-C.mp3', '/sounds/5-1-1/5-1-1-4_footfalls-35757.mp3'],
+    0: ['/sounds/5-1-1/5-1-1-0_0626.MP3'],
+    1: ['/sounds/5-1-1/5-1-1-A.MP3', '/sounds/5-1-1/5-1-1-2-1_lake-beach-waves-28492.mp3'],
+    2: ['/sounds/5-1-1/5-1-1-B.MP3', '/sounds/5-1-1/5-1-1-3_forest-atmosphere-003localization-poland-329746.mp3'],
+    3: ['/sounds/5-1-1/5-1-1-C.MP3', '/sounds/5-1-1/5-1-1-4_footfalls-35757.mp3'],
   };
 
   const playStepAudio = () => {

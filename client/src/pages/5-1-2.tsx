@@ -1,3 +1,4 @@
+// pages/5-1-2.tsx
 import { Canvas, useThree } from '@react-three/fiber';
 import { useEffect } from 'react'
 import dynamic from 'next/dynamic';
@@ -33,15 +34,17 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
 export default function Home() {
   const [activeMode, setActiveMode] = useState<'direct' | 'reflection' | 'refraction'>('reflection');
   const [lensType, setLensType] = useState<'convex' | 'concave'>('convex'); 
-  const [rayVisible, setRayVisible] = useState(false);
+  
+  // 3개의 Ray 상태를 각각 관리
+  const [rayStates, setRayStates] = useState<[boolean, boolean, boolean]>([false, false, false]);
 
   // Intro 관련 상태 추가
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
 
-  // 모드가 변경될 때마다 rayVisible을 false로 리셋
+  // 모드가 변경될 때마다 모든 Ray를 false로 리셋
   useEffect(() => {
-    setRayVisible(false);
+    setRayStates([false, false, false]);
   }, [activeMode]);
 
   const handleLoadingComplete = () => {
@@ -60,7 +63,6 @@ export default function Home() {
     }
   }
 
-  
   const handleEnterExperience = () => {
     // 효과음 재생
     playClickSound()
@@ -68,158 +70,159 @@ export default function Home() {
     // 효과음이 재생될 시간을 확보한 후 Intro 숨김
     setTimeout(() => {
       setShowIntro(false)
-    }, 300) // 300ms 지연
+    }, 300)
   }
 
+  // 개별 Ray 토글 핸들러
+  const handleRayToggle = (buttonIndex: number) => {
+    setRayStates(prevStates => {
+      const newStates = [...prevStates] as [boolean, boolean, boolean];
+      newStates[buttonIndex] = !newStates[buttonIndex];
+      return newStates;
+    });
+    
+    // 버튼 클릭 효과음
+    playClickSound('/sounds/Click_Simple.mp3');
+  }
 
-  const cameraSettings = useMemo(() => {
-    switch (activeMode) {
-      case 'direct':
-        return {
-          position: [0, 0, 13],
-          target: [0, 0, 0],
-          maxPolarAngle: Math.PI / 2.5,
-          minPolarAngle: Math.PI / 8
-        };
-      case 'reflection':
-        return {
-          position: [-2, 13, 0],
-          target: [0, 0, 0],
-          maxPolarAngle: Math.PI / 2.2,
-          minPolarAngle: 0
-        };
-      case 'refraction':
-        return {
-          position: [0, 0, 13],
-          target: [0, 0, 0],
-          maxPolarAngle: Math.PI / 2,
-          minPolarAngle: Math.PI / 6
-        };
-      default:
-        return {
-           position: [0, 0, 13],
-          target: [0, 0, 0],
-          maxPolarAngle: Math.PI,
-          minPolarAngle: 0
-        };
-    }
-  }, [activeMode]);
+  if (showIntro) {
+    return (
+      <Intro 
+        title="5-1-2 빛의 실험"
+        description="레이저 빛의 직진, 반사, 굴절을 관찰해보세요"
+        onEnter={handleEnterExperience}
+      />
+    )
+  }
 
   return (
-    <div className="w-screen h-screen bg-black flex flex-col relative overflow-hidden">
+    <div style={{ width: '100vw', height: '100vh', position: 'relative', backgroundColor: '#0a0a0a' }}>
+      <LoadingTracker onLoadingComplete={handleLoadingComplete} />
       
-      <div className="flex-grow">
-        <Scene 
-          camera={{ 
-            position: cameraSettings.position as [number, number, number], 
-            fov: 50 
-          }}
-          key={activeMode}
-        >
-          {/* 로딩 추적 컴포넌트 추가 */}
-          <LoadingTracker onLoadingComplete={handleLoadingComplete} />
+        <Scene shadows camera={{ position: [0, 3, 8], fov: 50 }}>
+          <Environment files="https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/potsdamer_platz_1k.hdr" />
           
-          <ambientLight intensity={1.0} />
-          <Environment
-            preset="warehouse"
-            environmentIntensity={0.6}
-            backgroundBlurriness={0.3}
-            environmentRotation={[0, Math.PI / 4, 0]}
-          />
-          <OpticalLab mode={activeMode} lensType={lensType} rayVisible={rayVisible} />
-          <Model 
-            onToggle={() => setRayVisible(prev => !prev)} 
-            position={[0, -1, 0]} 
-            rotation={[0, -Math.PI/2, 0]}
+          <OpticalLab 
             mode={activeMode} 
+            lensType={lensType} 
+            rayStates={rayStates}
           />
-
-          <OrbitControls
-            target={cameraSettings.target as [number, number, number]}
-            maxPolarAngle={cameraSettings.maxPolarAngle}
-            minPolarAngle={cameraSettings.minPolarAngle}
-            enableRotate={!showIntro} // Intro가 보일 때는 OrbitControls 비활성화
-            enableZoom={!showIntro}
-            enablePan={!showIntro}
+          
+          <Model 
+            mode={activeMode} 
+            onToggle={handleRayToggle}
+            rayStates={rayStates}
           />
+          
+          <OrbitControls 
+            enableZoom={true} 
+            enablePan={true} 
+            enableRotate={true}
+            // minDistance={3}
+            // maxDistance={15}
+            // maxPolarAngle={Math.PI / 2}
+          />
+          
           <SafePostEffects />
         </Scene>
-      </div>
 
-      {/* 하단 컨트롤 패널 - Intro가 보일 때는 숨김 */}
-      {!showIntro && (
-        <div className="absolute h-16 bg-gray-900 flex justify-center items-center space-x-4 px-4">
-          <div className="flex space-x-4">
-            <button 
-              className={`px-4 py-2 rounded font-medium transition-colors ${
-                activeMode === 'direct' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
-              }`}
-              onClick={() => setActiveMode('direct')}
+      {/* UI 컨트롤 패널 */}
+      <div style={{
+        position: 'absolute',
+        top: '20px',
+        left: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '15px',
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        padding: '20px',
+        borderRadius: '10px',
+        color: 'white',
+        fontFamily: 'Arial, sans-serif'
+      }}>
+        <h3 style={{ margin: '0 0 10px 0', fontSize: '18px' }}>실험 모드</h3>
+        
+        {/* 모드 선택 버튼 */}
+        <div style={{ display: 'flex', gap: '10px' }}>
+          {(['direct', 'reflection', 'refraction'] as const).map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setActiveMode(mode)}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: activeMode === mode ? '#4CAF50' : '#333',
+                color: 'white',
+                border: 'none',
+                borderRadius: '5px',
+                cursor: 'pointer',
+                fontSize: '14px',
+              }}
             >
-              빛의 직진
+              {mode === 'direct' ? '직진' : mode === 'reflection' ? '반사' : '굴절'}
             </button>
-            <button 
-              className={`px-4 py-2 rounded font-medium transition-colors ${
-                activeMode === 'reflection' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
-              }`}
-              onClick={() => setActiveMode('reflection')}
-            >
-              빛의 반사
-            </button>
-            <button 
-              className={`px-4 py-2 rounded font-medium transition-colors ${
-                activeMode === 'refraction' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
-              }`}
-              onClick={() => setActiveMode('refraction')}
-            >
-              빛의 굴절
-            </button>
-          </div>
-          
-          {activeMode === 'refraction' && (
-            <div className="border-l border-gray-600 pl-4 ml-2 flex space-x-4">
-              <button 
-                className={`px-4 py-2 rounded font-medium transition-colors ${
-                  lensType === 'convex' 
-                    ? 'bg-green-600 text-white' 
-                    : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
-                }`}
-                onClick={() => setLensType('convex')}
-              >
-                볼록 렌즈
-              </button>
-              <button 
-                className={`px-4 py-2 rounded font-medium transition-colors ${
-                  lensType === 'concave' 
-                    ? 'bg-green-600 text-white' 
-                    : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
-                }`}
-                onClick={() => setLensType('concave')}
-              >
-                오목 렌즈
-              </button>
-            </div>
-          )}
+          ))}
         </div>
-      )}
 
-      {/* Intro 오버레이 - 로딩 완료 후 표시 */}
-      {isLoaded && showIntro && (
-        <Intro 
-          onEnter={handleEnterExperience}
-          title="빛의 성질"
-          description={[
-            "빛이 나아가는 현상을 관찰하여 빛이 직진, 반사, 굴절 하는 모습을 알아봅시다.",
-          ]}
-          simbolSvgPath="/img/icon/빛의 성질.svg"
-        />
-      )}
+        {/* 렌즈 타입 (굴절 모드일 때만 표시) */}
+        {activeMode === 'refraction' && (
+          <>
+            <h4 style={{ margin: '10px 0 5px 0', fontSize: '16px' }}>렌즈 타입</h4>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              {(['convex', 'concave'] as const).map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setLensType(type)}
+                  style={{
+                    padding: '6px 12px',
+                    backgroundColor: lensType === type ? '#2196F3' : '#333',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                  }}
+                >
+                  {type === 'convex' ? '볼록렌즈' : '오목렌즈'}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Ray 상태 표시 */}
+        <div style={{ marginTop: '15px' }}>
+          <h4 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>Ray 상태</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+            {rayStates.map((isActive, index) => (
+              <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div 
+                  style={{
+                    width: '12px',
+                    height: '12px',
+                    borderRadius: '50%',
+                    backgroundColor: isActive ? '#4CAF50' : '#666',
+                  }}
+                />
+                <span style={{ fontSize: '14px' }}>
+                  Ray {index + 1}: {isActive ? 'ON' : 'OFF'}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 도움말 */}
+        <div style={{ 
+          marginTop: '15px', 
+          padding: '10px', 
+          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+          borderRadius: '5px',
+          fontSize: '12px',
+          lineHeight: '1.4'
+        }}>
+          💡 팁: 모델의 버튼들을 클릭하여 각 Ray를 개별적으로 켜고 끌 수 있습니다.
+        </div>
+      </div>
     </div>
-  );
+  )
 }

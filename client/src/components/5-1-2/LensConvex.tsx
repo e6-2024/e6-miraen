@@ -18,7 +18,7 @@ export function LensConvex({
   scale2 = 0.2,
   positionOffset =  [0, -0.93, 0],
 }: LensConvexProps) {
-  const { scene } = useGLTF('/models/Light/convex lens.gltf');
+  const { scene } = useGLTF('/models/5-1-2/Convex_lens.glb');
   const meshRef = useRef<THREE.Group>(null);
   
   const adjustedPosition = [
