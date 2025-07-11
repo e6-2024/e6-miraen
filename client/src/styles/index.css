@@ -27,6 +27,13 @@
     font-style: normal;
   }
 
+  @font-face {
+    font-family: 'MaplestoryOTFBold';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@2.1/MaplestoryOTFBold.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+  }
+
   .nanum-gothic-regular {
     font-family: "Nanum Gothic", sans-serif !important;
     font-weight: 400 !important;
@@ -43,7 +50,7 @@
   body,
   #__next {
     width: 100%;
-    font-family: "Nanum Gothic", sans-serif;
+    font-family: "MaplestoryOTFBold", sans-serif;
     font-weight: 700;
   }
 

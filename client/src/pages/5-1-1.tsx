@@ -812,10 +812,9 @@ export default function FossilViewer() {
       {isLoaded && showIntro && (
         <Intro 
           onEnter={handleEnterExperience}
-          title="지층과 화석"
+          title="공룡 화석이 만들어지는 과정 알아보기"
           description={[
-            "옛날에 살았던 생물의 몸체나 흔적이 암석이나 지층 속에 남아 있는 것을 화석이라고 합니다.", 
-            "화석을 관찰 하고 화석이 만들어지는 과정을 알아봅시다."
+            "공룡 화석은 어떻게 만들어지는지 알아봅시다."
           ]}
           simbolSvgPath="/img/icon/background1.svg"
         />
