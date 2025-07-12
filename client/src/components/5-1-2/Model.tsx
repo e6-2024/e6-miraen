@@ -43,11 +43,11 @@ export default function Model({
     }
 
     if (frame) {
-      frame.position.set(-1.0, -0.1, 0)
+      frame.position.set(-1.0, -0.0, 0)
     }
     
     if (table) {
-      table.position.set(-1.0, -0.5, 0)
+      table.position.set(-1.0, -0.3, 0)
     }
 
     if (paper) {
@@ -65,17 +65,14 @@ export default function Model({
     setInitialAngle(laserAngle)
   }
 
-  // 레이저 포인터 위치 결정
   const getLaserPointerPosition = (): [number, number, number] => {
     switch (mode) {
       case 'reflection':
         return [-9, 1.2, -4.2]
       case 'refraction':
-        return [0, 2, -8]
+        return [-9,5.0,-0.6]
       case 'direct':
-        return [0,0,0]
-      default:
-        return [0, 0, 0]
+        return [-9,1.2,-0.6]
     }
   }
 
@@ -84,11 +81,9 @@ export default function Model({
       case 'reflection':
         return [0, 0, 0] 
       case 'refraction':
-        return [Math.PI / 6, 0, 0] 
+        return [0,Math.PI/2, 3*Math.PI/2]
       case 'direct':
-        return [0,0,0]
-      default:
-        return [0,0, 0]
+        return [0,Math.PI/2, 3*Math.PI/2]
     }
   }
 
@@ -107,10 +102,11 @@ export default function Model({
         rotation={getLaserPointerRotation()}
         angle={laserAngle}
         visible={true}
-        onToggle={onToggle} // 버튼 토글 이벤트 전달
-        rayStates={rayStates} // Ray 상태 전달
+        onToggle={onToggle}
+        rayStates={rayStates}
         onPointerDown={handleLaserPointerDown}
         pivotOffset={[0, 0, -20.0]}
+        mode={mode}
       />
     </>
   )

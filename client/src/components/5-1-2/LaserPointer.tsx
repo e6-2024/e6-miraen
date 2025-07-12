@@ -15,6 +15,7 @@ interface LaserPointerProps {
   onToggle?: (buttonIndex: number) => void
   rayStates?: [boolean, boolean, boolean]
   pivotOffset?: [number, number, number]
+  mode?: 'direct' | 'reflection' | 'refraction'
 }
 
 export function LaserPointer({ 
@@ -26,7 +27,8 @@ export function LaserPointer({
   onPointerUp,
   onToggle,
   rayStates = [false, false, false],
-  pivotOffset = [0, 0, 3]
+  pivotOffset = [0, 0, 3],
+  mode
 }: LaserPointerProps) {
   const { scene } = useGLTF('models/5-1-2/laser.glb')
   const pivotGroupRef = useRef<THREE.Group>(null)
@@ -35,10 +37,23 @@ export function LaserPointer({
   const [hoveredButton, setHoveredButton] = useState<number | null>(null)
   const buttonObjectRefs = useRef<(THREE.Object3D | null)[]>([null, null, null])
 
+  const getRotationByMode = (mode: string | undefined, angle: number): [number, number, number] => {
+    const angleRad = (angle * Math.PI) / 180
+    
+    switch (mode) {
+      case 'direct':
+        return [0,3*Math.PI/2, 3*Math.PI/2]
+      case 'reflection':
+        return [0, 3*Math.PI/2 - angleRad, 3*Math.PI/2]
+      case 'refraction':
+        return [0, 3*Math.PI/2, 3*Math.PI/2]
+    }
+  }
+
   useEffect(() => {
     if (pivotGroupRef.current) {
-      const angleRad = (angle * Math.PI) / 180
-      pivotGroupRef.current.rotation.set(0, 3*Math.PI/2 - angleRad, 3*Math.PI/2)
+      const rotation = getRotationByMode(mode, angle)
+      pivotGroupRef.current.rotation.set(...rotation)
     }
     
     const button1 = scene.getObjectByName('_holes_laser_pointer001')
@@ -54,7 +69,7 @@ export function LaserPointer({
     if (button3) {
       buttonObjectRefs.current[2] = button3
     }
-  }, [angle, scene])
+  }, [angle, scene, mode]) // mode 의존성 추가
 
   const handleButtonClick = (e: ThreeEvent<MouseEvent>, buttonIndex: number) => {
     e.stopPropagation()

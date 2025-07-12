@@ -14,8 +14,8 @@ type LensConcaveProps = {
 
 export function LensConcave({
   position,
-  scale = 0.3,
-  scale2 = 0.2,
+  scale = 1.0,
+  scale2 = 1.0,
   positionOffset =  [0, -0.93, 0],
 }: LensConcaveProps) {
   const { scene } = useGLTF('/models/5-1-2/Concave_lens.glb');
@@ -63,7 +63,7 @@ export function LensConcave({
   return (
     <group 
       ref={meshRef}
-      rotation={[0, Math.PI/2, 0]}
+      rotation={[0, 3*Math.PI/2, 0]}
       position={adjustedPosition}
       scale={[scale2, scale, scale]}
     />

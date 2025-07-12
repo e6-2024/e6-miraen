@@ -12,10 +12,12 @@ type RayProps = {
     type: 'mirror' | 'lens';
     refractiveIndex?: number;
     lensType?: 'convex' | 'concave';
+    surface?: 'entrance' | 'exit';
   }[];
   depth?: number;
   maxDepth?: number;
   mirrorRotation?: THREE.Euler;
+  isInsideLens?: boolean;
 };
 
 export function Ray({
@@ -26,7 +28,8 @@ export function Ray({
   reflectSurfaces = [],
   depth = 0,
   maxDepth = 3,
-  mirrorRotation
+  mirrorRotation,
+  isInsideLens = false
 }: RayProps) {
   const [nextRay, setNextRay] = useState<React.ReactNode>(null);
 
@@ -43,11 +46,10 @@ export function Ray({
     let intersectionType = null;
     let refractiveIndex = null;
     let surfaceLensType = null;
-
-    
+    let surfacePosition = null;
+    let surfaceType = null;
 
     for (const surface of reflectSurfaces) {
-      // 평면과의 교차점 계산
       const planeNormal = surface.normal.clone();
       const planePoint = surface.position.clone();
       const denominator = planeNormal.dot(ray.direction);
@@ -63,6 +65,8 @@ export function Ray({
         intersectionType = surface.type;
         refractiveIndex = surface.refractiveIndex;
         surfaceLensType = surface.lensType;
+        surfacePosition = surface.position.clone();
+        surfaceType = surface.surface;
       }
     }
 
@@ -75,7 +79,9 @@ export function Ray({
           type: intersectionType,
           distance: closestDistance,
           refractiveIndex: refractiveIndex,
-          lensType: surfaceLensType
+          lensType: surfaceLensType,
+          surfacePosition: surfacePosition,
+          surface: surfaceType
         },
       };
     }
@@ -88,7 +94,7 @@ export function Ray({
   const quaternion = useMemo(() => {
     const dir = end.clone().sub(start).normalize();
     return new THREE.Quaternion().setFromUnitVectors(
-      new THREE.Vector3(0, 1, 0), // 기본 cylinder 방향
+      new THREE.Vector3(0, 1, 0),
       dir
     );
   }, [start, end]);
@@ -96,94 +102,114 @@ export function Ray({
   useEffect(() => {
     if (intersectionData && depth < maxDepth) {
       let newDirection;
+      let newIsInsideLens = isInsideLens;
 
       if (intersectionData.type === 'mirror') {
-        // 반사 - 반사각 = 입사각
         newDirection = normalizedDir
           .clone()
           .sub(intersectionData.normal.clone().multiplyScalar(2 * normalizedDir.dot(intersectionData.normal)));
       } else if (intersectionData.type === 'lens' && intersectionData.refractiveIndex) {
-        // 렌즈 타입에 따른 굴절 처리
-        if (intersectionData.lensType === 'convex') {
-          // 볼록 렌즈 - 광선이 중심을 향하도록 굴절
-          const lensCenter = intersectionData.point.clone();
-          lensCenter.x = intersectionData.point.x; // x좌표는 유지
-          lensCenter.y = 0; // 렌즈의 중심 y좌표는 0
-          lensCenter.z = 0; // 렌즈의 중심 z좌표는 0
-          
-          // 렌즈 중심으로부터의 거리 계산
-          const distFromCenter = Math.sqrt(
-            Math.pow(intersectionData.point.y, 2) + 
-            Math.pow(intersectionData.point.z, 2)
-          );
-          
-          // 중심에서 멀수록 더 많이 굴절시킴
-          const convergeFactor = 0.15 * distFromCenter;
-          
-          // 초점 거리 (렌즈 중심으로부터 광선이 모이는 지점까지의 거리)
-          const focalLength = 5;
-          
-          // 중심 방향으로의 벡터 계산
-          const toCenterDir = new THREE.Vector3(
-            1, // x 방향은 전진
-            -intersectionData.point.y * (1/focalLength), // y축 방향으로 중심을 향하게
-            -intersectionData.point.z * (1/focalLength)  // z축 방향으로 중심을 향하게
-          ).normalize();
-          
-          newDirection = toCenterDir;
-        } else if (intersectionData.lensType === 'concave') {
-          // 오목 렌즈: 광선을 퍼지게 만들기
-          const focalLength = 5; // 가상의 초점 거리 (조절 가능)
         
-          // 렌즈의 중심 좌표 (x 방향 진행 기준, y/z는 0)
-          const lensCenter = new THREE.Vector3(
-            intersectionData.point.x,
-            0,
-            0
-          );
-        
-          // 현재 광선 위치에서 중심까지 벡터
-          const fromCenter = intersectionData.point.clone().sub(lensCenter);
-        
-          // 반대 방향 (즉, 퍼지는 방향)으로 설정
-          const divergeDir = new THREE.Vector3(
-            1, // x는 그대로 전진
-            fromCenter.y / focalLength,  // y/z는 중심축에서 멀어질수록 더 퍼짐
-            fromCenter.z / focalLength
-          ).normalize();
-        
-          newDirection = divergeDir;
-        }else {
-          // 렌즈 타입이 정의되지 않은 경우 기본 굴절 적용
-          const n1 = 1.0; // 공기의 굴절률
-          const n2 = intersectionData.refractiveIndex; // 렌즈의 굴절률
-
-          const normal = intersectionData.normal.clone();
-          const cosI = -normal.dot(normalizedDir);
-          
-          // 입사 매질에서 출사 매질로 향하는 법선의 방향 조정
-          if (cosI < 0) {
-            normal.negate();
+        if (intersectionData.surface === 'entrance') {
+          // 입사면: 공기 → 렌즈
+          if (intersectionData.lensType === 'convex') {
+            const offsetY = intersectionData.point.y - 5.0;
+            const offsetZ = intersectionData.point.z;
+            const focalLength = 12; // 입사면에서는 약간 완만하게
+            
+            newDirection = new THREE.Vector3(
+              1,
+              -offsetY / focalLength,
+              -offsetZ / focalLength
+            ).normalize();
+          } else if (intersectionData.lensType === 'concave') {
+            const offsetY = intersectionData.point.y - 5.0;
+            const offsetZ = intersectionData.point.z;
+            const focalLength = 12;
+            
+            newDirection = new THREE.Vector3(
+              1,
+              offsetY / focalLength,
+              offsetZ / focalLength
+            ).normalize();
           }
+          newIsInsideLens = true; // 렌즈 내부로 진입
           
-          const n = cosI < 0 ? n2 / n1 : n1 / n2;
-          const cosT2 = 1 - n * n * (1 - cosI * cosI);
+        } else if (intersectionData.surface === 'exit') {
+          // 출사면: 렌즈 → 공기
+          if (intersectionData.lensType === 'convex') {
+            const offsetY = intersectionData.point.y - 5.0;
+            const offsetZ = intersectionData.point.z+0.6;
+            const focalLength = 6; // 출사면에서 더 강하게 수렴
+            
+            newDirection = new THREE.Vector3(
+              1,
+              -offsetY / focalLength,
+              -offsetZ / focalLength
+            ).normalize();
+          } else if (intersectionData.lensType === 'concave') {
+            const offsetY = intersectionData.point.y - 5.0;
+            const offsetZ = intersectionData.point.z+0.6;
+            const focalLength = 6;
+            
+            newDirection = new THREE.Vector3(
+              1,
+              offsetY / focalLength,
+              offsetZ / focalLength
+            ).normalize();
+          }
+          newIsInsideLens = false; // 렌즈에서 나옴
           
-          if (cosT2 < 0) {
-            // 전반사 발생 (굴절 불가)
-            newDirection = normalizedDir
-              .clone()
-              .sub(normal.clone().multiplyScalar(2 * normalizedDir.dot(normal)));
+        } else {
+          // 기존 단일면 처리 (호환성)
+          if (intersectionData.lensType === 'convex') {
+            const offsetY = intersectionData.point.y - 5.0;
+            const offsetZ = intersectionData.point.z-1.0;
+            const focalLength = 1;
+            
+            newDirection = new THREE.Vector3(
+              1,
+              -offsetY / focalLength,
+              -offsetZ / focalLength
+            ).normalize();
+          } else if (intersectionData.lensType === 'concave') {
+            const focalLength = 1;
+            const offsetY = intersectionData.point.y - 5.0;
+            const offsetZ = intersectionData.point.z;
+            
+            newDirection = new THREE.Vector3(
+              1,
+              offsetY / focalLength,
+              offsetZ / focalLength
+            ).normalize();
           } else {
-            // 굴절
-            newDirection = normalizedDir
-              .clone()
-              .multiplyScalar(n)
-              .add(normal.clone().multiplyScalar(n * cosI - Math.sqrt(cosT2)));
+            // 스넬의 법칙 적용
+            const n1 = isInsideLens ? 4.5 : 1.0;
+            const n2 = isInsideLens ? 1.0 : 4.5;
+
+            const normal = intersectionData.normal.clone();
+            const cosI = -normal.dot(normalizedDir);
+            
+            if (cosI < 0) {
+              normal.negate();
+            }
+            
+            const n = cosI < 0 ? n2 / n1 : n1 / n2;
+            const cosT2 = 1 - n * n * (1 - cosI * cosI);
+            
+            if (cosT2 < 0) {
+              newDirection = normalizedDir
+                .clone()
+                .sub(normal.clone().multiplyScalar(2 * normalizedDir.dot(normal)));
+            } else {
+              newDirection = normalizedDir
+                .clone()
+                .multiplyScalar(n)
+                .add(normal.clone().multiplyScalar(n * cosI - Math.sqrt(cosT2)));
+            }
           }
         }
       } else {
-        // 미정의 타입이면 원래 방향 유지
         newDirection = normalizedDir.clone();
       }
 
@@ -196,10 +222,11 @@ export function Ray({
           reflectSurfaces={reflectSurfaces}
           depth={depth + 1}
           maxDepth={maxDepth}
+          isInsideLens={newIsInsideLens}
         />
       );
     }
-  }, [intersectionData, depth, maxDepth, normalizedDir, length, color, reflectSurfaces]);
+  }, [intersectionData, depth, maxDepth, normalizedDir, length, color, reflectSurfaces, isInsideLens]);
 
   return (
     <>

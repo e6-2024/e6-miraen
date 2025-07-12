@@ -10,8 +10,8 @@ interface OpticalLabProps {
   mode: 'direct' | 'reflection' | 'refraction';
   lensType?: 'convex' | 'concave';
   rayStates: [boolean, boolean, boolean];
-  laserAngle?: number; // 레이저 각도 추가
-  rayOrigins?: THREE.Vector3[]; // 동적 Ray 시작점 추가
+  laserAngle?: number;
+  rayOrigins?: THREE.Vector3[];
 }
 
 export function OpticalLab({
@@ -45,7 +45,6 @@ export function OpticalLab({
       return rayOrigins;
     }
     
-    // 기본값 (기존 하드코딩된 위치)
     const laserPointerPos = new THREE.Vector3(-9, 1.2, -4.2);
     
     return [
@@ -57,19 +56,19 @@ export function OpticalLab({
 
   // 직진 모드의 Ray 시작점
   const directRayOrigins = useMemo(() => [
-    new THREE.Vector3(-26, 1.95, -0.7),   // Ray 1
-    new THREE.Vector3(-26, 1.2, -0.7),     // Ray 2
-    new THREE.Vector3(-26, 0.45, -0.7),  // Ray 3
+    new THREE.Vector3(-9, 1.8, -0.6),
+    new THREE.Vector3(-9, 1.2, -0.6),
+    new THREE.Vector3(-9, 0.6, -0.6),
   ], []);
 
   // 굴절 모드의 Ray 시작점  
   const refractionRayOrigins = useMemo(() => [
-    new THREE.Vector3(-5, 0.5, 0.3),   // Ray 1
-    new THREE.Vector3(-5, 0, 0.3),     // Ray 2
-    new THREE.Vector3(-5, -0.5, 0.3),  // Ray 3
+    new THREE.Vector3(-9, 5.6, -0.6),
+    new THREE.Vector3(-9, 5.0, -0.6),
+    new THREE.Vector3(-9, 4.4, -0.6),
   ], []);
 
-  const lensPosition = new THREE.Vector3(-3, 0, 0);
+  const lensPosition = new THREE.Vector3(-3, 1, -3.2);
 
   const reflectSurfaces = useMemo(() => {
     if (mode === 'reflection') {
@@ -81,14 +80,25 @@ export function OpticalLab({
         },
       ];
     } else if (mode === 'refraction') {
+      const lensThickness = 0.3
+
       return [
         {
-          position: lensPosition,
-          normal: new THREE.Vector3(-1, 0, 0),
-          type: 'lens' as const,
-          refractiveIndex: 1.5,
-          lensType: lensType,
-        },
+        position: new THREE.Vector3(-3.4, 1, 2),
+        normal: new THREE.Vector3(-1, 0, 0),
+        type: 'lens' as const,
+        refractiveIndex: 1.5,
+        lensType: lensType,
+        surface: 'entrance' as const
+      },
+      {
+        position: new THREE.Vector3(-3 + lensThickness, 1, 2),
+        normal: new THREE.Vector3(1, 0, 0),
+        type: 'lens' as const,
+        refractiveIndex: 1.0,
+        lensType: lensType,
+        surface: 'exit' as const
+      },
       ];
     }
     return [];
@@ -96,7 +106,6 @@ export function OpticalLab({
 
   return (
     <>
-      {/* 직진 모드 */}
       {mode === 'direct' && (
         <>
           {directRayOrigins.map((origin, index) => 
@@ -151,6 +160,10 @@ export function OpticalLab({
               />
             )}
           </Reflector>
+          <mesh position={[0.13, 5, 2.0]}>
+            <boxGeometry args={[0.2, 10, 30]} />
+            <meshStandardMaterial color="gray" />
+          </mesh>
         </>
       )}
 
@@ -165,6 +178,7 @@ export function OpticalLab({
                 direction={new THREE.Vector3(1, 0, 0)}
                 reflectSurfaces={reflectSurfaces}
                 color="red"
+                length={35}
               />
             )
           )}

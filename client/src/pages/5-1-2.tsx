@@ -3,7 +3,7 @@ import { Canvas, useThree } from '@react-three/fiber';
 import { useEffect } from 'react'
 import dynamic from 'next/dynamic';
 import { useState, useMemo } from 'react';
-import { OrbitControls, Environment, useProgress } from '@react-three/drei';
+import { OrbitControls, Environment, useProgress, AccumulativeShadows, RandomizedLight } from '@react-three/drei';
 import { OpticalLab } from '../scenes/OpticalLab';
 import { RayToggleButton } from '@/components/5-1-2/buttonToggle';
 import Scene from '@/components/canvas/Scene';
@@ -94,9 +94,14 @@ export default function Home() {
     <div className='w-screen h-screen flex flex-col overflow-hidden'>
       <LoadingTracker onLoadingComplete={handleLoadingComplete} />
       <div className='flex-1'>
-        <Scene shadows camera={{ position: [0, 0, -20], fov: 50 }}>
-          <Environment preset='warehouse' environmentIntensity={0.5}/>
-          
+        <Scene shadows camera={{ position: [0, 0, 20], fov: 50 }}>
+          <Environment preset='warehouse' environmentIntensity={0.2}/>
+          <directionalLight
+            color='white'
+            intensity={2}
+            position={[30, 20, 30]}
+            castShadow
+          />
           <OpticalLab 
             mode={activeMode} 
             lensType={lensType} 
@@ -126,7 +131,7 @@ export default function Home() {
 
       </div>
         
-      {!showIntro && (
+      {!showIntro && isLoaded && (
         <div style={{
           position: 'absolute',
           top: '20px',
@@ -160,7 +165,6 @@ export default function Home() {
             ))}
           </div>
 
-          {/* 렌즈 타입 (굴절 모드일 때만 표시) */}
           {activeMode === 'refraction' && (
             <>
               <h4 style={{ margin: '10px 0 5px 0', fontSize: '16px' }}>렌즈 타입</h4>
@@ -186,7 +190,6 @@ export default function Home() {
             </>
           )}
 
-          {/* 레이저 각도 (반사 모드일 때만 표시) */}
           {activeMode === 'reflection' && (
             <>
               <h4 style={{ margin: '10px 0 5px 0', fontSize: '16px' }}>레이저 각도</h4>
@@ -228,26 +231,6 @@ export default function Home() {
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* 도움말 */}
-          <div style={{ 
-            marginTop: '15px', 
-            padding: '10px', 
-            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-            borderRadius: '5px',
-            fontSize: '12px',
-            lineHeight: '1.4'
-          }}>
-            💡 팁: 
-            <br />
-            • 모델의 버튼들을 클릭하여 각 Ray를 개별적으로 켜고 끌 수 있습니다.
-            {activeMode === 'reflection' && (
-              <>
-                <br />
-                • 반사 모드에서는 레이저 포인터를 드래그하여 각도를 조절할 수 있습니다.
-              </>
-            )}
           </div>
         </div>
       )}
