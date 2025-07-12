@@ -238,7 +238,6 @@ export default function Home() {
           isHeating={isHeating}
           heatingTime={heatingTime}
         />
-        <Model/>
         {createCircularFlames()}
         {createCircularFlames2()}
         
@@ -261,7 +260,7 @@ export default function Home() {
             description={[
               "온도가 다른 두 물체가 접촉했을 때 두 물체의 온도 변화를 관찰하고, 온도가 변하는 까닭을 추리해 봅시다.",
             ]}
-            simbolSvgPath="/img/icon/열과우리생활.svg"
+            backgroundSvg='/img/cover/5-2-2.svg'
           />
         )}
      </div>

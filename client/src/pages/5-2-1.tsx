@@ -172,7 +172,7 @@ export default function Home() {
           description={[
             "모래와 자갈이 섞여 있는 모습은 공사장 등 우리 생활의 다양한 곳에서 볼 수 있습니다. 모래와 자갈의 혼합물은 어떤 성질을 이용해 분리할 수 있는지 알아봅시다."
           ]}
-          simbolSvgPath="/img/icon/혼합물의분리.svg"
+          backgroundSvg='/img/cover/5-2-1.svg'
         />
       )}
     </div>

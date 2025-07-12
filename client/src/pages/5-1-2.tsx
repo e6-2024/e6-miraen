@@ -18,7 +18,6 @@ function SafePostEffects() {
   return isReady ? <PostEffects /> : null;
 }
 
-// 로딩 상태를 추적하는 컴포넌트
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
   const { progress, active } = useProgress()
   
@@ -81,26 +80,15 @@ export default function Home() {
       return newStates;
     });
     
-    // 버튼 클릭 효과음
     playClickSound('/sounds/Click_Simple.mp3');
   }
 
-  if (showIntro) {
-    return (
-      <Intro 
-        title="빛의 직진, 반사, 굴절 관찰하기"
-        description="빛이 공기 중에서 나아갈 때, 거울과 같은 물체에 부딪쳤을 때, 렌즈를 통과할 때 어떻게 나아가는지 알아봅시다."
-        onEnter={handleEnterExperience}
-      />
-    )
-  }
-
   return (
-    <div style={{ width: '100vw', height: '100vh', position: 'relative', backgroundColor: '#0a0a0a' }}>
+    <div className='w-screen h-screen flex flex-col overflow-hidden'>
       <LoadingTracker onLoadingComplete={handleLoadingComplete} />
-      
-        <Scene shadows camera={{ position: [0, 3, 8], fov: 50 }}>
-          <Environment files="https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/potsdamer_platz_1k.hdr" />
+      <div className='flex-1'>
+        <Scene shadows camera={{ position: [-10, 10, 8], fov: 50 }}>
+          <Environment preset='warehouse' />
           
           <OpticalLab 
             mode={activeMode} 
@@ -126,103 +114,115 @@ export default function Home() {
           <SafePostEffects />
         </Scene>
 
-      {/* UI 컨트롤 패널 */}
-      <div style={{
-        position: 'absolute',
-        top: '20px',
-        left: '20px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '15px',
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        padding: '20px',
-        borderRadius: '10px',
-        color: 'white',
-        fontFamily: 'Arial, sans-serif'
-      }}>
-        <h3 style={{ margin: '0 0 10px 0', fontSize: '18px' }}>실험 모드</h3>
+      </div>
         
-        {/* 모드 선택 버튼 */}
-        <div style={{ display: 'flex', gap: '10px' }}>
-          {(['direct', 'reflection', 'refraction'] as const).map((mode) => (
-            <button
-              key={mode}
-              onClick={() => setActiveMode(mode)}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: activeMode === mode ? '#4CAF50' : '#333',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: 'pointer',
-                fontSize: '14px',
-              }}
-            >
-              {mode === 'direct' ? '직진' : mode === 'reflection' ? '반사' : '굴절'}
-            </button>
-          ))}
-        </div>
-
-        {/* 렌즈 타입 (굴절 모드일 때만 표시) */}
-        {activeMode === 'refraction' && (
-          <>
-            <h4 style={{ margin: '10px 0 5px 0', fontSize: '16px' }}>렌즈 타입</h4>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              {(['convex', 'concave'] as const).map((type) => (
-                <button
-                  key={type}
-                  onClick={() => setLensType(type)}
-                  style={{
-                    padding: '6px 12px',
-                    backgroundColor: lensType === type ? '#2196F3' : '#333',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                  }}
-                >
-                  {type === 'convex' ? '볼록렌즈' : '오목렌즈'}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* Ray 상태 표시 */}
-        <div style={{ marginTop: '15px' }}>
-          <h4 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>Ray 상태</h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-            {rayStates.map((isActive, index) => (
-              <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div 
-                  style={{
-                    width: '12px',
-                    height: '12px',
-                    borderRadius: '50%',
-                    backgroundColor: isActive ? '#4CAF50' : '#666',
-                  }}
-                />
-                <span style={{ fontSize: '14px' }}>
-                  Ray {index + 1}: {isActive ? 'ON' : 'OFF'}
-                </span>
-              </div>
+      {!showIntro && (
+        <div style={{
+          position: 'absolute',
+          top: '20px',
+          left: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '15px',
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          padding: '20px',
+          borderRadius: '10px',
+          color: 'white',
+          fontFamily: 'Arial, sans-serif'
+        }}>
+          <h3 style={{ margin: '0 0 10px 0', fontSize: '18px' }}>실험 모드</h3>
+          
+          {/* 모드 선택 버튼 */}
+          <div style={{ display: 'flex', gap: '10px' }}>
+            {(['direct', 'reflection', 'refraction'] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setActiveMode(mode)}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: activeMode === mode ? '#4CAF50' : '#333',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                }}
+              >
+                {mode === 'direct' ? '직진' : mode === 'reflection' ? '반사' : '굴절'}
+              </button>
             ))}
           </div>
-        </div>
 
-        {/* 도움말 */}
-        <div style={{ 
-          marginTop: '15px', 
-          padding: '10px', 
-          backgroundColor: 'rgba(255, 255, 255, 0.1)',
-          borderRadius: '5px',
-          fontSize: '12px',
-          lineHeight: '1.4'
-        }}>
-          💡 팁: 모델의 버튼들을 클릭하여 각 Ray를 개별적으로 켜고 끌 수 있습니다.
+          {/* 렌즈 타입 (굴절 모드일 때만 표시) */}
+          {activeMode === 'refraction' && (
+            <>
+              <h4 style={{ margin: '10px 0 5px 0', fontSize: '16px' }}>렌즈 타입</h4>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                {(['convex', 'concave'] as const).map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => setLensType(type)}
+                    style={{
+                      padding: '6px 12px',
+                      backgroundColor: lensType === type ? '#2196F3' : '#333',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '5px',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                    }}
+                  >
+                    {type === 'convex' ? '볼록렌즈' : '오목렌즈'}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Ray 상태 표시 */}
+          <div style={{ marginTop: '15px' }}>
+            <h4 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>Ray 상태</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+              {rayStates.map((isActive, index) => (
+                <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div 
+                    style={{
+                      width: '12px',
+                      height: '12px',
+                      borderRadius: '50%',
+                      backgroundColor: isActive ? '#4CAF50' : '#666',
+                    }}
+                  />
+                  <span style={{ fontSize: '14px' }}>
+                    Ray {index + 1}: {isActive ? 'ON' : 'OFF'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 도움말 */}
+          <div style={{ 
+            marginTop: '15px', 
+            padding: '10px', 
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            borderRadius: '5px',
+            fontSize: '12px',
+            lineHeight: '1.4'
+          }}>
+            💡 팁: 모델의 버튼들을 클릭하여 각 Ray를 개별적으로 켜고 끌 수 있습니다.
+          </div>
         </div>
-      </div>
+      )}
+
+      {isLoaded && showIntro && (
+        <Intro
+          onEnter={handleEnterExperience}
+          title={`빛의 직진, 반사, 굴절 관찰하기`}
+          description={['빛이 공기 중에서 나아갈 때, 거울과 같은 물체에 부딪쳤을 때, 렌즈를 통과할 때 어떻게 나아가는지 알아봅시다.']}
+          backgroundSvg='/img/cover/5-1-2.svg'
+        />
+      )}
     </div>
   )
 }

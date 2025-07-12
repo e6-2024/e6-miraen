@@ -48,7 +48,7 @@ export default function Intro({
         {/* 제목 및 설명 */}
         <div className='absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-fit h-fit flex flex-col items-center justify-center gap-36'>
           <div className='w-fit h-fit flex flex-col items-center justify-center gap-6'>
-            <h1 className='text-7xl mb-7 text-white font-bold leading-tight text-center [text-shadow:_0px_4px_10px_rgb(0_0_0_/_0.50)]'>
+            <h1 className='text-6xl mb-7 text-white font-bold leading-tight text-center [text-shadow:_0px_4px_10px_rgb(0_0_0_/_0.50)]'>
               {title.split('\n').map((line, i) => (
                 <div key={i}>
                   {line}
@@ -56,7 +56,7 @@ export default function Intro({
                 </div>
               ))}
             </h1>
-            <div className='text-white text-4xl font-light text-center [text-shadow:_0px_4px_10px_rgb(0_0_0_/_0.50)]'>
+            <div className='text-white text-3xl font-light text-center [text-shadow:_0px_4px_10px_rgb(0_0_0_/_0.50)]'>
               {Array.isArray(description) ? (
                 description.map((line, index) => (
                   <p key={index} className={index > 0 ? 'mt-1' : ''}>
@@ -124,15 +124,15 @@ export default function Intro({
           <button
             onClick={handleEnter}
             className='
-        bg-[#FF8026]
-        text-white font-bold
-        px-8 py-3 rounded-[20px]
-        transition-all duration-300
-        hover:bg-[#ff9b54]
-        active:scale-95
-        text-2xl
-        shadow-[inset_0px_-6px_8px_0px_rgba(152,0,0,0.50)]
-      '>
+              bg-[#FF8026]
+              text-white font-bold
+              px-8 py-3 rounded-[20px]
+              transition-all duration-300
+              hover:bg-[#ff9b54]
+              active:scale-95
+              text-2xl
+              shadow-[inset_0px_-6px_8px_0px_rgba(152,0,0,0.50)]
+            '>
             시작하기
           </button>
         </div>

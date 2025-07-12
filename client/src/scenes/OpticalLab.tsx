@@ -18,7 +18,6 @@ export function OpticalLab({
   rayStates,
 }: OpticalLabProps) {
   const mirrorPosition = new THREE.Vector3(1, 0, 0);
-  const mirrorRotation = new THREE.Euler(Math.PI / 2, Math.PI / 2, 0);
 
   const mirrorNormal = useMemo(() => {
     const normal = new THREE.Vector3(-1, 0, 0);
@@ -123,7 +122,7 @@ export function OpticalLab({
           {/* 거울 */}
           <Reflector
             resolution={2048}
-            args={[5, 3]}
+            args={[10, 10]}
             mirror={0.9}
             mixStrength={0.5}
             mixBlur={0}
@@ -136,7 +135,7 @@ export function OpticalLab({
                 color="white"
                 metalness={0.8}
                 roughness={0.2}
-                doubleSided
+                side={THREE.DoubleSide}
                 {...props}
               />
             )}

@@ -193,7 +193,7 @@ export default function SieveModel({
   showColliders = false,
   enableFloorColliders = true // 기본값을 true로 변경
 }: SieveModelProps) {
-  const { scene } = useGLTF('/models/material/Strainers.gltf');
+  const { scene } = useGLTF('/models/5-2-1/Strainers.gltf');
   const mesh = scene.children[selectedLevel]?.clone();
 
   return (

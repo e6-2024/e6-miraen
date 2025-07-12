@@ -30,7 +30,7 @@ const LinkButton: React.FC<ButtonProps> = ({ label, link }) => {
     
     setTimeout(() => {
       window.location.href = link; // 페이지 이동
-    }, 800); // 200ms 지연 (효과음 재생 시간 확보)
+    }, 1200); // 200ms 지연 (효과음 재생 시간 확보)
   };
 
   return (
@@ -67,8 +67,10 @@ const CenteredButtons: React.FC = () => {
   return (
     <div className="absolute w-full h-full bg-gray-50">
       <Intro2
+        onEnter={() => {}}
         title="우리 몸의 구조와 기능"
         description={introDescription}
+        backgroundSvg='/img/cover/5-1-4.svg'
       />
       <div className="absolute top-3/4 left-1/2 transform -translate-x-1/2 flex space-x-4 z-[60]">
         {buttons.map((button, index) => (

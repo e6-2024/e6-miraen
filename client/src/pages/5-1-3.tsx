@@ -519,7 +519,7 @@ export default function Home() {
             "색깔로 구별할 수 없는 용액의 진하기는 어떻게 비교할 수 있을까요?",
             "용액의 상대적인 진하기를 비교해 봅시다."
           ]}
-          simbolSvgPath="/img/icon/용해와용액.svg"
+          backgroundSvg='/img/cover/5-1-3.svg'
         />
       )}
     </div>
