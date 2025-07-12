@@ -31,7 +31,7 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
 }
 
 export default function Home() {
-  const [activeMode, setActiveMode] = useState<'direct' | 'reflection' | 'refraction'>('reflection');
+  const [activeMode, setActiveMode] = useState<'direct' | 'reflection' | 'refraction'>('direct');
   const [lensType, setLensType] = useState<'convex' | 'concave'>('convex'); 
   
   // 3개의 Ray 상태를 각각 관리
@@ -87,8 +87,8 @@ export default function Home() {
     <div className='w-screen h-screen flex flex-col overflow-hidden'>
       <LoadingTracker onLoadingComplete={handleLoadingComplete} />
       <div className='flex-1'>
-        <Scene shadows camera={{ position: [-10, 10, 8], fov: 50 }}>
-          <Environment preset='warehouse' />
+        <Scene shadows camera={{ position: [0, 0, -20], fov: 50 }}>
+          <Environment preset='warehouse' environmentIntensity={0.5}/>
           
           <OpticalLab 
             mode={activeMode} 
@@ -130,9 +130,6 @@ export default function Home() {
           color: 'white',
           fontFamily: 'Arial, sans-serif'
         }}>
-          <h3 style={{ margin: '0 0 10px 0', fontSize: '18px' }}>실험 모드</h3>
-          
-          {/* 모드 선택 버튼 */}
           <div style={{ display: 'flex', gap: '10px' }}>
             {(['direct', 'reflection', 'refraction'] as const).map((mode) => (
               <button

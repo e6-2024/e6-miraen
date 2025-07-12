@@ -28,7 +28,7 @@ export default function Model({ onToggle, mode, rayStates = [false, false, false
       //빛의 반사에서 레이저 포이터 위치
       if (mode === 'reflection') {
         holeLaserPointer.position.set(0.0, 0, 0)
-        holeLaserPointer.rotation.set(0,3*Math.PI/2,Math.PI/2)
+        holeLaserPointer.rotation.set(Math.PI/2,0,2.5*Math.PI/2)
       } else {
         //다른 모드에서 레이저 포인터 위치
         holeLaserPointer.position.set(0.0, 0, 0.0)
@@ -36,12 +36,22 @@ export default function Model({ onToggle, mode, rayStates = [false, false, false
       }
     } 
 
+    if (mode === 'reflection') {
+      if (frame) {
+        frame.visible = true
+      }
+    } else {
+      if (frame) {
+        frame.visible = false
+      }
+    }
+
     if (frame) {
-      frame.position.set(0, -2.0, 0)
+      frame.position.set(0, -0.1, 0)
     }
     
     if (table) {
-      table.position.set(0, -2.4, 0)
+      table.position.set(0, -0.5, 0)
     }
 
     if (paper) {
@@ -54,6 +64,8 @@ export default function Model({ onToggle, mode, rayStates = [false, false, false
       buttonObjectRefs.current[1] = scene.children[1].children[3]
       buttonObjectRefs.current[2] = scene.children[1].children[1]
     }
+
+
   }, [scene, mode])
 
   // 커서 포인터 전환

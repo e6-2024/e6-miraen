@@ -33,23 +33,23 @@ export function OpticalLab({
     ).normalize();
   }, []);
 
-  // 각 Ray의 시작점을 개별적으로 정의
+  // 반사 모드의 Ray 시작점
   const rayOrigins = useMemo(() => {
     const angleRad = (45 * Math.PI) / 180;
-    const baseZ = -3 * Math.tan(angleRad);
+    const baseZ = -6 * Math.tan(angleRad);
     
     return [
-      new THREE.Vector3(-2, 0.5, baseZ),   // Ray 1
-      new THREE.Vector3(-2, 0, baseZ),     // Ray 2  
-      new THREE.Vector3(-2, -0.5, baseZ),  // Ray 3
+      new THREE.Vector3(-5, 1.95, baseZ),   // Ray 1
+      new THREE.Vector3(-5, 1.2, baseZ),     // Ray 2  
+      new THREE.Vector3(-5, 0.45, baseZ),  // Ray 3
     ];
   }, []);
 
   // 직진 모드의 Ray 시작점
   const directRayOrigins = useMemo(() => [
-    new THREE.Vector3(-5, 0.5, 0.3),   // Ray 1
-    new THREE.Vector3(-5, 0, 0.3),     // Ray 2
-    new THREE.Vector3(-5, -0.5, 0.3),  // Ray 3
+    new THREE.Vector3(-26, 1.95, -0.7),   // Ray 1
+    new THREE.Vector3(-26, 1.2, -0.7),     // Ray 2
+    new THREE.Vector3(-26, 0.45, -0.7),  // Ray 3
   ], []);
 
   // 굴절 모드의 Ray 시작점  
@@ -97,6 +97,7 @@ export function OpticalLab({
                 direction={new THREE.Vector3(1, 0, 0)}
                 reflectSurfaces={reflectSurfaces}
                 color="red"
+                length={35}
               />
             )
           )}
@@ -128,7 +129,7 @@ export function OpticalLab({
             mixBlur={0}
             blur={[0, 0]}
             rotation={[Math.PI / 2, 3*Math.PI / 2, 0]} 
-            position={[0, 0, 0]}
+            position={[0, 5, 0]}
           >
             {(Material: React.ElementType, props) => (
               <Material
