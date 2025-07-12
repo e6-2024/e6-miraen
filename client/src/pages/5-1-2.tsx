@@ -33,6 +33,7 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
 export default function Home() {
   const [activeMode, setActiveMode] = useState<'direct' | 'reflection' | 'refraction'>('direct');
   const [lensType, setLensType] = useState<'convex' | 'concave'>('convex'); 
+  const [laserAngle, setLaserAngle] = useState<number>(45); // 레이저 각도 상태 추가
   
   // 3개의 Ray 상태를 각각 관리
   const [rayStates, setRayStates] = useState<[boolean, boolean, boolean]>([false, false, false]);
@@ -41,9 +42,10 @@ export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
 
-  // 모드가 변경될 때마다 모든 Ray를 false로 리셋
+  // 모드가 변경될 때마다 모든 Ray를 false로 리셋하고 각도 초기화
   useEffect(() => {
     setRayStates([false, false, false]);
+    setLaserAngle(45); // 각도도 초기화
   }, [activeMode]);
 
   const handleLoadingComplete = () => {
@@ -83,6 +85,11 @@ export default function Home() {
     playClickSound('/sounds/Click_Simple.mp3');
   }
 
+  // 레이저 각도 변경 핸들러
+  const handleAngleChange = (newAngle: number) => {
+    setLaserAngle(newAngle);
+  }
+
   return (
     <div className='w-screen h-screen flex flex-col overflow-hidden'>
       <LoadingTracker onLoadingComplete={handleLoadingComplete} />
@@ -94,12 +101,15 @@ export default function Home() {
             mode={activeMode} 
             lensType={lensType} 
             rayStates={rayStates}
+            laserAngle={laserAngle}
           />
           
           <Model 
             mode={activeMode} 
             onToggle={handleRayToggle}
             rayStates={rayStates}
+            laserAngle={laserAngle}
+            onAngleChange={handleAngleChange}
           />
           
           <OrbitControls 
@@ -176,7 +186,29 @@ export default function Home() {
             </>
           )}
 
-          {/* Ray 상태 표시 */}
+          {/* 레이저 각도 (반사 모드일 때만 표시) */}
+          {activeMode === 'reflection' && (
+            <>
+              <h4 style={{ margin: '10px 0 5px 0', fontSize: '16px' }}>레이저 각도</h4>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <input
+                  type="range"
+                  min="1"
+                  max="65"
+                  value={laserAngle}
+                  onChange={(e) => setLaserAngle(Number(e.target.value))}
+                  style={{
+                    width: '150px',
+                    accentColor: '#4CAF50'
+                  }}
+                />
+                <span style={{ fontSize: '14px', minWidth: '40px' }}>
+                  {Math.round(laserAngle)}°
+                </span>
+              </div>
+            </>
+          )}
+
           <div style={{ marginTop: '15px' }}>
             <h4 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>Ray 상태</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
@@ -207,7 +239,15 @@ export default function Home() {
             fontSize: '12px',
             lineHeight: '1.4'
           }}>
-            💡 팁: 모델의 버튼들을 클릭하여 각 Ray를 개별적으로 켜고 끌 수 있습니다.
+            💡 팁: 
+            <br />
+            • 모델의 버튼들을 클릭하여 각 Ray를 개별적으로 켜고 끌 수 있습니다.
+            {activeMode === 'reflection' && (
+              <>
+                <br />
+                • 반사 모드에서는 레이저 포인터를 드래그하여 각도를 조절할 수 있습니다.
+              </>
+            )}
           </div>
         </div>
       )}

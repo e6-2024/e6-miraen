@@ -52,7 +52,7 @@ export function Ray({
       const planePoint = surface.position.clone();
       const denominator = planeNormal.dot(ray.direction);
 
-      if (Math.abs(denominator) < 0.000001) continue; // 평행한 경우 스킵
+      if (Math.abs(denominator) < 0.000001) continue;
 
       const t = planeNormal.dot(planePoint.clone().sub(ray.origin)) / denominator;
 
@@ -203,7 +203,6 @@ export function Ray({
 
   return (
     <>
-      {/* 레이저 본체: Cylinder */}
       <mesh position={position} quaternion={quaternion}>
         <cylinderGeometry args={[0.01, 0.01, lengthBetween, 8]} />
         <meshStandardMaterial
@@ -213,7 +212,6 @@ export function Ray({
           toneMapped={false}
         />
       </mesh>
-
       {nextRay}
     </>
   );

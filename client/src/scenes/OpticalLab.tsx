@@ -9,41 +9,51 @@ import { Reflector } from '@react-three/drei';
 interface OpticalLabProps {
   mode: 'direct' | 'reflection' | 'refraction';
   lensType?: 'convex' | 'concave';
-  rayStates: [boolean, boolean, boolean]; // 개별 Ray 상태 배열
+  rayStates: [boolean, boolean, boolean];
+  laserAngle?: number; // 레이저 각도 추가
+  rayOrigins?: THREE.Vector3[]; // 동적 Ray 시작점 추가
 }
 
 export function OpticalLab({
   mode,
   lensType = 'convex',
   rayStates,
+  laserAngle = 45, // 기본값 45도
+  rayOrigins = [], // 동적 Ray 시작점
 }: OpticalLabProps) {
-  const mirrorPosition = new THREE.Vector3(1, 0, 0);
+  const mirrorPosition = new THREE.Vector3(0, 0, 0);
 
   const mirrorNormal = useMemo(() => {
     const normal = new THREE.Vector3(-1, 0, 0);
     return normal;
   }, []);
 
+  // 레이저 각도에 따른 방향 벡터 계산
   const rayDirection = useMemo(() => {
-    const angleRad = (45 * Math.PI) / 180;
+    const angleRad = (laserAngle * Math.PI) / 180;
     return new THREE.Vector3(
       Math.cos(angleRad),
       0,               
       Math.sin(angleRad)
     ).normalize();
-  }, []);
+  }, [laserAngle]);
 
-  // 반사 모드의 Ray 시작점
-  const rayOrigins = useMemo(() => {
-    const angleRad = (45 * Math.PI) / 180;
-    const baseZ = -6 * Math.tan(angleRad);
+  // 반사 모드의 Ray 시작점 - 레이저 포인터에서 전달받은 위치 사용
+  const reflectionRayOrigins = useMemo(() => {
+    // rayOrigins가 있으면 사용, 없으면 기본값
+    if (rayOrigins.length >= 3) {
+      return rayOrigins;
+    }
+    
+    // 기본값 (기존 하드코딩된 위치)
+    const laserPointerPos = new THREE.Vector3(-9, 1.2, -4.2);
     
     return [
-      new THREE.Vector3(-5, 1.95, baseZ),   // Ray 1
-      new THREE.Vector3(-5, 1.2, baseZ),     // Ray 2  
-      new THREE.Vector3(-5, 0.45, baseZ),  // Ray 3
+      new THREE.Vector3(laserPointerPos.x, laserPointerPos.y + 0.6, laserPointerPos.z),   // Ray 1 (위쪽)
+      new THREE.Vector3(laserPointerPos.x, laserPointerPos.y, laserPointerPos.z),          // Ray 2 (중간)
+      new THREE.Vector3(laserPointerPos.x, laserPointerPos.y - 0.6, laserPointerPos.z),  // Ray 3 (아래쪽)
     ];
-  }, []);
+  }, [rayOrigins]);
 
   // 직진 모드의 Ray 시작점
   const directRayOrigins = useMemo(() => [
@@ -104,10 +114,10 @@ export function OpticalLab({
         </>
       )}
 
-      {/* 반사 모드 */}
+      {/* 반사 모드 - 이제 동적 Ray 위치 사용 */}
       {mode === 'reflection' && (
         <>
-          {rayOrigins.map((origin, index) => 
+          {reflectionRayOrigins.map((origin, index) => 
             rayStates[index] && (
               <Ray
                 key={`reflection-${index}`}
@@ -115,7 +125,7 @@ export function OpticalLab({
                 direction={rayDirection}
                 reflectSurfaces={reflectSurfaces}
                 color="red"
-                length={15}
+                length={35}
               />
             )
           )}
@@ -123,13 +133,13 @@ export function OpticalLab({
           {/* 거울 */}
           <Reflector
             resolution={2048}
-            args={[10, 10]}
+            args={[10, 30]}
             mirror={0.9}
             mixStrength={0.5}
             mixBlur={0}
             blur={[0, 0]}
             rotation={[Math.PI / 2, 3*Math.PI / 2, 0]} 
-            position={[0, 5, 0]}
+            position={[0, 5, 2]}
           >
             {(Material: React.ElementType, props) => (
               <Material
