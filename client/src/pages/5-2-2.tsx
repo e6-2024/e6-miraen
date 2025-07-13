@@ -9,8 +9,9 @@ import Model from '@/components/5-1-4-1/Model'
 import Scene from '@/components/canvas/Scene'
 import Flame from '@/components/5-2-2/Flame'
 import Intro from '@/components/intro/Intro'
-import PanFish from '@/components/5-2-2/models/PanFish'
-import PanMeat from '@/components/5-2-2/models/PanMeat'
+import Pan from '@/components/5-2-2/models/Pan'
+import { BG } from '@/components/5-2-2/models/BG'
+import {Dish} from '@/components/5-2-2/models/Dish'
 
 // 로딩 상태를 추적하는 컴포넌트
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
@@ -103,7 +104,7 @@ export default function Home() {
       flames.push(
         <Flame 
           key={i}
-          position={[x+0.35, 0.2, z-0.1]} 
+          position={[x+0.05, 0.06, z-0.4]} 
           scale={isHeating ? 0.3 : 0} // 가열 중일 때 불꽃 크기 증가
           opacity={isThermalMode ? 0.3 : 1}
         />
@@ -113,28 +114,6 @@ export default function Home() {
     return flames;
   };
 
-  const createCircularFlames2 = () => {
-    const flames = [];
-    const flameCount = 20;
-    const radius = 0.13;
-    
-    for (let i = 0; i < flameCount; i++) {
-      const angle = (i / flameCount) * Math.PI * 2;
-      const x = Math.cos(angle) * radius;
-      const z = Math.sin(angle) * radius;
-      
-      flames.push(
-        <Flame 
-          key={i}
-          position={[x-0.35, 0.2, z-0.1]} 
-          scale={isHeating ? 0.3 : 0} // 가열 중일 때 불꽃 크기 증가
-          opacity={isThermalMode ? 0.3 : 1}
-        />
-      );
-    }
-    
-    return flames;
-  };
 
   return (
      <div className="w-screen h-screen bg-white flex flex-col relative overflow-hidden">
@@ -195,51 +174,59 @@ export default function Home() {
           </Environment>
         )}
         
-        <ContactShadows position={[0, 0, 0]} opacity={isThermalMode ? 0.1 : 0.9} scale={30} blur={1.5} far={2} color='black' frames={2} />
-        <AccumulativeShadows frames={20} alphaTest={0.15} opacity={isThermalMode ? 0.05 : 0.1} scale={20} position={[0, 0, 0]}>
-          <RandomizedLight amount={4} radius={3} ambient={0.3} intensity={isThermalMode ? 0.1 : 0.5} position={[0, 2, 0]} bias={0.001} />
+        <ContactShadows position={[0, 0, 0]} opacity={isThermalMode ? 0.1 : 0.9} scale={30} blur={0.8} far={2} color='black' frames={2} />
+        <AccumulativeShadows frames={20} alphaTest={0.8} opacity={isThermalMode ? 0.05 : 0.1} scale={20} position={[0, 0, 0]}>
+          <RandomizedLight amount={10} radius={3} ambient={0.9} intensity={isThermalMode ? 0.1 : 0.5} position={[0, 2, 0]} bias={0.001} />
         </AccumulativeShadows>
                 
         <directionalLight position={[2, 2, 2]} intensity={isThermalMode ? 0.1 : 1} />
         
-        {/* Fish와 Meat는 각자의 1/3 지점에서 가열 */}
         <Fish 
-          scale={2} 
-          position={[0, 0, 0]} 
+          scale={1} 
+          position={[-1.8,0.05,0]}
           thermalMode={isThermalMode}
           isHeating={isHeating}
           heatingTime={heatingTime}
         />
         <Meat 
-          scale={2} 
-          position={[0, 0, 0]} 
+          scale={1} 
+          position={[-1, 0.05, -0.004]} 
           thermalMode={isThermalMode}
           isHeating={isHeating}
           heatingTime={heatingTime}
         />
         <Stove 
-          scale={2} 
+          scale={1} 
           position={[0, 0, 0]} 
           thermalMode={isThermalMode}
           isHeating={isHeating}
           heatingTime={heatingTime}
         />
-        <PanFish
-          scale={2} 
-          position={[0, 0, 0]} 
+        <Pan
+          scale={1} 
+          position={[0, 0.1, -0.4]} 
           thermalMode={isThermalMode}
           isHeating={isHeating}
           heatingTime={heatingTime}
         />
-        <PanMeat
-          scale={2} 
-          position={[0, 0, 0]} 
+        <Dish
+          thermalMode={isThermalMode}
+          isHeating={isHeating}
+          heatingTime={0}
+        />
+        <Dish
+          position={[-0.8,0,0]}
+          thermalMode={isThermalMode}
+          isHeating={isHeating}
+          heatingTime={0}
+        />
+        <BG
+          position={[0,0.04,0]}
           thermalMode={isThermalMode}
           isHeating={isHeating}
           heatingTime={heatingTime}
         />
         {createCircularFlames()}
-        {createCircularFlames2()}
         
         <OrbitControls 
           enableRotate={!showIntro} // Intro가 보일 때는 OrbitControls 비활성화

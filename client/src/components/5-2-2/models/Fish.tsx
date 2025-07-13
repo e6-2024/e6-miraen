@@ -1,4 +1,3 @@
-// Fish.tsx - 1/3 지점 가열을 위한 수정된 버전
 import { useGLTF } from '@react-three/drei'
 import { GroupProps, useFrame } from '@react-three/fiber'
 import { useEffect, useRef, useState } from 'react'
@@ -21,10 +20,10 @@ export function Fish({
 }: FishProps) {
   const { scene } = useGLTF('models/5-2-2/Fish.glb')
   const [originalMaterials, setOriginalMaterials] = useState<Map<THREE.Mesh, THREE.Material>>(new Map())
-  const [oneThirdPoint, setOneThirdPoint] = useState(new THREE.Vector3(0, 0, 0))
+  const [centerPoint, setCenterPoint] = useState(new THREE.Vector3(0, 0, 0))
   const thermalMaterialRef = useRef<THREE.ShaderMaterial>()
   
-  // 원본 재질 저장 및 1/3 지점 계산
+  // 원본 재질 저장 및 중앙점 계산
   useEffect(() => {
     const materials = new Map<THREE.Mesh, THREE.Material>()
     const box = new THREE.Box3()
@@ -48,14 +47,9 @@ export function Fish({
       setOriginalMaterials(materials)
     }
     
-    const min = box.min
-    const max = box.max
-    const oneThird = new THREE.Vector3(
-      (min.x + max.x) / 2,
-      (min.y + max.y) / 2,
-      min.z + (max.z - min.z) * (1/3)
-    )
-    setOneThirdPoint(oneThird)
+    // 모델의 정확한 중앙점 계산
+    const center = box.getCenter(new THREE.Vector3())
+    setCenterPoint(center)
   }, [scene])
 
   useEffect(() => {
@@ -68,7 +62,7 @@ export function Fish({
           temperature: { value: 0.15 },
           heatingTime: { value: heatingTime },
           baseColor: { value: new THREE.Color(0.8, 0.4, 0.2) },
-          centerPoint: { value: oneThirdPoint },
+          centerPoint: { value: centerPoint },
           isHeating: { value: isHeating }
         }
       })
@@ -85,15 +79,15 @@ export function Fish({
         mesh.material = material
       })
     }
-  }, [thermalMode, scene, originalMaterials, oneThirdPoint])
+  }, [thermalMode, scene, originalMaterials, centerPoint])
 
   useEffect(() => {
     if (thermalMode && thermalMaterialRef.current) {
       thermalMaterialRef.current.uniforms.heatingTime.value = heatingTime
       thermalMaterialRef.current.uniforms.isHeating.value = isHeating
-      thermalMaterialRef.current.uniforms.centerPoint.value = oneThirdPoint
+      thermalMaterialRef.current.uniforms.centerPoint.value = centerPoint
     }
-  }, [heatingTime, isHeating, thermalMode, oneThirdPoint])
+  }, [heatingTime, isHeating, thermalMode, centerPoint])
 
   // 매 프레임마다 시간 업데이트 (노이즈 애니메이션용)
   useFrame(({ clock }) => {
@@ -104,6 +98,5 @@ export function Fish({
   
   return <primitive object={scene} {...props} />
 }
-
 
 export default Fish

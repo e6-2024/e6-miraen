@@ -27,13 +27,13 @@ export const thermalFragmentShader = `
   
   vec3 thermalColor(float temp) {
     // 온도에 따른 색상 매핑: black -> blue -> purple -> red -> orange -> yellow -> white
-    if (temp < 0.1) return vec3(0.0, 0.0, 0.0); // Black (very cold)
-    else if (temp < 0.2) return mix(vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.8), (temp - 0.1) * 10.0); // Black to Blue
-    else if (temp < 0.3) return mix(vec3(0.0, 0.0, 0.8), vec3(0.4, 0.0, 0.8), (temp - 0.2) * 10.0); // Blue to Purple
-    else if (temp < 0.5) return mix(vec3(0.4, 0.0, 0.8), vec3(0.8, 0.0, 0.0), (temp - 0.3) * 5.0); // Purple to Red
-    else if (temp < 0.7) return mix(vec3(0.8, 0.0, 0.0), vec3(1.0, 0.5, 0.0), (temp - 0.5) * 5.0); // Red to Orange
-    else if (temp < 0.9) return mix(vec3(1.0, 0.5, 0.0), vec3(1.0, 1.0, 0.0), (temp - 0.7) * 5.0); // Orange to Yellow
-    else return mix(vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0), (temp - 0.9) * 10.0); // Yellow to White
+   if (temp < 0.1) return vec3(0.0, 0.0, 0.0); // Black (very cold)
+    else if (temp < 0.25) return mix(vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), (temp - 0.1) * 6.67); // Black to Deep Blue
+    else if (temp < 0.3) return mix(vec3(0.0, 0.0, 1.0), vec3(0.0, 1.0, 0.0), (temp - 0.25) * 6.67); // Deep Blue to Green
+    else if (temp < 0.45) return mix(vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), (temp - 0.4) * 6.67); // Green to Yellow
+    else if (temp < 0.6) return mix(vec3(1.0, 1.0, 0.0), vec3(1.0, 0.5, 0.0), (temp - 0.55) * 6.67); // Yellow to Orange
+    else if (temp < 0.75) return mix(vec3(1.0, 0.5, 0.0), vec3(1.0, 0.0, 0.0), (temp - 0.7) * 6.67); // Orange to Red
+    else return mix(vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0), (temp - 0.85) * 6.67); // Red to White
   }
   
   float noise(vec2 p) {
