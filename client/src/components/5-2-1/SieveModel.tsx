@@ -18,15 +18,15 @@ function SolidFloor({ showColliders = false }: { showColliders?: boolean }) {
   
   useBox(() => ({
     type: 'Static',
-    args: [10, 0.05, 10], // 큰 평면
+    args: [30, 0.3, 30], // 큰 평면
     position: [0, -0.2, 0],
     friction: 0.1,
   }), ref);
 
   if (showColliders) {
     return (
-      <mesh ref={ref} position={[0, -0.2, 0]}>
-        <boxGeometry args={[9, 0.05, 9]} />
+      <mesh ref={ref} position={[0, -0.1, 0]}>
+        <boxGeometry args={[9, 0.2, 9]} />
         <meshBasicMaterial color="blue" transparent opacity={0.3} />
       </mesh>
     );

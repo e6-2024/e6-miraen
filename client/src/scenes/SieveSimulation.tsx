@@ -194,7 +194,7 @@ export default function SieveSimulation({
       <SieveModel 
         selectedLevel={selectedLevel} 
         enableFloorColliders={true}
-        showColliders={false} 
+        showColliders={true} 
       />
     
       {/* 바닥 */}
