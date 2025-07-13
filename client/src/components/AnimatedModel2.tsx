@@ -26,8 +26,8 @@ export default function AnimatedModel2({
   const textRefA = useRef<Group>(null)
   const textRefB = useRef<Group>(null)
 
-  const textOffsetA = new THREE.Vector3(-0.09, 0.00, 0.00)
-  const textOffsetB = new THREE.Vector3(0.09, 0.00, 0.00)
+  const textOffsetA = new THREE.Vector3(-0.02, -0.01, 0.00)
+  const textOffsetB = new THREE.Vector3(0.02, -0.02, 0.00)
 
   const prevTextPosA = useRef(new THREE.Vector3())
   const prevTextPosB = useRef(new THREE.Vector3())
@@ -38,8 +38,9 @@ export default function AnimatedModel2({
   const muscle001Ref = useRef<Mesh>(null)
   const muscle002Ref = useRef<Mesh>(null)
 
-  // 말풍선 상태 관리
-  const [showSpeechBubbles, setShowSpeechBubbles] = useState(false)
+  // 말풍선 상태 관리 (개별 토글)
+  const [showBubbleA, setShowBubbleA] = useState(false)
+  const [showBubbleB, setShowBubbleB] = useState(false)
 
   const getSkinnedMeshCenter = (mesh: Mesh): THREE.Vector3 => {
     mesh.updateMatrixWorld(true)
@@ -108,8 +109,6 @@ export default function AnimatedModel2({
         if (action.time >= halfDuration) {
           action.paused = true
           clearInterval(intervalRef.current!)
-          // 애니메이션 완료 후 말풍선 표시
-          setShowSpeechBubbles(true)
         }
       }, 16)
     }
@@ -121,8 +120,6 @@ export default function AnimatedModel2({
         if (action.time >= clip.duration) {
           action.paused = true
           clearInterval(intervalRef.current!)
-          // 애니메이션 완료 후 말풍선 표시
-          setShowSpeechBubbles(true)
         }
       }, 16)
     }
@@ -135,7 +132,6 @@ export default function AnimatedModel2({
       }
     }
   }, [actions, animations, actionName])
-
 
   useEffect(() => {
     if (!scene || !group.current) return
@@ -201,67 +197,148 @@ export default function AnimatedModel2({
 
   const getBalloonText = (isA: boolean) => {
     if (actionName === 'extend') {
-      return isA ? '팔을 구부릴 때 바깥쪽 근육이 늘어납니다' : '팔을 구부릴 때 안쪽 근육이 줄어듭니다'
+      return isA ? '팔을 구부릴 때 팔 바깥쪽 근육이 늘어납니다' : '팔을 구부릴 때 팔 안쪽 근육이 줄어듭니다'
     } else {
-      return isA ? '팔을 펼 때 바깥쪽 근육이 줄어듭니다' : '팔을 펼 때 안쪽 근육이 늘어납니다'
+      return isA ? '팔을 펼 때 팔 바깥쪽 근육이 줄어듭니다' : '팔을 펼 때 팔 안쪽 근육이 늘어납니다'
     }
   }
 
   const getTextColor = (isA: boolean) => {
-    const isActive = actionName === 'extend' ? isA : !isA;
-    return isActive ? '#ff6b6b' : '#4fc3f7';
+    return '#000000'; // 모든 포인트를 검정색으로 통일
   }
 
-  const handleBubbleClick = () => {
-    setShowSpeechBubbles(false)
+  const handleToggleBubbleA = () => {
+    setShowBubbleA(!showBubbleA)
+  }
+
+  const handleToggleBubbleB = () => {
+    setShowBubbleB(!showBubbleB)
   }
 
   return (
     <>
-    <group ref={group} scale={scale} position={position} rotation={rotation}>
-      <primitive object={scene} />
-    </group>
+      <group ref={group} scale={scale} position={position} rotation={rotation}>
+        <primitive object={scene} />
+      </group>
 
-      {armReady && showSpeechBubbles && (
+      {armReady && (
         <>
+          {/* 포인트 A (바깥쪽 근육) - 왼쪽 */}
           <group>
             <Billboard ref={textRefA}>
               <Html center>
                 <div
                   style={{
-                    borderColor: getTextColor(true),
+                    position: 'relative',
+                    cursor: 'pointer',
                     userSelect: 'none',
                     WebkitUserSelect: 'none',
                     MozUserSelect: 'none',
                     msUserSelect: 'none',
                   }}
-                  className='bg-white p-3 rounded-xl shadow-xl border-2 relative cursor-pointer hover:scale-105 active:scale-95 transition-all'
-                  onClick={handleBubbleClick}
+                  onClick={handleToggleBubbleA}
                 >
-                  <div className='text-sm text-gray-800 whitespace-nowrap'>
-                    {getBalloonText(true)}
+                  {/* 말풍선 */}
+                  {showBubbleA && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        bottom: '25px',
+                        right: '25px', // 동그라미 왼쪽에 말풍선 배치
+                        backgroundColor: 'white',
+                        padding: '12px 16px',
+                        borderRadius: '12px',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                        border: `2px solid ${getTextColor(true)}`,
+                        whiteSpace: 'nowrap',
+                        fontSize: '14px',
+                        color: '#333',
+                        zIndex: 1000
+                      }}
+                    >
+                      {getBalloonText(true)}
+                    </div>
+                  )}
+                  
+                  {/* 클릭 포인트 (동그라미) */}
+                  <div
+                    style={{
+                      width: '30px',
+                      height: '30px',
+                      borderRadius: '50%',
+                      backgroundColor: getTextColor(true),
+                      border: '3px solid white',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      animation: 'pulse 2s infinite',
+                      fontSize: '12px',
+                      color: 'white',
+                      fontWeight: 'bold'
+                    }}
+                  >
                   </div>
                 </div>
               </Html>
             </Billboard>
           </group>
 
+          {/* 포인트 B (안쪽 근육) - 오른쪽 */}
           <group>
             <Billboard ref={textRefB}>
               <Html center>
                 <div
                   style={{
-                    borderColor: getTextColor(false),
+                    position: 'relative',
+                    cursor: 'pointer',
                     userSelect: 'none',
                     WebkitUserSelect: 'none',
                     MozUserSelect: 'none',
                     msUserSelect: 'none',
                   }}
-                  className='bg-white p-3 rounded-xl shadow-xl border-2 relative cursor-pointer hover:scale-105 active:scale-95 transition-all'
-                  onClick={handleBubbleClick}
+                  onClick={handleToggleBubbleB}
                 >
-                  <div className='text-sm text-gray-800 whitespace-nowrap'>
-                    {getBalloonText(false)}
+                  {/* 말풍선 */}
+                  {showBubbleB && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        bottom: '25px',
+                        left: '25px', // 동그라미 오른쪽에 말풍선 배치
+                        backgroundColor: 'white',
+                        padding: '12px 16px',
+                        borderRadius: '12px',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                        border: `2px solid ${getTextColor(false)}`,
+                        whiteSpace: 'nowrap',
+                        fontSize: '14px',
+                        color: '#333',
+                        zIndex: 1000
+                      }}
+                    >
+                      {getBalloonText(false)}
+                    </div>
+                  )}
+                  
+                  {/* 클릭 포인트 (동그라미) */}
+                  <div
+                    style={{
+                      width: '30px',
+                      height: '30px',
+                      borderRadius: '50%',
+                      backgroundColor: getTextColor(false),
+                      border: '3px solid white',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      animation: 'pulse 2s infinite',
+                      fontSize: '12px',
+                      color: 'white',
+                      fontWeight: 'bold'
+                    }}
+                  >
                   </div>
                 </div>
               </Html>
@@ -269,6 +346,24 @@ export default function AnimatedModel2({
           </group>
         </>
       )}
+
+      {/* CSS 애니메이션 */}
+      <style jsx>{`
+        @keyframes pulse {
+          0% {
+            transform: scale(1);
+            opacity: 1;
+          }
+          50% {
+            transform: scale(1.1);
+            opacity: 0.8;
+          }
+          100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+      `}</style>
     </>
   )
 }

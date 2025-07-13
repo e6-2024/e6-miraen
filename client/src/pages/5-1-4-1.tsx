@@ -1,7 +1,7 @@
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, useGLTF } from '@react-three/drei'
 import AnimatedModel from '../components/AnimatedModel'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {Model} from '@/components/5-1-4-2/Model'
 import Link from 'next/link'
 
@@ -26,6 +26,11 @@ export default function Home() {
   const [modelType, setModelType] = useState<ModelType>('boy')
   const [animState, setAnimState] = useState<AnimationState>('pose')
   const [isLoading, setIsLoading] = useState(true)
+  
+  // 나레이션 관련 상태
+  const [currentNarration, setCurrentNarration] = useState<HTMLAudioElement | null>(null)
+  const [showNarrationText, setShowNarrationText] = useState(false)
+  const [narrationText, setNarrationText] = useState<string[]>([])
 
   // 모델 사전 로딩
   useEffect(() => {
@@ -37,7 +42,6 @@ export default function Home() {
       // 모든 모델 URL 사전 로딩
       for (const url of allPreloadUrls) {
         useGLTF.preload(url)
-        // 약간의 지연을 추가하여 브라우저가 무응답 상태가 되지 않도록 함
         await new Promise(resolve => setTimeout(resolve, 100))
       }
       
@@ -47,15 +51,106 @@ export default function Home() {
     
     loadModels()
     
-    // 컴포넌트 언마운트 시 캐시 정리 (선택 사항)
     return () => {
       allPreloadUrls.forEach(url => useGLTF.clear(url))
     }
   }, [])
 
-  // 실제 로드할 모델 키 (bone도 muscle 로드)
+  // 나레이션 재생 함수
+  const playNarration = (audioPath: string, text: string[]) => {
+    // 기존 나레이션 정지
+    if (currentNarration) {
+      currentNarration.pause()
+      currentNarration.currentTime = 0
+    }
+
+    try {
+      const audio = new Audio(audioPath)
+      audio.volume = 0.7
+      
+      setNarrationText(text)
+      setShowNarrationText(true)
+      
+      audio.play().catch(error => {
+        console.log('나레이션 재생 실패:', error.name)
+      })
+      
+      setCurrentNarration(audio)
+      
+      // 나레이션 종료 시 텍스트 숨김
+      audio.addEventListener('ended', () => {
+        setShowNarrationText(false)
+        setNarrationText([])
+        setCurrentNarration(null)
+      })
+      
+    } catch (error) {
+      console.log('나레이션 생성 실패:', error)
+    }
+  }
+
+  // 나레이션 정지 함수
+  const stopNarration = () => {
+    if (currentNarration) {
+      currentNarration.pause()
+      currentNarration.currentTime = 0
+      setCurrentNarration(null)
+    }
+    setShowNarrationText(false)
+    setNarrationText([])
+  }
+
+  // 효과음 재생 함수
+  const playClickSound = (audioPath: string = '/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3') => {
+    try {
+      const audio = new Audio(audioPath)
+      audio.volume = 0.3
+      audio.play().catch(error => {
+        console.log('효과음 재생 실패:', error.name)
+      })
+    } catch (error) {
+      console.log('효과음 생성 실패:', error)
+    }
+  }
+
+  const handleAnimationChange = (newAnimState: AnimationState) => {
+    playClickSound()
+    setAnimState(newAnimState)
+    
+    if (newAnimState === 'walk') {
+      let audioPath = ''
+      let text
+      
+      switch (modelType) {
+        case 'boy':
+          audioPath = '/sounds/5-1-4/5-1-4-A.MP3'
+          text = ['우리 몸은 뼈와 근육의 작용으로 움직입니다.']
+          break
+        case 'bone':
+          audioPath = '/sounds/5-1-4/5-1-4-B.MP3'
+          text = ['우리 몸속의 뼈는 모양과 크기가 다양합니다.','뼈는 우리 몸의 형태를 만들고 몸을 지탱하며, 몸속에 있는 여러 기관을 보호합니다.']
+          break
+        case 'muscle':
+          audioPath = '/sounds/5-1-4/5-1-4-C.MP3'
+          text = ['우리 몸속의 근육은 모양과 크기가 다양합니다.','근육은 뼈에 연결되어 있으며 뼈를 움직이게 합니다.']
+          break
+      }
+      
+      if (audioPath) {
+        playNarration(audioPath, text)
+      }
+    } else {
+      stopNarration()
+    }
+  }
+
+  const handleModelTypeChange = (type: ModelType) => {
+    playClickSound()
+    setModelType(type)
+    stopNarration()
+  }
+
   const getModelKey = () => {
-    // 기본 모델 타입 결정 (bone은 muscle 기반)
     let base
     if (modelType === 'bone') {
       base = 'Muscle'
@@ -63,7 +158,6 @@ export default function Home() {
       base = modelType.charAt(0).toUpperCase() + modelType.slice(1)
     }
     
-    // 애니메이션 상태에 따른 접미사
     const anim = animState === 'walk' ? 'Walking' : 'Pose'
     
     return `${base}_${anim}`
@@ -126,6 +220,27 @@ export default function Home() {
         }}>
           모델 로딩 중... 잠시만 기다려주세요.
         </div>
+      )}
+
+      {showNarrationText && animState === 'walk' && (
+        <ol style={{
+          position: 'absolute',
+          top: '60px',
+          left: '10px',
+          backgroundColor: 'white',
+          color: 'black',
+          padding: '10px 20px',
+          border:'1px solid black',
+          fontSize: '18px',
+          maxWidth: '80%',
+          textAlign: 'left',
+          zIndex: 1000,
+          lineHeight: '1.5'
+        }}>
+          {narrationText.map((line,index) => (
+            <li key={index}>{line}</li>
+          ))}
+        </ol>
       )}
       
       <Canvas shadows camera={{ position: [0, 0.3, 0.8], fov: 75 }} style={{ width: '100%', height: '100%' }}>
@@ -202,7 +317,7 @@ export default function Home() {
           {['pose', 'walk'].map((state) => (
             <button
               key={state}
-              onClick={() => setAnimState(state as AnimationState)}
+              onClick={() => handleAnimationChange(state as AnimationState)}
               style={{
                 padding: '8px 16px',
                 backgroundColor: animState === state ? '#4CAF50' : '#f1f1f1',
@@ -223,7 +338,7 @@ export default function Home() {
           {(['boy', 'bone', 'muscle'] as ModelType[]).map((type) => (
             <button
               key={type}
-              onClick={() => setModelType(type)}
+              onClick={() => handleModelTypeChange(type)}
               style={{
                 width: '60px',
                 height: '60px',
