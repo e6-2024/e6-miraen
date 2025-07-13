@@ -240,12 +240,8 @@ export default function Home() {
 
   const handleReset = () => {
     setGravity([0, -9.81, 0]);
-    setSelectedLevel(0);
-    setPhysicsKey(prev => prev + 1); // Physics 전체 리셋
+    setPhysicsKey(prev => prev + 1);
     setShowSummaryButton(false); // 정리하기 버튼 숨기기
-    setTimeout(() => {
-      setTriggerSpawn(true);
-    }, 100);
   };
 
   // 레벨 변경 시 Physics 리셋
