@@ -35,6 +35,37 @@ function SolidFloor({ showColliders = false }: { showColliders?: boolean }) {
   return <mesh ref={ref} />;
 }
 
+function WallBox({
+  args,
+  position,
+  color,
+  showColliders,
+}: {
+  args: [number, number, number];
+  position: [number, number, number];
+  color: string;
+  showColliders?: boolean;
+}) {
+  const ref = useRef(null);
+  useBox(() => ({
+    type: 'Static',
+    args,
+    position,
+  }), ref);
+
+  if (showColliders) {
+    return (
+      <mesh ref={ref} position={position}>
+        <boxGeometry args={args} />
+        <meshBasicMaterial color={color} transparent opacity={0.3} />
+      </mesh>
+    );
+  }
+
+  return <mesh ref={ref} />;
+}
+
+
 function SolidCell({ 
   position, 
   args = [0.08, 0.05, 0.08], // 조금 더 작게
@@ -182,71 +213,54 @@ function GroundContainer({ showColliders = false }: { showColliders?: boolean })
   const wallHeight = 2;
   const bottomY = -7;
 
-  const walls: {
-  name: string;
-  args: [number, number, number];
-  position: [number, number, number];
-  color: string;
-}[] = [
-  {
-    name: 'Bottom',
-    args: [containerSize, wallThickness, containerSize],
-    position: [0, bottomY, 0],
-    color: 'orange',
-  },
-  {
-    name: 'Left',
-    args: [wallThickness, wallHeight, containerSize],
-    position: [-(containerSize / 2), bottomY + wallHeight / 2, 0],
-    color: 'red',
-  },
-  {
-    name: 'Right',
-    args: [wallThickness, wallHeight, containerSize],
-    position: [containerSize / 2, bottomY + wallHeight / 2, 0],
-    color: 'blue',
-  },
-  {
-    name: 'Front',
-    args: [containerSize, wallHeight, wallThickness],
-    position: [0, bottomY + wallHeight / 2, containerSize / 2],
-    color: 'green',
-  },
-  {
-    name: 'Back',
-    args: [containerSize, wallHeight, wallThickness],
-    position: [0, bottomY + wallHeight / 2, -containerSize / 2],
-    color: 'yellow',
-  },
-];
-
+  const walls = [
+    {
+      name: 'Bottom',
+      args: [containerSize, wallThickness, containerSize] as [number, number, number],
+      position: [0, bottomY, 0] as [number, number, number],
+      color: 'orange',
+    },
+    {
+      name: 'Left',
+      args: [wallThickness, wallHeight, containerSize] as [number, number, number],
+      position: [-(containerSize / 2), bottomY + wallHeight / 2, 0] as [number, number, number],
+      color: 'red',
+    },
+    {
+      name: 'Right',
+      args: [wallThickness, wallHeight, containerSize] as [number, number, number],
+      position: [containerSize / 2, bottomY + wallHeight / 2, 0] as [number, number, number],
+      color: 'blue',
+    },
+    {
+      name: 'Front',
+      args: [containerSize, wallHeight, wallThickness] as [number, number, number],
+      position: [0, bottomY + wallHeight / 2, containerSize / 2] as [number, number, number],
+      color: 'green',
+    },
+    {
+      name: 'Back',
+      args: [containerSize, wallHeight, wallThickness] as [number, number, number],
+      position: [0, bottomY + wallHeight / 2, -containerSize / 2] as [number, number, number],
+      color: 'yellow',
+    },
+  ];
 
   return (
     <>
-      {walls.map((wall, index) => {
-        const ref = useRef(null);
-        useBox(() => ({
-          type: 'Static',
-          args: wall.args as [number, number, number],
-          position: wall.position as [number, number, number],
-        }), ref);
-
-        return showColliders ? (
-          <mesh
-            key={index}
-            ref={ref}
-            position={wall.position}
-          >
-            <boxGeometry args={wall.args} />
-            <meshBasicMaterial color={wall.color} transparent opacity={0.3} />
-          </mesh>
-        ) : (
-          <mesh key={index} ref={ref} />
-        );
-      })}
+      {walls.map((wall, index) => (
+        <WallBox
+          key={index}
+          args={wall.args}
+          position={wall.position}
+          color={wall.color}
+          showColliders={showColliders}
+        />
+      ))}
     </>
   );
 }
+
 
 
 export default function SieveModel({ 

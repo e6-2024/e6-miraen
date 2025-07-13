@@ -68,7 +68,7 @@ export function OpticalLab({
     new THREE.Vector3(-9, 4.4, -0.6),
   ], []);
 
-  const lensPosition = new THREE.Vector3(-3, 1, -1);
+  const lensPosition = new THREE.Vector3(-3, 0.6, -0.5);
 
   const reflectSurfaces = useMemo(() => {
     if (mode === 'reflection') {
