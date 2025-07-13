@@ -12,8 +12,8 @@ import Intro from '@/components/intro/Intro'
 import Pan from '@/components/5-2-2/models/Pan'
 import { BG } from '@/components/5-2-2/models/BG'
 import {Dish} from '@/components/5-2-2/models/Dish'
+import CameraLogger from '@/components/CameraLogger'
 
-// 로딩 상태를 추적하는 컴포넌트
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
   const { progress, active } = useProgress()
   
@@ -26,16 +26,129 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
   return null
 }
 
+function HeatingGauge({ 
+  progress, 
+  isHeating, 
+  selectedFood 
+}: { 
+  progress: number
+  isHeating: boolean
+  selectedFood: 'fish' | 'meat' | null
+}) {
+  if (!selectedFood) return null
+
+  const foodName = selectedFood === 'fish' ? '생선' : '고기'
+  
+  return (
+    <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10 bg-white/90 backdrop-blur-sm p-4 shadow-lg border border-gray-200 min-w-[300px]">
+      <div className="text-center mb-3">
+        <h3 className="text-lg font-bold text-gray-800">{foodName} 가열 중</h3>
+        {!isHeating && progress >= 100 && (
+          <p className="text-sm text-green-600 font-bold">가열 종료</p>
+        )}
+      </div>
+      
+      <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden mb-2">
+        <div 
+          className={`h-4 rounded-full transition-all duration-300 ${
+            progress >= 100 ? 'bg-green-500' : 'bg-orange-500'
+          }`}
+          style={{ width: `${Math.min(progress, 100)}%` }}
+        />
+      </div>
+      
+      <div className="flex justify-center text-xs text-gray-600">
+        <span>{Math.round(progress)}%</span>
+      </div>
+    </div>
+  )
+}
+
+function SummaryButton({ 
+  visible, 
+  selectedFood, 
+  onClick 
+}: { 
+  visible: boolean
+  selectedFood: 'fish' | 'meat' | null
+  onClick: () => void
+}) {
+  if (!visible || !selectedFood) return null
+
+  return (
+    <div className="absolute bottom-4 right-4 z-10">
+      <button
+        onClick={onClick}
+        className="px-6 py-3 bg-white text-black font-semibold transition-all duration-300 shadow-lg hover:scale-105 active:scale-95"
+      >
+        정리하기
+      </button>
+    </div>
+  )
+}
+
+function SummaryMessage({ 
+  visible, 
+  selectedFood, 
+  onClose 
+}: { 
+  visible: boolean
+  selectedFood: 'fish' | 'meat' | null
+  onClose: () => void
+}) {
+  if (!visible || !selectedFood) return null
+
+  const message = selectedFood === 'fish' 
+    ? '프라이팬이 가열되면 뜨거운 프라이팬에서 생선으로 열이 이동하여 생선이 익습니다.'
+    : '프라이팬이 가열되면 뜨거운 프라이팬에서 고기로 열이 이동하여 고기가 익습니다.'
+
+  return (
+    <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-30">
+      <div className="bg-white rounded-lg p-8 max-w-md mx-4 text-center shadow-xl">
+        <h3 className="text-xl font-bold mb-4 text-gray-800">정리하기</h3>
+        <p className="text-gray-700 mb-6 leading-relaxed">{message}</p>
+        <button
+          onClick={onClose}
+          className="px-6 py-2 bg-white text-black border-2 border-black"
+        >
+          확인
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function TurnOffFireMessage({ visible }: { visible: boolean }) {
+  if (!visible) return null
+
+  return (
+    <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 z-10 bg-red-500/90 text-white px-6 py-3 rounded-lg shadow-lg animate-bounce">
+      <p className="text-center font-bold">🔥 손잡이를 돌려 불을 끄세요!</p>
+    </div>
+  )
+}
+
 export default function Home() {
   const [perfSucks, degrade] = useState(false)
   const [isThermalMode, setIsThermalMode] = useState(false)
   const [isHeating, setIsHeating] = useState(false)
   const [heatingTime, setHeatingTime] = useState(0)
+  const [heatingProgress, setHeatingProgress] = useState(0)
   const heatingIntervalRef = useRef(null)
 
-  // Intro 관련 상태 추가
+  const [selectedFood, setSelectedFood] = useState<'fish' | 'meat' | null>(null)
+  const [foodOnPan, setFoodOnPan] = useState<'fish' | 'meat' | null>(null)
+  const [isHeatingComplete, setIsHeatingComplete] = useState(false)
+  const [showTurnOffMessage, setShowTurnOffMessage] = useState(false)
+  const [showSummaryButton, setShowSummaryButton] = useState(false)
+  const [showSummaryMessage, setShowSummaryMessage] = useState(false)
+  const [fireOff, setFireOff] = useState(false)
+
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
+
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null)
+  const fishHeatingAudioRef = useRef<HTMLAudioElement | null>(null) // 가열 소리 전용 ref
 
   const handleLoadingComplete = () => {
     setIsLoaded(true)
@@ -53,41 +166,207 @@ export default function Home() {
     }
   }
 
+  const playNarration = (audioPath: string) => {
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause()
+      currentAudioRef.current.currentTime = 0
+    }
+
+    try {
+      const audio = new Audio(audioPath)
+      audio.volume = 0.7
+      audio.play().catch(error => {
+        console.log('나레이션 재생 실패:', error.name)
+      })
+      currentAudioRef.current = audio
+      
+      audio.addEventListener('ended', () => {
+        currentAudioRef.current = null
+      })
+    } catch (error) {
+      console.log('나레이션 생성 실패:', error)
+    }
+  }
+
+
+  const playHeatingSound = () => {
+    if (fishHeatingAudioRef.current) {
+      fishHeatingAudioRef.current.pause()
+      fishHeatingAudioRef.current.currentTime = 0
+    }
+
+    try {
+      const audio = new Audio('/sounds/5-2-2/5-2-2-3_food-cooking-in-frying-pan-71250.mp3')
+      audio.volume = 0.5
+      audio.loop = true // 반복 재생
+      setTimeout(() => {
+      audio.play().catch(error => {
+        console.log('가열 소리 재생 실패:', error.name)
+      })
+    }, 5000)
+      fishHeatingAudioRef.current = audio
+    } catch (error) {
+      console.log('가열 소리 생성 실패:', error)
+    }
+  }
+
+  // 가열 소리 정지 함수
+  const stopHeatingSound = () => {
+    if (fishHeatingAudioRef.current) {
+      fishHeatingAudioRef.current.pause()
+      fishHeatingAudioRef.current.currentTime = 0
+      fishHeatingAudioRef.current = null
+    }
+  }
+
+  // 가열 상태 변화 감지 useEffect
+  useEffect(() => {
+    if (isHeating && foodOnPan) {
+      playHeatingSound()
+    } else {
+      stopHeatingSound()
+    }
+  }, [isHeating, foodOnPan])
+
   const handleEnterExperience = () => {
-    // 효과음 재생
     playClickSound()
-    
-    // 효과음이 재생될 시간을 확보한 후 Intro 숨김
     setTimeout(() => {
       setShowIntro(false)
-    }, 300) // 300ms 지연
+    }, 300)
+  }
+
+  const handleFoodClick = (food: 'fish' | 'meat') => {
+    if (isHeating) return
+
+    setSelectedFood(food)
+    setFoodOnPan(food)
+    
+    setHeatingTime(0)
+    setHeatingProgress(0)
+    setIsHeatingComplete(false)
+    setShowTurnOffMessage(false)
+    setShowSummaryButton(false)
+    setShowSummaryMessage(false)
+    setFireOff(false)
+    setIsHeating(false)
+    
+    // 가열 소리 정지
+    stopHeatingSound()
+    
+    if (heatingIntervalRef.current) {
+      clearInterval(heatingIntervalRef.current)
+      heatingIntervalRef.current = null
+    }
   }
 
   const handleHeatingToggle = () => {
+    playHeatingButtonSound()
+    if (!foodOnPan) return
+
     if (isHeating) {
-      // 가열 중지
       setIsHeating(false)
       if (heatingIntervalRef.current) {
         clearInterval(heatingIntervalRef.current)
         heatingIntervalRef.current = null
       }
     } else {
-      // 가열 시작
       setIsHeating(true)
       setHeatingTime(0)
+      setHeatingProgress(0)
+      setIsHeatingComplete(false)
+      
       heatingIntervalRef.current = setInterval(() => {
-        setHeatingTime(prev => prev + 0.1) // 0.1초마다 업데이트
+        setHeatingTime(prev => {
+          const newTime = prev + 0.1
+          const newProgress = (newTime / 20) * 100
+          
+          setHeatingProgress(newProgress)
+          
+          if (newProgress >= 50) {
+            setShowSummaryButton(true)
+          }
+          
+          if (newProgress >= 100) {
+            setIsHeating(false)
+            setIsHeatingComplete(true)
+            setShowTurnOffMessage(true)
+            
+            playNarration('/sounds/5-2-2/5-2-2-B.MP3')
+            
+            if (heatingIntervalRef.current) {
+              clearInterval(heatingIntervalRef.current)
+              heatingIntervalRef.current = null
+            }
+            return 20
+          }
+          
+          return newTime
+        })
       }, 100)
     }
   }
 
-  // 가열 리셋
   const handleResetHeating = () => {
     setIsHeating(false)
     setHeatingTime(0)
+    setHeatingProgress(0)
+    setSelectedFood(null)
+    setFoodOnPan(null)
+    setIsHeatingComplete(false)
+    setShowTurnOffMessage(false)
+    setShowSummaryButton(false)
+    setShowSummaryMessage(false)
+    setFireOff(false)
+    setIsThermalMode(false)
+    
+    // 가열 소리 정지
+    stopHeatingSound()
+    
     if (heatingIntervalRef.current) {
       clearInterval(heatingIntervalRef.current)
       heatingIntervalRef.current = null
+    }
+    
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause()
+      currentAudioRef.current.currentTime = 0
+      currentAudioRef.current = null
+    }
+  }
+
+  const handleFireOff = () => {
+    setFireOff(true)
+    setShowTurnOffMessage(false)
+    setIsHeating(false)
+    setIsThermalMode(false)
+    
+    // 가열 소리 정지
+    stopHeatingSound()
+    
+    if (heatingIntervalRef.current) {
+      clearInterval(heatingIntervalRef.current)
+      heatingIntervalRef.current = null
+    }
+  }
+
+  const handleSummaryClick = () => {
+    playGeneralButtonSound()
+    setShowSummaryMessage(true)
+    
+    const audioPath = selectedFood === 'fish' 
+      ? '/sounds/5-2-2/5-2-2-C.MP3'
+      : '/sounds/5-2-2/5-2-2-D.MP3'
+    playNarration(audioPath)
+  }
+
+  const handleSummaryClose = () => {
+    playGeneralButtonSound()
+    setShowSummaryMessage(false)
+    
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause()
+      currentAudioRef.current.currentTime = 0
+      currentAudioRef.current = null
     }
   }
 
@@ -105,7 +384,7 @@ export default function Home() {
         <Flame 
           key={i}
           position={[x+0.05, 0.06, z-0.4]} 
-          scale={isHeating ? 0.3 : 0} // 가열 중일 때 불꽃 크기 증가
+          scale={isHeating && !fireOff ? 0.3 : 0}
           opacity={isThermalMode ? 0.3 : 1}
         />
       );
@@ -114,52 +393,109 @@ export default function Home() {
     return flames;
   };
 
+const playHeatingButtonSound = () => {
+  try {
+    const audio = new Audio('/sounds/5-2-2/5-2-2-2_gas-stove-version-2-338042.mp3') // 실제 파일 경로로 변경
+    audio.volume = 0.5
+    audio.play().catch(error => {
+      console.log('가열 버튼 소리 재생 실패:', error.name)
+    })
+  } catch (error) {
+    console.log('가열 버튼 소리 생성 실패:', error)
+  }
+}
+
+const playGeneralButtonSound = () => {
+  try {
+    const audio = new Audio('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3') // 실제 파일 경로로 변경
+    audio.volume = 0.5
+    audio.play().catch(error => {
+      console.log('일반 버튼 소리 재생 실패:', error.name)
+    })
+  } catch (error) {
+    console.log('일반 버튼 소리 생성 실패:', error)
+  }
+}
+
+  useEffect(() => {
+    return () => {
+      if (heatingIntervalRef.current) {
+        clearInterval(heatingIntervalRef.current)
+      }
+      if (currentAudioRef.current) {
+        currentAudioRef.current.pause()
+        currentAudioRef.current.currentTime = 0
+      }
+      // 가열 소리 정리
+      if (fishHeatingAudioRef.current) {
+        fishHeatingAudioRef.current.pause()
+        fishHeatingAudioRef.current.currentTime = 0
+      }
+    }
+  }, [])
 
   return (
      <div className="w-screen h-screen bg-white flex flex-col relative overflow-hidden">
-        {/* Control Panel - Intro가 보일 때는 숨김 */}
+        <HeatingGauge 
+          progress={heatingProgress}
+          isHeating={isHeating}
+          selectedFood={selectedFood}
+        />
+
         {!showIntro && (
           <div className="absolute top-4 right-4 z-10 flex flex-col gap-3">
-            {/* Thermal Mode Toggle */}
-            <button
-              onClick={() => setIsThermalMode(!isThermalMode)}
-              className={`px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
-                isThermalMode 
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25' 
-                  : 'bg-red-600 text-white shadow-lg shadow-red-500/25'
-              } hover:scale-105 active:scale-95`}
-            >
-              {isThermalMode ? '3D로 보기' : '열화상 카메라로 보기'}
-            </button>
-            <button
-              onClick={handleHeatingToggle}
-              className={`px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
-                isHeating 
-                  ? 'bg-orange-600 text-white shadow-lg shadow-orange-500/25 animate-pulse' 
-                  : 'bg-green-600 text-white shadow-lg shadow-green-500/25'
-              } hover:scale-105 active:scale-95`}
-            >
-              {isHeating ? '가열 중...' : '가열하기'}
-            </button>
-            
-            {isThermalMode && (
-              <div className="flex flex-col gap-2">
-                <button
-                  onClick={handleResetHeating}
-                  className="px-4 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors"
-                >
-                  처음으로
-                </button>
-              </div>
+            {!fireOff && (
+              <button
+                onClick={() => {
+                  playGeneralButtonSound()
+                  setIsThermalMode(!isThermalMode)}
+                }
+                className='px-6 py-2 font-regular bg-white text-black border-black border-2'
+              >
+                {isThermalMode ? '돌아가기' : '열화상 카메라로 보기'}
+              </button>
             )}
+            
+            {foodOnPan && !isHeating && (
+              <button
+                onClick=
+                {handleHeatingToggle}
+                className='px-6 py-2 font-regular bg-white text-black border-black border-2'
+              >
+                가열하기
+              </button>
+            )}
+            
+            <button
+              onClick={() => {
+                playGeneralButtonSound()
+                handleResetHeating()
+              }}
+              className='px-6 py-2 font-regular bg-white text-black border-black border-2'
+            >
+              처음으로
+            </button>
           </div>
         )}
 
-        <Scene camera={{ position: [1, 1, 1], fov: 50 }}>
-        {/* 로딩 추적 컴포넌트 추가 */}
+        <TurnOffFireMessage visible={showTurnOffMessage} />
+
+        <SummaryButton 
+          visible={showSummaryButton && !showSummaryMessage}
+          selectedFood={selectedFood}
+          onClick={handleSummaryClick}
+        />
+
+        <SummaryMessage 
+          visible={showSummaryMessage}
+          selectedFood={selectedFood}
+          onClose={handleSummaryClose}
+        />
+
+        <Scene camera={{ position: [1.4, 0.63, 0.73], fov: 50 }}>
         <LoadingTracker onLoadingComplete={handleLoadingComplete} />
         
-        <ambientLight intensity={isThermalMode ? 0.1 : 2}/>
+        <ambientLight intensity={isThermalMode ? 0.1 : 1}/>
         <PerformanceMonitor onDecline={() => degrade(true)} />
         
         {!isThermalMode && (
@@ -173,40 +509,47 @@ export default function Home() {
             <Lightformer intensity={5} form="ring" color="white" rotation-y={Math.PI / 2} position={[1, 1, 1]} scale={[4, 4, 1]} />
           </Environment>
         )}
-        
+        <fog attach="fog" args={['#0c0c0cff', 1, 20]} />
         <ContactShadows position={[0, 0, 0]} opacity={isThermalMode ? 0.1 : 0.9} scale={30} blur={0.8} far={2} color='black' frames={2} />
-        <AccumulativeShadows frames={20} alphaTest={0.8} opacity={isThermalMode ? 0.05 : 0.1} scale={20} position={[0, 0, 0]}>
-          <RandomizedLight amount={10} radius={3} ambient={0.9} intensity={isThermalMode ? 0.1 : 0.5} position={[0, 2, 0]} bias={0.001} />
-        </AccumulativeShadows>
-                
         <directionalLight position={[2, 2, 2]} intensity={isThermalMode ? 0.1 : 1} />
         
-        <Fish 
-          scale={1} 
-          position={[-1.8,0.05,0]}
-          thermalMode={isThermalMode}
-          isHeating={isHeating}
-          heatingTime={heatingTime}
-        />
-        <Meat 
-          scale={1} 
-          position={[-1, 0.05, -0.004]} 
-          thermalMode={isThermalMode}
-          isHeating={isHeating}
-          heatingTime={heatingTime}
-        />
-        <Stove 
-          scale={1} 
-          position={[0, 0, 0]} 
-          thermalMode={isThermalMode}
-          isHeating={isHeating}
-          heatingTime={heatingTime}
-        />
+        <group onClick={() => {handleFoodClick('fish') ;playGeneralButtonSound()}}>
+          <Fish 
+            scale={1} 
+            position={foodOnPan === 'fish' ? [0.0, 0.1, -0.5] : [-1.8, 0.05, 0]}
+            thermalMode={isThermalMode}
+            isHeating={isHeating && foodOnPan === 'fish'}
+            heatingTime={foodOnPan === 'fish' ? heatingTime : 0}
+            heatingProgress={foodOnPan === 'fish' ? heatingProgress : 0}
+          />
+        </group>
+        
+        <group onClick={() => {handleFoodClick('meat') ;playGeneralButtonSound()}}>
+          <Meat 
+            scale={1} 
+            position={foodOnPan === 'meat' ? [0.0, 0.1, -0.4] : [-1, 0.05, -0.004]}
+            thermalMode={isThermalMode}
+            isHeating={isHeating && foodOnPan === 'meat'}
+            heatingTime={foodOnPan === 'meat' ? heatingTime : 0}
+            heatingProgress={foodOnPan === 'meat' ? heatingProgress : 0}
+          />
+        </group>
+        
+        <group onClick={showTurnOffMessage ? handleFireOff : undefined}>
+          <Stove 
+            scale={1} 
+            position={[0, 0, 0]} 
+            thermalMode={isThermalMode}
+            isHeating={isHeating && !fireOff}
+            heatingTime={heatingTime}
+          />
+        </group>
+        
         <Pan
           scale={1} 
           position={[0, 0.1, -0.4]} 
           thermalMode={isThermalMode}
-          isHeating={isHeating}
+          isHeating={isHeating && !fireOff}
           heatingTime={heatingTime}
         />
         <Dish
@@ -229,17 +572,27 @@ export default function Home() {
         {createCircularFlames()}
         
         <OrbitControls 
-          enableRotate={!showIntro} // Intro가 보일 때는 OrbitControls 비활성화
+          enableRotate={!showIntro}
           enableZoom={!showIntro}
           enablePan={!showIntro}
+          maxDistance={7}
+          minDistance={0}
+          maxPolarAngle={Math.PI/2}
+          minPolarAngle={0}
         />
+        
         </Scene>
         
         {isThermalMode && !showIntro && (
           <div className="absolute inset-0 bg-black opacity-30 pointer-events-none" />
         )}
 
-        {/* Intro 오버레이 - 로딩 완료 후 표시 */}
+        {!showIntro && !foodOnPan && (
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 bg-white text-black px-6 py-3 border-2 border-black">
+            <p className="text-center font-medium">생선 또는 고기를 클릭하여 프라이팬에 올려보세요!</p>
+          </div>
+        )}
+
         {isLoaded && showIntro && (
           <Intro 
             onEnter={handleEnterExperience}

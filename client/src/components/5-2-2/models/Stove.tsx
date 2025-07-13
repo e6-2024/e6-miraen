@@ -47,7 +47,6 @@ export default function Stove({
     }
     
     const center = box.getCenter(new THREE.Vector3())
-    // burnerOffset을 적용하여 버너 위치 조정
     const adjustedCenter = center.clone().add(new THREE.Vector3(...burnerOffset))
     setCenterPoint(adjustedCenter)
   }, [scene])
