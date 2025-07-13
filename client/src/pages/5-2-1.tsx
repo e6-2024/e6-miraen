@@ -1,4 +1,4 @@
-// src/pages/5-2-1.tsx
+// src/pages/5-2-1.tsx - Physics 전체 리셋 버전 + 정리하기 기능 추가
 import { useState, useRef, useEffect } from 'react';
 import { Physics } from '@react-three/cannon';
 import { useProgress } from '@react-three/drei';
@@ -8,7 +8,78 @@ import SieveSimulation from '@/scenes/SieveSimulation';
 import Intro from '@/components/intro/Intro';
 import { Environment } from '@react-three/drei';
 
-// 로딩 상태를 추적하는 컴포넌트
+// 정리하기 팝업 컴포넌트
+function SummaryPopup({ onClose }: { onClose: () => void }) {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    // 팝업 애니메이션을 위한 지연
+    const timer = setTimeout(() => setIsVisible(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // 나레이션 재생
+  useEffect(() => {
+    const playNarration = () => {
+      try {
+        const audio = new Audio('/sounds/5-2-1/5-2-1-D.MP3'); // 나레이션 파일 경로
+        audio.volume = 0.5;
+        audio.play().catch(error => {
+          console.log('나레이션 재생 실패:', error.name);
+        });
+      } catch (error) {
+        console.log('나레이션 생성 실패:', error);
+      }
+    };
+
+    playNarration();
+  }, []);
+
+  const handleClose = () => {
+    setIsVisible(false);
+    setTimeout(onClose, 300); // 애니메이션 완료 후 닫기
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div 
+        className={`bg-white rounded-lg p-8 max-w-md mx-4 transform transition-all duration-300 ${
+          isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+        }`}
+      >
+        <h2 className="text-xl font-bold mb-4 text-center text-gray-800">
+          실험 정리
+        </h2>
+        
+        <div className="space-y-4 text-gray-700">
+          <div className="flex items-start space-x-2">
+            <span className="text-blue-600 font-bold">•</span>
+            <p className="text-s">
+              알갱이의 크기가 다른 고체 혼합물은 알갱이의 크기 차이를 이용해 체로 분리할 수 있습니다.
+            </p>
+          </div>
+          
+          <div className="flex items-start space-x-2">
+            <span className="text-blue-600 font-bold">•</span>
+            <p className="text-s">
+              체를 사용할 때에는 알갱이의 크기와 체의 눈 크기를 비교해 알맞은 것을 골라야 합니다.
+            </p>
+          </div>
+        </div>
+        
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={handleClose}
+            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+          >
+            확인
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
   const { progress, active } = useProgress();
   
@@ -21,7 +92,6 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
   return null;
 }
 
-// 그림자용 조명 컴포넌트
 function ShadowLighting() {
   return (
     <>
@@ -47,10 +117,38 @@ export default function Home() {
   const [gravity, setGravity] = useState<[number, number, number]>([0, -9.81, 0]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
+  const [physicsKey, setPhysicsKey] = useState(0); // Physics 리셋용 키
+  const [showSummaryButton, setShowSummaryButton] = useState(false);
+  const [showSummaryPopup, setShowSummaryPopup] = useState(false);
 
   const handleSpawn = () => {
-    setTriggerSpawn(true);
-  };
+  setTriggerSpawn(true);
+
+  if (selectedLevel === 0) {
+    setTimeout(() => {
+      playBallSound();
+    }, 1000);
+    setTimeout(() => {
+      playNarration2();
+    }, 5000); // 5초 후 재생 시작
+  }
+
+  if (selectedLevel === 1) {
+    setTimeout(() => {
+      playBallSound();
+    }, 1000);
+    setTimeout(() => {
+      playNarration2();
+      playBallSound();
+    }, 5000); // 5초 후 재생 시작
+  }
+  if (selectedLevel === 2) {
+    setTimeout(() => {
+      playBallSound();
+    }, 1000);
+  }
+};
+
 
   const handleSpawnHandled = () => {
     setTriggerSpawn(false);
@@ -72,96 +170,205 @@ export default function Home() {
     }
   };
 
+  const playGeneralButton = (audioPath: string = '/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3') => {
+    try {
+      const audio = new Audio(audioPath);
+      audio.volume = 0.5;
+      audio.play().catch(error => {
+        console.log('효과음 재생 실패:', error.name);
+      });
+    } catch (error) {
+      console.log('효과음 생성 실패:', error);
+    }
+  };
+
+  const playNarration1 = (audioPath: string = '/sounds/5-2-1/5-2-1-A.MP3') => {
+    try {
+      const audio = new Audio(audioPath);
+      audio.volume = 0.5;
+      audio.play().catch(error => {
+        console.log('효과음 재생 실패:', error.name);
+      });
+    } catch (error) {
+      console.log('효과음 생성 실패:', error);
+    }
+  };
+
+  const playNarration2 = (audioPath: string = '/sounds/5-2-1/5-2-1-B.MP3') => {
+    try {
+      const audio = new Audio(audioPath);
+      audio.volume = 0.5;
+      audio.play().catch(error => {
+        console.log('효과음 재생 실패:', error.name);
+      });
+    } catch (error) {
+      console.log('효과음 생성 실패:', error);
+    }
+  };
+
+  const playNarration3 = (audioPath: string = '/sounds/5-2-1/5-2-1-C.MP3') => {
+    try {
+      const audio = new Audio(audioPath);
+      audio.volume = 0.5;
+      audio.play().catch(error => {
+        console.log('효과음 재생 실패:', error.name);
+      });
+    } catch (error) {
+      console.log('효과음 생성 실패:', error);
+    }
+  };
+  
+  const playBallSound = (audioPath: string = '/sounds/5-2-1/5-2-1-2_ball-drop-and-sniff-85127.mp3') => {
+    try {
+      const audio = new Audio(audioPath);
+      audio.volume = 0.5;
+      audio.play().catch(error => {
+        console.log('효과음 재생 실패:', error.name);
+      });
+    } catch (error) {
+      console.log('효과음 생성 실패:', error);
+    }
+  };
+
   const handleEnterExperience = () => {
     playClickSound();
     setTimeout(() => {
       setShowIntro(false);
+      playNarration1();
     }, 300);
   };
 
   const handleReset = () => {
-    // 중력을 초기값으로 리셋
     setGravity([0, -9.81, 0]);
-    // 선택된 레벨을 초기값으로 리셋
     setSelectedLevel(0);
-    // 기존 파티클 모두 제거
-    // 파티클 재생성을 위해 트리거
+    setPhysicsKey(prev => prev + 1); // Physics 전체 리셋
+    setShowSummaryButton(false); // 정리하기 버튼 숨기기
     setTimeout(() => {
       setTriggerSpawn(true);
     }, 100);
   };
 
+  // 레벨 변경 시 Physics 리셋
+  const handleLevelChange = (level: number) => {
+    console.log(`Changing level to ${level} and resetting physics`);
+    setSelectedLevel(level);
+    setPhysicsKey(prev => prev + 1);
+    setShowSummaryButton(false); // 레벨 변경 시 정리하기 버튼 숨기기
+  };
+
+  // 분리 완료 콜백 (SieveSimulation에서 호출)
+  const handleSeparationComplete = () => {
+    if (selectedLevel === 2) { // level 2에서만 정리하기 버튼 표시
+      setShowSummaryButton(true);
+      playNarration3();
+    }
+  };
+
+  // 정리하기 버튼 클릭
+  const handleSummaryClick = () => {
+    playClickSound();
+    setShowSummaryPopup(true);
+  };
+
+  const handleCloseSummaryPopup = () => {
+    setShowSummaryPopup(false);
+  };
+
   return (
     <div className='w-screen h-screen relative'>
-      {/* 버튼 UI - Intro가 보일 때는 숨김 */}
       {!showIntro && (
-        <div className='absolute bottom-5 right-5 flex flex-col gap-2 z-10'>
+        <>
+        <div className='absolute top-5 right-5 flex flex-col gap-2 z-10'>
           <div className='flex gap-2'>
-            {[0, 1, 2].map((level) => (
+            {[0, 2, 1].map((level) => (
               <button
                 key={level}
-                className={`px-4 py-2 rounded text-white transition-colors ${
+                className={`px-4 py-2 border-2 border-black text-white transition-colors ${
                   selectedLevel === level
-                    ? 'bg-blue-700 font-bold'
-                    : 'bg-blue-500 hover:bg-blue-600'
+                    ? 'bg-white text-black hover:bg-black hover:text-white'
+                    : 'bg-white text-black hover:bg-black hover:text-white'
                 }`}
-                onClick={() => setSelectedLevel(level)}
+                onClick={() => {
+                  handleLevelChange(level)
+                  playGeneralButton()}
+                }
               >
-                {level === 0 ? '큰 체 (모든 입자 통과)' : 
-                 level === 1 ? '작은 체 (입자 통과 안됨)' : 
-                 '중간 체 (초록색만 통과)'}
+                {level === 0 ? '눈의 크기가 큰 구슬보다 큰 체' : 
+                 level === 1 ? '눈의 크기가 작은 구슬보다 작은 체' : 
+                 '눈의 크기가 큰 구슬보다 작고 작은 구슬보다 큰 체'}
               </button>
             ))}
           </div> 
-
+        </div>
+        
+        <div className='flex absolute bottom-5 right-5 z-10 gap-2'>
           <button 
-            className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded" 
-            onClick={handleSpawn}
+            className="px-4 py-2 bg-white border-2 border-black text-black hover:bg-black hover:text-white" 
+            onClick={() => {
+              handleSpawn()
+              playGeneralButton()}
+            }
           >
             구슬 혼합물 넣기
           </button>
 
+          {/* 정리하기 버튼 - level 2에서 분리 완료 시에만 표시 */}
+          {showSummaryButton && (
+            <button 
+              className="px-4 py-2 bg-green-600 border-2 border-green-600 text-white hover:bg-green-700 hover:border-green-700 transition-colors" 
+              onClick={handleSummaryClick}
+            >
+              정리하기
+            </button>
+          )}
+
           <button 
-            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded" 
-            onClick={handleReset}
+            className="px-4 py-2 bg-white text-black hover:bg-black hover:text-white border-2 border-black" 
+            onClick={() => {
+              handleReset()
+              playGeneralButton()}
+            }
           >
-            다시하기 (리셋)
+            다시하기
           </button>
         </div>
+        </>
       )}
 
-      {/* 3D Canvas - 그림자 활성화 */}
       <Scene 
         shadows
         camera={{ position: [0, 10, 10], fov: 50 }}
         gl={{ 
           shadowMap: { 
             enabled: true, 
-            type: THREE.PCFSoftShadowMap // 부드러운 그림자
+            type: THREE.PCFSoftShadowMap
           } 
         }}
       >
         <LoadingTracker onLoadingComplete={handleLoadingComplete} />
-        
-        {/* 그림자용 조명 설정 */}
         <ShadowLighting />
 
+        {/* Physics 컴포넌트를 physicsKey로 완전 리셋 */}
         <Physics 
+          key={physicsKey}
           gravity={gravity} 
-          allowSleep={false}
-          iterations={10}
+          allowSleep={true}
+          iterations={15}
           defaultContactMaterial={{
-            friction: 0.4,
-            restitution: 0.3,
+            friction: 0.3,
+            restitution: 0.2,
           }}
+          tolerance={0.001}
         >
           <SieveSimulation
             triggerSpawn={triggerSpawn}
             onSpawnHandled={handleSpawnHandled}
             selectedLevel={selectedLevel}
             setGravity={setGravity}
+            onSeparationComplete={handleSeparationComplete}
           />
         </Physics>
+        
         <Environment preset='sunset' />
       </Scene>
 
@@ -174,6 +381,11 @@ export default function Home() {
           ]}
           backgroundSvg='/img/cover/5-2-1.svg'
         />
+      )}
+
+      {/* 정리하기 팝업 */}
+      {showSummaryPopup && (
+        <SummaryPopup onClose={handleCloseSummaryPopup} />
       )}
     </div>
   );

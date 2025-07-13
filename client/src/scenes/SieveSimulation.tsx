@@ -1,16 +1,17 @@
-// src/scenes/SieveSimulation.tsx
+// src/scenes/SieveSimulation.tsx - 분리 완료 감지 기능 추가
 import { useState, useRef, useEffect } from 'react';
-import { Group } from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useBox } from '@react-three/cannon';
 import SieveModel from '@/components/5-2-1/SieveModel';
 import Particle from '@/components/5-2-1/Particle';
+import * as THREE from 'three';
 
 interface Props {
   triggerSpawn: boolean;
   onSpawnHandled: () => void;
   selectedLevel: number;
   setGravity: React.Dispatch<React.SetStateAction<[number, number, number]>>;
+  onSeparationComplete?: () => void; // 분리 완료 콜백 추가
 }
 
 type ParticleData = {
@@ -19,59 +20,44 @@ type ParticleData = {
   position: [number, number, number];
 };
 
-// 바닥 컴포넌트 추가
 function Ground() {
-  const ref = useRef(null);
-  
-  useBox(() => ({
-    type: 'Static',
-    args: [20, 1, 20], // 큰 바닥
-    position: [0, -8, 0], // 체 아래 훨씬 아래쪽
-    friction: 0.6,
-  }), ref);
+  const wallThickness = 0.2;
+  const containerSize = 16;
+  const wallHeight = 2;
+  const bottomY = -7;
 
-  return (
-    <mesh ref={ref} position={[0, -8, 0]} receiveShadow>
-      <boxGeometry args={[20, 1, 20]} />
-      <meshStandardMaterial color="lightgray" />
-    </mesh>
-  );
-}
-// 투명 수집 상자 컴포넌트
-function CollectionBox() {
-  const ref = useRef(null);
-  
-  // 물리 충돌체 (바닥만)
-  useBox(() => ({
-    type: 'Static',
-    args: [4, 0.1, 4], // 바닥 크기
-    position: [0, -4, 0], // 체 아래 위치
-    friction: 0.5,
-  }), ref);
+  const color = '#ffffff';
 
   return (
     <group>
-      {/* 시각적 표시용 투명 상자 */}
-      <mesh position={[0, -3.5, 0]}>
-        <boxGeometry args={[4, 1, 4]} />
-        <meshStandardMaterial 
-          color="lightblue" 
-          transparent 
-          opacity={0.2} 
-          wireframe={false}
-        />
+      {/* 바닥 */}
+      <mesh position={[0, bottomY, 0]} receiveShadow>
+        <boxGeometry args={[containerSize, wallThickness, containerSize]} />
+        <meshStandardMaterial color={color} roughness={1} metalness={0.1} />
       </mesh>
-      
-      {/* 물리 충돌체 (보이지 않음) */}
-      <mesh ref={ref} position={[0, -4, 0]}>
-        <boxGeometry args={[4, 0.1, 4]} />
-        <meshStandardMaterial visible={false} />
+
+      {/* 왼쪽 벽 */}
+      <mesh position={[-containerSize / 2, bottomY + wallHeight / 2, 0]} receiveShadow>
+        <boxGeometry args={[wallThickness, wallHeight, containerSize]} />
+        <meshStandardMaterial color={color} roughness={1} metalness={0.1} />
       </mesh>
-      
-      {/* 레이블 */}
-      <mesh position={[0, -2.8, 2.2]}>
-        <planeGeometry args={[2, 0.4]} />
-        <meshBasicMaterial color="white" />
+
+      {/* 오른쪽 벽 */}
+      <mesh position={[containerSize / 2, bottomY + wallHeight / 2, 0]} receiveShadow>
+        <boxGeometry args={[wallThickness, wallHeight, containerSize]} />
+        <meshStandardMaterial color={color} roughness={1} metalness={0.1} />
+      </mesh>
+
+      {/* 앞쪽 벽 */}
+      <mesh position={[0, bottomY + wallHeight / 2, containerSize / 2]} receiveShadow>
+        <boxGeometry args={[containerSize, wallHeight, wallThickness]} />
+        <meshStandardMaterial color={color} roughness={1} metalness={0.1} />
+      </mesh>
+
+      {/* 뒷쪽 벽 */}
+      <mesh position={[0, bottomY + wallHeight / 2, -containerSize / 2]} receiveShadow>
+        <boxGeometry args={[containerSize, wallHeight, wallThickness]} />
+        <meshStandardMaterial color={color} roughness={1} metalness={0.1} />
       </mesh>
     </group>
   );
@@ -82,60 +68,114 @@ export default function SieveSimulation({
   onSpawnHandled, 
   selectedLevel,
   setGravity,
+  onSeparationComplete
 }: Props) {
   const [particles, setParticles] = useState<ParticleData[]>([]);
-  const [spawnKey, setSpawnKey] = useState(0); // 강제 리렌더링을 위한 키
+  const [spawnCounter, setSpawnCounter] = useState(0);
+  const [separationCheckStarted, setSeparationCheckStarted] = useState(false);
+  const [separationCompleted, setSeparationCompleted] = useState(false);
   
+  // 파티클 생성 - 순차적으로 떨어뜨리기
   const spawnParticles = () => {
-    // 기존 파티클 제거
-    setParticles([]);
+    const particlesToSpawn = 25;
+    let spawnedCount = 0;
     
-    // 약간의 지연 후 새 파티클 생성
-    setTimeout(() => {
-      const newParticles = Array.from({ length: 15 }, (_, index) => {
-        const sizes = [0.35, 0.15];
-        const radius = sizes[Math.floor(Math.random() * 2)];
-        const x = (Math.random() - 0.5) * 1.5;
-        const z = (Math.random() - 0.5) * 1.5;
-        const y = 2 + Math.random() * 1;
+    // 새로운 파티클 생성 시 분리 상태 리셋
+    setSeparationCheckStarted(false);
+    setSeparationCompleted(false);
+    
+    const spawnInterval = setInterval(() => {
+      if (spawnedCount >= particlesToSpawn) {
+        clearInterval(spawnInterval);
+        // 모든 파티클 생성 완료 후 일정 시간 뒤에 분리 체크 시작
+        setTimeout(() => {
+          setSeparationCheckStarted(true);
+        }, 3000); // 3초 후 분리 체크 시작
+        return;
+      }
+      
+      // 한 번에 2-3개씩 생성
+      const batchSize = Math.min(3, particlesToSpawn - spawnedCount);
+      const newParticles = Array.from({ length: batchSize }, (_, batchIndex) => {
+        const radius = Math.random() > 0.5 ? 0.35 : 0.15;
+        
+        // 더 넓게 분산하고, 높이도 다르게
+        const angle = (spawnedCount + batchIndex) * (Math.PI * 2 / particlesToSpawn); // 원형으로 분산
+        const spread = 1.5 + Math.random() * 0.5; // 1.5~2.0 반지름
         
         return {
-          id: `${spawnKey}-${index}`,
+          id: `spawn-${spawnCounter}-${spawnedCount + batchIndex}`,
           radius,
-          position: [x, y, z] as [number, number, number],
+          position: [
+            Math.cos(angle) * spread + (Math.random() - 0.5) * 0.25, // 원형 + 랜덤
+            8 + Math.random() * 2,  // 더 높은 곳에서
+            Math.sin(angle) * spread + (Math.random() - 0.5) * 0.25
+          ] as [number, number, number],
         };
       });
       
-      setParticles(newParticles);
-      setSpawnKey(prev => prev + 1);
-    }, 100);
+      setParticles(prev => [...prev, ...newParticles]);
+      spawnedCount += batchSize;
+      
+    }, 200); // 200ms마다 배치 생성
+    
+    setSpawnCounter(prev => prev + 1);
   };
 
-  // 파티클이 체를 통과할 수 있는지 확인하는 함수
-  const canParticlePass = (particleRadius: number, sieveLevel: number) => {
-    switch (sieveLevel) {
-      case 0: // 큰 체 - 모든 파티클 통과
-        return true;
-      case 1: // 작은 체 - 어떤 파티클도 통과 안됨
-        return false;
-      case 2: // 중간 체 - 초록색(작은) 파티클만 통과
-        return particleRadius <= 0.15;
-      default:
-        return false;
+  // 분리 완료 체크 함수 (level 2에서만)
+  const checkSeparationComplete = (currentParticles: ParticleData[]) => {
+    if (selectedLevel !== 2 || !separationCheckStarted || separationCompleted) {
+      return;
+    }
+
+    // 체 위 영역과 아래 영역의 파티클들을 분류
+    const aboveSieve = currentParticles.filter(p => p.position[1] > 3); // 체 위
+    const belowSieve = currentParticles.filter(p => p.position[1] < 0); // 체 아래
+
+    // 체 위에는 큰 구슬(0.35)만, 아래에는 작은 구슬(0.15)만 있어야 함
+    const aboveLargeBalls = aboveSieve.filter(p => p.radius === 0.35);
+    const aboveSmallBalls = aboveSieve.filter(p => p.radius === 0.15);
+    const belowLargeBalls = belowSieve.filter(p => p.radius === 0.35);
+    const belowSmallBalls = belowSieve.filter(p => p.radius === 0.15);
+
+    // 분리 조건:
+    // 1. 체 위에 작은 구슬이 거의 없어야 함 (전체 작은 구슬의 10% 이하)
+    // 2. 체 아래에 큰 구슬이 거의 없어야 함 (전체 큰 구슬의 10% 이하)
+    // 3. 충분한 수의 파티클이 분리되어야 함
+    
+    const totalSmallBalls = currentParticles.filter(p => p.radius === 0.15).length;
+    const totalLargeBalls = currentParticles.filter(p => p.radius === 0.35).length;
+    
+    const smallBallsSeparated = totalSmallBalls > 0 && (aboveSmallBalls.length / totalSmallBalls) < 0.1;
+    const largeBallsSeparated = totalLargeBalls > 0 && (belowLargeBalls.length / totalLargeBalls) < 0.1;
+    const enoughParticlesSeparated = belowSmallBalls.length >= 3 && aboveLargeBalls.length >= 3;
+
+    if (largeBallsSeparated) {
+      setSeparationCompleted(true);
+      onSeparationComplete?.();
     }
   };
 
-  // 파티클 위치 업데이트 (너무 멀리 떨어진 것만 제거)
+  // 파티클 정리 및 분리 체크
   useFrame(() => {
-    setParticles((prev) => {
-      return prev.filter((p) => {
-        // 너무 멀리 떨어진 파티클만 제거
-        return p.position[1] > -10;
+    setParticles(prev => {
+      const filtered = prev.filter(p => {
+        // y가 너무 아래로 떨어지거나, 체 밖으로 너무 멀리 나간 파티클 제거
+        const distance = Math.sqrt(p.position[0] ** 2 + p.position[2] ** 2);
+        return p.position[1] > 1; // 거리 조건 추가
       });
+      
+      // 파티클이 너무 많으면 오래된 것부터 제거 (성능 최적화)
+      const finalParticles = filtered.length > 50 ? filtered.slice(-40) : filtered;
+      
+      // 분리 완료 체크
+      checkSeparationComplete(finalParticles);
+      
+      return finalParticles;
     });
   });
 
-  // 외부 trigger로 입자 생성
+  // 혼합물 넣기 버튼 처리
   useEffect(() => {
     if (triggerSpawn) {
       spawnParticles();
@@ -143,41 +183,31 @@ export default function SieveSimulation({
     }
   }, [triggerSpawn, onSpawnHandled]);
 
-  // 레벨이 변경되면 기존 파티클 리셋
+  // 레벨 변경 시 분리 상태 리셋
   useEffect(() => {
-    setParticles([]);
-    setSpawnKey(prev => prev + 1);
+    setSeparationCheckStarted(false);
+    setSeparationCompleted(false);
   }, [selectedLevel]);
 
   return (
     <>
-      {/* 체 모델 */}
       <SieveModel 
         selectedLevel={selectedLevel} 
-        rotation={[0, 0, 0]}
-        showColliders={false} 
         enableFloorColliders={true}
+        showColliders={false} 
       />
-      
-      {/* 수집 상자 */}
-      <CollectionBox />
-      
+    
       {/* 바닥 */}
       <Ground />
       
-      {/* 테스트 파티클 - 항상 떨어지는 파티클 */}
-      <Particle position={[0, 4, 0]} radius={0.2} />
-      
-      {/* 입자들 - 키를 사용하여 강제 리렌더링 */}
-      <group key={`particles-${spawnKey}`}>
-        {particles.map((p) => (
-          <Particle 
-            key={p.id} 
-            position={p.position} 
-            radius={p.radius}
-          />
-        ))}
-      </group>
+      {/* 파티클들 */}
+      {particles.map((particle) => (
+        <Particle 
+          key={particle.id}
+          position={particle.position} 
+          radius={particle.radius}
+        />
+      ))}
     </>
   );
 }

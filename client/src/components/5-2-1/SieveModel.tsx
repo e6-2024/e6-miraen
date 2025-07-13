@@ -1,7 +1,9 @@
 // src/components/5-2-1/SieveModel.tsx
 import { useGLTF } from '@react-three/drei';
 import { useBox } from '@react-three/cannon';
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
+import * as THREE from 'three';
+
 
 interface SieveModelProps {
   selectedLevel: number;
@@ -11,103 +13,90 @@ interface SieveModelProps {
   enableFloorColliders?: boolean;
 }
 
-// 개별 충돌 셀 컴포넌트
-function SolidCell({ 
-  position, 
-  showColliders = false
-}: { 
-  position: [number, number, number];
-  showColliders?: boolean;
-}) {
+function SolidFloor({ showColliders = false }: { showColliders?: boolean }) {
   const ref = useRef(null);
-  const [, api] = useBox(() => ({
+  
+  useBox(() => ({
     type: 'Static',
-    args: [0.12, 0.05, 0.12], // 작은 충돌체 크기
-    position: position,
+    args: [10, 0.05, 10], // 큰 평면
+    position: [0, -0.2, 0],
     friction: 0.1,
   }), ref);
-  
-  // 충돌체 시각화
+
   if (showColliders) {
     return (
-      <mesh ref={ref} position={position}>
-        <boxGeometry args={[0.12, 0.05, 0.12]} />
-        <meshBasicMaterial color="red" transparent opacity={0.3} />
+      <mesh ref={ref} position={[0, -0.2, 0]}>
+        <boxGeometry args={[9, 0.05, 9]} />
+        <meshBasicMaterial color="blue" transparent opacity={0.3} />
       </mesh>
     );
   }
-  
+
   return <mesh ref={ref} />;
 }
 
-// 외벽 세그먼트 컴포넌트 - 상대 위치만 계산
-function WallSegment({ 
-  index, 
-  segments, 
-  radius, 
-  height, 
-  thickness,
+function SolidCell({ 
+  position, 
+  args = [0.08, 0.05, 0.08], // 조금 더 작게
   showColliders = false
 }: { 
-  index: number;
-  segments: number;
-  radius: number;
-  height: number;
-  thickness: number;
+  position: [number, number, number];
+  args?: [number, number, number];
   showColliders?: boolean;
 }) {
   const ref = useRef(null);
-  const angle = (index / segments) * Math.PI * 2;
-  const x = Math.cos(angle) * radius;
-  const z = Math.sin(angle) * radius;
   
-  const [, api] = useBox(() => ({
+  useBox(() => ({
     type: 'Static',
-    args: [thickness, height, (2 * Math.PI * radius) / segments],
-    position: [x, height / 2 - 0.25, z],
-    rotation: [0, -angle, 0],
+    args: args,
+    position: position,
+    friction: 0.1,
   }), ref);
-  
-  return (
-    <mesh 
-      ref={ref} 
-      position={[x, height / 2 - 0.25, z]} 
-      rotation={[0, -angle, 0]}
-    >
-      <boxGeometry args={[thickness, height, (2 * Math.PI * radius) / segments]} />
-      <meshStandardMaterial 
-        wireframe 
-        color={showColliders ? "blue" : "white"} 
-        transparent 
-        opacity={showColliders ? 0.2 : 0.0} 
-      />
-    </mesh>
-  );
+
+  if (showColliders) {
+    return (
+      <mesh ref={ref} position={position}>
+        <boxGeometry args={args} />
+        <meshBasicMaterial color="red" transparent opacity={0.5} />
+      </mesh>
+    );
+  }
+
+  return <mesh ref={ref} />;
 }
 
-// 외벽 컴포넌트
-function CurvedWallCollider({ 
-  showColliders = false
-}: {
-  showColliders?: boolean;
-}) {
-  const segments = 32;
-  const radius = 2.85; // 이 값을 조정하여 실제 체 모델과 맞춤
-  const height = 5;     // 높이도 필요시 조정
-  const thickness = 0.15; // 벽 두께
+// 외벽 - 진짜 원형 벽
+function CircularWall({ showColliders = false }: { showColliders?: boolean }) {
+  const segments = 16; // 원을 16개 세그먼트로 분할
+  const radius = 3.0;
+  const height = 8;
+  const thickness = 0.15;
   
-  const indices = useMemo(() => Array.from({ length: segments }, (_, i) => i), []);
-  
+  const wallSegments = useMemo(() => {
+    const segments_array = [];
+    for (let i = 0; i < segments; i++) {
+      const angle = (i / segments) * Math.PI * 2;
+      const x = Math.cos(angle) * radius;
+      const z = Math.sin(angle) * radius;
+      const segmentWidth = (2 * Math.PI * radius) / segments;
+      
+      segments_array.push({
+        position: [x, height / 2 - 0.1, z] as [number, number, number],
+        rotation: [0, -angle, 0] as [number, number, number],
+        args: [thickness, height, segmentWidth] as [number, number, number]
+      });
+    }
+    return segments_array;
+  }, []);
+
   return (
     <>
-      {indices.map((index) => (
+      {wallSegments.map((segment, index) => (
         <WallSegment 
-          key={index} 
-          index={index} 
-          segments={segments} 
-          radius={radius} 
-          height={height} 
-          thickness={thickness}
+          key={`wall-${index}`}
+          position={segment.position}
+          rotation={segment.rotation}
+          args={segment.args}
           showColliders={showColliders}
         />
       ))}
@@ -115,90 +104,176 @@ function CurvedWallCollider({
   );
 }
 
-// 체의 물리 구조 생성 컴포넌트 - 레벨에 따른 간단한 필터링
-function SievePhysics({ 
-  selectedLevel, 
-  showColliders = false,
-  enableFloorColliders = true
-}: { 
-  selectedLevel: number;
-  showColliders?: boolean;
-  enableFloorColliders?: boolean;
+// 개별 벽 세그먼트 컴포넌트
+function WallSegment({ 
+  position, 
+  rotation, 
+  args, 
+  showColliders 
+}: {
+  position: [number, number, number];
+  rotation: [number, number, number];
+  args: [number, number, number];
+  showColliders: boolean;
 }) {
-  const gridCells = useMemo(() => {
-    if (!enableFloorColliders) {
-      return [];
-    }
+  const ref = useRef(null);
+  
+  useBox(() => ({
+    type: 'Static',
+    args: args,
+    position: position,
+    rotation: rotation,
+    friction: 0.1,
+  }), ref);
 
-    const cells: { position: [number, number, number]; key: string }[] = [];
-    const gridSize = 3.0;
-    const spacing = 0.15; // 촘촘한 격자
+  if (showColliders) {
+    return (
+      <mesh ref={ref} position={position} rotation={rotation}>
+        <boxGeometry args={args} />
+        <meshBasicMaterial color="green" transparent opacity={0.0} />
+      </mesh>
+    );
+  }
 
-    // 레벨에 따른 처리
+  return <mesh ref={ref} />;
+}
+
+function SieveFloor({ selectedLevel, showColliders = false }: { selectedLevel: number; showColliders?: boolean }) {
+  const cells = useMemo(() => {
+    const result = [];
+    const size = 2.5;
+    
+    
     if (selectedLevel === 0) {
-      // 큰 체 - 구멍이 많음 (모든 파티클 통과)
-      for (let x = -gridSize; x <= gridSize; x += spacing * 3) { // 성긴 격자
-        for (let z = -gridSize; z <= gridSize; z += spacing * 3) {
-          const pos: [number, number, number] = [x, -0.2, z];
-          cells.push({
-            position: pos,
-            key: `${x.toFixed(2)}-${z.toFixed(2)}`
-          });
-        }
-      }
-    } else if (selectedLevel === 1) {
-      // 작은 체 - 구멍 없음 (모든 파티클 막힘)
-      for (let x = -gridSize; x <= gridSize; x += spacing) {
-        for (let z = -gridSize; z <= gridSize; z += spacing) {
-          const pos: [number, number, number] = [x, -0.2, z];
-          cells.push({
-            position: pos,
-            key: `${x.toFixed(2)}-${z.toFixed(2)}`
-          });
+      for (let x = -size; x <= size; x += 0.8) {
+        for (let z = -size; z <= size; z += 0.8) {
+          result.push([x, -0.2, z]);
         }
       }
     } else if (selectedLevel === 2) {
-      // 중간 체 - 작은 구멍들 (작은 파티클만 통과)
-      for (let x = -gridSize; x <= gridSize; x += spacing * 1.8) { // 중간 밀도
-        for (let z = -gridSize; z <= gridSize; z += spacing * 1.8) {
-          const pos: [number, number, number] = [x, -0.2, z];
-          cells.push({
-            position: pos,
-            key: `${x.toFixed(2)}-${z.toFixed(2)}`
-          });
+      for (let x = -size; x <= size; x += 0.4) {
+        for (let z = -size; z <= size; z += 0.4) {
+          result.push([x, -0.2, z]);
         }
       }
     }
     
-    return cells;
-  }, [selectedLevel, enableFloorColliders]);
+    return result;
+  }, [selectedLevel]);
 
   return (
     <>
-      {gridCells.map((cell) => (
+      {selectedLevel === 1 && <SolidFloor showColliders={showColliders} />}
+      
+      {cells.map((pos, index) => (
         <SolidCell 
-          key={cell.key} 
-          position={cell.position}
+          key={`level-${selectedLevel}-cell-${index}`}
+          position={pos as [number, number, number]}
           showColliders={showColliders}
         />
       ))}
     </>
   );
 }
+
+function GroundContainer({ showColliders = false }: { showColliders?: boolean }) {
+  const wallThickness = 0.2;
+  const containerSize = 16;
+  const wallHeight = 2;
+  const bottomY = -7;
+
+  const walls: {
+  name: string;
+  args: [number, number, number];
+  position: [number, number, number];
+  color: string;
+}[] = [
+  {
+    name: 'Bottom',
+    args: [containerSize, wallThickness, containerSize],
+    position: [0, bottomY, 0],
+    color: 'orange',
+  },
+  {
+    name: 'Left',
+    args: [wallThickness, wallHeight, containerSize],
+    position: [-(containerSize / 2), bottomY + wallHeight / 2, 0],
+    color: 'red',
+  },
+  {
+    name: 'Right',
+    args: [wallThickness, wallHeight, containerSize],
+    position: [containerSize / 2, bottomY + wallHeight / 2, 0],
+    color: 'blue',
+  },
+  {
+    name: 'Front',
+    args: [containerSize, wallHeight, wallThickness],
+    position: [0, bottomY + wallHeight / 2, containerSize / 2],
+    color: 'green',
+  },
+  {
+    name: 'Back',
+    args: [containerSize, wallHeight, wallThickness],
+    position: [0, bottomY + wallHeight / 2, -containerSize / 2],
+    color: 'yellow',
+  },
+];
+
+
+  return (
+    <>
+      {walls.map((wall, index) => {
+        const ref = useRef(null);
+        useBox(() => ({
+          type: 'Static',
+          args: wall.args as [number, number, number],
+          position: wall.position as [number, number, number],
+        }), ref);
+
+        return showColliders ? (
+          <mesh
+            key={index}
+            ref={ref}
+            position={wall.position}
+          >
+            <boxGeometry args={wall.args} />
+            <meshBasicMaterial color={wall.color} transparent opacity={0.3} />
+          </mesh>
+        ) : (
+          <mesh key={index} ref={ref} />
+        );
+      })}
+    </>
+  );
+}
+
 
 export default function SieveModel({ 
   selectedLevel, 
   position = [0, 0, 0], 
   rotation = [0, 0, 0],
   showColliders = false,
-  enableFloorColliders = true // 기본값을 true로 변경
+  enableFloorColliders = true
 }: SieveModelProps) {
   const { scene } = useGLTF('/models/5-2-1/Strainers.gltf');
   const mesh = scene.children[selectedLevel]?.clone();
 
+  useEffect(() => {
+    if (mesh) {
+      mesh.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+        }
+      });
+    }
+  }, [mesh]);
+
+
+
   return (
     <>
-      {/* 시각적 메시 */}
       {mesh && (
         <primitive 
           object={mesh} 
@@ -207,17 +282,12 @@ export default function SieveModel({
         />
       )}
 
-      {/* 물리 충돌체들 - 레벨에 따른 간단한 격자 밀도로 필터링 */}
-      <SievePhysics 
-        selectedLevel={selectedLevel} 
-        showColliders={showColliders}
-        enableFloorColliders={enableFloorColliders}
-      />
+      {enableFloorColliders && (
+        <SieveFloor selectedLevel={selectedLevel} showColliders={showColliders} />
+      )}
+      <GroundContainer showColliders={showColliders} />
 
-      {/* 외벽은 항상 유지 */}
-      <CurvedWallCollider 
-        showColliders={showColliders}
-      />
+      <CircularWall showColliders={showColliders} />
     </>
   );
 }
