@@ -9,6 +9,7 @@ import { RayToggleButton } from '@/components/5-1-2/buttonToggle';
 import Scene from '@/components/canvas/Scene';
 import Model from '@/components/5-1-2/Model'
 import Intro from '@/components/intro/Intro'
+import * as THREE from 'three';
 
 const PostEffects = dynamic(() => import('../components/5-1-2/PostEffects'), { ssr: false });
 
@@ -30,23 +31,208 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
   return null
 }
 
+function ModeBasedControls({ 
+  mode
+}: { 
+  mode: 'direct' | 'reflection' | 'refraction';
+}) {
+  const { camera } = useThree();
+  
+  const cameraConfigs = {
+    direct: {
+      position: [0, 0, 20] as [number, number, number],
+      target: [0, 0, 0] as [number, number, number],
+      minDistance: 5,
+      maxDistance: 25,
+      maxPolarAngle: Math.PI / 2,
+      minAzimuthAngle :0,
+      maxAzimuthAngle : Math.PI/4,
+      enablePan: false,
+      enableZoom: true,
+      enableRotate: true,
+    },
+    reflection: {
+      position: [-27, 10, -0.9] as [number, number, number],
+      target: [0, 0, 0] as [number, number, number],
+      minDistance: 5,
+      maxDistance: 25,
+      maxPolarAngle: Math.PI / 2.2,
+      minAzimuthAngle : -Math.PI / 2,
+      maxAzimuthAngle : Math.PI/4,
+      enablePan: false,
+      enableZoom: true,
+      enableRotate: true,
+    },
+    refraction: {
+      position: [0, 0, 20] as [number, number, number],
+      target: [0, 0, 0] as [number, number, number],
+      minDistance: 5,
+      maxDistance: 25,
+      maxPolarAngle: Math.PI / 2,
+      minAzimuthAngle : 0,
+      maxAzimuthAngle : Math.PI/4,
+      enablePan: false,
+      enableZoom: true,
+      enableRotate: true,
+    }
+  };
+
+  const currentConfig = cameraConfigs[mode];
+
+  useEffect(() => {
+    const newPosition = new THREE.Vector3(...currentConfig.position);
+    camera.position.copy(newPosition);
+    camera.lookAt(new THREE.Vector3(...currentConfig.target));
+    camera.updateProjectionMatrix();
+  }, [mode]);
+
+  return (
+    <OrbitControls 
+      target={currentConfig.target}
+      enableZoom={currentConfig.enableZoom}
+      enablePan={currentConfig.enablePan}
+      enableRotate={currentConfig.enableRotate}
+      minDistance={currentConfig.minDistance}
+      maxDistance={currentConfig.maxDistance}
+      maxPolarAngle={currentConfig.maxPolarAngle}
+      minAzimuthAngle = {currentConfig.minAzimuthAngle}
+      maxAzimuthAngle={currentConfig.maxAzimuthAngle}
+      enableDamping={true}
+      dampingFactor={0.05}
+    />
+  );
+}
+
+function ExplanationToggleButton({ mode, lensType, onClick }: { mode: 'direct' | 'reflection' | 'refraction', lensType: 'convex' | 'concave', onClick: () => void }) {
+  const getTitle = () => {
+    switch (mode) {
+      case 'direct': return '빛의 직진';
+      case 'reflection': return '빛의 반사';
+      case 'refraction': 
+        return lensType === 'convex' ? '빛의 굴절 (볼록렌즈)' : '빛의 굴절 (오목렌즈)';
+      default: return '';
+    }
+  };
+
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        bottom: '20px',
+        right: '20px',
+        padding: '12px 20px',
+        backgroundColor: 'white',
+        color: 'black',
+        border: 'none',
+        borderRadius: '8px',
+        cursor: 'pointer',
+        fontSize: '14px',
+        fontWeight: 'bold',
+        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.3)',
+        zIndex: 1000
+      }}
+    >
+    {getTitle()}
+    </button>
+  );
+}
+
+interface ExplanationBoxProps {
+  isVisible: boolean;
+  mode: 'direct' | 'reflection' | 'refraction';
+  lensType: 'convex' | 'concave';
+}
+
+function ExplanationBox({ isVisible, mode, lensType }: ExplanationBoxProps) {
+  if (!isVisible) return null;
+
+  const getDescription = () => {
+    switch (mode) {
+      case 'direct': 
+        return '빛이 곧게 나아가는 성질을 빛의 직진이라고 합니다.';
+      case 'reflection': 
+        return '빛이 거울과 같은 물체에 부딪쳐 방향이 바뀌어 나아가는 현상을 빛의 반사라고 합니다.';
+      case 'refraction': 
+        return lensType === 'convex' 
+          ? '공기 중에서 직진하던 빛이 다른 물질로 비스듬히 나아갈 때 그 경계에서 꺾여서 나아가는 현상을 빛의 굴절이라고 합니다.'
+          : '공기 중에서 직진하던 빛이 다른 물질로 비스듬히 나아갈 때 그 경계에서 꺾여서 나아가는 현상을 빛의 굴절이라고 합니다.';
+      default: return '';
+    }
+  };
+
+  return (
+    <div style={{
+      bottom: '20px',
+      left: '20px',
+      right: '180px',
+      backgroundColor: 'white',
+      color: 'black',
+      padding: '12px 20px',
+      borderRadius: '10px',
+      boxShadow: '0 4px 15px rgba(0, 0, 0, 0.3)',
+      zIndex: 1000,
+      animation: 'slideInFromBottom 0.3s ease-out',
+    }}>
+      <div style={{
+        fontSize: '14px',
+        color: 'black'
+      }}>
+        {getDescription()}
+      </div>
+      <style jsx>{`
+        @keyframes slideInFromBottom {
+          from {
+            transform: translateY(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 export default function Home() {
   const [activeMode, setActiveMode] = useState<'direct' | 'reflection' | 'refraction'>('direct');
   const [lensType, setLensType] = useState<'convex' | 'concave'>('convex'); 
-  const [laserAngle, setLaserAngle] = useState<number>(45); // 레이저 각도 상태 추가
+  const [laserAngle, setLaserAngle] = useState<number>(45);
   
-  // 3개의 Ray 상태를 각각 관리
   const [rayStates, setRayStates] = useState<[boolean, boolean, boolean]>([false, false, false]);
+  const [showExplanation, setShowExplanation] = useState(false);
 
-  // Intro 관련 상태 추가
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
 
-  // 모드가 변경될 때마다 모든 Ray를 false로 리셋하고 각도 초기화
+  const [backgroundAudio, setBackgroundAudio] = useState<HTMLAudioElement | null>(null);
+  const [currentNarrationAudio, setCurrentNarrationAudio] = useState<HTMLAudioElement | null>(null);
+
   useEffect(() => {
     setRayStates([false, false, false]);
-    setLaserAngle(45); // 각도도 초기화
+    setLaserAngle(45);
+    stopCurrentNarration();
+    setShowExplanation(false);
   }, [activeMode]);
+
+  useEffect(() => {
+    if (activeMode === 'refraction') {
+      setRayStates([false, false, false]);
+      stopCurrentNarration();
+      setShowExplanation(false);
+    }
+  }, [lensType]);
+
+  useEffect(() => {
+    const allRaysOn = rayStates.every(state => state);
+    
+    if (allRaysOn) {
+      playExplanationAudio();
+    } else {
+      stopCurrentNarration();
+    }
+  }, [rayStates, activeMode, lensType]);
 
   const handleLoadingComplete = () => {
     setIsLoaded(true)
@@ -64,17 +250,86 @@ export default function Home() {
     }
   }
 
+  const playBackgroundMusic = () => {
+    try {
+      const audio = new Audio('/sounds/5-1-2/5-1-2-A.MP3');
+      audio.loop = false;
+      audio.volume = 0.3;
+      audio.play().catch(error => {
+        console.log('배경음악 재생 실패:', error.name)
+      });
+      setBackgroundAudio(audio);
+    } catch (error) {
+      console.log('배경음악 생성 실패:', error)
+    }
+  }
+
+  const playExplanationAudio = () => {
+    try {
+      let audioPath = '';
+      
+      switch (activeMode) {
+        case 'direct':
+          audioPath = '/sounds/5-1-2/5-1-2-B.MP3';
+          break;
+        case 'reflection':
+          audioPath = '/sounds/5-1-2/5-1-2-C.MP3';
+          break;
+        case 'refraction':
+          audioPath = lensType === 'convex' 
+            ? '/sounds/5-1-2/5-1-2-D.MP3'
+            : '/sounds/5-1-2/5-1-2-E.MP3';
+          break;
+      }
+      
+      stopCurrentNarration();
+      
+      const audio = new Audio(audioPath);
+      audio.volume = 0.3;
+      audio.play().catch(error => {
+        console.log('설명 음성 재생 실패:', error.name)
+      });
+      
+      setCurrentNarrationAudio(audio);
+      
+      audio.addEventListener('ended', () => {
+        setCurrentNarrationAudio(null);
+      });
+    } catch (error) {
+      console.log('설명 음성 생성 실패:', error)
+    }
+  }
+
+  const stopCurrentNarration = () => {
+    if (currentNarrationAudio) {
+      currentNarrationAudio.pause();
+      currentNarrationAudio.currentTime = 0;
+      setCurrentNarrationAudio(null);
+    }
+  }
+
   const handleEnterExperience = () => {
-    // 효과음 재생
     playClickSound()
-    
-    // 효과음이 재생될 시간을 확보한 후 Intro 숨김
     setTimeout(() => {
       setShowIntro(false)
+      
+      setTimeout(() => {
+        playBackgroundMusic();
+      }, 1000);
     }, 300)
   }
 
-  // 개별 Ray 토글 핸들러
+  const handleModeChange = (newMode: 'direct' | 'reflection' | 'refraction') => {
+    setActiveMode(newMode);
+    setShowExplanation(false);
+    playClickSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3');
+  }
+
+  const handleExplanationToggle = () => {
+    setShowExplanation(!showExplanation);
+    playClickSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3');
+  }
+
   const handleRayToggle = (buttonIndex: number) => {
     setRayStates(prevStates => {
       const newStates = [...prevStates] as [boolean, boolean, boolean];
@@ -82,16 +337,25 @@ export default function Home() {
       return newStates;
     });
     
-    playClickSound('/sounds/Click_Simple.mp3');
+    playClickSound('/sounds/5-1-2-2_cassette-recorder-stop-button-mechanical-click-sound-359987.mp3');
   }
 
-  // 레이저 각도 변경 핸들러
   const handleAngleChange = (newAngle: number) => {
     setLaserAngle(newAngle);
   }
 
+  useEffect(() => {
+    return () => {
+      if (backgroundAudio) {
+        backgroundAudio.pause();
+        backgroundAudio.currentTime = 0;
+      }
+      stopCurrentNarration();
+    };
+  }, [backgroundAudio]);
+
   return (
-    <div className='w-screen h-screen flex flex-col overflow-hidden'>
+    <div className='w-screen h-screen flex flex-col overflow-hidden relative'>
       <LoadingTracker onLoadingComplete={handleLoadingComplete} />
       <div className='flex-1'>
         <Scene shadows camera={{ position: [0, 0, 20], fov: 50 }}>
@@ -117,18 +381,10 @@ export default function Home() {
             onAngleChange={handleAngleChange}
           />
           
-          <OrbitControls 
-            enableZoom={true} 
-            enablePan={true} 
-            enableRotate={true}
-            // minDistance={3}
-            // maxDistance={15}
-            // maxPolarAngle={Math.PI / 2}
-          />
+          <ModeBasedControls mode={activeMode} />
           
           <SafePostEffects />
         </Scene>
-
       </div>
         
       {!showIntro && isLoaded && (
@@ -149,7 +405,7 @@ export default function Home() {
             {(['direct', 'reflection', 'refraction'] as const).map((mode) => (
               <button
                 key={mode}
-                onClick={() => setActiveMode(mode)}
+                onClick={() => handleModeChange(mode)}
                 style={{
                   padding: '8px 16px',
                   backgroundColor: activeMode === mode ? '#4CAF50' : '#333',
@@ -167,7 +423,7 @@ export default function Home() {
 
           {activeMode === 'refraction' && (
             <>
-              <h4 style={{ margin: '10px 0 5px 0', fontSize: '16px' }}>렌즈 타입</h4>
+              <h4 style={{ margin: '10px 0 5px 0', fontSize: '16px' }}>볼록렌즈와 오목렌즈가 있어요.</h4>
               <div style={{ display: 'flex', gap: '10px' }}>
                 {(['convex', 'concave'] as const).map((type) => (
                   <button
@@ -192,11 +448,11 @@ export default function Home() {
 
           {activeMode === 'reflection' && (
             <>
-              <h4 style={{ margin: '10px 0 5px 0', fontSize: '16px' }}>레이저 각도</h4>
+              <h4 style={{ margin: '10px 0 5px 0', fontSize: '16px' }}>광원의 각도를 조절해보세요.</h4>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <input
                   type="range"
-                  min="1"
+                  min="3"
                   max="65"
                   value={laserAngle}
                   onChange={(e) => setLaserAngle(Number(e.target.value))}
@@ -211,28 +467,24 @@ export default function Home() {
               </div>
             </>
           )}
-
-          <div style={{ marginTop: '15px' }}>
-            <h4 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>Ray 상태</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-              {rayStates.map((isActive, index) => (
-                <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div 
-                    style={{
-                      width: '12px',
-                      height: '12px',
-                      borderRadius: '50%',
-                      backgroundColor: isActive ? '#4CAF50' : '#666',
-                    }}
-                  />
-                  <span style={{ fontSize: '14px' }}>
-                    Ray {index + 1}: {isActive ? 'ON' : 'OFF'}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
+      )}
+
+      {!showIntro && isLoaded && (
+        <>
+        <div className='flex absolute right-0 bottom-0 flex-row px-2 py-2 max-h-100 gap-2'>
+        <ExplanationBox
+          isVisible={showExplanation}
+          mode={activeMode}
+          lensType={lensType}
+        />
+        <ExplanationToggleButton
+          mode={activeMode}
+          lensType={lensType}
+          onClick={handleExplanationToggle}
+        />
+        </div>
+      </>
       )}
 
       {isLoaded && showIntro && (
