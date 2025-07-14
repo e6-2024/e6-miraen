@@ -32,7 +32,7 @@ export default function NavigationUI({ sceneIndex, onSceneChange, onPlayClick, i
     audioPaths.forEach((audioPath, index) => {
       try {
         const audio = new Audio(audioPath);
-        audio.volume = 0.7;
+        audio.volume = 0.5;
         
         currentAudiosRef.current.push(audio);
         

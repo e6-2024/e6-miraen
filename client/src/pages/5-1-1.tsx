@@ -33,6 +33,14 @@ const cameraPositions = [
   new THREE.Vector3(14, 12.25, 15.685),
 ]
 
+// 각 스텝별 애니메이션 속도 설정
+const animationSpeeds = {
+  0: 2.0,   // Step 1: 기본 속도
+  1: 0.4,   // Step 2: 조금 느리게
+  2: 1.5,   // Step 3: 빠르게
+  3: 0.2,   // Step 4: 조금 빠르게
+}
+
 // ====== 하위 컴포넌트들 ======
 
 // 로딩 트래커 컴포넌트
@@ -206,9 +214,7 @@ function AnimationController({
       setTimeout(() => {
         switch (sceneIndex) {
           case 0:
-          case 2:
-          case 3:
-            // Step 1, 3, 4: 모델 애니메이션 즉시 시작
+            // Step 1: 모델 애니메이션 즉시 시작
             startModelAnimation()
             break
           case 1:
@@ -219,6 +225,12 @@ function AnimationController({
                 startModelAnimation()
               }, 500)
             })
+            break
+          case 2:
+          case 3:
+            // Step 3, 4: 플레이 버튼을 눌러야만 모델 애니메이션 시작
+            console.log(`Scene ${sceneIndex}: 플레이 버튼 대기 중...`)
+            startModelAnimation()
             break
         }
       }, 300)
@@ -308,6 +320,7 @@ function ModelRenderer({
       sceneIndex={sceneIndex}
       onLoaded={onModelLoaded}
       animationTrigger={modelAnimationTrigger}
+      animationSpeed={animationSpeeds[sceneIndex as keyof typeof animationSpeeds]}
     />
   )
 }
@@ -391,16 +404,6 @@ function SceneContent({
         onModelLoaded={handleModelLoaded}
       />
 
-      {sceneIndex === 2 && showSpeechBubble && (
-        <SpeechBubble
-          position={[0, 0, 0]}
-          pointColor='#ff6b6b'
-          html='<mark>화석을 자세히 관찰</mark>해보세요!'
-          onBubbleClick={onSpeechBubbleClick}
-          bubbleOffset={[0, 2, 0]}
-        />
-      )}
-
       {showWater && (
         <>
           <Ocean textureScale={1.0} textureOpacity={0.83} timeSpeed={0.9} flowSpeed={0.9} waterLevel={waterLevel} />
@@ -476,7 +479,7 @@ export default function Home() {
   const playClickSound = (audioPath: string = '/sounds/Enter_Cute.mp3') => {
     try {
       const audio = new Audio(audioPath)
-      audio.volume = 0.7
+      audio.volume = 0.5
       audio.play().catch((error) => {
         console.log('효과음 재생 실패:', error.name)
       })
@@ -488,7 +491,7 @@ export default function Home() {
   const playClickButtonSound = (audioPath: string = '/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3') => {
     try {
       const audio = new Audio(audioPath)
-      audio.volume = 0.7
+      audio.volume = 0.5
       audio.play().catch((error) => {
         console.log('버튼 클릭 효과음 재생 실패:', error.name)
       })
