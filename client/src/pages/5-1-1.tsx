@@ -167,6 +167,7 @@ function AnimationController({
   onModelAnimationTrigger,
   onAnimationComplete,
   playButtonTrigger,
+  onShowDescription, // 추가: 설명 표시 콜백
 }: {
   sceneIndex: number
   modelLoaded: boolean
@@ -175,6 +176,7 @@ function AnimationController({
   onModelAnimationTrigger?: (trigger: number) => void
   onAnimationComplete: () => void
   playButtonTrigger: boolean
+  onShowDescription: () => void // 추가
 }) {
   const animationStateRef = useRef({
     isAnimating: false,
@@ -213,6 +215,9 @@ function AnimationController({
     if (playButtonTrigger && modelLoaded) {
       const state = animationStateRef.current
 
+      // 설명 텍스트 표시
+      onShowDescription()
+
       setTimeout(() => {
         switch (sceneIndex) {
           case 0:
@@ -236,7 +241,7 @@ function AnimationController({
         }
       }, 300)
     }
-  }, [playButtonTrigger, modelLoaded, sceneIndex, onWaterLevelUpdate])
+  }, [playButtonTrigger, modelLoaded, sceneIndex, onWaterLevelUpdate, onShowDescription])
 
   // 기존 animationTrigger 처리 (사용하지 않음)
   useEffect(() => {
@@ -347,6 +352,7 @@ function SceneContent({
   cameraTarget,
   onCameraMoveComplete,
   playButtonTrigger,
+  onShowDescription, // 추가
 }: {
   sceneIndex: number
   waterLevel: number
@@ -360,6 +366,7 @@ function SceneContent({
   cameraTarget: THREE.Vector3 | null
   onCameraMoveComplete: () => void
   playButtonTrigger: boolean
+  onShowDescription: () => void // 추가
 }) {
   const [modelAnimationTrigger, setModelAnimationTrigger] = useState(0)
   const showWater = sceneIndex === 1
@@ -387,6 +394,7 @@ function SceneContent({
         onModelAnimationTrigger={handleModelAnimationTrigger}
         onAnimationComplete={onAnimationComplete}
         playButtonTrigger={playButtonTrigger}
+        onShowDescription={onShowDescription} // 추가
       />
 
       <CameraController targetPosition={cameraTarget} onMoveComplete={onCameraMoveComplete} />
@@ -451,6 +459,7 @@ export default function Home() {
   const [showSpeechBubble, setShowSpeechBubble] = useState(false)
   const [cameraTarget, setCameraTarget] = useState<THREE.Vector3 | null>(null)
   const [playButtonTrigger, setPlayButtonTrigger] = useState(false)
+  const [showDescription, setShowDescription] = useState(false) // 추가: 설명 표시 상태
 
   const handleLoadingComplete = () => {
     setIsLoaded(true)
@@ -464,6 +473,7 @@ export default function Home() {
     setShowSpeechBubble(false)
     setCameraTarget(null)
     setPlayButtonTrigger(false) // 플레이 버튼 트리거도 초기화
+    setShowDescription(false) // 설명 텍스트 숨기기
   }
 
   const handleWaterLevelUpdate = (level: number) => {
@@ -486,6 +496,10 @@ export default function Home() {
 
   const handleCameraMoveComplete = () => {
     setCameraTarget(null)
+  }
+
+  const handleShowDescription = () => {
+    setShowDescription(true)
   }
 
   const playClickSound = (audioPath: string = '/sounds/Enter_Cute.mp3') => {
@@ -573,11 +587,13 @@ export default function Home() {
             cameraTarget={cameraTarget}
             onCameraMoveComplete={handleCameraMoveComplete}
             playButtonTrigger={playButtonTrigger}
+            onShowDescription={handleShowDescription}
           />
         </Scene>
       </div>
 
-      {!showIntro && isLoaded && (
+      {/* 설명 텍스트: play button을 눌렀을 때만 표시 */}
+      {!showIntro && isLoaded && showDescription && (
         <div className='absolute bottom-0 left-[50%] text-center p-4 bg-black text-white translate-x-[-50%]'>
           <p className='text-lg font-medium'>{sceneDescriptions[sceneIndex]}</p>
         </div>
