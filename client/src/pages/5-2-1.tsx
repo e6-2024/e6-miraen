@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import Scene from '@/components/canvas/Scene';
 import SieveSimulation from '@/scenes/SieveSimulation';
 import Intro from '@/components/intro/Intro';
-import { Environment } from '@react-three/drei';
+import { Environment, OrbitControls } from '@react-three/drei';
 
 // 정리하기 팝업 컴포넌트
 function SummaryPopup({ onClose }: { onClose: () => void }) {
@@ -95,7 +95,7 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
 function ShadowLighting() {
   return (
     <>
-      <ambientLight intensity={0.6} />
+      <ambientLight intensity={0.2} />
       <directionalLight
         position={[10, 10, 5]}
         intensity={1}
@@ -365,7 +365,11 @@ export default function Home() {
           />
         </Physics>
         
-        <Environment preset='sunset' />
+        <Environment preset='warehouse' backgroundIntensity={0.1}/>
+        <OrbitControls 
+          minDistance={1} 
+          maxDistance={15}
+        />
       </Scene>
 
       {isLoaded && showIntro && (
