@@ -602,6 +602,7 @@ export default function Home() {
           enableZoom={!showIntro}
           enablePan={!showIntro}
           minDistance={0}
+          maxDistance={14}
           maxPolarAngle={Math.PI/2}
           minPolarAngle={0}
         />
