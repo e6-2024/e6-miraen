@@ -28,20 +28,18 @@ const sceneDescriptions = [
 
 const cameraPositions = [
   new THREE.Vector3(-30.01, 3.108, -5.557),
-  new THREE.Vector3(14, 19, 14),
-  new THREE.Vector3(23.613311588485445, 13.162826461554463, 22.863629867778908),
-  new THREE.Vector3(14, 12.25, 15.685),
+  new THREE.Vector3(40, 30, 40),
+  new THREE.Vector3(40, 30, 40),
+  new THREE.Vector3(40, 30, 40),
 ]
 
-// 각 스텝별 애니메이션 속도 설정
 const animationSpeeds = {
-  0: 2.0,   // Step 1: 기본 속도
-  1: 0.4,   // Step 2: 조금 느리게
-  2: 1.5,   // Step 3: 빠르게
-  3: 0.2,   // Step 4: 조금 빠르게
+  0: 2.0,
+  1: 0.2,
+  2: 0.4, 
+  3: 0.2, 
 }
 
-// ====== 하위 컴포넌트들 ======
 
 // 로딩 트래커 컴포넌트
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
@@ -168,6 +166,7 @@ function AnimationController({
   animationTrigger,
   onModelAnimationTrigger,
   onAnimationComplete,
+  playButtonTrigger,
 }: {
   sceneIndex: number
   modelLoaded: boolean
@@ -175,6 +174,7 @@ function AnimationController({
   animationTrigger: boolean
   onModelAnimationTrigger?: (trigger: number) => void
   onAnimationComplete: () => void
+  playButtonTrigger: boolean
 }) {
   const animationStateRef = useRef({
     isAnimating: false,
@@ -188,6 +188,7 @@ function AnimationController({
     const state = animationStateRef.current
 
     if (state.lastSceneIndex !== sceneIndex) {
+      console.log(`Scene changed from ${state.lastSceneIndex} to ${sceneIndex} - resetting animation state`)
       state.lastSceneIndex = sceneIndex
       state.isAnimating = false
 
@@ -207,54 +208,61 @@ function AnimationController({
     }
   }, [sceneIndex, onWaterLevelUpdate])
 
+  // 플레이 버튼 클릭 시 처리
   useEffect(() => {
-    if (animationTrigger && modelLoaded) {
+    if (playButtonTrigger && modelLoaded) {
       const state = animationStateRef.current
 
       setTimeout(() => {
         switch (sceneIndex) {
           case 0:
-            // Step 1: 모델 애니메이션 즉시 시작
+            // Step 1: 모델 애니메이션만 시작
             startModelAnimation()
             break
           case 1:
-            // Step 2: 물 애니메이션 먼저, 완료 후 모델 애니메이션
+            // Step 2: 물 애니메이션과 모델 애니메이션 동시 시작
+            console.log(`Scene ${sceneIndex}: Starting both water and model animations simultaneously`)
+            startModelAnimation()
             startWaterLevelAnimation(state, onWaterLevelUpdate, () => {
-              // 물 애니메이션 완료 후 모델 애니메이션 시작
-              setTimeout(() => {
-                startModelAnimation()
-              }, 500)
+              console.log(`Scene ${sceneIndex}: 물 애니메이션 완료`)
+              onAnimationComplete()
             })
             break
           case 2:
           case 3:
-            // Step 3, 4: 플레이 버튼을 눌러야만 모델 애니메이션 시작
-            console.log(`Scene ${sceneIndex}: 플레이 버튼 대기 중...`)
+            // Step 3, 4: 모델 애니메이션만 시작
             startModelAnimation()
             break
         }
       }, 300)
     }
-  }, [animationTrigger, modelLoaded, sceneIndex, onWaterLevelUpdate])
+  }, [playButtonTrigger, modelLoaded, sceneIndex, onWaterLevelUpdate])
+
+  // 기존 animationTrigger 처리 (사용하지 않음)
+  useEffect(() => {
+    if (animationTrigger && modelLoaded) {
+      // 현재는 사용하지 않음 - 모든 애니메이션은 플레이 버튼으로만 시작
+      console.log(`Scene ${sceneIndex}: animationTrigger received but will be handled by playButtonTrigger`)
+    }
+  }, [animationTrigger, modelLoaded, sceneIndex])
 
   const startModelAnimation = () => {
     const newTrigger = Date.now()
     console.log(`Scene ${sceneIndex}: Starting model animation with trigger ${newTrigger}`)
+    console.log(`Scene ${sceneIndex}: onModelAnimationTrigger function exists:`, !!onModelAnimationTrigger)
     onModelAnimationTrigger && onModelAnimationTrigger(newTrigger)
-    
+
     // 애니메이션 완료를 위한 타이머 (실제 애니메이션 길이에 맞게 조정)
     setTimeout(() => {
+      console.log(`Scene ${sceneIndex}: Model animation completed`)
       onAnimationComplete()
     }, 5000) // 5초 후 완료로 가정 (실제 애니메이션 길이에 맞게 수정)
   }
 
-  const startWaterLevelAnimation = (
-    state: any, 
-    updateCallback: (level: number) => void,
-    onComplete?: () => void
-  ) => {
+  const startWaterLevelAnimation = (state: any, updateCallback: (level: number) => void, onComplete?: () => void) => {
     if (state.isAnimating || state.animationIntervalId) return
 
+    console.log(`Scene ${sceneIndex}: Starting water level animation`)
     state.isAnimating = true
 
     const startLevel = -0.5
@@ -277,7 +285,7 @@ function AnimationController({
         clearInterval(state.animationIntervalId!)
         state.animationIntervalId = null
         state.isAnimating = false
-        
+
         // 물 애니메이션 완료 콜백 실행
         if (onComplete) {
           onComplete()
@@ -313,7 +321,7 @@ function ModelRenderer({
 
   return (
     <Model
-      key={`model-${sceneIndex}-${currentModelPath}`}
+      key={`model-${sceneIndex}`} // currentModelPath 제거
       path={currentModelPath}
       scale={3.7}
       position={modelPosition}
@@ -338,6 +346,7 @@ function SceneContent({
   onSpeechBubbleClick,
   cameraTarget,
   onCameraMoveComplete,
+  playButtonTrigger,
 }: {
   sceneIndex: number
   waterLevel: number
@@ -350,18 +359,20 @@ function SceneContent({
   onSpeechBubbleClick: () => void
   cameraTarget: THREE.Vector3 | null
   onCameraMoveComplete: () => void
+  playButtonTrigger: boolean
 }) {
   const [modelAnimationTrigger, setModelAnimationTrigger] = useState(0)
   const showWater = sceneIndex === 1
   const modelLoaded = true
 
+  // 씬이 변경될 때 모델 애니메이션 트리거 초기화
   useEffect(() => {
-    console.log(`Scene changed to ${sceneIndex}, resetting modelAnimationTrigger`)
+    console.log(`Scene changed to ${sceneIndex}, resetting modelAnimationTrigger to 0`)
     setModelAnimationTrigger(0)
   }, [sceneIndex])
 
   const handleModelAnimationTrigger = (trigger: number) => {
-    console.log(`Setting modelAnimationTrigger to: ${trigger}`)
+    console.log(`SceneContent: Setting modelAnimationTrigger to: ${trigger} for scene ${sceneIndex}`)
     setModelAnimationTrigger(trigger)
   }
 
@@ -375,6 +386,7 @@ function SceneContent({
         animationTrigger={animationTrigger}
         onModelAnimationTrigger={handleModelAnimationTrigger}
         onAnimationComplete={onAnimationComplete}
+        playButtonTrigger={playButtonTrigger}
       />
 
       <CameraController targetPosition={cameraTarget} onMoveComplete={onCameraMoveComplete} />
@@ -438,17 +450,20 @@ export default function Home() {
   const [isPlayButtonPressed, setIsPlayButtonPressed] = useState(false)
   const [showSpeechBubble, setShowSpeechBubble] = useState(false)
   const [cameraTarget, setCameraTarget] = useState<THREE.Vector3 | null>(null)
+  const [playButtonTrigger, setPlayButtonTrigger] = useState(false)
 
   const handleLoadingComplete = () => {
     setIsLoaded(true)
   }
 
   const handleSceneChange = (newSceneIndex: number) => {
+    console.log(`Scene changing from ${sceneIndex} to ${newSceneIndex}`)
     setSceneIndex(newSceneIndex)
     setIsLoaded(false)
     setAnimationTrigger(false)
     setShowSpeechBubble(false)
     setCameraTarget(null)
+    setPlayButtonTrigger(false) // 플레이 버튼 트리거도 초기화
   }
 
   const handleWaterLevelUpdate = (level: number) => {
@@ -460,10 +475,7 @@ export default function Home() {
   }
 
   const handleAnimationComplete = () => {
-    // Step 2에서만 speech bubble 표시
-    if (sceneIndex === 2) {
-      setShowSpeechBubble(true)
-    }
+    console.log(`Animation completed for scene ${sceneIndex}`)
   }
 
   const handleSpeechBubbleClick = () => {
@@ -507,16 +519,20 @@ export default function Home() {
     }, 300)
   }
 
+  // 플레이 버튼 클릭 핸들러 수정
   const handlePlayButtonClick = () => {
     playClickButtonSound()
     setIsPlayButtonPressed(true)
 
     setTimeout(() => {
       setIsPlayButtonPressed(false)
-      setAnimationTrigger(true)
-
+      
+      console.log(`Play button clicked for scene ${sceneIndex}`)
+      setPlayButtonTrigger(true)
+      
+      // 트리거 상태 리셋
       setTimeout(() => {
-        setAnimationTrigger(false)
+        setPlayButtonTrigger(false)
       }, 200)
     }, 150)
   }
@@ -556,6 +572,7 @@ export default function Home() {
             onSpeechBubbleClick={handleSpeechBubbleClick}
             cameraTarget={cameraTarget}
             onCameraMoveComplete={handleCameraMoveComplete}
+            playButtonTrigger={playButtonTrigger}
           />
         </Scene>
       </div>

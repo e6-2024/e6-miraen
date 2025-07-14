@@ -27,13 +27,42 @@ export default function Model({
   const mixer = useRef<THREE.AnimationMixer | null>(null)
   const actionsRef = useRef<THREE.AnimationAction[]>([])
   const isAnimationPlayingRef = useRef(false)
+  const lastSceneIndexRef = useRef<number>(-1)
+
+  // 씬이 변경될 때 애니메이션 상태 초기화
+  useEffect(() => {
+    if (lastSceneIndexRef.current !== sceneIndex) {
+      console.log(`Model: Scene changed from ${lastSceneIndexRef.current} to ${sceneIndex} - resetting animation state`)
+      lastSceneIndexRef.current = sceneIndex
+      isAnimationPlayingRef.current = false
+      
+      // 모든 애니메이션 액션 정지
+      if (actionsRef.current.length > 0) {
+        actionsRef.current.forEach(action => {
+          action.stop()
+          action.reset()
+        })
+      }
+    }
+  }, [sceneIndex])
 
   // 애니메이션 초기화
   useEffect(() => {
     if (!scene || !animations.length || !groupRef.current) return
 
-    console.log(`Scene ${sceneIndex}: Found ${animations.length} animations:`, animations.map(anim => anim.name))
-    console.log(`Scene ${sceneIndex}: Animation speed set to ${animationSpeed}`)
+    // 이미 같은 씬에 대해 초기화된 경우 스킵
+    if (mixer.current && lastSceneIndexRef.current === sceneIndex) {
+      console.log(`Model Scene ${sceneIndex}: Already initialized, skipping`)
+      return
+    }
+
+    console.log(`Model Scene ${sceneIndex}: Found ${animations.length} animations:`, animations.map(anim => anim.name))
+    console.log(`Model Scene ${sceneIndex}: Animation speed set to ${animationSpeed}`)
+    
+    // 기존 믹서 정리
+    if (mixer.current) {
+      mixer.current.stopAllAction()
+    }
     
     mixer.current = new THREE.AnimationMixer(groupRef.current)
 
@@ -41,28 +70,13 @@ export default function Model({
     const actions = animations.map((animation, index) => {
       const action = mixer.current!.clipAction(animation)
       
-      // Step 3, 4에서는 플레이 버튼을 눌러야만 시작되도록 설정
-      if (sceneIndex === 2 || sceneIndex === 3) {
-        // Step 3, 4: 한번만 재생, 초기에는 정지 상태
-        action.setLoop(THREE.LoopOnce, 1)
-        action.clampWhenFinished = true
-        action.play()
-        action.paused = true // 초기에는 일시정지
-      } else if (sceneIndex === 0) {
-        // Step 1: 처음엔 반복, 트리거 시 한번만 재생으로 변경
-        action.setLoop(THREE.LoopRepeat, Infinity)
-        action.clampWhenFinished = false
-        action.play()
-        action.paused = true
-      } else {
-        // Step 2: 한번만 재생
-        action.setLoop(THREE.LoopOnce, 1)
-        action.clampWhenFinished = true
-        action.play()
-        action.paused = true
-      }
+      // 모든 스텝에서 초기에는 정지 상태로 설정
+      action.setLoop(THREE.LoopOnce, 1)
+      action.clampWhenFinished = true
+      action.play()
+      action.paused = true // 초기에는 일시정지
       
-      console.log(`Scene ${sceneIndex}: Animation ${index} (${animation.name}) initialized`)
+      console.log(`Model Scene ${sceneIndex}: Animation ${index} (${animation.name}) initialized and paused`)
       return action
     })
 
@@ -74,38 +88,35 @@ export default function Model({
     }
 
     return () => {
-      actionsRef.current.forEach(action => action.stop())
-      mixer.current?.stopAllAction()
-      mixer.current = null
-      isAnimationPlayingRef.current = false
+      if (actionsRef.current.length > 0) {
+        actionsRef.current.forEach(action => action.stop())
+      }
+      if (mixer.current) {
+        mixer.current.stopAllAction()
+      }
     }
-  }, [scene, animations, sceneIndex, animationSpeed])
+  }, [scene, animations, sceneIndex, animationSpeed, onLoaded])
 
   // animationTrigger prop에 따라 애니메이션 시작
   useEffect(() => {
-    if (!mixer.current || !actionsRef.current.length) return
+    console.log(`Model Scene ${sceneIndex}: animationTrigger changed to ${animationTrigger}`)
+    
+    if (!mixer.current || !actionsRef.current.length) {
+      console.log(`Model Scene ${sceneIndex}: Cannot start animation - mixer or actions not ready`)
+      return
+    }
 
     if (animationTrigger > 0) {
-      console.log(`Scene ${sceneIndex}: 모든 모델 애니메이션 시작! (총 ${actionsRef.current.length}개, 속도: ${animationSpeed})`)
+      console.log(`Model Scene ${sceneIndex}: 모든 모델 애니메이션 시작! (총 ${actionsRef.current.length}개, 속도: ${animationSpeed})`)
       
       // 모든 애니메이션을 동시에 시작
       actionsRef.current.forEach((action, index) => {
         action.reset() // 애니메이션을 처음으로 되돌림
-        
-        // Step 1에서는 트리거 시 한 번만 재생하도록 설정 변경
-        if (sceneIndex === 0 ) {
-          action.setLoop(THREE.LoopOnce, 1)
-          action.clampWhenFinished = true
-        }
-        
-        // Step 3, 4에서는 플레이 버튼 클릭 시에만 애니메이션 시작
-        if (sceneIndex === 2 || sceneIndex === 3) {
-          console.log(`Scene ${sceneIndex}: Play button triggered - starting animation ${index}`)
-        }
-        
+        action.setLoop(THREE.LoopOnce, 1)
+        action.clampWhenFinished = true
         action.paused = false // 일시정지 해제
         action.play()
-        console.log(`Scene ${sceneIndex}: Animation ${index} started with speed ${animationSpeed}`)
+        console.log(`Model Scene ${sceneIndex}: Animation ${index} started with speed ${animationSpeed}`)
       })
       
       isAnimationPlayingRef.current = true
@@ -126,12 +137,13 @@ export default function Model({
         
         if (allFinished) {
           isAnimationPlayingRef.current = false
-          console.log(`Scene ${sceneIndex}: 모든 모델 애니메이션 완료! (총 ${actionsRef.current.length}개, 속도: ${animationSpeed})`)
+          console.log(`Model Scene ${sceneIndex}: 모든 모델 애니메이션 완료! (총 ${actionsRef.current.length}개, 속도: ${animationSpeed})`)
         }
       }
     }
   })
 
+  // 모델 설정 (그림자 등)
   useEffect(() => {
     if (!scene) return
     scene.traverse((child) => {
