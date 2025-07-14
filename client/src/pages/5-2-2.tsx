@@ -539,7 +539,7 @@ export default function Home() {
         <ContactShadows position={[0, 0, 0]} opacity={isThermalMode ? 0.1 : 0.9} scale={30} blur={0.8} far={2} color='black' frames={2} />
         <directionalLight position={[2, 2, 2]} intensity={isThermalMode ? 0.1 : 1} />
         
-        <group onClick={() => {handleFoodClick('fish') ;playGeneralButtonSound()}}>
+        <group onClick={() => {handleFoodClick('fish') ;playGeneralButtonSound(); playNarration('/sounds/5-2-2/5-2-2-A.MP3');}}>
           <Fish 
             scale={1} 
             position={foodOnPan === 'fish' ? [0.0, 0.1, -0.5] : [-1.8, 0.05, 0]}
@@ -550,7 +550,7 @@ export default function Home() {
           />
         </group>
         
-        <group onClick={() => {handleFoodClick('meat') ;playGeneralButtonSound()}}>
+        <group onClick={() => {handleFoodClick('meat') ;playGeneralButtonSound(); playNarration('/sounds/5-2-2/5-2-2-A.MP3');}}>
           <Meat 
             scale={1} 
             position={foodOnPan === 'meat' ? [0.0, 0.1, -0.4] : [-1, 0.05, -0.004]}
@@ -635,7 +635,7 @@ export default function Home() {
         )}
 
         {!showIntro && isHeating && !isHeatingComplete && (
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 bg-orange-100 text-orange-800 px-6 py-3 border-2 border-orange-300">
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 bg-white text-black px-6 py-3 border-2 border-black">
             <p className="text-center font-medium">가열 중입니다... 완료될 때까지 기다려주세요!</p>
           </div>
         )}
