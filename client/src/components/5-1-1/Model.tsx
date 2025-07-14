@@ -1,6 +1,6 @@
 import { useGLTF } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 
 interface ModelProps {
@@ -9,7 +9,7 @@ interface ModelProps {
   position?: [number, number, number]
   sceneIndex?: number
   onLoaded?: () => void
-  animationTrigger?: number // boolean에서 number로 변경
+  animationTrigger?: number
 }
 
 export default function Model({ 
@@ -18,7 +18,7 @@ export default function Model({
   position = [0, 0, 0], 
   sceneIndex, 
   onLoaded,
-  animationTrigger = 0 // 기본값 0
+  animationTrigger = 0
 }: ModelProps) {
   const groupRef = useRef<THREE.Group>(null)
   const { scene, animations } = useGLTF(path) as any
@@ -34,17 +34,19 @@ export default function Model({
 
     const action = mixer.current.clipAction(animations[0])
     
-    // 모든 씬에서 애니메이션을 일시정지 상태로 초기화
-    action.setLoop(THREE.LoopRepeat, Infinity) // step 0에서는 반복 재생
-    action.clampWhenFinished = false
-    action.play()
-    action.paused = true // 처음엔 항상 일시정지
-    
-    // step 0이 아닌 경우 한번만 재생되도록 설정
-    if (sceneIndex !== 0) {
+    // 모든 씬에서 애니메이션 설정을 통일
+    if (sceneIndex === 0) {
+      // Step 1: 반복 재생 가능하도록 설정 (원래 설정 유지)
+      action.setLoop(THREE.LoopRepeat, Infinity)
+      action.clampWhenFinished = false
+    } else {
+      // Step 2, 3, 4: 한번만 재생
       action.setLoop(THREE.LoopOnce, 1)
       action.clampWhenFinished = true
     }
+    
+    action.play()
+    action.paused = true // 처음엔 항상 일시정지
 
     actionsRef.current = [action]
     isAnimationPlayingRef.current = false
@@ -61,24 +63,22 @@ export default function Model({
     }
   }, [scene, animations, sceneIndex])
 
-  // animationTrigger prop에 따라 애니메이션 시작/정지
+  // animationTrigger prop에 따라 애니메이션 시작
   useEffect(() => {
     if (!mixer.current || !actionsRef.current.length) return
 
     const action = actionsRef.current[0]
     
-    if (animationTrigger > 0 && sceneIndex === 0) {
-      // Step 1에서 Play 버튼을 눌렀을 때 애니메이션을 처음부터 재생
-      console.log('공룡 애니메이션 시작!')
+    if (animationTrigger > 0) {
+      console.log(`Scene ${sceneIndex}: 모델 애니메이션 시작!`)
       action.reset() // 애니메이션을 처음으로 되돌림
-      action.setLoop(THREE.LoopOnce, 1) // 한 번만 재생
-      action.clampWhenFinished = true // 애니메이션 끝에서 정지
-      action.play()
-      isAnimationPlayingRef.current = true
       
-    } else if (animationTrigger > 0 && sceneIndex !== 0) {
-      // 다른 Step에서도 애니메이션이 있다면 여기서 처리
-      action.reset()
+      if (sceneIndex === 0) {
+        // Step 1: 한 번만 재생하도록 설정 변경
+        action.setLoop(THREE.LoopOnce, 1)
+        action.clampWhenFinished = true
+      }
+      
       action.play()
       isAnimationPlayingRef.current = true
     }
@@ -89,12 +89,12 @@ export default function Model({
     if (mixer.current && isAnimationPlayingRef.current) {
       mixer.current.update(delta * 2.0)
       
-      // Step 1에서 애니메이션이 끝났는지 확인
-      if (sceneIndex === 0 && actionsRef.current.length > 0) {
+      // 애니메이션이 끝났는지 확인 (모든 씬에 적용)
+      if (actionsRef.current.length > 0) {
         const action = actionsRef.current[0]
         if (action.time >= action.getClip().duration) {
           isAnimationPlayingRef.current = false
-          console.log('공룡 애니메이션 완료!')
+          console.log(`Scene ${sceneIndex}: 모델 애니메이션 완료!`)
         }
       }
     }
@@ -114,7 +114,6 @@ export default function Model({
         }
       }
     })
-
   }, [sceneIndex, scene])
 
   return (

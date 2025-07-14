@@ -152,156 +152,7 @@ function CameraController({
   return null
 }
 
-// Step 3 지층 누적 애니메이션
-function LayerAccumulationAnimation({
-  modelRef,
-  animationProgress,
-}: {
-  modelRef: React.RefObject<THREE.Group>
-  animationProgress: number
-}) {
-  useFrame(() => {
-    if (!modelRef.current) return
-
-    modelRef.current.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        const mesh = child as THREE.Mesh
-
-        const worldPosition = new THREE.Vector3()
-        mesh.getWorldPosition(worldPosition)
-
-        const box = new THREE.Box3().setFromObject(modelRef.current!)
-        const minY = box.min.y
-        const maxY = box.max.y
-        const totalHeight = maxY - minY
-
-        const normalizedY = (worldPosition.y - minY) / totalHeight
-        const revealThreshold = animationProgress
-
-        if (normalizedY <= revealThreshold) {
-          const fadeZone = 0.1
-          const fadeStart = Math.max(0, revealThreshold - fadeZone)
-          const opacity = normalizedY >= fadeStart ? (revealThreshold - normalizedY) / fadeZone : 1.0
-
-          if (Array.isArray(mesh.material)) {
-            mesh.material.forEach((mat) => {
-              mat.transparent = true
-              mat.opacity = Math.max(0, Math.min(1, opacity))
-              mat.needsUpdate = true
-            })
-          } else {
-            mesh.material.transparent = true
-            mesh.material.opacity = Math.max(0, Math.min(1, opacity))
-            mesh.material.needsUpdate = true
-          }
-
-          mesh.visible = true
-        } else {
-          mesh.visible = false
-        }
-      }
-    })
-  })
-
-  return null
-}
-
-// Step 4 화석 발견 애니메이션
-function FossilDiscoveryAnimation({
-  modelRef,
-  animationProgress,
-  onAnimationComplete,
-}: {
-  modelRef: React.RefObject<THREE.Group>
-  animationProgress: number
-  onAnimationComplete?: () => void
-}) {
-  const originalPositionsRef = useRef<Map<string, THREE.Vector3>>(new Map())
-  const hasCompletedRef = useRef(false)
-
-  useEffect(() => {
-    if (!modelRef.current) return
-
-    const sceneGroup = modelRef.current.children[0]?.children[0]
-    if (sceneGroup) {
-      // 지층 그룹(index 1) 내부의 index 0 저장
-      const layerGroup = sceneGroup.children[0]
-      if (layerGroup && layerGroup.children[0]) {
-        originalPositionsRef.current.set('layer-0', layerGroup.children[0].position.clone())
-      }
-
-      // 식물들(index 2+) 저장
-      sceneGroup.children.forEach((child, index) => {
-        if (index >= 2 && child.position) {
-          originalPositionsRef.current.set(`scene-${index}`, child.position.clone())
-        }
-      })
-    }
-  }, [modelRef.current])
-
-  useFrame(() => {
-    if (!modelRef.current || originalPositionsRef.current.size === 0) return
-
-    const sceneGroup = modelRef.current.children[0]?.children[0]
-    if (!sceneGroup) return
-
-    const moveDistance = animationProgress * -0.5
-
-    const layerGroup = sceneGroup.children[1]
-    if (layerGroup && layerGroup.children[0]) {
-      const originalPos = originalPositionsRef.current.get('layer-0')
-      if (originalPos) {
-        layerGroup.children[0].position.y = originalPos.y - moveDistance
-      }
-    }
-
-    sceneGroup.children.forEach((child, index) => {
-      if (index >= 2) {
-        const originalPos = originalPositionsRef.current.get(`scene-${index}`)
-        if (child && originalPos) {
-          child.position.x = originalPos.x + moveDistance
-        }
-      }
-    })
-
-    if (animationProgress >= 1.0 && !hasCompletedRef.current) {
-      hasCompletedRef.current = true
-      onAnimationComplete?.()
-    }
-  })
-
-  useEffect(() => {
-    if (animationProgress === 0) {
-      hasCompletedRef.current = false
-
-      const sceneGroup = modelRef.current?.children[0]?.children[0]
-      if (sceneGroup) {
-        // 지층 그룹 내부 index 0 복원
-        const layerGroup = sceneGroup.children[1]
-        if (layerGroup && layerGroup.children[0]) {
-          const originalPos = originalPositionsRef.current.get('layer-0')
-          if (originalPos) {
-            layerGroup.children[0].position.copy(originalPos)
-          }
-        }
-
-        // 식물들 복원
-        sceneGroup.children.forEach((child, index) => {
-          if (index >= 2) {
-            const originalPos = originalPositionsRef.current.get(`scene-${index}`)
-            if (child && originalPos) {
-              child.position.copy(originalPos)
-            }
-          }
-        })
-      }
-    }
-  }, [animationProgress])
-
-  return null
-}
-
-// 애니메이션 컨트롤러
+// 애니메이션 컨트롤러 (물 애니메이션과 모델 애니메이션 모두 관리)
 function AnimationController({
   sceneIndex,
   modelLoaded,
@@ -309,8 +160,6 @@ function AnimationController({
   animationTrigger,
   onModelAnimationTrigger,
   onAnimationComplete,
-  animationProgress,
-  setAnimationProgress,
 }: {
   sceneIndex: number
   modelLoaded: boolean
@@ -318,15 +167,12 @@ function AnimationController({
   animationTrigger: boolean
   onModelAnimationTrigger?: (trigger: number) => void
   onAnimationComplete: () => void
-  animationProgress: number
-  setAnimationProgress: (progress: number) => void
 }) {
   const animationStateRef = useRef({
     isAnimating: false,
     currentWaterLevel: -2.0,
     lastSceneIndex: -1,
-    animationIntervalId: null,
-    layerAnimationId: null,
+    animationIntervalId: null as NodeJS.Timeout | null,
   })
 
   // 씬 변경 시 초기화
@@ -341,30 +187,17 @@ function AnimationController({
         clearInterval(state.animationIntervalId)
         state.animationIntervalId = null
       }
-      if (state.layerAnimationId) {
-        clearInterval(state.layerAnimationId)
-        state.layerAnimationId = null
-      }
 
+      // 씬별 초기 물 높이 설정
       if (sceneIndex === 1) {
-        state.currentWaterLevel = -0.5
-      } else if (sceneIndex === 2) {
         state.currentWaterLevel = -0.5
       } else {
         state.currentWaterLevel = -2.0
       }
 
       onWaterLevelUpdate(state.currentWaterLevel)
-
-      if (sceneIndex === 2) {
-        setAnimationProgress(1.0)
-      } else if (sceneIndex === 3) {
-        setAnimationProgress(0)
-      } else {
-        setAnimationProgress(0)
-      }
     }
-  }, [sceneIndex, onWaterLevelUpdate, setAnimationProgress])
+  }, [sceneIndex, onWaterLevelUpdate])
 
   useEffect(() => {
     if (animationTrigger && modelLoaded) {
@@ -373,33 +206,48 @@ function AnimationController({
       setTimeout(() => {
         switch (sceneIndex) {
           case 0:
-            startDinosaurAnimation()
-            break
-          case 1:
-            startWaterLevelAnimation(state, onWaterLevelUpdate)
-            break
           case 2:
           case 3:
-            startLayerAnimation(state)
+            // Step 1, 3, 4: 모델 애니메이션 즉시 시작
+            startModelAnimation()
+            break
+          case 1:
+            // Step 2: 물 애니메이션 먼저, 완료 후 모델 애니메이션
+            startWaterLevelAnimation(state, onWaterLevelUpdate, () => {
+              // 물 애니메이션 완료 후 모델 애니메이션 시작
+              setTimeout(() => {
+                startModelAnimation()
+              }, 500)
+            })
             break
         }
       }, 300)
     }
-  }, [animationTrigger, modelLoaded, sceneIndex, onWaterLevelUpdate, setAnimationProgress])
+  }, [animationTrigger, modelLoaded, sceneIndex, onWaterLevelUpdate])
 
-  const startDinosaurAnimation = () => {
+  const startModelAnimation = () => {
     const newTrigger = Date.now()
+    console.log(`Scene ${sceneIndex}: Starting model animation with trigger ${newTrigger}`)
     onModelAnimationTrigger && onModelAnimationTrigger(newTrigger)
+    
+    // 애니메이션 완료를 위한 타이머 (실제 애니메이션 길이에 맞게 조정)
+    setTimeout(() => {
+      onAnimationComplete()
+    }, 5000) // 5초 후 완료로 가정 (실제 애니메이션 길이에 맞게 수정)
   }
 
-  const startWaterLevelAnimation = (state: any, updateCallback: (level: number) => void) => {
+  const startWaterLevelAnimation = (
+    state: any, 
+    updateCallback: (level: number) => void,
+    onComplete?: () => void
+  ) => {
     if (state.isAnimating || state.animationIntervalId) return
 
     state.isAnimating = true
 
     const startLevel = -0.5
-    const targetLevel = 2.52
-    const duration = 10000
+    const targetLevel = 1.52
+    const duration = 6000
     const startTime = Date.now()
 
     state.animationIntervalId = setInterval(() => {
@@ -414,34 +262,14 @@ function AnimationController({
       updateCallback(currentLevel)
 
       if (progress >= 1.0) {
-        clearInterval(state.animationIntervalId)
+        clearInterval(state.animationIntervalId!)
         state.animationIntervalId = null
         state.isAnimating = false
-      }
-    }, 50)
-  }
-
-  const startLayerAnimation = (state: any) => {
-    if (state.isAnimating || state.layerAnimationId) return
-
-    state.isAnimating = true
-
-    const duration = 8000
-    const startTime = Date.now()
-
-    state.layerAnimationId = setInterval(() => {
-      const elapsed = Date.now() - startTime
-      const progress = Math.min(elapsed / duration, 1.0)
-
-      const eased = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2
-
-      setAnimationProgress(eased)
-
-      if (progress >= 1.0) {
-        clearInterval(state.layerAnimationId)
-        state.layerAnimationId = null
-        state.isAnimating = false
-        onAnimationComplete()
+        
+        // 물 애니메이션 완료 콜백 실행
+        if (onComplete) {
+          onComplete()
+        }
       }
     }, 50)
   }
@@ -452,83 +280,36 @@ function AnimationController({
       if (state.animationIntervalId) {
         clearInterval(state.animationIntervalId)
       }
-      if (state.layerAnimationId) {
-        clearInterval(state.layerAnimationId)
-      }
     }
   }, [])
 
   return null
 }
 
-// 3D 모델 렌더링 컴포넌트
+// 3D 모델 렌더링 컴포넌트 (모든 씬에서 동일하게 처리)
 function ModelRenderer({
   sceneIndex,
   modelAnimationTrigger,
-  animationProgress,
   onModelLoaded,
-  onAnimationComplete,
 }: {
   sceneIndex: number
   modelAnimationTrigger: number
-  animationProgress: number
   onModelLoaded: () => void
-  onAnimationComplete: () => void
 }) {
-  const modelRef = useRef<THREE.Group>(null!)
   const currentModelPath = modelPaths[sceneIndex]
   const modelPosition: [number, number, number] = sceneIndex === 1 ? [-2.6, -7, -2.0] : [1.5, -7, -2.0]
 
-  if (sceneIndex === 2) {
-    // Step 3: 지층 누적 애니메이션
-    return (
-      <group ref={modelRef}>
-        <Model
-          key={`model-${sceneIndex}-${currentModelPath}`}
-          path={currentModelPath}
-          scale={3.7}
-          position={modelPosition}
-          sceneIndex={sceneIndex}
-          onLoaded={onModelLoaded}
-          animationTrigger={0}
-        />
-        <LayerAccumulationAnimation modelRef={modelRef} animationProgress={animationProgress} />
-      </group>
-    )
-  } else if (sceneIndex === 3) {
-    // Step 4: 화석 발견 애니메이션
-    return (
-      <group ref={modelRef}>
-        <Model
-          key={`model-${sceneIndex}-${currentModelPath}`}
-          path={currentModelPath}
-          scale={3.7}
-          position={modelPosition}
-          sceneIndex={sceneIndex}
-          onLoaded={onModelLoaded}
-          animationTrigger={0}
-        />
-        <FossilDiscoveryAnimation
-          modelRef={modelRef}
-          animationProgress={animationProgress}
-          onAnimationComplete={onAnimationComplete}
-        />
-      </group>
-    )
-  } else {
-    // Step 1, 2: 일반 모델 렌더링
-    return (
-      <Model
-        key={`model-${sceneIndex}-${currentModelPath}`}
-        path={currentModelPath}
-        scale={3.7}
-        position={modelPosition}
-        sceneIndex={sceneIndex}
-        onLoaded={onModelLoaded}
-        animationTrigger={sceneIndex === 0 ? modelAnimationTrigger : 0}
-      />
-    )
-  }
+  return (
+    <Model
+      key={`model-${sceneIndex}-${currentModelPath}`}
+      path={currentModelPath}
+      scale={3.7}
+      position={modelPosition}
+      sceneIndex={sceneIndex}
+      onLoaded={onModelLoaded}
+      animationTrigger={modelAnimationTrigger}
+    />
+  )
 }
 
 // 3D 씬 컨텐츠
@@ -539,9 +320,7 @@ function SceneContent({
   handleModelLoaded,
   showIntro,
   animationTrigger,
-  layerAnimationProgress,
-  setLayerAnimationProgress,
-  onLayerAnimationComplete,
+  onAnimationComplete,
   showSpeechBubble,
   onSpeechBubbleClick,
   cameraTarget,
@@ -553,9 +332,7 @@ function SceneContent({
   handleModelLoaded: () => void
   showIntro: boolean
   animationTrigger: boolean
-  layerAnimationProgress: number
-  setLayerAnimationProgress: (progress: number) => void
-  onLayerAnimationComplete: () => void
+  onAnimationComplete: () => void
   showSpeechBubble: boolean
   onSpeechBubbleClick: () => void
   cameraTarget: THREE.Vector3 | null
@@ -584,9 +361,7 @@ function SceneContent({
         onWaterLevelUpdate={handleWaterLevelUpdate}
         animationTrigger={animationTrigger}
         onModelAnimationTrigger={handleModelAnimationTrigger}
-        animationProgress={layerAnimationProgress}
-        setAnimationProgress={setLayerAnimationProgress}
-        onAnimationComplete={onLayerAnimationComplete}
+        onAnimationComplete={onAnimationComplete}
       />
 
       <CameraController targetPosition={cameraTarget} onMoveComplete={onCameraMoveComplete} />
@@ -613,9 +388,7 @@ function SceneContent({
       <ModelRenderer
         sceneIndex={sceneIndex}
         modelAnimationTrigger={modelAnimationTrigger}
-        animationProgress={layerAnimationProgress}
         onModelLoaded={handleModelLoaded}
-        onAnimationComplete={onLayerAnimationComplete}
       />
 
       {sceneIndex === 2 && showSpeechBubble && (
@@ -660,7 +433,6 @@ export default function Home() {
   const [showIntro, setShowIntro] = useState(true)
   const [animationTrigger, setAnimationTrigger] = useState(false)
   const [isPlayButtonPressed, setIsPlayButtonPressed] = useState(false)
-  const [layerAnimationProgress, setLayerAnimationProgress] = useState(0)
   const [showSpeechBubble, setShowSpeechBubble] = useState(false)
   const [cameraTarget, setCameraTarget] = useState<THREE.Vector3 | null>(null)
 
@@ -672,7 +444,6 @@ export default function Home() {
     setSceneIndex(newSceneIndex)
     setIsLoaded(false)
     setAnimationTrigger(false)
-    setLayerAnimationProgress(0)
     setShowSpeechBubble(false)
     setCameraTarget(null)
   }
@@ -685,8 +456,11 @@ export default function Home() {
     // 모델 로드 완료 처리
   }
 
-  const handleLayerAnimationComplete = () => {
-    setShowSpeechBubble(true)
+  const handleAnimationComplete = () => {
+    // Step 2에서만 speech bubble 표시
+    if (sceneIndex === 2) {
+      setShowSpeechBubble(true)
+    }
   }
 
   const handleSpeechBubbleClick = () => {
@@ -774,9 +548,7 @@ export default function Home() {
             handleModelLoaded={handleModelLoaded}
             showIntro={showIntro}
             animationTrigger={animationTrigger}
-            layerAnimationProgress={layerAnimationProgress}
-            setLayerAnimationProgress={setLayerAnimationProgress}
-            onLayerAnimationComplete={handleLayerAnimationComplete}
+            onAnimationComplete={handleAnimationComplete}
             showSpeechBubble={showSpeechBubble}
             onSpeechBubbleClick={handleSpeechBubbleClick}
             cameraTarget={cameraTarget}
