@@ -479,7 +479,9 @@ export default function Home() {
       
       <div className='flex-1'>
         <Scene shadows camera={{ position: [0, 0, 20], fov: 50 }}>
-          <Environment preset='warehouse' environmentIntensity={0.2} />
+          <Environment preset='city' environmentIntensity={0.2}>
+            <color attach="background" args={['#00b7ffff']} /> 
+            </Environment>
           <directionalLight color='white' intensity={2} position={[30, 20, 30]} castShadow />
           <OpticalLab mode={activeMode} lensType={lensType} rayStates={rayStates} laserAngle={laserAngle} />
 

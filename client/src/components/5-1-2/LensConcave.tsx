@@ -32,26 +32,9 @@ export function LensConcave({
       const clonedScene = scene.clone();
       
       clonedScene.traverse((child) => {
-        if (child instanceof THREE.Mesh) {
-          const newMaterial = new THREE.MeshPhysicalMaterial({
-            transparent: true,
-            opacity: 0.94,
-            transmission: 0.95,
-            ior: 1.7,
-            thickness: 0.9,
-            roughness: 0.4,
-            metalness: 0.1,
-            clearcoat: 0.0,
-            clearcoatRoughness: 0,
-            color: new THREE.Color(0x000000),
-            envMapIntensity: 0,
-          });
-          
-          child.material = newMaterial;
           child.castShadow = true;
           child.receiveShadow = true;
-        }
-      });
+        });
       
       if (meshRef.current.children.length > 0) {
         meshRef.current.clear();
