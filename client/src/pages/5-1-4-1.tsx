@@ -145,10 +145,35 @@ export default function Home() {
   }
 
   const handleModelTypeChange = (type: ModelType) => {
-    playClickSound()
-    setModelType(type)
-    stopNarration()
+  playClickSound()
+  setModelType(type)
+  stopNarration()
+  
+  // 현재 애니메이션이 'walk'일 때만 나레이션 재생
+  if (animState === 'walk') {
+    let audioPath = ''
+    let text
+    
+    switch (type) {
+      case 'boy':
+        audioPath = '/sounds/5-1-4/5-1-4-A.MP3'
+        text = ['우리 몸은 뼈와 근육의 작용으로 움직입니다.']
+        break
+      case 'bone':
+        audioPath = '/sounds/5-1-4/5-1-4-B.MP3'
+        text = ['우리 몸속의 뼈는 모양과 크기가 다양합니다.','뼈는 우리 몸의 형태를 만들고 몸을 지탱하며, 몸속에 있는 여러 기관을 보호합니다.']
+        break
+      case 'muscle':
+        audioPath = '/sounds/5-1-4/5-1-4-C.MP3'
+        text = ['우리 몸속의 근육은 모양과 크기가 다양합니다.','근육은 뼈에 연결되어 있으며 뼈를 움직이게 합니다.']
+        break
+    }
+    
+    if (audioPath) {
+      playNarration(audioPath, text)
+    }
   }
+}
 
   const getModelKey = () => {
     let base
@@ -290,7 +315,11 @@ export default function Home() {
           />
         )}
 
-        <OrbitControls minDistance={0.23} maxDistance={0.53} />
+        <OrbitControls 
+          minDistance={0.23} 
+          maxDistance={0.53} 
+          maxPolarAngle={Math.PI/2}
+        />
       </Canvas>
 
       <div className='absolute top-2 left-2'>
