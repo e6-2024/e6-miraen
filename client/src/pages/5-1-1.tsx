@@ -83,14 +83,23 @@ function IntroMouseCameraController({ enabled }: { enabled: boolean }) {
     targetRef.current.x += (mouseRef.current.x - targetRef.current.x) * 0.05
     targetRef.current.y += (mouseRef.current.y - targetRef.current.y) * 0.05
 
-    const lookAtX = -targetRef.current.x * 3
-    const lookAtY = -targetRef.current.y * 3
+    const offsetX = targetRef.current.x * 2
+    const offsetY = targetRef.current.y * 2
+    const offsetZ = targetRef.current.x * 2
+
+    camera.position.x = basePositionRef.current.x + offsetX
+    camera.position.y = basePositionRef.current.y + offsetY
+    camera.position.z = basePositionRef.current.z + offsetZ
+
+    const lookAtX = -targetRef.current.x * 2
+    const lookAtY = -targetRef.current.y * 2
     camera.lookAt(lookAtX, lookAtY, 0)
   })
 
   return null
 }
 
+// 물 상자 컴포넌트
 function WaterBox({
   position = [0, 0, 0],
   waterLevel = -2.0,
