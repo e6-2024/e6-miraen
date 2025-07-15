@@ -40,7 +40,6 @@ const animationSpeeds = {
   3: 0.2, 
 }
 
-
 // 로딩 트래커 컴포넌트
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
   const { progress, active } = useProgress()
@@ -54,7 +53,44 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
   return null
 }
 
-// 물 상자 컴포넌트
+function IntroMouseCameraController({ enabled }: { enabled: boolean }) {
+  const { camera } = useThree()
+  const mouseRef = useRef({ x: 0, y: 0 })
+  const targetRef = useRef({ x: 0, y: 0 })
+  const basePositionRef = useRef(new THREE.Vector3())
+
+  useEffect(() => {
+    if (enabled) {
+      basePositionRef.current.copy(camera.position)
+    }
+  }, [enabled, camera])
+
+  useEffect(() => {
+    if (!enabled) return
+
+    const handleMouseMove = (event: MouseEvent) => {
+      mouseRef.current.x = (event.clientX / window.innerWidth) * 2 - 1
+      mouseRef.current.y = -(event.clientY / window.innerHeight) * 2 + 1
+    }
+
+    window.addEventListener('mousemove', handleMouseMove)
+    return () => window.removeEventListener('mousemove', handleMouseMove)
+  }, [enabled])
+
+  useFrame(() => {
+    if (!enabled) return
+
+    targetRef.current.x += (mouseRef.current.x - targetRef.current.x) * 0.05
+    targetRef.current.y += (mouseRef.current.y - targetRef.current.y) * 0.05
+
+    const lookAtX = -targetRef.current.x * 3
+    const lookAtY = -targetRef.current.y * 3
+    camera.lookAt(lookAtX, lookAtY, 0)
+  })
+
+  return null
+}
+
 function WaterBox({
   position = [0, 0, 0],
   waterLevel = -2.0,
@@ -167,7 +203,7 @@ function AnimationController({
   onModelAnimationTrigger,
   onAnimationComplete,
   playButtonTrigger,
-  onShowDescription, // 추가: 설명 표시 콜백
+  onShowDescription,
 }: {
   sceneIndex: number
   modelLoaded: boolean
@@ -176,7 +212,7 @@ function AnimationController({
   onModelAnimationTrigger?: (trigger: number) => void
   onAnimationComplete: () => void
   playButtonTrigger: boolean
-  onShowDescription: () => void // 추가
+  onShowDescription: () => void
 }) {
   const animationStateRef = useRef({
     isAnimating: false,
@@ -352,7 +388,7 @@ function SceneContent({
   cameraTarget,
   onCameraMoveComplete,
   playButtonTrigger,
-  onShowDescription, // 추가
+  onShowDescription,
 }: {
   sceneIndex: number
   waterLevel: number
@@ -366,7 +402,7 @@ function SceneContent({
   cameraTarget: THREE.Vector3 | null
   onCameraMoveComplete: () => void
   playButtonTrigger: boolean
-  onShowDescription: () => void // 추가
+  onShowDescription: () => void
 }) {
   const [modelAnimationTrigger, setModelAnimationTrigger] = useState(0)
   const showWater = sceneIndex === 1
@@ -386,6 +422,7 @@ function SceneContent({
   return (
     <>
       <SceneCameraController sceneIndex={sceneIndex} />
+      <IntroMouseCameraController enabled={showIntro} />
       <AnimationController
         sceneIndex={sceneIndex}
         modelLoaded={modelLoaded}
@@ -394,7 +431,7 @@ function SceneContent({
         onModelAnimationTrigger={handleModelAnimationTrigger}
         onAnimationComplete={onAnimationComplete}
         playButtonTrigger={playButtonTrigger}
-        onShowDescription={onShowDescription} // 추가
+        onShowDescription={onShowDescription}
       />
 
       <CameraController targetPosition={cameraTarget} onMoveComplete={onCameraMoveComplete} />
@@ -435,13 +472,15 @@ function SceneContent({
       <Environment preset='sunset' background blur={0.6} />
 
       <OrbitControls
-        enablePan={!showIntro}
+        enablePan={false}
         enableZoom={!showIntro}
         enableRotate={!showIntro}
         minDistance={0.1}
         maxDistance={35}
         maxPolarAngle={Math.PI / 2.2}
         minPolarAngle={Math.PI / 6}
+        enableDamping={true}
+        dampingFactor={0.05}
       />
 
       <CameraLogger />
@@ -459,7 +498,7 @@ export default function Home() {
   const [showSpeechBubble, setShowSpeechBubble] = useState(false)
   const [cameraTarget, setCameraTarget] = useState<THREE.Vector3 | null>(null)
   const [playButtonTrigger, setPlayButtonTrigger] = useState(false)
-  const [showDescription, setShowDescription] = useState(false) // 추가: 설명 표시 상태
+  const [showDescription, setShowDescription] = useState(false)
 
   const handleLoadingComplete = () => {
     setIsLoaded(true)
@@ -472,8 +511,8 @@ export default function Home() {
     setAnimationTrigger(false)
     setShowSpeechBubble(false)
     setCameraTarget(null)
-    setPlayButtonTrigger(false) // 플레이 버튼 트리거도 초기화
-    setShowDescription(false) // 설명 텍스트 숨기기
+    setPlayButtonTrigger(false)
+    setShowDescription(false)
   }
 
   const handleWaterLevelUpdate = (level: number) => {
@@ -533,7 +572,6 @@ export default function Home() {
     }, 300)
   }
 
-  // 플레이 버튼 클릭 핸들러 수정
   const handlePlayButtonClick = () => {
     playClickButtonSound()
     setIsPlayButtonPressed(true)
