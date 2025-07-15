@@ -55,6 +55,45 @@ export function LaserPointer({
       const rotation = getRotationByMode(mode, angle)
       pivotGroupRef.current.rotation.set(...rotation)
     }
+
+    // 그림자 설정 개선
+    scene.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        const mesh = child as THREE.Mesh
+        mesh.castShadow = true
+        mesh.receiveShadow = true
+        
+        // 재질 설정 개선
+        if (mesh.material) {
+          if (Array.isArray(mesh.material)) {
+            mesh.material.forEach(mat => {
+              if (mat instanceof THREE.MeshStandardMaterial || 
+                  mat instanceof THREE.MeshPhysicalMaterial ||
+                  mat instanceof THREE.MeshLambertMaterial) {
+                mat.shadowSide = THREE.DoubleSide
+                // 메탈릭한 느낌을 주고 싶다면
+                if (mat instanceof THREE.MeshStandardMaterial) {
+                  mat.metalness = 0.3
+                  mat.roughness = 0.4
+                }
+              }
+            })
+          } else {
+            const material = mesh.material as THREE.Material
+            if (material instanceof THREE.MeshStandardMaterial || 
+                material instanceof THREE.MeshPhysicalMaterial ||
+                material instanceof THREE.MeshLambertMaterial) {
+              material.shadowSide = THREE.DoubleSide
+              // 메탈릭한 느낌을 주고 싶다면
+              if (material instanceof THREE.MeshStandardMaterial) {
+                material.metalness = 0.3
+                material.roughness = 0.4
+              }
+            }
+          }
+        }
+      }
+    })
     
     const button1 = scene.getObjectByName('_holes_laser_pointer001')
     const button2 = scene.getObjectByName('_holes_laser_pointer002') 
@@ -69,7 +108,7 @@ export function LaserPointer({
     if (button3) {
       buttonObjectRefs.current[2] = button3
     }
-  }, [angle, scene, mode]) // mode 의존성 추가
+  }, [angle, scene, mode])
 
   const handleButtonClick = (e: ThreeEvent<MouseEvent>, buttonIndex: number) => {
     e.stopPropagation()
@@ -121,10 +160,14 @@ export function LaserPointer({
       ref={pivotGroupRef}
       position={position}
       scale={0.1}
+      castShadow
+      receiveShadow
     >
       <group 
         ref={modelGroupRef}
         position={[-pivotOffset[0], -pivotOffset[1], -pivotOffset[2]]}
+        castShadow
+        receiveShadow
         onClick={(e: ThreeEvent<MouseEvent>) => {        
           const buttonIndex = getButtonIndex(e.object)
           if (buttonIndex !== null) {

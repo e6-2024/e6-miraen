@@ -21,7 +21,7 @@ export default function Model({
   onAngleChange,
   ...props 
 }: ModelProps) {
-  const { scene } = useGLTF('models/5-1-2/Other_equipment.glb') // 레이저 포인터 제외된 모델
+  const { scene } = useGLTF('models/5-1-2/Other_equipment.glb')
   const [hoveredButton, setHoveredButton] = useState<number | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
@@ -86,6 +86,51 @@ export default function Model({
         return [0,Math.PI/2, 3*Math.PI/2]
     }
   }
+
+  useEffect(() => {
+    // 모든 메시에 그림자 설정 적용
+    scene.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        const mesh = child as THREE.Mesh
+        
+        // 모든 오브젝트가 그림자를 만들고 받도록 설정
+        mesh.castShadow = true
+        mesh.receiveShadow = true
+        
+        // 바닥면이나 테이블 같은 큰 평면은 그림자를 더 잘 받도록 설정
+        if (child.name?.toLowerCase().includes('table') || 
+            child.name?.toLowerCase().includes('plane') ||
+            child.name?.toLowerCase().includes('floor') ||
+            child.name?.toLowerCase().includes('ground')) {
+          mesh.receiveShadow = true
+          // 바닥면은 그림자를 만들지 않도록 설정 (선택사항)
+          mesh.castShadow = false
+        }
+        
+        // 재질 설정 개선
+        if (mesh.material) {
+          if (Array.isArray(mesh.material)) {
+            mesh.material.forEach(mat => {
+              if (mat instanceof THREE.MeshStandardMaterial || 
+                  mat instanceof THREE.MeshPhysicalMaterial ||
+                  mat instanceof THREE.MeshLambertMaterial) {
+                // 그림자가 더 잘 보이도록 재질 설정
+                mat.shadowSide = THREE.DoubleSide
+              }
+            })
+          } else {
+            const material = mesh.material as THREE.Material
+            if (material instanceof THREE.MeshStandardMaterial || 
+                material instanceof THREE.MeshPhysicalMaterial ||
+                material instanceof THREE.MeshLambertMaterial) {
+              // 그림자가 더 잘 보이도록 재질 설정
+              material.shadowSide = THREE.DoubleSide
+            }
+          }
+        }
+      }
+    })
+  }, [scene])
 
   return (
     <>

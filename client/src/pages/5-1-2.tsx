@@ -3,13 +3,20 @@ import { Canvas, useThree } from '@react-three/fiber'
 import { useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { useState, useMemo } from 'react'
-import { OrbitControls, Environment, useProgress, AccumulativeShadows, RandomizedLight } from '@react-three/drei'
+import {
+  OrbitControls,
+  Environment,
+  useProgress,
+  AccumulativeShadows,
+  RandomizedLight,
+  ContactShadows,
+} from '@react-three/drei'
 import { OpticalLab } from '../scenes/OpticalLab'
 import { RayToggleButton } from '@/components/5-1-2/buttonToggle'
 import Scene from '@/components/canvas/Scene'
 import Model from '@/components/5-1-2/Model'
 import Intro from '@/components/intro/Intro'
-import { SpeechBubble } from '@/components/6-1-1/SpeechBubble'
+import { SpeechBubble } from '@/components/5-1-2/SpeechBubble'
 
 import * as THREE from 'three'
 
@@ -207,26 +214,18 @@ function ExplanationBox({ isVisible, mode, lensType }: ExplanationBoxProps) {
 }
 
 // 나레이션 팝업 컴포넌트 추가
-function NarrationPopup({ 
-  isVisible, 
-  text, 
-  onHide 
-}: { 
-  isVisible: boolean; 
-  text: string; 
-  onHide: () => void; 
-}) {
+function NarrationPopup({ isVisible, text, onHide }: { isVisible: boolean; text: string; onHide: () => void }) {
   useEffect(() => {
     if (isVisible) {
       const timer = setTimeout(() => {
-        onHide();
-      }, 5000); // 5초 후 자동 숨김
+        onHide()
+      }, 5000) // 5초 후 자동 숨김
 
-      return () => clearTimeout(timer);
+      return () => clearTimeout(timer)
     }
-  }, [isVisible, onHide]);
+  }, [isVisible, onHide])
 
-  if (!isVisible) return null;
+  if (!isVisible) return null
 
   return (
     <div
@@ -248,8 +247,7 @@ function NarrationPopup({
         backdropFilter: 'blur(10px)',
         border: '1px solid rgba(255, 255, 255, 0.1)',
         animation: 'fadeInSlideDown 0.4s ease-out',
-      }}
-    >
+      }}>
       {text}
       <style jsx>{`
         @keyframes fadeInSlideDown {
@@ -264,7 +262,7 @@ function NarrationPopup({
         }
       `}</style>
     </div>
-  );
+  )
 }
 
 export default function Home() {
@@ -304,31 +302,31 @@ export default function Home() {
   const getNarrationText = (mode: string, lens?: string) => {
     switch (mode) {
       case 'direct':
-        return '빛은 곧게 나아갑니다.';
+        return '빛은 곧게 나아갑니다.'
       case 'reflection':
-        return '빛은 곧게 나아가다가 거울에 부딪치면 방향이 바뀌어 나아갑니다.';
+        return '빛은 곧게 나아가다가 거울에 부딪치면 방향이 바뀌어 나아갑니다.'
       case 'refraction':
         return lens === 'convex'
           ? '빛은 볼록렌즈를 통과할 때 렌즈의 가운데 쪽으로 굴절하여 나아갑니다.'
-          : '빛은 오목렌즈를 통과할 때 렌즈의 바깥쪽으로 굴절하여 나아갑니다.';
+          : '빛은 오목렌즈를 통과할 때 렌즈의 바깥쪽으로 굴절하여 나아갑니다.'
       default:
-        return '';
+        return ''
     }
-  };
+  }
 
   useEffect(() => {
     const allRaysOn = rayStates.every((state) => state)
 
     if (allRaysOn) {
       playExplanationAudio()
-      
+
       // 나레이션 팝업 표시
-      const text = getNarrationText(activeMode, lensType);
-      setNarrationText(text);
-      setShowNarration(true);
+      const text = getNarrationText(activeMode, lensType)
+      setNarrationText(text)
+      setShowNarration(true)
     } else {
       stopCurrentNarration()
-      setShowNarration(false);
+      setShowNarration(false)
     }
   }, [rayStates, activeMode, lensType])
 
@@ -453,7 +451,7 @@ export default function Home() {
 
   // 나레이션 숨김 핸들러 추가
   const handleHideNarration = () => {
-    setShowNarration(false);
+    setShowNarration(false)
   }
 
   useEffect(() => {
@@ -469,20 +467,27 @@ export default function Home() {
   return (
     <div className='w-screen h-screen flex flex-col overflow-hidden relative'>
       <LoadingTracker onLoadingComplete={handleLoadingComplete} />
-      
+
       {/* 나레이션 팝업 추가 */}
-      <NarrationPopup 
-        isVisible={showNarration}
-        text={narrationText}
-        onHide={handleHideNarration}
-      />
-      
+      <NarrationPopup isVisible={showNarration} text={narrationText} onHide={handleHideNarration} />
+
       <div className='flex-1'>
         <Scene shadows camera={{ position: [0, 0, 20], fov: 50 }}>
           <Environment preset='city' environmentIntensity={0.2}>
-            <color attach="background" args={['#00b7ffff']} /> 
-            </Environment>
-          <directionalLight color='white' intensity={2} position={[30, 20, 30]} castShadow />
+            <color attach='background' args={['#00b7ffff']} />
+          </Environment>
+
+          <directionalLight
+            color='white'
+            intensity={1.5}
+            position={[15, 25, 15]}
+            castShadow
+            shadow-mapSize={[1024, 1024]}
+          />
+
+
+          <ambientLight color='white' intensity={0.4} />
+
           <OpticalLab mode={activeMode} lensType={lensType} rayStates={rayStates} laserAngle={laserAngle} />
 
           <Model
@@ -595,7 +600,7 @@ export default function Home() {
           </div>
         </>
       )}
-      
+
       {isLoaded && showIntro && (
         <Intro
           onEnter={handleEnterExperience}
