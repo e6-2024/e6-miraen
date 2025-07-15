@@ -1,12 +1,201 @@
-// src/pages/5-2-1.tsx - Physics 전체 리셋 버전 + 정리하기 기능 추가
+// src/pages/5-2-1.tsx - Physics 전체 리셋 버전 + 정리하기 기능 + 체 선택 페이지 추가
 import { useState, useRef, useEffect } from 'react';
 import { Physics } from '@react-three/cannon';
-import { useProgress } from '@react-three/drei';
+import { useProgress, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import Scene from '@/components/canvas/Scene';
 import SieveSimulation from '@/scenes/SieveSimulation';
 import Intro from '@/components/intro/Intro';
 import { Environment, OrbitControls } from '@react-three/drei';
+
+function SievePreview({ level }: { level: number }) {
+  const { scene } = useGLTF('/models/5-2-1/Strainers.gltf');
+  const mesh = scene.children[level]?.clone();
+
+  return (
+    <div className="w-42 h-42 mb-4">
+      <Scene camera={{ position: [0, 2, 4], fov: 50 }}>
+        <ambientLight intensity={0.4} />
+        <directionalLight position={[2, 2, 2]} intensity={0.6} />
+        <Environment preset='warehouse' backgroundIntensity={0.1} />
+        {mesh && (
+          <primitive 
+            object={mesh} 
+            position={[0, -0.5, -0.5]} 
+            scale={0.125}
+            rotation={[-1,3.1,0]}
+            bn={[0.4, 0.1, 0]}
+          />
+        )}
+        <OrbitControls 
+          enablePan={false}
+          enableZoom={false}
+        />
+      </Scene>
+    </div>
+  );
+}
+
+// 3D 구슬 프리뷰 컴포넌트
+function ParticlePreview({ radius, color }: { radius: number; color: string }) {
+  return (
+    <div className="w-20 h-20 mx-auto mb-2">
+      <Scene camera={{ position: [0, 0, 3], fov: 50 }}>
+        <ambientLight intensity={0.4} />
+        <directionalLight position={[2, 2, 2] } intensity={0.6} />
+        <Environment preset='warehouse' backgroundIntensity={0.1} />
+        <mesh castShadow>
+          <sphereGeometry args={[radius, 16, 12]} />
+          <meshStandardMaterial color={color} />
+        </mesh>
+        <OrbitControls 
+          enablePan={false}
+          enableZoom={false}
+          autoRotate
+          autoRotateSpeed={4}
+        />
+      </Scene>
+    </div>
+  );
+}
+
+// 체 선택 페이지 컴포넌트
+function SieveSelectionPage({ onSelectSieve }: { onSelectSieve: (selectedLevel: number) => void }) {
+  const [isVisible, setIsVisible] = useState(false);
+  const [selectedSieve, setSelectedSieve] = useState<number | null>(null);
+
+  useEffect(() => {
+    // 페이지 애니메이션을 위한 지연
+    const timer = setTimeout(() => setIsVisible(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // 나레이션 재생
+  useEffect(() => {
+    const playNarration = () => {
+      try {
+        const audio = new Audio('/sounds/5-2-1/5-2-1-intro.MP3'); // 체 소개 나레이션 파일 경로
+        audio.volume = 0.5;
+        audio.play().catch(error => {
+          console.log('나레이션 재생 실패:', error.name);
+        });
+      } catch (error) {
+        console.log('나레이션 생성 실패:', error);
+      }
+    };
+
+    playNarration();
+  }, []);
+
+  const playClickSound = (audioPath: string = '/sounds/Enter_Cute.mp3') => {
+    try {
+      const audio = new Audio(audioPath);
+      audio.volume = 0.7;
+      audio.play().catch(error => {
+        console.log('효과음 재생 실패:', error.name);
+      });
+    } catch (error) {
+      console.log('효과음 생성 실패:', error);
+    }
+  };
+
+  const handleSieveSelect = (level: number) => {
+    setSelectedSieve(level);
+  };
+
+  const handleStartExperiment = () => {
+    if (selectedSieve !== null) {
+      playClickSound();
+      setIsVisible(false);
+      setTimeout(() => onSelectSieve(selectedSieve), 300);
+    }
+  };
+
+  const sieveTypes = [
+    {
+      level: 0,
+      title: "눈의 크기가 큰 구슬보다 큰 체",
+      color: "from-red-200 to-red-400"
+    },
+    {
+      level: 2,
+      title: "눈의 크기가 큰 구슬보다 작고 작은 구슬보다 큰 체",
+      color: "from-green-200 to-green-400"
+    },
+    {
+      level: 1,
+      title: "눈의 크기가 작은 구슬보다 작은 체",
+      color: "from-blue-200 to-blue-400"
+    }
+  ];
+
+  return (
+    <div className="fixed inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center z-50">
+      <div 
+        className={`bg-white rounded-2xl p-8 max-w-7xl mx-4 transform transition-all duration-500 shadow-2xl ${
+          isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+        }`}
+      >
+        <div className="text-center w-[600px] mb-4 left-1/2 relative -translate-x-1/2">
+          <h1 className="text-2xl font-bold text-black mb-2">구슬과 체의 눈 크기를 비교한 뒤,눈의 크기가 알맞은 체를 골라 구슬 혼합물을 분리해 보세요.</h1>
+        </div>
+
+        <div className="mb-4 p-6 bg-gray-50 rounded-xl">
+          <div className="flex justify-center items-center space-x-12">
+            <div className="text-center">
+              <ParticlePreview radius={0.5} color="orange" />
+              <p className="text-sm font-medium text-gray-700">큰 구슬</p>
+            </div>
+            <div className="text-4xl text-gray-400">+</div>
+            <div className="text-center">
+              <ParticlePreview radius={0.3} color="limegreen" />
+              <p className="text-sm font-medium text-gray-700">작은 구슬</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex gap-3 mb-4">
+          {sieveTypes.map((sieve) => (
+            <div
+              key={sieve.level}
+              className={`cursor-pointer transform transition-all duration-300 ${
+                selectedSieve === sieve.level
+                  ? 'ring-4 ring-blue-500 shadow-xl'
+                  : 'hover:shadow-lg'
+              }`}
+              onClick={() => handleSieveSelect(sieve.level)}
+            >
+              <div className={`bg-gradient-to-br ${sieve.color} rounded-xl p-6 h-full`}>
+                <div className="text-center mb-4">
+                  <h3 className="font-bold text-gray-800 mb-4">{sieve.title}</h3>
+                  <div className="bg-white rounded-lg p-4 mb-4 shadow-inner">
+                    <SievePreview level={sieve.level} />
+                  </div>
+                </div>
+                
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* 실험 시작 버튼 */}
+        <div className="text-center">
+          <button
+            onClick={handleStartExperiment}
+            disabled={selectedSieve === null}
+            className={`px-8 py-3 my-2 font-semibold rounded-lg shadow-lg transition-all duration-300 ${
+              selectedSieve !== null
+                ? 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-xl transform hover:scale-105'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
+          >
+            {selectedSieve !== null ? '선택한 체로 실험하기' : '체를 선택해주세요'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // 정리하기 팝업 컴포넌트
 function SummaryPopup({ onClose }: { onClose: () => void }) {
@@ -117,6 +306,7 @@ export default function Home() {
   const [gravity, setGravity] = useState<[number, number, number]>([0, -9.81, 0]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
+  const [showSieveSelection, setShowSieveSelection] = useState(false); // 체 선택 페이지 상태 추가
   const [physicsKey, setPhysicsKey] = useState(0); // Physics 리셋용 키
   const [showSummaryButton, setShowSummaryButton] = useState(false);
   const [showSummaryPopup, setShowSummaryPopup] = useState(false);
@@ -148,7 +338,6 @@ export default function Home() {
     }, 1000);
   }
 };
-
 
   const handleSpawnHandled = () => {
     setTriggerSpawn(false);
@@ -235,7 +424,13 @@ export default function Home() {
     setTimeout(() => {
       setShowIntro(false);
       playNarration1();
+      setShowSieveSelection(true);
     }, 300);
+  };
+
+  const handleSelectSieve = (selectedLevel: number) => {
+    setSelectedLevel(selectedLevel); // 선택된 체 레벨 설정
+    setShowSieveSelection(false);
   };
 
   const handleReset = () => {
@@ -272,7 +467,52 @@ export default function Home() {
 
   return (
     <div className='w-screen h-screen relative'>
-      {!showIntro && (
+      {/* 3D Scene - 항상 렌더링하되 체 선택 페이지에서만 숨김 */}
+      <div className={`absolute inset-0 ${showSieveSelection ? 'invisible' : 'visible'}`}>
+        <Scene 
+          shadows
+          camera={{ position: [0, 10, 10], fov: 50 }}
+          gl={{ 
+            shadowMap: { 
+              enabled: true, 
+              type: THREE.PCFSoftShadowMap
+            } 
+          }}
+        >
+          <LoadingTracker onLoadingComplete={handleLoadingComplete} />
+          <ShadowLighting />
+
+          {/* Physics 컴포넌트를 physicsKey로 완전 리셋 */}
+          <Physics 
+            key={physicsKey}
+            gravity={gravity} 
+            allowSleep={true}
+            iterations={15}
+            defaultContactMaterial={{
+              friction: 0.3,
+              restitution: 0.2,
+            }}
+            tolerance={0.001}
+          >
+            <SieveSimulation
+              triggerSpawn={triggerSpawn}
+              onSpawnHandled={handleSpawnHandled}
+              selectedLevel={selectedLevel}
+              setGravity={setGravity}
+              onSeparationComplete={handleSeparationComplete}
+            />
+          </Physics>
+          
+          <Environment preset='warehouse' backgroundIntensity={0.1}/>
+          <OrbitControls 
+            minDistance={1} 
+            maxDistance={15}
+          />
+        </Scene>
+      </div>
+
+      {/* UI 컨트롤 - 실험 화면에서만 표시 */}
+      {!showIntro && !showSieveSelection && (
         <>
         <div className='absolute top-5 right-5 flex flex-col gap-2 z-10'>
           <div className='flex gap-2'>
@@ -331,56 +571,23 @@ export default function Home() {
         </>
       )}
 
-      <Scene 
-        shadows
-        camera={{ position: [0, 10, 10], fov: 50 }}
-        gl={{ 
-          shadowMap: { 
-            enabled: true, 
-            type: THREE.PCFSoftShadowMap
-          } 
-        }}
-      >
-        <LoadingTracker onLoadingComplete={handleLoadingComplete} />
-        <ShadowLighting />
-
-        {/* Physics 컴포넌트를 physicsKey로 완전 리셋 */}
-        <Physics 
-          key={physicsKey}
-          gravity={gravity} 
-          allowSleep={true}
-          iterations={15}
-          defaultContactMaterial={{
-            friction: 0.3,
-            restitution: 0.2,
-          }}
-          tolerance={0.001}
-        >
-          <SieveSimulation
-            triggerSpawn={triggerSpawn}
-            onSpawnHandled={handleSpawnHandled}
-            selectedLevel={selectedLevel}
-            setGravity={setGravity}
-            onSeparationComplete={handleSeparationComplete}
+      {/* 첫 번째 인트로 화면 */}
+      {showIntro && (
+        <div className="absolute inset-0 z-30">
+          <Intro 
+            onEnter={handleEnterExperience}
+            title="혼합물의 분리"
+            description={[
+              "모래와 자갈이 섞여 있는 모습은 공사장 등 우리 생활의 다양한 곳에서 볼 수 있습니다. 모래와 자갈의 혼합물은 어떤 성질을 이용해 분리할 수 있는지 알아봅시다."
+            ]}
+            backgroundSvg='/img/cover/5-2-1.svg'
           />
-        </Physics>
-        
-        <Environment preset='warehouse' backgroundIntensity={0.1}/>
-        <OrbitControls 
-          minDistance={1} 
-          maxDistance={15}
-        />
-      </Scene>
+        </div>
+      )}
 
-      {isLoaded && showIntro && (
-        <Intro 
-          onEnter={handleEnterExperience}
-          title="혼합물의 분리"
-          description={[
-            "모래와 자갈이 섞여 있는 모습은 공사장 등 우리 생활의 다양한 곳에서 볼 수 있습니다. 모래와 자갈의 혼합물은 어떤 성질을 이용해 분리할 수 있는지 알아봅시다."
-          ]}
-          backgroundSvg='/img/cover/5-2-1.svg'
-        />
+      {/* 체 선택 페이지 */}
+      {showSieveSelection && (
+        <SieveSelectionPage onSelectSieve={handleSelectSieve} />
       )}
 
       {/* 정리하기 팝업 */}
