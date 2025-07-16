@@ -485,7 +485,6 @@ export default function Home() {
             shadow-mapSize={[1024, 1024]}
           />
 
-
           <ambientLight color='white' intensity={0.4} />
 
           <OpticalLab mode={activeMode} lensType={lensType} rayStates={rayStates} laserAngle={laserAngle} />
@@ -609,6 +608,7 @@ export default function Home() {
             '빛이 공기 중에서 나아갈 때, 거울과 같은 물체에 부딪쳤을 때, 렌즈를 통과할 때 어떻게 나아가는지 알아봅시다.',
           ]}
           backgroundSvg='/img/cover/5-1-2.svg'
+          descriptionSound='/sounds/5-1-2/5-1-2-Goal.MP3'
         />
       )}
     </div>

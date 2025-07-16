@@ -1,6 +1,15 @@
 import { Canvas } from '@react-three/fiber'
 import { useEffect } from 'react'
-import { OrbitControls, Environment, ContactShadows, Lightformer, PerformanceMonitor, AccumulativeShadows, RandomizedLight, useProgress} from '@react-three/drei'
+import {
+  OrbitControls,
+  Environment,
+  ContactShadows,
+  Lightformer,
+  PerformanceMonitor,
+  AccumulativeShadows,
+  RandomizedLight,
+  useProgress,
+} from '@react-three/drei'
 import Model from '../components/5-1-3/Model'
 import { useState, useRef, useCallback } from 'react'
 import Scene from '@/components/canvas/Scene'
@@ -78,13 +87,13 @@ function useSpoonBySpoonBeaker(beakerId: string, totalSpoons: number) {
 
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
   const { progress, active } = useProgress()
-  
+
   useEffect(() => {
     if (!active && progress === 100) {
       onLoadingComplete()
     }
   }, [active, progress, onLoadingComplete])
-  
+
   return null
 }
 
@@ -135,31 +144,31 @@ function useSpoonAnimation() {
 
     const startTime = Date.now()
     const duration = 1000
-    
+
     intervalRef.current = setInterval(() => {
       const elapsed = Date.now() - startTime
       const progress = Math.min(elapsed / duration, 1)
-      const currentRotation = -progress * Math.PI/2
-      
+      const currentRotation = (-progress * Math.PI) / 2
+
       setRotation(currentRotation)
-      
+
       if (progress >= 1) {
         if (intervalRef.current) {
           clearInterval(intervalRef.current)
           intervalRef.current = null
         }
-        
+
         animationRef.current = setTimeout(() => {
           const returnStartTime = Date.now()
           const returnDuration = 500
-          
+
           intervalRef.current = setInterval(() => {
             const returnElapsed = Date.now() - returnStartTime
             const returnProgress = Math.min(returnElapsed / returnDuration, 1)
-            const returnRotation = -Math.PI/2 * (1 - returnProgress)
-            
+            const returnRotation = (-Math.PI / 2) * (1 - returnProgress)
+
             setRotation(returnRotation)
-            
+
             if (returnProgress >= 1) {
               if (intervalRef.current) {
                 clearInterval(intervalRef.current)
@@ -193,13 +202,13 @@ function useSpoonAnimation() {
     rotation,
     isAnimating,
     triggerAnimation,
-    cleanup
+    cleanup,
   }
 }
 
 export default function Home() {
   const [perfSucks, degrade] = useState(false)
-  
+
   const leftBeaker = useSpoonBySpoonBeaker('LEFT', 1)
   const leftTomato = useTomatoDrop('LEFT_TOMATO')
   const rightBeaker = useSpoonBySpoonBeaker('RIGHT', 5)
@@ -264,7 +273,7 @@ export default function Home() {
     try {
       const audio = new Audio(audioPath)
       audio.volume = 0.7
-      audio.play().catch(error => {
+      audio.play().catch((error) => {
         console.log('효과음 재생 실패:', error.name)
       })
     } catch (error) {
@@ -272,17 +281,15 @@ export default function Home() {
     }
   }
 
-  
   const handleEnterExperience = () => {
     // 효과음 재생
     playClickSound()
-    
+
     // 효과음이 재생될 시간을 확보한 후 Intro 숨김
     setTimeout(() => {
       setShowIntro(false)
     }, 300) // 300ms 지연
   }
-
 
   return (
     <div className='w-screen h-screen flex flex-col'>
@@ -411,24 +418,30 @@ export default function Home() {
       )}
 
       <LoadingTracker onLoadingComplete={handleLoadingComplete} />
-      
+
       <Scene shadows camera={{ position: [4, 1, 8], fov: 20 }}>
-        
         <PerformanceMonitor onDecline={() => degrade(true)} />
-        <Environment frames={perfSucks ? 1 : Infinity} preset="studio" resolution={256} background ={false} blur={1}>
+        <Environment frames={perfSucks ? 1 : Infinity} preset='studio' resolution={256} background={false} blur={1}>
           <Lightformer intensity={4} rotation-x={Math.PI / 2} position={[0, 5, -9]} scale={[10, 10, 1]} />
           <Lightformer intensity={4} rotation-x={Math.PI / 2} position={[0, 5, -9]} scale={[10, 10, 1]} />
           <group rotation={[Math.PI / 2, 1, 0]}>
             <Lightformer intensity={0.5} rotation-y={Math.PI / 2} position={[-5, 1, -1]} scale={[50, 2, 1]} />
             <Lightformer intensity={0.5} rotation-y={Math.PI / 2} position={[-5, -1, -1]} scale={[50, 2, 1]} />
           </group>
-          <Lightformer intensity={5} form="ring" color="white" rotation-y={Math.PI / 2} position={[1, 1, 1]} scale={[4, 4, 1]} />
+          <Lightformer
+            intensity={5}
+            form='ring'
+            color='white'
+            rotation-y={Math.PI / 2}
+            position={[1, 1, 1]}
+            scale={[4, 4, 1]}
+          />
         </Environment>
         <ContactShadows position={[0, -0.59, 0]} opacity={0.9} scale={10} blur={1.5} far={2} color='black' frames={2} />
         <AccumulativeShadows frames={20} alphaTest={0.15} opacity={0.1} scale={20} position={[0, -0.59, 0]}>
           <RandomizedLight amount={4} radius={3} ambient={0.3} intensity={0.5} position={[0, 2, 0]} bias={0.001} />
         </AccumulativeShadows>
-        
+
         <Model
           scale={0.8}
           position={[-1.3, -0.6, 0]}
@@ -454,7 +467,7 @@ export default function Home() {
             riseSpringDamping={15}
           />
         )}
-        
+
         <BaseModel scale={6} position={[-0.5, -0.6, 0]} />
 
         {!leftBeaker.isCompleted && (
@@ -462,16 +475,16 @@ export default function Home() {
         )}
         {!rightBeaker.isCompleted && <Tomato scale={6} position={[-0.7, -0.7, -0.01]} rotation={[1.744, 0.13, 0.8]} />}
 
-        <Spoon 
-          scale={20} 
-          position={[-1.9, 1.0, -0.08]} 
-          rotation={[Math.PI / 2 + leftSpoon.rotation, -Math.PI/12, -Math.PI / 2]} 
+        <Spoon
+          scale={20}
+          position={[-1.9, 1.0, -0.08]}
+          rotation={[Math.PI / 2 + leftSpoon.rotation, -Math.PI / 12, -Math.PI / 2]}
         />
 
-        <Spoon 
-          scale={20} 
-          position={[1.9, 1.0, -0.01]} 
-          rotation={[Math.PI / 2 + rightSpoon.rotation, Math.PI/12, Math.PI / 2]} 
+        <Spoon
+          scale={20}
+          position={[1.9, 1.0, -0.01]}
+          rotation={[Math.PI / 2 + rightSpoon.rotation, Math.PI / 12, Math.PI / 2]}
         />
 
         <Model
@@ -484,15 +497,14 @@ export default function Home() {
           isCompleted={rightBeaker.isCompleted}
         />
 
-        <OrbitControls 
+        <OrbitControls
           minAzimuthAngle={-Math.PI / 4}
           maxAzimuthAngle={Math.PI / 4}
           minPolarAngle={Math.PI / 3 + Math.PI / 10}
           maxPolarAngle={Math.PI / 2}
-          minDistance={1} 
+          minDistance={1}
           maxDistance={20}
         />
-
 
         {rightBeaker.isCompleted && (
           <DirectTomato
@@ -512,14 +524,15 @@ export default function Home() {
       </Scene>
 
       {isLoaded && showIntro && (
-        <Intro 
+        <Intro
           onEnter={handleEnterExperience}
-          title="용해와 용액"
+          title='용해와 용액'
           description={[
-            "색깔로 구별할 수 없는 용액의 진하기는 어떻게 비교할 수 있을까요?",
-            "용액의 상대적인 진하기를 비교해 봅시다."
+            '색깔로 구별할 수 없는 용액의 진하기는 어떻게 비교할 수 있을까요?',
+            '용액의 상대적인 진하기를 비교해 봅시다.',
           ]}
           backgroundSvg='/img/cover/5-1-3.svg'
+          descriptionSound='/sounds/5-1-3/5-1-3-Goal.MP3'
         />
       )}
     </div>

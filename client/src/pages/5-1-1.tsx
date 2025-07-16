@@ -641,6 +641,7 @@ export default function Home() {
           title={`공룡 화석이 만들어지는 \n과정 알아보기`}
           description={['공룡 화석은 어떻게 만들어지는지 알아봅시다.']}
           backgroundSvg='/img/cover/5-1-1.svg'
+          descriptionSound='/sounds/5-1-1/5-1-1-Goal.MP3'
         />
       )}
     </div>
