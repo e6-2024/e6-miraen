@@ -430,7 +430,7 @@ export default function Home() {
       flames.push(
         <Flame 
           key={i}
-          position={[x+0.05, 0.06, z-0.4]} 
+          position={[x+0.05, -0.93, z-0.4]} 
           scale={isHeating && !fireOff ? 0.3 : 0}
           opacity={isThermalMode ? 0.3 : 1}
         />
@@ -518,7 +518,7 @@ export default function Home() {
           onClose={handleSummaryClose}
         />
 
-        <Scene camera={{ position: [0,2, 2], fov: 50 }}>
+        <Scene camera={{ position: [0,1.2, 2.2], fov: 50 }}>
         <LoadingTracker onLoadingComplete={handleLoadingComplete} />
         
         {/* IntroMouseCameraController 추가 */}
@@ -538,7 +538,7 @@ export default function Home() {
             <Lightformer intensity={5} form="ring" color="white" rotation-y={Math.PI / 2} position={[1, 1, 1]} scale={[4, 4, 1]} />
           </Environment>
         )}
-        <fog attach="fog" args={['#0c0c0cff', 1, 30]} />
+        <fog attach="fog" args={['#0c0c0cff', 1, 25]} />
         <fogExp2 attach="fog" color={"#ffffffff"} density={0.09}/>
         <ContactShadows position={[0, 0, 0]} opacity={isThermalMode ? 0.1 : 0.9} scale={30} blur={0.8} far={2} color='black' frames={2} />
         <directionalLight position={[2, 2, 2]} intensity={isThermalMode ? 0.1 : 1} />
@@ -546,7 +546,7 @@ export default function Home() {
         <group onClick={() => {handleFoodClick('fish') ;playGeneralButtonSound(); playNarration('/sounds/5-2-2/5-2-2-A.MP3');}}>
           <Fish 
             scale={1} 
-            position={foodOnPan === 'fish' ? [0.0, 0.1, -0.5] : [1.2, 0.05, 0]}
+            position={foodOnPan === 'fish' ? [0.0,  -0.87, -0.5] : [1.2,  -0.9, 0.3]}
             thermalMode={isThermalMode}
             isHeating={isHeating && foodOnPan === 'fish'}
             heatingTime={foodOnPan === 'fish' ? heatingTime : 0}
@@ -557,7 +557,7 @@ export default function Home() {
         <group onClick={() => {handleFoodClick('meat') ;playGeneralButtonSound(); playNarration('/sounds/5-2-2/5-2-2-A.MP3');}}>
           <Meat 
             scale={1} 
-            position={foodOnPan === 'meat' ? [0.0, 0.1, -0.4] : [-1, 0.05, -0.004]}
+            position={foodOnPan === 'meat' ? [0.0,  -0.87, -0.4] : [-1,  -1, 0.3]}
             thermalMode={isThermalMode}
             isHeating={isHeating && foodOnPan === 'meat'}
             heatingTime={foodOnPan === 'meat' ? heatingTime : 0}
@@ -568,7 +568,7 @@ export default function Home() {
         <group onClick={showTurnOffMessage ? handleFireOff : undefined}>
           <Stove 
             scale={1} 
-            position={[0, 0, 0]} 
+            position={[0, -1, 0]} 
             thermalMode={isThermalMode}
             isHeating={isHeating && !fireOff}
             heatingTime={heatingTime}
@@ -577,24 +577,25 @@ export default function Home() {
         
         <Pan
           scale={1} 
-          position={[0, 0.1, -0.4]} 
+          position={[0, -0.88, -0.4]} 
           thermalMode={isThermalMode}
           isHeating={isHeating && !fireOff}
           heatingTime={heatingTime}
         />
         <Dish
+          position={[0,-1,0.3]}
           thermalMode={isThermalMode}
           isHeating={isHeating}
           heatingTime={0}
         />
         <Dish
-          position={[2.2,0,0]}
+          position={[2.2,-1,0.3]}
           thermalMode={isThermalMode}
           isHeating={isHeating}
           heatingTime={0}
         />
         <BG
-          position={[0,0.04,0]}
+          position={[0,-1,0]}
           thermalMode={isThermalMode}
           isHeating={isHeating}
           heatingTime={heatingTime}
@@ -611,7 +612,7 @@ export default function Home() {
           minPolarAngle={0}
         />
         <StoveController
-          position={[0.04,0.05,0.13]}
+          position={[0.04,-0.96,0.13]}
           thermalMode={isThermalMode}
           isHeating={isHeating}
           foodOnPan={foodOnPan}
