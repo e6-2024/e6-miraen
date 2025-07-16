@@ -6,6 +6,7 @@ import { Canvas } from '@react-three/fiber'
 import { PerfHeadless, usePerf } from 'r3f-perf'
 import '@/styles/index.css'
 
+
 export default function App({ Component, pageProps = { title: 'Home' } }) {
   const ref = useRef()
   return (

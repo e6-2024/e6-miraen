@@ -14,6 +14,7 @@ import { BG } from '@/components/5-2-2/models/BG'
 import {Dish} from '@/components/5-2-2/models/Dish'
 import CameraLogger from '@/components/CameraLogger'
 import StoveController from '@/components/5-2-2/models/StoveController'
+import IntroMouseCameraController from '@/components/IntroMouseCameraController'
 
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
   const { progress, active } = useProgress()
@@ -517,8 +518,11 @@ export default function Home() {
           onClose={handleSummaryClose}
         />
 
-        <Scene camera={{ position: [0,4, 0], fov: 50 }}>
+        <Scene camera={{ position: [0,2, 2], fov: 50 }}>
         <LoadingTracker onLoadingComplete={handleLoadingComplete} />
+        
+        {/* IntroMouseCameraController 추가 */}
+        <IntroMouseCameraController enabled={showIntro} />
         
         <ambientLight intensity={isThermalMode ? 0.1 : 1}/>
         <PerformanceMonitor onDecline={() => degrade(true)} />
@@ -542,7 +546,7 @@ export default function Home() {
         <group onClick={() => {handleFoodClick('fish') ;playGeneralButtonSound(); playNarration('/sounds/5-2-2/5-2-2-A.MP3');}}>
           <Fish 
             scale={1} 
-            position={foodOnPan === 'fish' ? [0.0, 0.1, -0.5] : [-1.8, 0.05, 0]}
+            position={foodOnPan === 'fish' ? [0.0, 0.1, -0.5] : [1.2, 0.05, 0]}
             thermalMode={isThermalMode}
             isHeating={isHeating && foodOnPan === 'fish'}
             heatingTime={foodOnPan === 'fish' ? heatingTime : 0}
@@ -584,7 +588,7 @@ export default function Home() {
           heatingTime={0}
         />
         <Dish
-          position={[-0.8,0,0]}
+          position={[2.2,0,0]}
           thermalMode={isThermalMode}
           isHeating={isHeating}
           heatingTime={0}
@@ -646,9 +650,10 @@ export default function Home() {
             onEnter={handleEnterExperience}
             title="열과 우리 생활"
             description={[
-              "온도가 다른 두 물체가 접촉했을 때 두 물체의 온도 변화를 관찰하고, 온도가 변하는 까닭을 추리해 봅시다.",
+              "온도가 다른 두 물체가 접촉할 때 두 물체 사이에서 열의 이동을 알아봅시다.",
             ]}
             backgroundSvg='/img/cover/5-2-2.svg'
+            descriptionSound='/sounds/5-2-2/5-2-2-Goal.MP3'
           />
         )}
      </div>

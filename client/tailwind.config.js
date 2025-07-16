@@ -1,7 +1,6 @@
 module.exports = {
   mode: 'jit',
-  content: ['./src/pages/**/*.{js,ts,jsx,tsx}', './src/components/**/*.{js,ts,jsx,tsx}'], // remove unused styles in production
-  darkMode: 'media', // or 'media' or 'class'
+  content: ['./src/pages/**/*.{js,ts,jsx,tsx}', './src/components/**/*.{js,ts,jsx,tsx}','./src/app/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
       gridTemplateColumns: {
@@ -11,6 +10,11 @@ module.exports = {
         layout: '100px auto 100px',
         layoutMobile: '0.5fr 2fr 1.5fr 1fr',
         content: '1fr 3fr',
+      },
+      fontFamily: {
+        maplestorybold: 'MaplestoryOTFBold',
+        maplestorylight: 'MaplestoryOTFLight',
+        pretendard:'Pretendard',
       },
       fontSize: {
         xxs: '0.625rem',

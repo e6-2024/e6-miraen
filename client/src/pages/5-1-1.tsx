@@ -483,7 +483,6 @@ function SceneContent({
         dampingFactor={0.05}
       />
 
-      <CameraLogger />
     </>
   )
 }
@@ -630,7 +629,6 @@ export default function Home() {
         </Scene>
       </div>
 
-      {/* 설명 텍스트: play button을 눌렀을 때만 표시 */}
       {!showIntro && isLoaded && showDescription && (
         <div className='absolute bottom-0 left-[50%] text-center p-4 bg-black text-white translate-x-[-50%]'>
           <p className='text-lg font-medium'>{sceneDescriptions[sceneIndex]}</p>

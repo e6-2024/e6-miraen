@@ -8,6 +8,7 @@ interface IntroProps {
   bubbleSvgPath?: string
   simbolSvgPath?: string
   backgroundSvg?: string
+  descriptionSound?: string
 }
 
 export default function Intro({
@@ -15,10 +16,25 @@ export default function Intro({
   title = '날씨와 우리 생활',
   description = '바람은 왜 불까요? 그리고 어떤 방향으로 불까요?\n바닷가에서 바람이 부는 까닭과 바람이 부는 방향에 대해\n알아봅시다.',
   backgroundSvg = '/img/cover/5-1-1.svg',
+  descriptionSound = '',
 }: IntroProps) {
   const backgroundRef = useRef<HTMLDivElement>(null)
   const [isVisible, setIsVisible] = useState(true)
   const [isAnimating, setIsAnimating] = useState(false)
+  const [showGoalPopup, setShowGoalPopup] = useState(false)
+
+  const playDescriptionSound = (audioPath: string = descriptionSound) => {
+    try {
+      const audio = new Audio(audioPath)
+      audio.volume = 0.5
+      audio.play().catch((error) => {
+        console.log('효과음 재생 실패:', error.name)
+      })
+    } catch (error) {
+      console.log('효과음 생성 실패:', error)
+    }
+  }
+
   const handleEnter = () => {
     setIsAnimating(true)
     setTimeout(() => {
@@ -26,6 +42,15 @@ export default function Intro({
       onEnter()
     }, 1000) // 애니메이션 끝나고 UI 제거 (1초 뒤)
   }
+
+  const handleGoalClick = () => {
+    setShowGoalPopup(true)
+  }
+
+  const handleClosePopup = () => {
+    setShowGoalPopup(false)
+  }
+
   if (!isVisible) return null
 
   return (
@@ -45,10 +70,11 @@ export default function Intro({
           `}>
           <img src={backgroundSvg} alt='Background' className='absolute inset-0 w-full h-full object-cover' />
         </div>
-        {/* 제목 및 설명 */}
-        <div className='absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-fit h-fit flex flex-col items-center justify-center gap-36'>
-          <div className='w-fit h-fit flex flex-col items-center justify-center gap-6'>
-            <h1 className='text-6xl mb-7 text-white font-bold leading-tight text-center [text-shadow:_0px_4px_10px_rgb(0_0_0_/_0.50)]'>
+
+        {/* 제목 */}
+        <div className='absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-fit h-fit flex flex-col items-center justify-center gap-10'>
+          <div className='w-fit h-fit flex flex-col items-center justify-center'>
+            <h1 className='text-7xl mb-7 text-white font-bold leading-tight text-center [text-shadow:_0px_4px_10px_rgb(0_0_0_/_0.50)]'>
               {title.split('\n').map((line, i) => (
                 <div key={i}>
                   {line}
@@ -56,23 +82,33 @@ export default function Intro({
                 </div>
               ))}
             </h1>
-            <div className='text-white text-3xl font-light text-center [text-shadow:_0px_4px_10px_rgb(0_0_0_/_0.50)]'>
-              {Array.isArray(description) ? (
-                description.map((line, index) => (
-                  <p key={index} className={index > 0 ? 'mt-1' : ''}>
-                    {line}
-                  </p>
-                ))
-              ) : (
-                <p>{description}</p>
-              )}
-            </div>
+          </div>
+
+          <div className='flex items-center gap-8'>
+            <button
+              onClick={() => {
+                handleGoalClick();
+                playDescriptionSound();
+              }}
+              className='px-8 pt-5 pb-6 bg-[#52AE46] rounded-[30px] shadow-[inset_0px_-10px_10px_0px_rgba(65,87,51,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#6BC05D] hover:shadow-[inset_0px_-10px_10px_0px_rgba(65,87,51,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(65,87,51,0.50)] transition-all duration-300'>
+              <div className='text-center justify-center text-white text-2xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
+                활동 목표
+              </div>
+            </button>
+
+            <button
+              className='px-8 pt-5 pb-6 bg-[#52AE46] rounded-[30px] shadow-[inset_0px_-10px_10px_0px_rgba(65,87,51,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#6BC05D] hover:shadow-[inset_0px_-10px_10px_0px_rgba(65,87,51,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(65,87,51,0.50)] transition-all duration-300'
+              disabled>
+              <div className='text-center justify-center text-white text-2xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
+                활동하기
+              </div>
+            </button>
           </div>
 
           <button
             onClick={handleEnter}
             className='px-9 pt-6 pb-8 bg-[#FF8026] rounded-[40px] shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#ff9b54] hover:shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(152,0,0,0.50)] transition-all duration-300'>
-            <div className="text-center justify-center text-white text-3xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]">
+            <div className='text-center justify-center text-white text-4xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
               시작하기
             </div>
           </button>
@@ -100,7 +136,7 @@ export default function Intro({
       transition-opacity duration-1000 ease-in-out
       ${isAnimating ? 'opacity-0' : 'opacity-100'}
     `}>
-          <h1 className='text-4xl mb-8 text-white leading-tight font-bold'>
+          <h1 className='text-4xl mb-8 text-white leading-tight font-bold [text-shadow:_0px_4px_10px_rgb(0_0_0_/_0.50)]'>
             {title.split('\n').map((line, i) => (
               <div key={i}>
                 {line}
@@ -109,16 +145,25 @@ export default function Intro({
             ))}
           </h1>
 
-          <div className='text-white max-w-sm mb-16 text-xl font-light'>
-            {Array.isArray(description) ? (
-              description.map((line, index) => (
-                <p key={index} className={index > 0 ? 'mt-2' : ''}>
-                  {line}
-                </p>
-              ))
-            ) : (
-              <p>{description}</p>
-            )}
+          {/* 활동 목표 & 활동하기 버튼 (모바일) */}
+          <div className='flex items-center gap-4 mb-12'>
+            {/* 활동 목표 버튼 */}
+            <button
+              onClick={handleGoalClick}
+              className='px-6 py-3 bg-[#52AE46] rounded-[20px] shadow-[inset_0px_-6px_8px_0px_rgba(65,87,51,0.50)] inline-flex justify-center items-center overflow-hidden hover:bg-[#6BC05D] active:scale-95 transition-all duration-300'>
+              <div className='text-center justify-center text-white text-xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
+                활동 목표
+              </div>
+            </button>
+
+            {/* 활동하기 버튼 */}
+            <button
+              className='px-6 py-3 bg-[#52AE46] rounded-[20px] shadow-[inset_0px_-6px_8px_0px_rgba(65,87,51,0.50)] inline-flex justify-center items-center overflow-hidden opacity-50 cursor-not-allowed transition-all duration-300'
+              disabled>
+              <div className='text-center justify-center text-white text-xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
+                활동하기
+              </div>
+            </button>
           </div>
 
           <button
@@ -137,6 +182,35 @@ export default function Intro({
           </button>
         </div>
       </div>
+
+      {/* 활동 목표 팝업 */}
+      {showGoalPopup && (
+        <div className='absolute inset-0 bg-black/50 flex items-center justify-center z-60 p-4'>
+          <div className='bg-white rounded-2xl p-8 max-w-lg mx-4 shadow-2xl transform animate-in fade-in zoom-in duration-300'>
+            <div className='flex flex-row justify-center items-center gap-3 mb-6'>
+              <h3 className='text-2xl font-bold font-maplestorybold text-gray-800'>활동 목표</h3>
+            </div>
+
+            <div className='text-gray-700 text-lg leading-relaxed mb-8 text-center'>
+              {Array.isArray(description) ? (
+                description.map((line, index) => (
+                  <p key={index} className={index > 0 ? 'mt-2' : ''}>
+                    {line}
+                  </p>
+                ))
+              ) : (
+                <p>{description}</p>
+              )}
+            </div>
+
+            <button
+              onClick={handleClosePopup}
+              className='w-full px-6 py-3 bg-[#52AE46] text-white font-semibold rounded-xl hover:bg-[#6BC05D] transition-colors duration-200'>
+              확인
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
