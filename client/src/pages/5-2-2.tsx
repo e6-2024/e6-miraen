@@ -8,7 +8,7 @@ import Stove from '@/components/5-2-2/models/Stove'
 import Model from '@/components/5-1-4-1/Model'
 import Scene from '@/components/canvas/Scene'
 import Flame from '@/components/5-2-2/Flame'
-import Intro from '@/components/intro/Intro'
+import Intro3 from '@/components/intro/Intro3'
 import Pan from '@/components/5-2-2/models/Pan'
 import { BG } from '@/components/5-2-2/models/BG'
 import {Dish} from '@/components/5-2-2/models/Dish'
@@ -647,7 +647,7 @@ export default function Home() {
         )}
 
         {isLoaded && showIntro && (
-          <Intro 
+          <Intro3
             onEnter={handleEnterExperience}
             title="열과 우리 생활"
             description={[
