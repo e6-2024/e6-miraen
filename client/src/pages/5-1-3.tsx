@@ -289,23 +289,23 @@ export default function Home() {
       {!showIntro && (
         <>
           <div className='absolute top-4 left-4 z-10 bg-blue-50/90 backdrop-blur-sm rounded-lg p-4 shadow-lg border border-blue-200 w-48'>
-            <h3 className='text-lg font-semibold text-blue-800 mb-3'>왼쪽 비커</h3>
+            <h3 className='text-lg font-bold text-blue-800 mb-3'>왼쪽 비커</h3>
             <div className='mb-3 p-3 bg-blue-100 rounded-lg'>
-              <div className='text-sm text-blue-700'>
+              <div className='text-sm text-blue-700 font-light'>
                 <div>
-                  투입량: <span className='font-semibold'>1스푼</span>
+                  투입량: <span className='font-bold'>1스푼</span>
                 </div>
               </div>
             </div>
 
             {leftBeaker.isExperimentRunning && (
-              <div className='mb-3 p-2 bg-yellow-100 border border-yellow-300 rounded text-sm text-yellow-800'>
+              <div className='mb-3 p-2 bg-yellow-100 border font-light border-yellow-300 rounded text-sm text-yellow-800'>
                 {leftBeaker.isDropping ? `${leftBeaker.currentSpoon}번째 스푼 용해 중...` : '다음 스푼 준비 중...'}
               </div>
             )}
 
             {leftBeaker.isCompleted && !leftTomato.isDropped && (
-              <div className='mb-3 p-2 bg-green-100 border border-green-300 rounded text-sm text-green-800'>
+              <div className='mb-3 p-2 bg-green-100 border border-green-300 rounded text-sm text-green-800 font-light'>
                 ✅ 설탕이 용해되었어요! 이제 토마토를 떨어뜨려보세요.
               </div>
             )}
@@ -315,13 +315,13 @@ export default function Home() {
                 <button
                   onClick={leftBeaker.startExperiment}
                   disabled={leftBeaker.isExperimentRunning || leftBeaker.isCompleted}
-                  className='w-full px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm'>
+                  className='w-full px-3 py-2 bg-blue-500 text-white rounded font-light hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm'>
                   설탕 실험
                 </button>
                 <button
                   onClick={leftBeaker.stopExperiment}
                   disabled={!leftBeaker.isExperimentRunning}
-                  className='w-full px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm'>
+                  className='w-full px-3 py-2 bg-red-500 text-white rounded font-light hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm'>
                   중지
                 </button>
               </div>
@@ -330,7 +330,7 @@ export default function Home() {
                 <button
                   onClick={leftTomato.dropTomato}
                   disabled={leftTomato.isDropped}
-                  className='px-3 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm'>
+                  className='px-3 py-2 bg-purple-500 text-white rounded font-light hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm'>
                   🍅 토마토 떨어뜨리기
                 </button>
               )}
@@ -342,24 +342,24 @@ export default function Home() {
                   leftSpoon.cleanup()
                 }}
                 disabled={leftBeaker.isExperimentRunning}
-                className='px-3 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm'>
+                className='px-3 py-2 bg-gray-500 text-white rounded font-light hover:bg-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm'>
                 초기화
               </button>
             </div>
           </div>
 
           <div className='absolute top-4 right-4 z-10 bg-green-50/90 backdrop-blur-sm rounded-lg p-4 shadow-lg border border-green-200 w-48'>
-            <h3 className='text-lg font-semibold text-green-800 mb-3'>오른쪽 비커</h3>
+            <h3 className='text-lg font-bold text-green-800 mb-3'>오른쪽 비커</h3>
             <div className='mb-3 p-3 bg-green-100 rounded-lg'>
-              <div className='text-sm text-green-700'>
+              <div className='text-sm text-green-700 font-light'>
                 <div>
-                  투입량: <span className='font-semibold'>5스푼</span>
+                  투입량: <span className='font-bold'>5스푼</span>
                 </div>
               </div>
             </div>
 
             {rightBeaker.isExperimentRunning && (
-              <div className='mb-3 p-2 bg-yellow-100 border border-yellow-300 rounded text-sm text-yellow-800'>
+              <div className='mb-3 p-2 bg-yellow-100 border font-light border-yellow-300 rounded text-sm text-yellow-800'>
                 {rightBeaker.isDropping ? `${rightBeaker.currentSpoon}번째 스푼 용해 중...` : '다음 스푼 준비 중...'}
               </div>
             )}
@@ -375,13 +375,13 @@ export default function Home() {
                 <button
                   onClick={rightBeaker.startExperiment}
                   disabled={rightBeaker.isExperimentRunning || rightBeaker.isCompleted}
-                  className='w-full px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm'>
+                  className='w-full px-3 py-2 bg-green-500 text-white font-light rounded hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm'>
                   설탕 실험
                 </button>
                 <button
                   onClick={rightBeaker.stopExperiment}
                   disabled={!rightBeaker.isExperimentRunning}
-                  className='w-full px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm'>
+                  className='w-full px-3 py-2 bg-red-500 text-white font-light rounded hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm'>
                   중지
                 </button>
               </div>
@@ -402,7 +402,7 @@ export default function Home() {
                   rightSpoon.cleanup()
                 }}
                 disabled={rightBeaker.isExperimentRunning}
-                className='px-3 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm'>
+                className='px-3 py-2 bg-gray-500 text-white rounded font-light hover:bg-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm'>
                 초기화
               </button>
             </div>

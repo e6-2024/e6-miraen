@@ -228,7 +228,7 @@ export default function Home() {
   const animIndex = animIndexMap[modelKey] ?? 0
 
   return (
-    <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
+    <div className='w-full h-full relative font-light'>
       {/* 로딩 인디케이터 */}
       {isLoading && (
         <div style={{

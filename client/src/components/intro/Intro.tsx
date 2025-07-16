@@ -91,7 +91,7 @@ export default function Intro({
                 playDescriptionSound();
               }}
               className='px-8 pt-5 pb-6 bg-[#52AE46] rounded-[30px] shadow-[inset_0px_-10px_10px_0px_rgba(65,87,51,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#6BC05D] hover:shadow-[inset_0px_-10px_10px_0px_rgba(65,87,51,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(65,87,51,0.50)] transition-all duration-300'>
-              <div className='text-center justify-center text-white text-2xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
+              <div className='text-center justify-center text-white text-2xl font-light [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
                 활동 목표
               </div>
             </button>
@@ -99,7 +99,7 @@ export default function Intro({
             <button
               className='px-8 pt-5 pb-6 bg-[#52AE46] rounded-[30px] shadow-[inset_0px_-10px_10px_0px_rgba(65,87,51,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#6BC05D] hover:shadow-[inset_0px_-10px_10px_0px_rgba(65,87,51,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(65,87,51,0.50)] transition-all duration-300'
               disabled>
-              <div className='text-center justify-center text-white text-2xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
+              <div className='text-center justify-center text-white text-2xl font-light [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
                 활동하기
               </div>
             </button>
@@ -188,10 +188,10 @@ export default function Intro({
         <div className='absolute inset-0 bg-black/50 flex items-center justify-center z-60 p-4'>
           <div className='bg-white rounded-2xl p-8 max-w-lg mx-4 shadow-2xl transform animate-in fade-in zoom-in duration-300'>
             <div className='flex flex-row justify-center items-center gap-3 mb-6'>
-              <h3 className='text-2xl font-bold font-maplestorybold text-gray-800'>활동 목표</h3>
+              <h3 className='text-2xl font-bold text-gray-800'>활동 목표</h3>
             </div>
 
-            <div className='text-gray-700 text-lg leading-relaxed mb-8 text-center'>
+            <div className='text-gray-700 text-lg font-light leading-relaxed mb-8 text-center'>
               {Array.isArray(description) ? (
                 description.map((line, index) => (
                   <p key={index} className={index > 0 ? 'mt-2' : ''}>
@@ -205,7 +205,7 @@ export default function Intro({
 
             <button
               onClick={handleClosePopup}
-              className='w-full px-6 py-3 bg-[#52AE46] text-white font-semibold rounded-xl hover:bg-[#6BC05D] transition-colors duration-200'>
+              className='w-full px-6 py-3 bg-[#52AE46] text-white font-light rounded-xl hover:bg-[#6BC05D] transition-colors duration-200'>
               확인
             </button>
           </div>

@@ -465,7 +465,7 @@ export default function Home() {
   }, [backgroundAudio])
 
   return (
-    <div className='w-screen h-screen flex flex-col overflow-hidden relative'>
+    <div className='w-screen h-screen font-light flex flex-col overflow-hidden relative'>
       <LoadingTracker onLoadingComplete={handleLoadingComplete} />
 
       {/* 나레이션 팝업 추가 */}

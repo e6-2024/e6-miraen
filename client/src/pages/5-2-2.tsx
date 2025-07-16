@@ -54,14 +54,14 @@ function HeatingGauge({
       
       <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden mb-2">
         <div 
-          className={`h-4 rounded-full transition-all duration-300 ${
+          className={`h-4 rounded-full transition-all duration-300 font-light ${
             progress >= 100 ? 'bg-green-500' : 'bg-orange-500'
           }`}
           style={{ width: `${Math.min(progress, 100)}%` }}
         />
       </div>
       
-      <div className="flex justify-center text-xs text-gray-600">
+      <div className="flex justify-center text-xs text-gray-600 font-light">
         <span>{Math.round(progress)}%</span>
       </div>
     </div>
@@ -83,7 +83,7 @@ function SummaryButton({
     <div className="absolute bottom-4 right-4 z-10">
       <button
         onClick={onClick}
-        className="px-6 py-3 bg-white text-black font-semibold transition-all duration-300 shadow-lg hover:scale-105 active:scale-95"
+        className="px-6 py-3 bg-white text-black font-bold transition-all duration-300 shadow-lg hover:scale-105 active:scale-95"
       >
         정리하기
       </button>
@@ -110,10 +110,10 @@ function SummaryMessage({
     <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-30">
       <div className="bg-white rounded-lg p-8 max-w-md mx-4 text-center shadow-xl">
         <h3 className="text-xl font-bold mb-4 text-gray-800">정리하기</h3>
-        <p className="text-gray-700 mb-6 leading-relaxed">{message}</p>
+        <p className="text-gray-700 mb-6 leading-relaxed font-light">{message}</p>
         <button
           onClick={onClose}
-          className="px-6 py-2 bg-white text-black border-2 border-black"
+          className="px-6 py-2 bg-white text-black border-2 border-black font-light"
         >
           확인
         </button>
@@ -486,7 +486,7 @@ export default function Home() {
                   playGeneralButtonSound()
                   setIsThermalMode(!isThermalMode)}
                 }
-                className='px-6 py-2 font-regular bg-white text-black border-black border-2'
+                className='px-6 py-2 font-light bg-white text-black border-black border-2'
               >
                 {isThermalMode ? '돌아가기' : '열화상 카메라로 보기'}
               </button>
@@ -497,7 +497,7 @@ export default function Home() {
                 playGeneralButtonSound()
                 handleResetHeating()
               }}
-              className='px-6 py-2 font-regular bg-white text-black border-black border-2'
+              className='px-6 py-2 font-light bg-white text-black border-black border-2'
             >
               처음으로
             </button>
@@ -628,19 +628,19 @@ export default function Home() {
         )}
 
         {!showIntro && !foodOnPan && (
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 bg-white text-black px-6 py-3 border-2 border-black">
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 bg-white text-black px-6 py-3 border-2 border-black font-light">
             <p className="text-center font-medium">생선 또는 고기를 클릭하여 프라이팬에 올려보세요!</p>
           </div>
         )}
 
         {!showIntro && foodOnPan && !isHeating && (
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 bg-white text-black px-6 py-3 border-2 border-black">
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 bg-white text-black px-6 py-3 border-2 border-black font-light">
             <p className="text-center font-medium">가스레인지 손잡이를 클릭하여 가열해보세요!</p>
           </div>
         )}
 
         {!showIntro && isHeating && !isHeatingComplete && (
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 bg-white text-black px-6 py-3 border-2 border-black">
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 bg-white text-black px-6 py-3 border-2 border-black font-light">
             <p className="text-center font-medium">가열 중입니다... 완료될 때까지 기다려주세요!</p>
           </div>
         )}

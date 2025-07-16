@@ -631,7 +631,7 @@ export default function Home() {
 
       {!showIntro && isLoaded && showDescription && (
         <div className='absolute bottom-0 left-[50%] text-center p-4 bg-black text-white translate-x-[-50%]'>
-          <p className='text-lg font-medium'>{sceneDescriptions[sceneIndex]}</p>
+          <p className='text-lg font-light'>{sceneDescriptions[sceneIndex]}</p>
         </div>
       )}
 

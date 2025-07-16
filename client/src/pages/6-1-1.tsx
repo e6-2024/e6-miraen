@@ -201,7 +201,7 @@ export default function Home() {
             <div className='space-y-3'>
               {/* 유리창 게이지 */}
               <div className='flex items-center gap-3'>
-                <span className='text-blue-600 font-semibold w-12'>🪟</span>
+                <span className='text-blue-600 font-bold w-12'>🪟</span>
                 <div className='flex-1'>
                   <div className='flex justify-between text-sm mb-1'>
                     <span>유리창</span>
@@ -220,7 +220,7 @@ export default function Home() {
 
               {/* 변기 게이지 */}
               <div className='flex items-center gap-3'>
-                <span className='text-teal-600 font-semibold w-12'>🚽</span>
+                <span className='text-teal-600 font-bold w-12'>🚽</span>
                 <div className='flex-1'>
                   <div className='flex justify-between text-sm mb-1'>
                     <span>변기</span>
@@ -239,7 +239,7 @@ export default function Home() {
 
               {/* 욕실 게이지 */}
               <div className='flex items-center gap-3'>
-                <span className='text-green-600 font-semibold w-12'>🛁</span>
+                <span className='text-green-600 font-bold w-12'>🛁</span>
                 <div className='flex-1'>
                   <div className='flex justify-between text-sm mb-1'>
                     <span>욕실</span>

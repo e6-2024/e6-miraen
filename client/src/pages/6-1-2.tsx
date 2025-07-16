@@ -202,7 +202,7 @@ export default function Home() {
 
           {isAnimationPlaying && (
             <div className='space-y-2'>
-              <h3 className='text-sm font-semibold text-gray-700 mb-2'>관찰 시점 선택</h3>
+              <h3 className='text-sm font-bold text-gray-700 mb-2'>관찰 시점 선택</h3>
               {viewButtons.map((button, idx) => (
                 <div key={idx} className='space-y-1'>
                   <button
@@ -212,7 +212,7 @@ export default function Home() {
                         ? 'bg-orange-500 text-white shadow-md'
                         : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
                     }`}>
-                    <div className='font-semibold'>{button.name}</div>
+                    <div className='font-bold'>{button.name}</div>
                     <div className={`text-xs mt-1 ${
                       viewMode === button.mode ? 'text-orange-100' : 'text-gray-600'
                     }`}>

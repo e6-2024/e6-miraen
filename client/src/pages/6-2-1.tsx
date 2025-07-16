@@ -178,7 +178,7 @@ function Thermometer({ temperature, maxTemp = 27.5 }) {
         />
         <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-red-600 rounded-full" />
       </div>
-      <span className="text-lg font-semibold">{temperature}°C</span>
+      <span className="text-lg font-bold">{temperature}°C</span>
     </div>
   );
 }

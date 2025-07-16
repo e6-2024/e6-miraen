@@ -11,11 +11,6 @@ module.exports = {
         layoutMobile: '0.5fr 2fr 1.5fr 1fr',
         content: '1fr 3fr',
       },
-      fontFamily: {
-        maplestorybold: 'MaplestoryOTFBold',
-        maplestorylight: 'MaplestoryOTFLight',
-        pretendard:'Pretendard',
-      },
       fontSize: {
         xxs: '0.625rem',
         xs: '0.75rem',

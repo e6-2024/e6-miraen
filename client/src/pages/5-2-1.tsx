@@ -142,12 +142,12 @@ function SieveSelectionPage({ onSelectSieve }: { onSelectSieve: (selectedLevel: 
 
         <div className="mb-4 p-6 bg-gray-50 rounded-xl">
           <div className="flex justify-center items-center space-x-12">
-            <div className="text-center">
+            <div className="text-center font-light">
               <ParticlePreview radius={0.5} color="orange" />
               <p className="text-sm font-medium text-gray-700">큰 구슬</p>
             </div>
             <div className="text-4xl text-gray-400">+</div>
-            <div className="text-center">
+            <div className="text-center font-light">
               <ParticlePreview radius={0.3} color="limegreen" />
               <p className="text-sm font-medium text-gray-700">작은 구슬</p>
             </div>
@@ -183,7 +183,7 @@ function SieveSelectionPage({ onSelectSieve }: { onSelectSieve: (selectedLevel: 
           <button
             onClick={handleStartExperiment}
             disabled={selectedSieve === null}
-            className={`px-8 py-3 my-2 font-semibold rounded-lg shadow-lg transition-all duration-300 ${
+            className={`px-8 py-3 my-2 font-bold rounded-lg shadow-lg transition-all duration-300 ${
               selectedSieve !== null
                 ? 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-xl transform hover:scale-105'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -243,14 +243,14 @@ function SummaryPopup({ onClose }: { onClose: () => void }) {
         <div className="space-y-4 text-gray-700">
           <div className="flex items-start space-x-2">
             <span className="text-blue-600 font-bold">•</span>
-            <p className="text-s">
+            <p className="text-s font-bold">
               알갱이의 크기가 다른 고체 혼합물은 알갱이의 크기 차이를 이용해 체로 분리할 수 있습니다.
             </p>
           </div>
           
           <div className="flex items-start space-x-2">
             <span className="text-blue-600 font-bold">•</span>
-            <p className="text-s">
+            <p className="text-s font-bold">
               체를 사용할 때에는 알갱이의 크기와 체의 눈 크기를 비교해 알맞은 것을 골라야 합니다.
             </p>
           </div>
@@ -259,7 +259,7 @@ function SummaryPopup({ onClose }: { onClose: () => void }) {
         <div className="mt-6 flex justify-center">
           <button
             onClick={handleClose}
-            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            className="px-6 py-2 bg-blue-600 text-white font-light rounded hover:bg-blue-700 transition-colors"
           >
             확인
           </button>
@@ -515,7 +515,7 @@ export default function Home() {
       {!showIntro && !showSieveSelection && (
         <>
         <div className='absolute top-5 right-5 flex flex-col gap-2 z-10'>
-          <div className='flex gap-2'>
+          <div className='flex gap-2 font-light'>
             {[0, 2, 1].map((level) => (
               <button
                 key={level}
@@ -537,7 +537,7 @@ export default function Home() {
           </div> 
         </div>
         
-        <div className='flex absolute bottom-5 right-5 z-10 gap-2'>
+        <div className='flex absolute bottom-5 right-5 z-10 gap-2 font-light'>
           <button 
             className="px-4 py-2 bg-white border-2 border-black text-black hover:bg-black hover:text-white" 
             onClick={() => {

@@ -121,7 +121,7 @@ export default function Home() {
         
       </Scene>
       
-      <div className='absolute top-2 left-2'>
+      <div className='absolute top-2 left-2 font-light'>
         <Link href="/5-1-4">
           <button className="px-4 py-2 bg-white-500 text-black rounded hover:bg-black hover:text-white">
             되돌아가기
@@ -129,14 +129,7 @@ export default function Home() {
         </Link>
       </div>
 
-      <div style={{
-        position: 'absolute',
-        display: 'flex',
-        top: '2%',
-        right: '2%',
-        gap: '5px',
-        flexDirection: 'column'
-      }}>
+      <div className='absolute flex top-2 right-2 gap-[5px] flex-col font-light'>
         <button
           onClick={handleFold}
           style={{
