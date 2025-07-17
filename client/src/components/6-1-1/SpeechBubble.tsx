@@ -12,34 +12,21 @@ interface SpeechBubbleProps {
   bubbleOffset?: [number, number, number]
 }
 
-export const SpeechBubble = ({
-  position,
-  html,
-  // onPointClick,
-  onBubbleClick,
-  pointColor = '#ff6b6b',
-  pointSize = 0.03,
-  bubbleOffset = [0.2, 0.8, 0],
-}: SpeechBubbleProps) => {
-  const [isHovered, setIsHovered] = React.useState(false)
-
-  useCursor(isHovered)
+export const SpeechBubble = ({ position, html, onBubbleClick, pointColor = '#ff6b6b', bubbleOffset = [0.2, 0.8, 0] }) => {
   return (
     <group position={position}>
-      {/* 말풍선 */}
       <Html prepend={true} transform={false} position={[bubbleOffset[0], bubbleOffset[1], bubbleOffset[2]]}>
         <div
           style={{
-            userSelect: 'none', // 텍스트 선택 방지
-            WebkitUserSelect: 'none', // Safari 지원
-            MozUserSelect: 'none', // Firefox 지원
-            msUserSelect: 'none', // IE 지원
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
+            MozUserSelect: 'none',
+            msUserSelect: 'none',
             borderColor: pointColor,
           }}
           className='bg-white p-3 font-bold rounded-xl shadow-xl border-2 relative cursor-pointer hover:scale-105 active:scale-95 transition-all'
-          onClick={() => {
-            onBubbleClick?.()
-          }}>
+          onClick={() => onBubbleClick?.()}
+        >
           <div className='text-sm text-gray-800 whitespace-nowrap' dangerouslySetInnerHTML={{ __html: html }} />
         </div>
       </Html>
