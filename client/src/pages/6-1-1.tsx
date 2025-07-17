@@ -204,20 +204,6 @@ export default function Home() {
       const duration = 1000
       const startTime = Date.now()
 
-      if (missionId === 'splash01') {
-        //창문
-        playNarration('/sounds/6-1-1/narration/6-1-1-C.MP3')
-      } else if (missionId === 'splash02') {
-        //변기
-        playNarration('/sounds/6-1-1/narration/6-1-1-E.MP3')
-      } else if (missionId === 'splash03') {
-        //욕실바닥
-        playNarration('/sounds/6-1-1/narration/6-1-1-G.MP3')
-      } else if (missionId === 'splash04') {
-        //도마
-        playNarration('/sounds/6-1-1/narration/6-1-1-A.MP3')
-      }
-
       if (missionId === 'splash02' || missionId === 'splash03') {
         setIsBathroomLightOn(true)
       }
@@ -279,7 +265,6 @@ export default function Home() {
 
   const handleWiping = (mouseEvent?: MouseEvent) => {
     if (gamePhase !== 'wiping' || !currentMission) return
-
     if (mouseEvent) {
       const currentMousePos = { x: mouseEvent.clientX, y: mouseEvent.clientY }
 
