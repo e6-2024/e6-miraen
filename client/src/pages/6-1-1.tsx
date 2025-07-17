@@ -165,20 +165,22 @@ export default function Home() {
     if (currentMission === 'splash01') {
       // 창문
       playNarration('/sounds/6-1-1/narration/6-1-1-D.MP3')
+      setShowMessage('단백질 등으로 이루어진 얼룩은 염기성 물질인 유리 세정제와 만나면 성질이 변하여 제거됩니다.')
     } else if (currentMission === 'splash02') {
       // 변기
       playNarration('/sounds/6-1-1/narration/6-1-1-F.MP3')
+      setShowMessage('산성 용액인 변기용 세제로 변기를 청소하면 변기의 때가 성질이 변하여 제거됩니다.')
     } else if (currentMission === 'splash03') {
       // 욕실바닥
       playNarration('/sounds/6-1-1/narration/6-1-1-H.MP3')
+      setShowMessage('염기성 용액인 표백제로 욕실 바닥을 청소하면 욕실 바닥의 떼가 성질이 변하여 제거됩니다.')
     } else if (currentMission === 'splash04') {
       // 도마
       playNarration('/sounds/6-1-1/narration/6-1-1-B.MP3')
+      setShowMessage('염기성 물질인 비린내는 산성 용액인 식초와 만나면 성질이 변하여 제거됩니다.')
     }
 
     playClickSound('/sounds/complete_cleaning.mp3')
-
-    setShowMessage(`🎉 ${mission.name} 청소 완료! 깨끗해졌습니다.`)
     setGamePhase('completed')
   }
 
