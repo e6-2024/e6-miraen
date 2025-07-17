@@ -11,16 +11,17 @@ type GLTFResult = GLTF & {
     TREE_A10_Mat_0: THREE.Mesh
     TREE_A10_Mat_0001: THREE.Mesh
     TREE_A10_Mat_0002: THREE.Mesh
+    TREE_A10_Mat_0003_1: THREE.Mesh
+    TREE_A10_Mat_0003_2: THREE.Mesh
     Plane: THREE.Mesh
-    pSphere1: THREE.Mesh
   }
   materials: {
     BroomSnakeweed_Cluster_Low_Mat: THREE.MeshStandardMaterial
     RoughGrass_Low_Mat: THREE.MeshStandardMaterial
     material: THREE.MeshStandardMaterial
     A10_Mat: THREE.MeshStandardMaterial
+    ['Material.003']: THREE.MeshStandardMaterial
     ['Material.002']: THREE.MeshPhysicalMaterial
-    surfaceShader1: THREE.MeshStandardMaterial
   }
 }
 
@@ -61,6 +62,18 @@ export function Model(props: JSX.IntrinsicElements['group']) {
           geometry={nodes.TREE_A10_Mat_0002.geometry}
           material={materials.A10_Mat}
         />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.TREE_A10_Mat_0003_1.geometry}
+          material={materials.A10_Mat}
+        />
+        <mesh
+          castShadow
+          receiveShadow
+          geometry={nodes.TREE_A10_Mat_0003_2.geometry}
+          material={materials['Material.003']}
+        />
       </group>
       <mesh
         castShadow
@@ -70,7 +83,6 @@ export function Model(props: JSX.IntrinsicElements['group']) {
         position={[0, -0.636, 0]}
         scale={8.736}
       />
-
       <mesh
         castShadow
         receiveShadow

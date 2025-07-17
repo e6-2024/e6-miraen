@@ -1,5 +1,5 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { Environment, OrbitControls, Sky, TransformControls, useProgress } from '@react-three/drei'
+import { Environment, OrbitControls, Sky, TransformControls, useProgress, Cloud, Clouds } from '@react-three/drei'
 import { Model } from '../components/6-1-3/Model'
 import Scene from '@/components/canvas/Scene'
 import Intro from '@/components/intro/Intro'
@@ -7,16 +7,17 @@ import { useState, useRef, useEffect, useMemo, Suspense } from 'react'
 import * as THREE from 'three'
 import { WaterFlowAnimation } from '../components/6-1-3/WaterFlowAnimation'
 import { ControlPoint } from '../components/6-1-3/ControlPoint'
+import { SpeechBubble } from '../components/6-1-3/SpeechBubble'
 
 // 카메라 애니메이션 컴포넌트
-function CameraAnimator({ 
-  targetPosition, 
-  targetLookAt, 
-  onAnimationComplete 
-}: { 
+function CameraAnimator({
+  targetPosition,
+  targetLookAt,
+  onAnimationComplete,
+}: {
   targetPosition: THREE.Vector3 | null
   targetLookAt: THREE.Vector3 | null
-  onAnimationComplete: () => void 
+  onAnimationComplete: () => void
 }) {
   const { camera } = useThree()
   const startPosition = useRef<THREE.Vector3>(new THREE.Vector3())
@@ -67,21 +68,20 @@ function CameraAnimator({
 // 로딩 상태를 추적하는 컴포넌트
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
   const { progress, active } = useProgress()
-  
+
   useEffect(() => {
     if (!active && progress === 100) {
       onLoadingComplete()
     }
   }, [active, progress, onLoadingComplete])
-  
+
   return null
 }
-
 
 export default function Home() {
   // 기본 경로 정의 (하나만!)
   const [basePathPoints, setBasePathPoints] = useState([
-    new THREE.Vector3(3.48, -2.42, 1.82),   // 시작점 (뿌리 부근)
+    new THREE.Vector3(3.48, -2.42, 1.82), // 시작점 (뿌리 부근)
     new THREE.Vector3(1.62, -1.42, 0.92),
     new THREE.Vector3(1.62, -1, 0.2),
     new THREE.Vector3(0, 0, 0),
@@ -93,14 +93,14 @@ export default function Home() {
     new THREE.Vector3(1.16, 8.11, 1.84),
     new THREE.Vector3(1.16, 8.65, 1.38),
     new THREE.Vector3(1.16, 9.34, 1.51),
-    new THREE.Vector3(2.15, 10.1, 1.36),  // 끝점 (잎 끝)
+    new THREE.Vector3(2.15, 10.1, 1.36), // 끝점 (잎 끝)
   ])
 
   // 3개 경로의 설정 (회전과 색상만)
   const waterFlowConfigs = [
     { rotation: 0, color: '#4fc3f7', name: '물길 1', isActive: true },
-    { rotation: Math.PI * 2 / 3, color: '#81c784', name: '물길 2', isActive: true }, // 120도 회전
-    { rotation: Math.PI * 4 / 3, color: '#ff8a65', name: '물길 3', isActive: true }, // 240도 회전
+    { rotation: (Math.PI * 2) / 3, color: '#81c784', name: '물길 2', isActive: true }, // 120도 회전
+    { rotation: (Math.PI * 4) / 3, color: '#ff8a65', name: '물길 3', isActive: true }, // 240도 회전
   ]
 
   const [activeConfigs, setActiveConfigs] = useState(waterFlowConfigs)
@@ -134,21 +134,26 @@ export default function Home() {
     position: THREE.Vector3
     lookAt: THREE.Vector3
   } | null>(null)
+  const [orbitTarget, setOrbitTarget] = useState<[number, number, number]>([0, 3, 0])
 
   // 카메라 위치 프리셋
   const cameraPresets = {
     default: {
       position: new THREE.Vector3(16, 3, 20),
-      lookAt: new THREE.Vector3(0, 0, 0)
+      lookAt: new THREE.Vector3(0, 0, 0),
     },
     leaf: {
       position: new THREE.Vector3(4, 10, 6),
-      lookAt: new THREE.Vector3(3, 8.5, 1.4) // 잎 부분 중심
+      lookAt: new THREE.Vector3(2.15, 8.1, 1.36), // 잎 부분 중심
     },
     root: {
       position: new THREE.Vector3(8, -4, 12),
-      lookAt: new THREE.Vector3(3, -2, 1.5) // 뿌리 부분 중심
-    }
+      lookAt: new THREE.Vector3(3.48, -2.42, 1.82), // 뿌리 부분 중심
+    },
+    stem: {
+      position: new THREE.Vector3(5, 4, 8),
+      lookAt: new THREE.Vector3(0, 3, 0), // 줄기 부분 중심
+    },
   }
 
   const handleLoadingComplete = () => {
@@ -159,7 +164,7 @@ export default function Home() {
     try {
       const audio = new Audio(audioPath)
       audio.volume = 0.7
-      audio.play().catch(error => {
+      audio.play().catch((error) => {
         console.log('효과음 재생 실패:', error.name)
       })
     } catch (error) {
@@ -175,35 +180,33 @@ export default function Home() {
   }
 
   // 카메라 애니메이션 핸들러
-  const handleCameraMove = (preset: 'leaf' | 'root' | 'default') => {
-    // 카메라 이동 버튼에서는 소리 제거
-    
+  const handleCameraMove = (preset: 'leaf' | 'root' | 'stem' | 'default') => {
     // 첫 번째 이동이면 현재 카메라 상태 저장
     if (!isViewingSpecificPart && preset !== 'default') {
       setOriginalCameraState({
         position: new THREE.Vector3(16, 3, 20),
-        lookAt: new THREE.Vector3(0, 0, 0)
+        lookAt: new THREE.Vector3(0, 0, 0),
       })
     }
 
     const targetPreset = cameraPresets[preset]
     setCameraTarget(targetPreset)
-    
-    // OrbitControls 비활성화 (특정 부분 보기 시)
+
+    // OrbitControls target 업데이트
+    const lookAtArray: [number, number, number] = [targetPreset.lookAt.x, targetPreset.lookAt.y, targetPreset.lookAt.z]
+    setOrbitTarget(lookAtArray)
+
+    // OrbitControls 비활성화 (애니메이션 중)
     if (orbitControlsRef.current) {
       orbitControlsRef.current.enabled = false
     }
-    
-    if (preset === 'default') {
-      setIsViewingSpecificPart(false)
-    } else {
-      setIsViewingSpecificPart(true)
-    }
+
+    setIsViewingSpecificPart(preset !== 'default')
   }
 
   const handleCameraAnimationComplete = () => {
-    // OrbitControls는 전체 뷰일 때만 활성화
-    if (orbitControlsRef.current && !isViewingSpecificPart) {
+    // 애니메이션 완료 후 OrbitControls 활성화
+    if (orbitControlsRef.current) {
       orbitControlsRef.current.enabled = true
     }
     setCameraTarget(null)
@@ -228,11 +231,9 @@ export default function Home() {
 
   // 경로 활성화/비활성화
   const togglePathActive = (index: number) => {
-    setActiveConfigs(prev => prev.map((config, i) => 
-      i === index 
-        ? { ...config, isActive: !config.isActive }
-        : config
-    ))
+    setActiveConfigs((prev) =>
+      prev.map((config, i) => (i === index ? { ...config, isActive: !config.isActive } : config)),
+    )
   }
 
   const handleStartAnimation = () => {
@@ -323,49 +324,17 @@ export default function Home() {
 
   return (
     <div className='w-screen h-screen bg-white relative'>
-
-      {/* 카메라 컨트롤 버튼들 */}
-      {!showIntro && (
-        <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2">
-          <button
-            onClick={() => handleCameraMove('leaf')}
-            disabled={cameraTarget !== null}
-            className="bg-white rounded-lg px-4 py-2 hover:bg-black hover:text-white"
-          >
-            잎 보기
-          </button>
-          
-          <button
-            onClick={() => handleCameraMove('root')}
-            disabled={cameraTarget !== null}
-            className="bg-white rounded-lg px-4 py-2 hover:bg-black hover:text-white"
-          >
-            뿌리 보기
-          </button>
-          
-          {isViewingSpecificPart && (
-            <button
-              onClick={() => handleCameraMove('default')}
-              disabled={cameraTarget !== null}
-              className="bg-white rounded-lg px-4 py-2 hover:bg-black hover:text-white"
-            >
-              되돌아가기
-            </button>
-          )}
-        </div>
-      )}
-
       <Scene camera={{ position: [16, 10, 20], fov: 50 }} shadows='soft'>
         <Suspense fallback={null}>
           <LoadingTracker onLoadingComplete={handleLoadingComplete} />
-          
+
           {/* 카메라 애니메이션 컨트롤러 */}
           <CameraAnimator
             targetPosition={cameraTarget?.position || null}
             targetLookAt={cameraTarget?.lookAt || null}
             onAnimationComplete={handleCameraAnimationComplete}
           />
-          
+
           <ambientLight intensity={0.2} />
           <directionalLight
             position={[5, 5, 5]}
@@ -380,12 +349,12 @@ export default function Home() {
             shadow-bias={-0.0001}
           />
 
-          <group ref={sceneRef} position={[0,-2,0]}>
+          <group ref={sceneRef} position={[0, -2, 0]}>
             <Model />
 
             {/* 활성화된 경로들을 회전시켜서 렌더링 */}
             {activeConfigs
-              .filter(config => config.isActive)
+              .filter((config) => config.isActive)
               .map((config, index) => (
                 <group key={`waterflow-${index}`} rotation={[0, config.rotation, 0]}>
                   <WaterFlowAnimation
@@ -403,6 +372,48 @@ export default function Home() {
                 </group>
               ))}
 
+            {/* SpeechBubble 컴포넌트들 - 인트로가 끝난 후에만 표시 */}
+            {!showIntro && (
+              <>
+                {/* 뿌리 부분 설명 */}
+                <SpeechBubble
+                  position={[3.5, -2.5, 2]}
+                  html='<strong>뿌리</strong><br/>물을 흡수하는 곳'
+                  onBubbleClick={() => handleCameraMove('root')}
+                  pointColor='#8B4513'
+                  bubbleOffset={[1, 0.5, 0]}
+                />
+
+                {/* 줄기 부분 설명 */}
+                <SpeechBubble
+                  position={[0.5, 3, 0.5]}
+                  html='<strong>줄기</strong><br/>물이 이동하는 통로'
+                  onBubbleClick={() => handleCameraMove('stem')}
+                  pointColor='#228B22'
+                  bubbleOffset={[-1, 0.5, 0]}
+                />
+
+                {/* 잎 부분 설명 */}
+                <SpeechBubble
+                  position={[2, 9.5, 1.5]}
+                  html='<strong>잎</strong><br/>증산작용이 일어나는 곳'
+                  onBubbleClick={() => handleCameraMove('leaf')}
+                  pointColor='#32CD32'
+                  bubbleOffset={[0, 0.5, 0]}
+                />
+
+                {/* 전체 보기 버튼 (특정 부분을 보고 있을 때만 표시) */}
+                {isViewingSpecificPart && (
+                  <SpeechBubble
+                    position={[0, 12, 0]}
+                    html='<strong>전체 보기</strong><br/>처음 화면으로 돌아가기'
+                    onBubbleClick={() => handleCameraMove('default')}
+                    pointColor='#FF6B6B'
+                    bubbleOffset={[0, 0.5, 0]}
+                  />
+                )}
+              </>
+            )}
           </group>
 
           <Sky
@@ -415,30 +426,34 @@ export default function Home() {
             mieCoefficient={0.08}
             mieDirectionalG={0.85}
           />
+
+          <Clouds material={THREE.MeshBasicMaterial} position={[0,19,0]}>
+            <Cloud segments={20} bounds={[10, 0, 10]} volume={4} color='white' />
+            <Cloud seed={1} scale={[5,5,2]} volume={5} color='white' fade={100} />
+          </Clouds>
+
           <Environment preset={'sunset'} />
         </Suspense>
 
         <OrbitControls
           ref={orbitControlsRef}
-          enableZoom={!showIntro && !isViewingSpecificPart}
-          enablePan={!showIntro && !isViewingSpecificPart}
-          enableRotate={!showIntro && !isViewingSpecificPart}
-          minDistance={5}
+          enableZoom={!showIntro}
+          enablePan={!showIntro}
+          enableRotate={!showIntro}
+          minDistance={0}
           maxDistance={22}
           maxPolarAngle={Math.PI / 2}
           minPolarAngle={0}
-          target={[0, 0, 0]}
-          enabled={(!showTransformControls || !isDragging) && !showIntro && !isViewingSpecificPart}
+          target={orbitTarget}
+          enabled={(!showTransformControls || !isDragging) && !showIntro}
         />
       </Scene>
 
       {isLoaded && showIntro && (
-        <Intro 
+        <Intro
           onEnter={handleEnterExperience}
-          title="식물에서의 물의 이동 관찰하기"
-          description={[
-            "식물에서 물의 이동을 관찰해 봅시다."
-          ]}
+          title='식물에서의 물의 이동 관찰하기'
+          description={['식물에서 물의 이동을 관찰해 봅시다.']}
           backgroundSvg='/img/cover/6-1-3.svg'
           descriptionSound='/sounds/6-1-3/narration/6-1-3-Goal.MP3'
         />

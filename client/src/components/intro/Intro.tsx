@@ -74,7 +74,7 @@ export default function Intro({
         {/* 제목 */}
         <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-fit h-fit flex flex-col items-center justify-center gap-6'>
           <div className='w-fit h-fit flex flex-col items-center justify-center'>
-            <h1 className='text-7xl mb-7 text-white font-bold leading-tight text-center [text-shadow:_0px_4px_10px_rgb(0_0_0_/_0.50)]'>
+            <h1 className='text-7xl mb-7 text-white font-bold leading-tight text-center [text-shadow:_0px_4px_10px_rgb(0_0_0_/_0.50)] break-keep'>
               {title.split('\n').map((line, i) => (
                 <div key={i}>
                   {line}
