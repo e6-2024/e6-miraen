@@ -158,3 +158,4 @@ useGLTF.preload('/models/6-1-1/Rag/Rag.glb')
 useGLTF.preload('/models/6-1-1/Toilet_Brush/Toilet_Brush.glb')
 useGLTF.preload('/models/6-1-1/Bathroom_Scrub/Bathroom_Scrub.glb')
 useGLTF.preload('/models/6-1-1/Kitchen_Scrub/Kitchen_Scrub.glb')
+
