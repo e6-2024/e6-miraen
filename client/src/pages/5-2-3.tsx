@@ -70,12 +70,12 @@ export default function Home() {
       {isLoaded && showIntro && (
         <Intro 
           onEnter={handleEnterExperience}
-          title="날씨와 우리 생활"
+          title="바닷가에서 부는 바람 방향 알아보기"
           description={[
-            "바람은 왜 불까요? 그리고 어떤 방향으로 불까요?",
-            "바닷가에서 바람이 부는 까닭과 바람이 부는 방향에 대해",
-            "알아봅시다."
+            "바닷가에서 바람은 어떻게 부는지 알아봅시다."
           ]}
+          backgroundSvg='/img/cover/5-2-3.svg'
+          descriptionSound='/sounds/5-2-3/narration/5-2-3-Goal.MP3'
         />
       )}
     </div>

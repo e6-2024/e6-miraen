@@ -279,12 +279,12 @@ export default function Home() {
       {isLoaded && showIntro && (
         <Intro 
           onEnter={handleEnterExperience}
-          title="물체의 운동"
+          title="같은 시간 동안 이동한 물체의 빠르기 비교하기"
           description={[
-            "다양한 시점에서 물체들의 운동을 관찰해보세요.",
-            "시작점, 함께 이동, 정면 관찰의 세 가지 시점으로 운동을 이해할 수 있습니다."
+            "같은 시간 동안 이동한 물체의 빠르기를 비교해 봅시다."
           ]}
-          simbolSvgPath="/img/icon/물체의운동.svg"
+          backgroundSvg='/img/cover/6-1-2.svg'
+          descriptionSound='/sounds/6-1-2/narration/6-1-2-Goal.MP3'
         />
       )}
     </div>

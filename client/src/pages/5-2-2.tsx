@@ -535,7 +535,7 @@ export default function Home() {
               <Lightformer intensity={0.5} rotation-y={Math.PI / 2} position={[-5, 1, -1]} scale={[50, 2, 1]} />
               <Lightformer intensity={0.5} rotation-y={Math.PI / 2} position={[-5, -1, -1]} scale={[50, 2, 1]} />
             </group>
-            <Lightformer intensity={5} form="ring" color="white" rotation-y={Math.PI / 2} position={[1, 1, 1]} scale={[4, 4, 1]} />
+            <Lightformer intensity={2} form="ring" color="white" rotation-y={Math.PI / 2} position={[1, 1, 1]} scale={[4, 4, 1]} />
           </Environment>
         )}
         <fog attach="fog" args={['#0c0c0cff', 1, 25]} />

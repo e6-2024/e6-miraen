@@ -77,17 +77,6 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
   return null
 }
 
-// 로딩 스피너 컴포넌트
-function LoadingSpinner() {
-  return (
-    <div className='absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm z-20'>
-      <div className='text-center'>
-        <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4'></div>
-        <p className='text-gray-600'>3D 모델 로딩 중...</p>
-      </div>
-    </div>
-  )
-}
 
 export default function Home() {
   // 기본 경로 정의 (하나만!)
@@ -334,7 +323,6 @@ export default function Home() {
 
   return (
     <div className='w-screen h-screen bg-white relative'>
-      {isLoading && <LoadingSpinner />}
 
       {/* 카메라 컨트롤 버튼들 */}
       {!showIntro && (
@@ -444,15 +432,15 @@ export default function Home() {
         />
       </Scene>
 
-      {/* Intro 오버레이 */}
       {isLoaded && showIntro && (
         <Intro 
           onEnter={handleEnterExperience}
-          title="식물의 구조와 기능"
+          title="식물에서의 물의 이동 관찰하기"
           description={[
-            "식물은 필요한 물을 뿌리에서 흡수합니다. 식물에 흡수된 물이 어떻게 되는지 알아봅시다."
+            "식물에서 물의 이동을 관찰해 봅시다."
           ]}
-          simbolSvgPath="/img/icon/식물의구조와기능.svg"
+          backgroundSvg='/img/cover/6-1-3.svg'
+          descriptionSound='/sounds/6-1-3/narration/6-1-3-Goal.MP3'
         />
       )}
     </div>

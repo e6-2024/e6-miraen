@@ -26,16 +26,6 @@ export const SpeechBubble = ({
   useCursor(isHovered)
   return (
     <group position={position}>
-      {/* 점(Point) */}
-      <mesh
-        scale={isHovered ? 1.2 : 1}
-        onPointerOver={() => setIsHovered(true)}
-        onPointerOut={() => setIsHovered(false)}
-        onClick={onBubbleClick}>
-        <sphereGeometry args={[pointSize, 16, 16]} />
-        <meshBasicMaterial color={pointColor} />
-      </mesh>
-
       {/* 말풍선 */}
       <Html prepend={true} transform={false} position={[bubbleOffset[0], bubbleOffset[1], bubbleOffset[2]]}>
         <div
@@ -46,10 +36,9 @@ export const SpeechBubble = ({
             msUserSelect: 'none', // IE 지원
             borderColor: pointColor,
           }}
-          className='bg-white p-3 rounded-xl shadow-xl border-2 relative cursor-pointer hover:scale-105 active:scale-95 transition-all'
+          className='bg-white p-3 font-bold rounded-xl shadow-xl border-2 relative cursor-pointer hover:scale-105 active:scale-95 transition-all'
           onClick={() => {
             onBubbleClick?.()
-            console.log('말풍선 클릭됨', position)
           }}>
           <div className='text-sm text-gray-800 whitespace-nowrap' dangerouslySetInnerHTML={{ __html: html }} />
         </div>

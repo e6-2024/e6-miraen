@@ -15,12 +15,26 @@ export const CleaningTool = ({ modelPath, visible, scale = 1, rotation = [0, 0, 
   const meshRef = useRef<THREE.Group>(null)
   const { camera, gl } = useThree()
   
-  // 마우스 위치를 저장할 ref
   const mousePosition = useRef(new THREE.Vector2())
+
+  useEffect(() => {
+    if (gltf.scene) {
+      gltf.scene.traverse((child) => {
+        if (child instanceof THREE.Mesh && child.material) {
+          if (Array.isArray(child.material)) {
+            child.material.forEach(mat => {
+              mat.side = THREE.DoubleSide
+            })
+          } else {
+            child.material.side = THREE.DoubleSide
+          }
+        }
+      })
+    }
+  }, [gltf])
   
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
-      // 마우스 좌표를 정규화된 디바이스 좌표로 변환 (-1 to +1)
       mousePosition.current.x = (event.clientX / window.innerWidth) * 2 - 1
       mousePosition.current.y = -(event.clientY / window.innerHeight) * 2 + 1
     }
@@ -36,23 +50,16 @@ export const CleaningTool = ({ modelPath, visible, scale = 1, rotation = [0, 0, 
   
   useFrame(() => {
     if (meshRef.current && visible) {
-      // 마우스 위치를 3D 공간 좌표로 변환
       const raycaster = new THREE.Raycaster()
       raycaster.setFromCamera(mousePosition.current, camera)
       
-      // 카메라 앞 일정 거리에 도구 배치
       const distance = 2
       const direction = raycaster.ray.direction.clone()
       const newPosition = camera.position.clone().add(direction.multiplyScalar(distance))
       
-      // 부드러운 이동을 위한 lerp 적용
       meshRef.current.position.lerp(newPosition, 0.1)
-      
-      // 기본 회전값 적용 후 카메라를 향하도록 회전
       const lookAtPosition = camera.position.clone()
       meshRef.current.lookAt(lookAtPosition)
-      
-      // 추가 회전값 적용
       meshRef.current.rotation.x += rotation[0]
       meshRef.current.rotation.y += rotation[1]
       meshRef.current.rotation.z += rotation[2]
@@ -68,25 +75,86 @@ export const CleaningTool = ({ modelPath, visible, scale = 1, rotation = [0, 0, 
   )
 }
 
-// 각 도구별 컴포넌트
-export const RagTool = ({ visible }: { visible: boolean }) => (
-  <CleaningTool 
-    modelPath="/models/6-1-1/Rag/rag2.gltf" 
-    visible={visible} 
-    scale={0.3} 
-    rotation={[0, -Math.PI/2, 0]}
-  />
-)
-
+// 스프레이 도구들
 export const SprayTool = ({ visible }: { visible: boolean }) => (
   <CleaningTool 
-    modelPath="/models/6-1-1/Spray/Spray.gltf" 
+    modelPath="/models/6-1-1/Window_cleaner_Spray/Window_cleaner_Spray.glb" 
     visible={visible} 
-    scale={0.1} 
+    scale={1.3} 
     rotation={[Math.PI/4, Math.PI/6, -Math.PI/8]}
   />
 )
 
-// Preload models
+export const VinegarTool = ({ visible }: { visible: boolean }) => (
+  <CleaningTool 
+    modelPath="/models/6-1-1/Vinegar_Spray/Kitchen_Scrub.glb" 
+    visible={visible} 
+    scale={0.1} 
+    rotation={[0, 0, 0]}
+  />
+)
+
+export const BleachTool = ({ visible }: { visible: boolean }) => (
+  <CleaningTool 
+    modelPath="/models/6-1-1/Bleach/Bleach.glb" 
+    visible={visible} 
+    scale={0.2} 
+    rotation={[0, Math.PI/4, 0]}
+  />
+)
+
+export const ToiletCleanerTool = ({ visible }: { visible: boolean }) => (
+  <CleaningTool 
+    modelPath="/models/6-1-1/Toilet_bleach/Toilet_Spray.glb" 
+    visible={visible} 
+    scale={0.03} 
+    rotation={[Math.PI, -Math.PI/4, Math.PI/2]}
+  />
+)
+
+// 각 미션별 닦기 도구들
+export const GlassRagTool = ({ visible }: { visible: boolean }) => (
+  <CleaningTool 
+    modelPath="/models/6-1-1/Rag/Rag.glb" 
+    visible={visible} 
+    scale={0.15} 
+    rotation={[0, -Math.PI/2, 0]}
+  />
+)
+
+export const ToiletBrushTool = ({ visible }: { visible: boolean }) => (
+  <CleaningTool 
+    modelPath="/models/6-1-1/Toilet_Brush/Toilet_Brush.glb" 
+    visible={visible} 
+    scale={0.7} 
+    rotation={[-Math.PI/2, -Math.PI, 0]}
+  />
+)
+
+export const BathroomScrubTool = ({ visible }: { visible: boolean }) => (
+  <CleaningTool 
+    modelPath="/models/6-1-1/Bathroom_Scrub/Bathroom_Scrub.glb" 
+    visible={visible} 
+    scale={0.001} 
+    rotation={[Math.PI/2, 0, Math.PI/2]}
+  />
+)
+
+export const KitchenSpongeTool = ({ visible }: { visible: boolean }) => (
+  <CleaningTool 
+    modelPath="/models/6-1-1/Kitchen_Scrub/Kitchen_Scrub.glb" 
+    visible={visible} 
+    scale={2} 
+    rotation={[0, Math.PI/2, 0]}
+  />
+)
+
+useGLTF.preload('/models/6-1-1/Window_cleaner_Spray/Window_cleaner_Spray.glb')
+useGLTF.preload('/models/6-1-1/Vinegar_Spray/Kitchen_Scrub.glb')
+useGLTF.preload('/models/6-1-1/Bleach/Bleach.glb')
+useGLTF.preload('/models/6-1-1/Toilet_bleach/Toilet_Spray.glb')
+
 useGLTF.preload('/models/6-1-1/Rag/rag2.gltf')
-useGLTF.preload('/models/6-1-1/Spray/Spray.gltf')
+useGLTF.preload('/models/6-1-1/Toilet_Brush/Toilet_Brush.glb')
+useGLTF.preload('/models/6-1-1/Bathroom_Scrub/Bathroom_Scrub.glb')
+useGLTF.preload('/models/6-1-1/Kitchen_Scrub/Kitchen_Scrub.glb')

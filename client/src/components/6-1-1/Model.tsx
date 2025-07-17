@@ -1,4 +1,4 @@
-// components/Model.tsx (정확한 텍스처 매핑 버전)
+// components/Model.tsx (정확한 텍스처 매핑 + 그림자 설정 버전)
 import * as THREE from 'three'
 import React, { useRef, useEffect } from 'react'
 import { useGLTF } from '@react-three/drei'
@@ -11,105 +11,95 @@ interface ModelProps {
     splash02: number  
     splash03: number
   }
+  // 그림자 설정 옵션들
+  castShadow?: boolean
+  receiveShadow?: boolean
 }
 
-export const Model = ({ splashOpacities, scale = 1, position = [0, 0, 0] }: ModelProps) => {
+export const Model = ({ 
+  splashOpacities, 
+  scale = 1, 
+  position = [0, 0, 0],
+  castShadow = true,
+  receiveShadow = true
+}: ModelProps) => {
   const gltf = useGLTF('/models/6-1-1/New_Clean_Room/New_Room.gltf')
   const modelRef = useRef<THREE.Group>(null)
+  
+  const configureShadows = (object: THREE.Object3D) => {
+    object.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.castShadow = castShadow
+        child.receiveShadow = receiveShadow
+        
+        if (child.material) {
+          const materials = Array.isArray(child.material) ? child.material : [child.material]
+          materials.forEach((material) => {
+            if (material.transparent && material.opacity < 0.5) {
+              child.castShadow = false
+            }
+          })
+        }
+      }
+    })
+  }
+  
   useEffect(() => {
     if (modelRef.current && splashOpacities) {
-      
-      let updated = {
-        splash01: false,
-        splash02: false,
-        splash03: false
-      }
-      
-      // 모든 메쉬와 머티리얼을 순회
       modelRef.current.traverse((child) => {
         if (child instanceof THREE.Mesh && child.material) {
           const materials = Array.isArray(child.material) ? child.material : [child.material]
           
           materials.forEach((material) => {
-            // 머티리얼 이름으로 정확히 매핑
             if (material.name) {
               const matName = material.name.toLowerCase()
               
-              // T_BigSplash08Opacity-1이 포함된 머티리얼 (유리) - 올바른 매핑!
-              if (matName.includes('bloodmaterialexample4') || 
-                  (material.map && material.map.name && material.map.name.includes('T_BigSplash08'))) {
-                
-                // 기본 opacity 설정
+              // splash01 - 유리
+              if (matName.includes('Window_WindowsGlass') || 
+                  (material.map?.name?.includes('Window_WindowsGlass'))) {
                 material.transparent = true
                 material.opacity = splashOpacities.splash01
                 material.needsUpdate = true
                 
-                // 유리 텍스처는 alphaMap도 확인 (특별 처리)
-                if (material.alphaMap) {
-                  material.alphaMap.needsUpdate = true
-                }
-                
-                // 더 강력한 숨김 처리
                 if (splashOpacities.splash01 <= 0.1) {
                   material.visible = false
-                  // 추가적인 렌더링 옵션들
-                  material.depthWrite = false
-                  material.depthTest = false
+                  child.castShadow = false
+                  child.receiveShadow = false
                 } else {
                   material.visible = true
-                  material.depthWrite = true
-                  material.depthTest = true
+                  child.castShadow = castShadow
+                  child.receiveShadow = receiveShadow
                 }
-                
-                // 블렌딩 모드도 조정
-                material.blending = THREE.NormalBlending
-                
-                updated.splash01 = true
               }
               
-              // T_BigSplash02Opacity가 포함된 머티리얼 (변기)
-              else if (matName.includes('bloodmaterialexample.001') || matName.includes('bloodmaterialexample') && !matName.includes('example2') && !matName.includes('example3') && !matName.includes('example4') ||
-                       (material.map && material.map.name && material.map.name.includes('T_BigSplash02'))) {
-                material.transparent = true
-                material.opacity = splashOpacities.splash02
-                material.needsUpdate = true
-                updated.splash02 = true
-              }
-              
-              // T_BigSplash03Opacity가 포함된 머티리얼 (욕실)
-              else if (matName.includes('bloodmaterialexample3') || 
-                       (material.map && material.map.name && material.map.name.includes('T_BigSplash03'))) {
+              // splash03 - 욕실
+              else if (matName.includes('bathroom_dirt') || 
+                       (material.map?.name?.includes('bathroom_dirt'))) {
                 material.transparent = true
                 material.opacity = splashOpacities.splash03
                 material.needsUpdate = true
-                updated.splash03 = true
+                
+                if (splashOpacities.splash03 <= 0.1) {
+                  child.castShadow = false
+                }
               }
             }
             
-            // 추가로 텍스처 맵들도 직접 확인
             const mapTypes = ['map', 'alphaMap', 'normalMap'] as const
             mapTypes.forEach(mapType => {
               const textureMap = material[mapType] as THREE.Texture | undefined
-              if (textureMap && textureMap.name) {
+              if (textureMap?.name) {
                 const texName = textureMap.name.toLowerCase()
                 
                 if (texName.includes('t_bigsplash08')) {
                   material.transparent = true
                   material.opacity = splashOpacities.splash01
                   material.needsUpdate = true
-                  updated.splash01 = true
-                }
-                else if (texName.includes('t_bigsplash02')) {
-                  material.transparent = true
-                  material.opacity = splashOpacities.splash02
-                  material.needsUpdate = true
-                  updated.splash02 = true
                 }
                 else if (texName.includes('t_bigsplash03')) {
                   material.transparent = true
                   material.opacity = splashOpacities.splash03
                   material.needsUpdate = true
-                  updated.splash03 = true
                 }
               }
             })
@@ -117,35 +107,17 @@ export const Model = ({ splashOpacities, scale = 1, position = [0, 0, 0] }: Mode
         }
       })
     }
-  }, [splashOpacities])
+  }, [splashOpacities, castShadow, receiveShadow])
 
-    useEffect(() => {
+  useEffect(() => {
     if (modelRef.current && gltf.scene) {
       if (gltf.scene.children.length > 0) {
-
         gltf.scene.remove(gltf.scene.children[1]);
       }
+      // 그림자 설정 적용
+      configureShadows(gltf.scene)
     }
-  }, [gltf.scene])
-  
-
-  
-  // 간단한 디버깅 (한 번만)
-  useEffect(() => {
-    if (modelRef.current) {
-      modelRef.current.traverse((child) => {
-        if (child instanceof THREE.Mesh && child.material) {
-          const materials = Array.isArray(child.material) ? child.material : [child.material]
-          
-          materials.forEach((material) => {
-            const matName = (material.name || '').toLowerCase()
-            
-          })
-        }
-      })
-      
-    }
-  }, [])
+  }, [gltf.scene, castShadow, receiveShadow])
   
   return (
     <group ref={modelRef} scale={scale} position={position} dispose={null}>
