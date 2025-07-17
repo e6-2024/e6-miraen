@@ -78,7 +78,7 @@ export const CleaningTool = ({ modelPath, visible, scale = 1, rotation = [0, 0, 
 // 스프레이 도구들
 export const SprayTool = ({ visible }: { visible: boolean }) => (
   <CleaningTool 
-    modelPath="/models/6-1-1/Window_cleaner_Spray/Window_cleaner_Spray.glb" 
+    modelPath="/models/6-1-1/Window/Window_cleaner_Spray.glb" 
     visible={visible} 
     scale={1.3} 
     rotation={[Math.PI/4, Math.PI/6, -Math.PI/8]}
@@ -149,7 +149,7 @@ export const KitchenSpongeTool = ({ visible }: { visible: boolean }) => (
   />
 )
 
-useGLTF.preload('/models/6-1-1/Window_cleaner_Spray/Window_cleaner_Spray.glb')
+useGLTF.preload('/models/6-1-1/Window/Window_cleaner_Spray.glb')
 useGLTF.preload('/models/6-1-1/Vinegar_Spray/Kitchen_Scrub.glb')
 useGLTF.preload('/models/6-1-1/Bleach/Bleach.glb')
 useGLTF.preload('/models/6-1-1/Toilet_bleach/Toilet_Spray.glb')
