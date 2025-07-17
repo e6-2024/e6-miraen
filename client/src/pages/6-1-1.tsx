@@ -450,14 +450,12 @@ export default function Home() {
 
         <PerformanceMonitor onDecline={() => degrade(true)} />
         <Environment frames={perfSucks ? 1 : Infinity} preset='studio' resolution={256} background={false} blur={1}>
-          <Lightformer intensity={4} rotation-x={Math.PI / 2} position={[0, 5, -9]} scale={[10, 10, 1]} />
-          <Lightformer intensity={4} rotation-x={Math.PI / 2} position={[0, 5, -9]} scale={[10, 10, 1]} />
+          <Lightformer intensity={3} rotation-x={Math.PI / 2} position={[0, 5, -9]} scale={[10, 10, 1]} />
           <group rotation={[Math.PI / 2, 1, 0]}>
             <Lightformer intensity={0.5} rotation-y={Math.PI / 2} position={[-5, 1, -1]} scale={[50, 2, 1]} />
-            <Lightformer intensity={0.5} rotation-y={Math.PI / 2} position={[-5, -1, -1]} scale={[50, 2, 1]} />
           </group>
           <Lightformer
-            intensity={2}
+            intensity={1.2}
             form='ring'
             color='white'
             rotation-y={Math.PI / 2}
@@ -472,26 +470,11 @@ export default function Home() {
 
         <Model scale={1} position={[0, 0, 0]} splashOpacities={splashOpacities} />
         <Toilet scale={1} position={[10.5, 4, 0.5]} splashOpacities={splashOpacities} />
-
-        <CameraLogger />
-
         {isBathroomLightOn && (
           <>
-            <pointLight intensity={2} position={[11, 6, 1]} color='#ff0000ff' distance={15} decay={1} />
-            <pointLight intensity={1.5} position={[9, 5, 1]} color='#ff0000ff' distance={12} decay={1} />
-            <spotLight
-              intensity={2}
-              position={[11, 7, 2]}
-              target-position={[11, 4, 0]}
-              angle={0.4}
-              penumbra={0.3}
-              color='#ff0000ff'
-              distance={20}
-              decay={1}
-            />
+            <pointLight intensity={7} position={[7.0, 2, -2]} color='#c0ce6f' distance={7} decay={1} />
           </>
         )}
-
         {gamePhase === 'spraying' && selectedSolution && (
           <>
             {selectedSolution === 'vinegar' && <VinegarTool visible={true} />}
