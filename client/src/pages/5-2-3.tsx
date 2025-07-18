@@ -6,11 +6,10 @@ import Scene from '@/components/canvas/Scene'
 import CameraLogger from '@/components/CameraLogger'
 import Intro from '@/components/intro/Intro'
 import { Environment } from '@react-three/drei'
-import { SpeechBubble } from '@/components/5-2-3/SpeechBubble'
 import IntroMouseCameraController from '@/components/IntroMouseCameraController'
 
-const INITIAL_CAMERA_POSITION: [number, number, number] = [-20, -15, 22];
-const INITIAL_CAMERA_TARGET: [number, number, number] = [-20, -15, 20];
+const INITIAL_CAMERA_POSITION: [number, number, number] = [-5, -14, 1]
+const INITIAL_CAMERA_TARGET: [number, number, number] = [-5, -14, 0]
 
 interface PopupContent {
   title: string
@@ -128,14 +127,7 @@ const CameraController = ({
     }
   }, [camera, targetPosition, targetLookAt, onComplete])
 
-  return (
-    <OrbitControls
-      ref={controlsRef}
-      enabled={true}
-      onUpdate={() => {
-      }}
-    />
-  )
+  return <OrbitControls ref={controlsRef} enabled={true} onUpdate={() => {}} />
 }
 
 const Thermometer = ({
@@ -154,7 +146,7 @@ const Thermometer = ({
   const tempHeight = ((temperature - minTemp) / (maxTemp - minTemp)) * 120
 
   return (
-    <div className='absolute z-20 bg-white rounded-lg p-3 shadow-lg' style={position}>
+    <div className='z-20 bg-white rounded-lg p-3 shadow-lg' style={position}>
       <div className='text-center mb-2'>
         <div className='text-sm font-bold text-gray-700'>{label}</div>
         <div className='text-lg font-bold' style={{ color }}>
@@ -181,13 +173,97 @@ const Thermometer = ({
             bottom: '8px',
           }}
         />
+      </div>
+    </div>
+  )
+}
 
-        <div className='absolute right-0 h-28 flex flex-col justify-between text-xs text-gray-500'>
-          <span>40°</span>
-          <span>30°</span>
-          <span>20°</span>
-          <span>10°</span>
-          <span>0°</span>
+const PressureDisplay = ({
+  type,
+  label,
+  color,
+  position = { top: '20px', left: '20px' },
+}: {
+  type: 'high' | 'low'
+  label: string
+  color: string
+  position?: { top?: string; left?: string; right?: string; bottom?: string }
+}) => {
+  const isHigh = type === 'high'
+
+  return (
+    <div className='z-20 bg-white rounded-lg p-4 shadow-lg' style={position}>
+      <div className='text-center'>
+        <div className='text-sm font-bold text-gray-700 mb-2'>{label}</div>
+
+        <div className='relative w-16 h-16 mx-auto mb-2'>
+          <div
+            className='absolute inset-0 rounded-full border-4 flex items-center justify-center'
+            style={{ borderColor: color }}>
+            <div className='text-2xl font-bold' style={{ color }}>
+              {isHigh ? 'H' : 'L'}
+            </div>
+          </div>
+
+          {isHigh ? (
+            <>
+              <div className='absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-2'>
+                <div
+                  className='w-0 h-0 border-l-2 border-r-2 border-b-4 border-transparent'
+                  style={{ borderBottomColor: color }}
+                />
+              </div>
+              <div className='absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-2'>
+                <div
+                  className='w-0 h-0 border-l-2 border-r-2 border-t-4 border-transparent'
+                  style={{ borderTopColor: color }}
+                />
+              </div>
+              <div className='absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-2'>
+                <div
+                  className='w-0 h-0 border-t-2 border-b-2 border-r-4 border-transparent'
+                  style={{ borderRightColor: color }}
+                />
+              </div>
+              <div className='absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-2'>
+                <div
+                  className='w-0 h-0 border-t-2 border-b-2 border-l-4 border-transparent'
+                  style={{ borderLeftColor: color }}
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className='absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-2'>
+                <div
+                  className='w-0 h-0 border-l-2 border-r-2 border-t-4 border-transparent'
+                  style={{ borderTopColor: color }}
+                />
+              </div>
+              <div className='absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-2'>
+                <div
+                  className='w-0 h-0 border-l-2 border-r-2 border-b-4 border-transparent'
+                  style={{ borderBottomColor: color }}
+                />
+              </div>
+              <div className='absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-2'>
+                <div
+                  className='w-0 h-0 border-t-2 border-b-2 border-l-4 border-transparent'
+                  style={{ borderLeftColor: color }}
+                />
+              </div>
+              <div className='absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-2'>
+                <div
+                  className='w-0 h-0 border-t-2 border-b-2 border-r-4 border-transparent'
+                  style={{ borderRightColor: color }}
+                />
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className='text-xs font-bold' style={{ color }}>
+          {isHigh ? '고기압' : '저기압'}
         </div>
       </div>
     </div>
@@ -204,33 +280,9 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
   return null
 }
 
-const Sun = ({ size = 24 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'>
-    <circle cx='12' cy='12' r='4' />
-    <path d='m12 2 0 2' />
-    <path d='m12 20 0 2' />
-    <path d='m4.93 4.93 1.41 1.41' />
-    <path d='m17.66 17.66 1.41 1.41' />
-    <path d='m2 12 2 0' />
-    <path d='m20 12 2 0' />
-    <path d='m6.34 17.66-1.41 1.41' />
-    <path d='m19.07 4.93-1.41 1.41' />
-  </svg>
-)
+const Sun = ({ size = 24 }: { size?: number }) => <div className='font-bold text-black'>낮</div>
 
-const Moon = ({ size = 24 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'>
-    <path d='M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z' />
-  </svg>
-)
-
-const Wind = ({ size = 24 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'>
-    <path d='M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2' />
-    <path d='M9.6 4.6A2 2 0 1 1 11 8H2' />
-    <path d='M12.6 19.4A2 2 0 1 0 14 16H2' />
-  </svg>
-)
+const Moon = ({ size = 24 }: { size?: number }) => <div className='font-bold text-black'>밤</div>
 
 interface PopupProps {
   isOpen: boolean
@@ -251,10 +303,24 @@ const Popup = ({ isOpen, onClose, title, content, narrationPath, onComplete }: P
 
       if (narrationPath) {
         audioRef.current = new Audio(narrationPath)
-        audioRef.current.volume = 0.7
-        audioRef.current.play().catch((error) => {
-          console.log('나레이션 재생 실패:', error)
-        })
+        audioRef.current.volume = 0.5
+        
+        // 오디오 로드 및 재생
+        audioRef.current.load()
+        const playPromise = audioRef.current.play()
+        
+        if (playPromise !== undefined) {
+          playPromise
+            .catch((error) => {
+              const playOnClick = () => {
+                if (audioRef.current) {
+                  audioRef.current.play().catch(console.error)
+                }
+                document.removeEventListener('click', playOnClick)
+              }
+              document.addEventListener('click', playOnClick)
+            })
+        }
       }
     }
 
@@ -284,8 +350,7 @@ const Popup = ({ isOpen, onClose, title, content, narrationPath, onComplete }: P
 
   return (
     <div
-      className={`fixed inset-0 flex items-center justify-center z-50 transition-all duration-300 ${
-        isVisible ? 'bg-black bg-opacity-40' : 'bg-black bg-opacity-0'
+      className={`fixed inset-0 flex items-center justify-center z-50 transition-all duration-300'
       }`}>
       <div
         className={`bg-white rounded-xl shadow-lg max-w-md mx-4 relative transform transition-all duration-300 ${
@@ -315,6 +380,7 @@ export default function Home() {
   const [isDay, setIsDay] = useState(true)
 
   const [currentStep, setCurrentStep] = useState('initial')
+  const [completedSteps, setCompletedSteps] = useState(new Set())
 
   const [showPopup, setShowPopup] = useState(false)
   const [popupContent, setPopupContent] = useState<PopupContent>({
@@ -329,8 +395,8 @@ export default function Home() {
   const [isTemperatureAnimating, setIsTemperatureAnimating] = useState(false)
 
   const [showPressureDisplay, setShowPressureDisplay] = useState(false)
-
   const [showWind, setShowWind] = useState(false)
+  const [modelAnimationEnabled, setModelAnimationEnabled] = useState(false)
 
   const [cameraTarget, setCameraTarget] = useState<{
     position: [number, number, number]
@@ -345,9 +411,14 @@ export default function Home() {
     try {
       const audio = new Audio(audioPath)
       audio.volume = 0.7
-      audio.play().catch((error) => {
-        console.log('효과음 재생 실패:', error.name)
-      })
+      audio.load()
+      const playPromise = audio.play()
+      
+      if (playPromise !== undefined) {
+        playPromise.catch((error) => {
+          console.log('효과음 재생 실패:', error.name)
+        })
+      }
     } catch (error) {
       console.log('효과음 생성 실패:', error)
     }
@@ -371,8 +442,10 @@ export default function Home() {
     setIsTemperatureAnimating(false)
     setShowPressureDisplay(false)
     setShowWind(false)
+    setModelAnimationEnabled(false)
     setShowPopup(false)
-    setCurrentStep('initial') 
+    setCurrentStep('initial')
+    setCompletedSteps(new Set())
     setCameraTarget({
       position: INITIAL_CAMERA_POSITION,
       lookAt: INITIAL_CAMERA_TARGET,
@@ -419,6 +492,8 @@ export default function Home() {
   }
 
   const handleTemperatureButtonClick = () => {
+    if (completedSteps.has('temperature')) return
+
     setCurrentStep('temperature-animation')
     setShowTemperatureDisplay(true)
     setIsTemperatureAnimating(true)
@@ -442,6 +517,7 @@ export default function Home() {
       if (timeElapsed >= 3000) {
         clearInterval(interval)
         setIsTemperatureAnimating(false)
+        setCompletedSteps((prev) => new Set(prev).add('temperature'))
         setTimeout(() => {
           setCurrentStep('ready-for-pressure')
         }, 0)
@@ -450,8 +526,11 @@ export default function Home() {
   }
 
   const handlePressureButtonClick = () => {
+    if (completedSteps.has('pressure')) return
+
     setCurrentStep('pressure-animation')
     setShowPressureDisplay(true)
+    setCompletedSteps((prev) => new Set(prev).add('pressure'))
 
     setTimeout(() => {
       setCurrentStep('ready-for-wind')
@@ -459,12 +538,16 @@ export default function Home() {
   }
 
   const handleWindButtonClick = () => {
+    if (completedSteps.has('wind')) return
+
     setCurrentStep('wind-animation')
     setShowWind(true)
+    setModelAnimationEnabled(true)
+    setCompletedSteps((prev) => new Set(prev).add('wind'))
 
     setCameraTarget({
-      position: [-23, -15, 22],
-      lookAt: [-22, -15, 20],
+      position: [-5, -14, 3],
+      lookAt: [-5, -14, 1],
     })
 
     setTimeout(() => {
@@ -479,6 +562,23 @@ export default function Home() {
     }, 2200)
   }
 
+  const getButtonStyle = (step: string) => {
+    const isCompleted = completedSteps.has(step)
+    const isActive =
+      !isCompleted &&
+      ((step === 'temperature' && currentStep === 'day-selected') ||
+        (step === 'pressure' && currentStep === 'ready-for-pressure') ||
+        (step === 'wind' && currentStep === 'ready-for-wind'))
+
+    if (isCompleted) {
+      return 'px-4 py-2 bg-green-500 text-white rounded-lg cursor-default opacity-90'
+    } else if (isActive) {
+      return 'px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shadow-lg animate-pulse cursor-pointer'
+    } else {
+      return 'px-4 py-2 bg-gray-400 text-gray-200 rounded-lg cursor-not-allowed opacity-50'
+    }
+  }
+
   return (
     <div className='w-screen h-screen bg-red flex flex-col relative'>
       <div
@@ -488,42 +588,78 @@ export default function Home() {
       />
 
       {showTemperatureDisplay && (
-        <>
-          <Thermometer
-            temperature={seaTemperature}
-            label='바다 온도'
-            color={isDay ? '#3b82f6' : '#ef4444'}
-            position={{ top: '100px', left: '20px' }}
-          />
-          <Thermometer
-            temperature={landTemperature}
-            label='육지 온도'
-            color={isDay ? '#ef4444' : '#3b82f6'}
-            position={{ top: '100px', right: '20px' }}
-          />
-        </>
+        <div className='absolute flex flex-row left-1/2 -translate-x-1/2 top-4 gap-[800px] z-30'>
+          <Thermometer temperature={seaTemperature} label='바다' color={isDay ? '#3b82f6' : '#ef4444'} />
+          <Thermometer temperature={landTemperature} label='육지' color={isDay ? '#ef4444' : '#3b82f6'} />
+        </div>
       )}
 
-      <Scene camera={{ position: [30, 20, 80], fov: 50, far: 1000 }} shadows>
+      {showPressureDisplay && (
+        <div className='absolute flex flex-row left-1/2 -translate-x-1/2 top-10 gap-[200px] z-30'>
+          <PressureDisplay type={isDay ? 'high' : 'low'} label='바다' color={isDay ? '#ef4444' : '#3b82f6'} />
+          <PressureDisplay type={isDay ? 'low' : 'high'} label='육지' color={isDay ? '#3b82f6' : '#ef4444'} />
+        </div>
+      )}
+
+      <Scene
+        camera={{ position: [0, 0.5, 3], fov: 50, far: 1000 }}
+        shadows={{
+          enabled: true,
+          type: 'PCFSoftShadowMap',
+        }}>
         <LoadingTracker onLoadingComplete={handleLoadingComplete} />
         <IntroMouseCameraController enabled={showIntro} />
-        <ambientLight intensity={isDay ? 1.0 : 0.3} />
+        
+        <ambientLight intensity={isDay ? 0.4 : 0.2} color={isDay ? '#ffffff' : '#404080'} />
+        
+        <directionalLight
+          position={isDay ? [15, 20, 10] : [5, 15, 8]}
+          intensity={isDay ? 1.5 : 0.6}
+          color={isDay ? '#ffeaa7' : '#74b9ff'}
+          castShadow
+          shadow-mapSize-width={4096}
+          shadow-mapSize-height={4096}
+          shadow-camera-far={100}
+          shadow-camera-left={-50}
+          shadow-camera-right={50}
+          shadow-camera-top={50}
+          shadow-camera-bottom={-50}
+          shadow-bias={-0.0005}
+          shadow-normalBias={0.02}
+          shadow-radius={10}
+        />
+        
+        <directionalLight
+          position={isDay ? [-5, 10, 5] : [-3, 8, 3]}
+          intensity={isDay ? 0.3 : 0.15}
+          color={isDay ? '#81ecec' : '#6c5ce7'}
+        />
+        
+        <pointLight
+          position={[-10, 2, 0]}
+          intensity={isDay ? 0.8 : 0.3}
+          color={isDay ? '#74b9ff' : '#00cec9'}
+          distance={30}
+          decay={2}
+        />
+      
+        
         <Model
-          scale={1.0}
+          scale={0.2}
           rotation={[0, -Math.PI / 2, 0]}
-          position={[-0, -20, 50]}
+          position={[0, -15, 0]}
           windEnabled={showWind}
           windDirection={isDay ? 'sea-to-land' : 'land-to-sea'}
           windSpeed={0.2}
           isDay={isDay}
+          animationEnabled={modelAnimationEnabled}
         />
 
         {cameraTarget ? (
           <CameraController
             targetPosition={cameraTarget.position}
             targetLookAt={cameraTarget.lookAt}
-            onComplete={() => {
-            }}
+            onComplete={() => {}}
           />
         ) : (
           <OrbitControls enabled={!showIntro && !showPopup} minDistance={0} maxDistance={130} />
@@ -531,74 +667,44 @@ export default function Home() {
 
         <CameraLogger />
         <Environment preset={isDay ? 'sunset' : 'night'} blur={0.8} resolution={512} />
-
-        {showPressureDisplay && (
-          <>
-            <SpeechBubble
-              position={[-45, -15, 0]}
-              html={`바다<br/><strong style="color: ${isDay ? '#ef4444' : '#3b82f6'}">${
-                isDay ? '고기압' : '저기압'
-              }</strong><br/><div style="font-size: 20px">${isDay ? 'H' : 'L'}</div>`}
-              pointColor={isDay ? '#ef4444' : '#3b82f6'}
-              bubbleOffset={[0, 2, 0]}
-            />
-            <SpeechBubble
-              position={[15, -15, 0]}
-              html={`육지<br/><strong style="color: ${isDay ? '#3b82f6' : '#ef4444'}">${
-                isDay ? '저기압' : '고기압'
-              }</strong><br/><div style="font-size: 20px">${isDay ? 'L' : 'H'}</div>`}
-              pointColor={isDay ? '#3b82f6' : '#ef4444'}
-              bubbleOffset={[0, 2, 0]}
-            />
-          </>
-        )}
       </Scene>
 
       {!showIntro && (
-        <div className='absolute top-4 right-4 flex gap-2 z-30'>
+        <div className='absolute top-4 left-1/2 transform -translate-x-1/2 text-lg flex gap-2 z-30'>
           <button
             onClick={handleDayClick}
-            className={`p-3 rounded-full ${
-              isDay ? 'bg-yellow-400 text-white' : 'bg-white text-yellow-400'
-            } hover:scale-110 transition-transform shadow-lg`}>
+            className={`p-3 rounded-full transition-all duration-300 ${
+              isDay
+                ? 'bg-yellow-400 text-white opacity-100 scale-110'
+                : 'bg-white text-yellow-400 opacity-40 hover:opacity-70'
+            } hover:scale-110 shadow-lg`}>
             <Sun size={24} />
           </button>
           <button
             onClick={handleNightClick}
-            className={`p-3 rounded-full ${
-              !isDay ? 'bg-purple-600 text-white' : 'bg-white text-purple-600'
-            } hover:scale-110 transition-transform shadow-lg`}>
+            className={`p-3 rounded-full transition-all duration-300 ${
+              !isDay
+                ? 'bg-purple-600 text-white opacity-100 scale-110'
+                : 'bg-white text-purple-600 opacity-40 hover:opacity-70'
+            } hover:scale-110 shadow-lg`}>
             <Moon size={24} />
           </button>
         </div>
       )}
 
-      {!showIntro && (
-        <div className='absolute bottom-4 left-1/2 text-2xl -transform-x-1/2 flex flex-col gap-2 z-30 font-bold'>
-          {currentStep === 'day-selected' && (
-            <button
-              onClick={handleTemperatureButtonClick}
-              className='px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shadow-lg animate-pulse'>
-              온도
-            </button>
-          )}
+      {!showIntro && currentStep !== 'initial' && (
+        <div className='absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-30 font-bold'>
+          <button onClick={handleTemperatureButtonClick} className={getButtonStyle('temperature')}>
+            온도
+          </button>
 
-          {currentStep === 'ready-for-pressure' && (
-            <button
-              onClick={handlePressureButtonClick}
-              className='px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors shadow-lg animate-pulse'>
-              기압
-            </button>
-          )}
+          <button onClick={handlePressureButtonClick} className={getButtonStyle('pressure')}>
+            기압
+          </button>
 
-          {currentStep === 'ready-for-wind' && (
-            <button
-              onClick={handleWindButtonClick}
-              className='px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors shadow-lg animate-pulse flex items-center gap-2'>
-              <Wind size={16} />
-              바람의 방향
-            </button>
-          )}
+          <button onClick={handleWindButtonClick} className={`${getButtonStyle('wind')} flex items-center gap-2`}>
+            바람의 방향
+          </button>
         </div>
       )}
 
