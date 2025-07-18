@@ -9,6 +9,419 @@ import { WaterFlowAnimation } from '../components/6-1-3/WaterFlowAnimation'
 import { ControlPoint } from '../components/6-1-3/ControlPoint'
 import { SpeechBubble } from '../components/6-1-3/SpeechBubble'
 
+// 뿌리 물 흡수 애니메이션 컴포넌트
+function RootWaterAbsorption({ isActive, rootPosition }) {
+  const particlesRef = useRef([])
+  const groupRef = useRef<THREE.Group>(null)
+
+  // 물방울 파티클 생성
+  const particles = useMemo(() => {
+    const particleCount = 80
+    const particles = []
+
+    for (let i = 0; i < particleCount; i++) {
+      const angle = (i / particleCount) * Math.PI * 2
+      const radius = 3 + Math.random() * 4
+      const height = -2 + Math.random() * 4
+
+      particles.push({
+        id: i,
+        startPosition: new THREE.Vector3(
+          rootPosition.x + Math.cos(angle) * radius,
+          rootPosition.y + height,
+          rootPosition.z + Math.sin(angle) * radius,
+        ),
+        targetPosition: rootPosition.clone(),
+        currentPosition: new THREE.Vector3(),
+        progress: Math.random() * 0.8,
+        speed: 0.1 + Math.random() * 0.1,
+        scale: 0.08 + Math.random() * 0.12,
+      })
+    }
+    return particles
+  }, [rootPosition])
+
+  useFrame((state, delta) => {
+    if (!isActive || !groupRef.current) return
+
+    particles.forEach((particle, index) => {
+      particle.progress += delta * particle.speed
+
+      if (particle.progress >= 1) {
+        particle.progress = 0
+      }
+
+      const t = particle.progress
+      const eased = 1 - Math.pow(1 - t, 3)
+
+      particle.currentPosition.copy(particle.startPosition).lerp(particle.targetPosition, eased)
+
+      const scale = particle.scale * (1 - eased * 0.8)
+
+      const mesh = groupRef.current?.children[index] as THREE.Mesh
+      if (mesh) {
+        mesh.position.copy(particle.currentPosition)
+        mesh.scale.setScalar(scale)
+        const material = mesh.material as THREE.MeshStandardMaterial
+        material.opacity = 1 - eased * 0.5
+      }
+    })
+  })
+
+  return (
+    <group ref={groupRef} visible={isActive}>
+      {particles.map((particle) => (
+        <mesh key={particle.id} position={particle.startPosition}>
+          <sphereGeometry args={[particle.scale, 12, 12]} />
+          <meshStandardMaterial
+            color='#2196F3'
+            transparent
+            opacity={0.9}
+            metalness={0.3}
+            roughness={0.1}
+            emissive='#0066CC'
+            emissiveIntensity={0.1}
+          />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+// 잎 증발 애니메이션 컴포넌트
+function LeafEvaporation({ isActive, leafPosition }) {
+  const particlesRef = useRef([])
+  const groupRef = useRef<THREE.Group>(null)
+
+  const particles = useMemo(() => {
+    const particleCount = 40
+    const particles = []
+
+    for (let i = 0; i < particleCount; i++) {
+      const angle = (i / particleCount) * Math.PI * 2
+      const radius = 0.3 + Math.random() * 0.8
+
+      particles.push({
+        id: i,
+        startPosition: new THREE.Vector3(
+          leafPosition.x + Math.cos(angle) * radius,
+          leafPosition.y - 0.2,
+          leafPosition.z + Math.sin(angle) * radius,
+        ),
+        targetPosition: new THREE.Vector3(
+          leafPosition.x + Math.cos(angle) * (radius + 1),
+          leafPosition.y + 4 + Math.random() * 2,
+          leafPosition.z + Math.sin(angle) * (radius + 1),
+        ),
+        currentPosition: new THREE.Vector3(),
+        progress: Math.random() * 0.6,
+        speed: 0.15 + Math.random() * 0.15,
+        scale: 0.04 + Math.random() * 0.06,
+      })
+    }
+    return particles
+  }, [leafPosition])
+
+  useFrame((state, delta) => {
+    if (!isActive || !groupRef.current) return
+
+    particles.forEach((particle, index) => {
+      particle.progress += delta * particle.speed
+
+      if (particle.progress >= 1) {
+        particle.progress = 0
+      }
+
+      const t = particle.progress
+      const eased = t * t
+
+      particle.currentPosition.copy(particle.startPosition).lerp(particle.targetPosition, eased)
+
+      const scale = particle.scale * (1 + eased * 3)
+      const opacity = 0.9 * (1 - eased)
+
+      const mesh = groupRef.current?.children[index] as THREE.Mesh
+      if (mesh) {
+        mesh.position.copy(particle.currentPosition)
+        mesh.scale.setScalar(scale)
+        const material = mesh.material as THREE.MeshStandardMaterial
+        material.opacity = opacity
+      }
+    })
+  })
+
+  return (
+    <group ref={groupRef} visible={isActive}>
+      {particles.map((particle) => (
+        <mesh key={particle.id} position={particle.startPosition}>
+          <sphereGeometry args={[particle.scale, 12, 12]} />
+          <meshStandardMaterial
+            color='#E3F2FD'
+            transparent
+            opacity={0.6}
+            metalness={0}
+            roughness={0.9}
+            emissive='#BBDEFB'
+            emissiveIntensity={0.2}
+          />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+// 줄기 물 이동 애니메이션 컴포넌트 (강화 버전)
+function StemWaterMovement({ isActive, pathPoints }) {
+  const particlesRef = useRef([])
+  const groupRef = useRef<THREE.Group>(null)
+  const pulseRef = useRef<THREE.Group>(null)
+
+  const particles = useMemo(() => {
+    const particleCount = 120 // 더 많은 파티클
+    const particles = []
+
+    for (let i = 0; i < particleCount; i++) {
+      particles.push({
+        id: i,
+        progress: (i / particleCount) * 1.2, // 더 긴 시작 지연
+        speed: 0.05 + Math.random() * 0.15, // 더 빠른 속도
+        scale: 0.08 + Math.random() * 0.06, // 더 큰 파티클
+        currentPosition: new THREE.Vector3(),
+        opacity: 0.9 + Math.random() * 0.1,
+        waveOffset: Math.random() * Math.PI * 2,
+        pulsePhase: Math.random() * Math.PI * 2,
+      })
+    }
+    return particles
+  }, [])
+
+  // 파이프라인 효과를 위한 추가 파티클
+  const pipelineParticles = useMemo(() => {
+    const count = 30
+    const particles = []
+
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        id: i,
+        progress: (i / count) * 0.9,
+        speed: 0.3,
+        scale: 0.12 + Math.random() * 0.08,
+        currentPosition: new THREE.Vector3(),
+        glowIntensity: 0.5 + Math.random() * 0.5,
+      })
+    }
+    return particles
+  }, [])
+
+  const getPositionOnPath = (t) => {
+    const clampedT = Math.max(0, Math.min(1, t))
+    const segmentIndex = Math.floor(clampedT * (pathPoints.length - 1))
+    const localT = (clampedT * (pathPoints.length - 1)) % 1
+
+    if (segmentIndex >= pathPoints.length - 1) {
+      return pathPoints[pathPoints.length - 1].clone()
+    }
+
+    const startPoint = pathPoints[segmentIndex]
+    const endPoint = pathPoints[segmentIndex + 1]
+
+    return startPoint.clone().lerp(endPoint, localT)
+  }
+
+  useFrame((state, delta) => {
+    if (!isActive || !groupRef.current) return
+
+    const time = state.clock.elapsedTime
+
+    // 메인 파티클 애니메이션
+    particles.forEach((particle, index) => {
+      particle.progress += delta * particle.speed
+
+      if (particle.progress >= 1.1) {
+        particle.progress = -0.1 // 약간의 딜레이로 재시작
+      }
+
+      if (particle.progress >= 0 && particle.progress <= 1) {
+        const position = getPositionOnPath(particle.progress)
+
+        // 약간의 웨이브 효과 추가
+        const waveX = Math.sin(time * 2 + particle.waveOffset) * 0.1
+        const waveZ = Math.cos(time * 2 + particle.waveOffset) * 0.1
+
+        particle.currentPosition.copy(position)
+        particle.currentPosition.x += waveX
+        particle.currentPosition.z += waveZ
+
+        const mesh = groupRef.current?.children[index] as THREE.Mesh
+        if (mesh) {
+          mesh.position.copy(particle.currentPosition)
+
+          // 동적 스케일링
+          const pulseScale = 1 + Math.sin(time * 4 + particle.pulsePhase) * 0.3
+          mesh.scale.setScalar(particle.scale * pulseScale)
+
+          const material = mesh.material as THREE.MeshStandardMaterial
+
+          // 진행도에 따른 투명도 및 발광 조절
+          const visibility = Math.sin(particle.progress * Math.PI)
+          material.opacity = particle.opacity * visibility * 0.9
+          material.emissiveIntensity = 0.3 + Math.sin(time * 3 + particle.pulsePhase) * 0.2
+        }
+      }
+    })
+
+    // 파이프라인 파티클 애니메이션 (더 큰 발광 파티클)
+    pipelineParticles.forEach((particle, index) => {
+      particle.progress += delta * particle.speed
+
+      if (particle.progress >= 1.1) {
+        particle.progress = -0.1
+      }
+
+      if (particle.progress >= 0 && particle.progress <= 1) {
+        const position = getPositionOnPath(particle.progress)
+        particle.currentPosition.copy(position)
+
+        const meshIndex = particles.length + index
+        const mesh = groupRef.current?.children[meshIndex] as THREE.Mesh
+        if (mesh) {
+          mesh.position.copy(particle.currentPosition)
+
+          // 더 강한 펄스 효과
+          const pulseScale = 1 + Math.sin(time * 6 + index) * 0.5
+          mesh.scale.setScalar(particle.scale * pulseScale)
+
+          const material = mesh.material as THREE.MeshStandardMaterial
+          const visibility = Math.sin(particle.progress * Math.PI)
+          material.opacity = visibility * 0.8
+          material.emissiveIntensity = particle.glowIntensity + Math.sin(time * 5 + index) * 0.4
+        }
+      }
+    })
+  })
+
+  return (
+    <group ref={groupRef} visible={isActive}>
+      {/* 메인 물 파티클들 */}
+      {particles.map((particle) => (
+        <mesh key={particle.id}>
+          <sphereGeometry args={[particle.scale, 12, 12]} />
+          <meshStandardMaterial
+            color='#4FC3F7'
+            transparent
+            opacity={particle.opacity}
+            metalness={0.4}
+            roughness={0.2}
+            emissive='#03A9F4'
+            emissiveIntensity={0.3}
+          />
+        </mesh>
+      ))}
+
+      {/* 파이프라인 발광 파티클들 */}
+      {pipelineParticles.map((particle) => (
+        <mesh key={`pipeline-${particle.id}`}>
+          <sphereGeometry args={[particle.scale, 16, 16]} />
+          <meshStandardMaterial
+            color='#00E5FF'
+            transparent
+            opacity={0.7}
+            metalness={0.1}
+            roughness={0.1}
+            emissive='#00BCD4'
+            emissiveIntensity={particle.glowIntensity}
+          />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+// 되돌아가기 버튼 컴포넌트
+function BackButton({ isVisible, onBack }) {
+  if (!isVisible) return null
+
+  return (
+    <div className='fixed top-4 left-4 z-50'>
+      <button
+        onClick={onBack}
+        className='flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 hover:bg-white hover:shadow-xl transition-all duration-200 group'>
+        <svg
+          className='w-5 h-5 text-gray-600 group-hover:text-gray-800 transition-colors'
+          fill='none'
+          stroke='currentColor'
+          viewBox='0 0 24 24'>
+          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M10 19l-7-7m0 0l7-7m-7 7h18' />
+        </svg>
+        <span className='text-lg font-bold text-gray-700 group-hover:text-gray-900 transition-colors'>전체 보기</span>
+      </button>
+    </div>
+  )
+}
+
+// 물의 이동 확인하기 버튼 컴포넌트
+function WaterFlowButton({ isVisible, onClick }) {
+  if (!isVisible) return null
+
+  return (
+    <div className='fixed bottom-4 right-4 z-50'>
+      <button
+        onClick={onClick}
+        className='flex items-center font-bold gap-2 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 group'>
+        <span className='text-lg'>물의 이동 확인하기</span>
+      </button>
+    </div>
+  )
+}
+
+// 자막 컴포넌트
+function Subtitle({ text, isVisible }) {
+  if (!isVisible) return null
+
+  return (
+    <div className='fixed bottom-16 left-1/2 transform -translate-x-1/2 z-50 max-w-4xl'>
+      <div className='bg-black/80 backdrop-blur-sm rounded-lg px-6 py-4 shadow-lg'>
+        <p className='text-white text-lg font-light text-center leading-relaxed'>{text}</p>
+      </div>
+    </div>
+  )
+}
+
+// 정보 패널 컴포넌트
+function InfoPanel({ type, isVisible, onClose }) {
+  const infoData = {
+    root: {
+      title: '뿌리',
+      image: '/img/뿌리.png',
+    },
+    stem: {
+      title: '줄기',
+      image: '/img/줄기.png',
+    },
+    leaf: {
+      title: '잎',
+      image: '/img/잎.png',
+    },
+  }
+
+  const info = infoData[type]
+
+  if (!isVisible || !info) return null
+
+  return (
+    <div className='fixed top-4 right-4 w-80 bg-white rounded-lg shadow-lg p-4 z-50 border'>
+      <div className='flex justify-between items-center mb-3'>
+        <h3 className='text-lg font-bold text-gray-800'>{info.title}</h3>
+        <button onClick={onClose} className='text-gray-500 hover:text-gray-700 text-xl'>
+          ×
+        </button>
+      </div>
+      <img src={info.image} alt={info.title} className='w-full h-full object-cover rounded mb-3' />
+      <p className='text-sm text-gray-600 leading-relaxed'>{info.description}</p>
+    </div>
+  )
+}
+
 // 카메라 애니메이션 컴포넌트
 function CameraAnimator({
   targetPosition,
@@ -28,11 +441,10 @@ function CameraAnimator({
   useFrame((state, delta) => {
     if (!targetPosition || !targetLookAt || !isAnimating.current) return
 
-    const duration = 2.0 // 애니메이션 지속 시간 (초)
+    const duration = 2.0
     animationProgress.current += delta / duration
 
     if (animationProgress.current >= 1) {
-      // 애니메이션 완료
       camera.position.copy(targetPosition)
       camera.lookAt(targetLookAt)
       isAnimating.current = false
@@ -41,11 +453,9 @@ function CameraAnimator({
       return
     }
 
-    // 부드러운 easing (easeInOutCubic)
     const t = animationProgress.current
     const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
 
-    // 위치 보간
     const currentPosition = startPosition.current.clone().lerp(targetPosition, eased)
     const currentLookAt = startLookAt.current.clone().lerp(targetLookAt, eased)
 
@@ -79,7 +489,7 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
 }
 
 export default function Home() {
-  // 기본 경로 정의 (하나만!)
+  // 기본 경로 정의
   const [basePathPoints, setBasePathPoints] = useState([
     new THREE.Vector3(3.48, -2.42, 1.82), // 시작점 (뿌리 부근)
     new THREE.Vector3(1.62, -1.42, 0.92),
@@ -96,17 +506,17 @@ export default function Home() {
     new THREE.Vector3(2.15, 10.1, 1.36), // 끝점 (잎 끝)
   ])
 
-  // 3개 경로의 설정 (회전과 색상만)
+  // 3개 경로의 설정
   const waterFlowConfigs = [
     { rotation: 0, color: '#4fc3f7', name: '물길 1', isActive: true },
-    { rotation: (Math.PI * 2) / 3, color: '#81c784', name: '물길 2', isActive: true }, // 120도 회전
-    { rotation: (Math.PI * 4) / 3, color: '#ff8a65', name: '물길 3', isActive: true }, // 240도 회전
+    { rotation: (Math.PI * 2) / 3, color: '#81c784', name: '물길 2', isActive: true },
+    { rotation: (Math.PI * 4) / 3, color: '#ff8a65', name: '물길 3', isActive: true },
   ]
 
   const [activeConfigs, setActiveConfigs] = useState(waterFlowConfigs)
   const sceneRef = useRef<THREE.Group>(null)
   const orbitControlsRef = useRef<any>(null)
-  const [isAnimationPlaying, setIsAnimationPlaying] = useState(true)
+  const [isAnimationPlaying, setIsAnimationPlaying] = useState(false) // 기본값을 false로 변경
   const [showPath, setShowPath] = useState(true)
   const [showTransformControls, setShowTransformControls] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -114,15 +524,16 @@ export default function Home() {
   const [selectedPointIndex, setSelectedPointIndex] = useState<number | null>(null)
   const [selectedPointPosition, setSelectedPointPosition] = useState<THREE.Vector3 | null>(null)
 
-  // Intro 관련 상태 추가
+  // Intro 관련 상태
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
 
   // 루프 관련 상태
   const [isLooping, setIsLooping] = useState(true)
-  const [animationSpeed, setAnimationSpeed] = useState(0.8)
-  const [trailCount, setTrailCount] = useState(12)
-  const [trailSpacing, setTrailSpacing] = useState(0.06)
+  const [animationSpeed, setAnimationSpeed] = useState(0.3)
+  const [trailCount, setTrailCount] = useState(8)
+  const [trailSpacing, setTrailSpacing] = useState(0.12)
+  const backgroundAudioRef = useRef<HTMLAudioElement | null>(null)
 
   // 카메라 애니메이션 관련 상태
   const [cameraTarget, setCameraTarget] = useState<{
@@ -136,6 +547,31 @@ export default function Home() {
   } | null>(null)
   const [orbitTarget, setOrbitTarget] = useState<[number, number, number]>([0, 3, 0])
 
+  // 특수 효과 상태
+  const [currentView, setCurrentView] = useState<'default' | 'root' | 'stem' | 'leaf' | 'water'>('default')
+  const [showInfoPanel, setShowInfoPanel] = useState(false)
+  const [infoPanelType, setInfoPanelType] = useState<'root' | 'stem' | 'leaf'>('root')
+
+  // 자막 관련 상태
+  const [showSubtitle, setShowSubtitle] = useState(false)
+  const [subtitleText, setSubtitleText] = useState('')
+
+  // 나레이션 텍스트 매핑
+  const narrationTexts = {
+    root: '뿌리는 식물에 필요한 물을 흡수합니다.',
+    stem: '뿌리에서 흡수한 물은 줄기를 통해 잎으로 이동합니다.',
+    leaf: '잎에 도달한 물이 수증기가 되어 기공을 통해 잎 밖으로 빠져나갑니다.',
+    water: '뿌리에서 흡수된 물은 어떻게 되는지 살펴봅시다.',
+  }
+
+  // 나레이션 파일 경로 매핑
+  const narrationFiles = {
+    root: '/sounds/6-1-3/narration/6-1-3-B.MP3',
+    stem: '/sounds/6-1-3/narration/6-1-3-C.MP3',
+    leaf: '/sounds/6-1-3/narration/6-1-3-A.MP3',
+    water: '/sounds/6-1-3/narration/6-1-3-D.MP3',
+  }
+
   // 카메라 위치 프리셋
   const cameraPresets = {
     default: {
@@ -144,15 +580,19 @@ export default function Home() {
     },
     leaf: {
       position: new THREE.Vector3(4, 10, 6),
-      lookAt: new THREE.Vector3(2.15, 8.1, 1.36), // 잎 부분 중심
+      lookAt: new THREE.Vector3(2.15, 8.1, 1.36),
     },
     root: {
       position: new THREE.Vector3(8, -4, 12),
-      lookAt: new THREE.Vector3(3.48, -2.42, 1.82), // 뿌리 부분 중심
+      lookAt: new THREE.Vector3(3.48, -2.42, 1.82),
     },
     stem: {
       position: new THREE.Vector3(5, 4, 8),
-      lookAt: new THREE.Vector3(0, 3, 0), // 줄기 부분 중심
+      lookAt: new THREE.Vector3(0, 3, 0),
+    },
+    water: {
+      position: new THREE.Vector3(16, 3, 20),
+      lookAt: new THREE.Vector3(0, 0, 0),
     },
   }
 
@@ -172,6 +612,73 @@ export default function Home() {
     }
   }
 
+  const playGeneralButton = (audioPath: string = '/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3') => {
+    try {
+      const audio = new Audio(audioPath)
+      audio.volume = 0.5
+      audio.play().catch((error) => {
+        console.log('효과음 재생 실패:', error.name)
+      })
+    } catch (error) {
+      console.log('효과음 생성 실패:', error)
+    }
+  }
+
+  const playBackgroundButton = (audioPath: string = '/sounds/6-1-3/6-1-3-2_ambient-bubbling-liquid-61254.mp3') => {
+    try {
+      // 기존 배경음이 있으면 중지
+      if (backgroundAudioRef.current) {
+        backgroundAudioRef.current.pause()
+        backgroundAudioRef.current.currentTime = 0
+      }
+
+      const audio = new Audio(audioPath)
+      audio.volume = 0.3
+      audio.loop = true // 반복 재생
+      backgroundAudioRef.current = audio
+
+      audio.play().catch((error) => {
+        console.log('배경음 재생 실패:', error.name)
+      })
+    } catch (error) {
+      console.log('배경음 생성 실패:', error)
+    }
+  }
+
+  const stopBackgroundButton = () => {
+    if (backgroundAudioRef.current) {
+      backgroundAudioRef.current.pause()
+      backgroundAudioRef.current.currentTime = 0
+      backgroundAudioRef.current = null
+    }
+  }
+
+  // 나레이션 재생 함수
+  const playNarration = (type: 'root' | 'stem' | 'leaf' | 'water') => {
+    try {
+      const audio = new Audio(narrationFiles[type])
+      audio.volume = 0.8
+      audio.play().catch((error) => {
+        console.log('나레이션 재생 실패:', error.name)
+      })
+    } catch (error) {
+      console.log('나레이션 생성 실패:', error)
+    }
+  }
+
+  // 자막 표시 함수
+  const showSubtitleWithDelay = (type: 'root' | 'stem' | 'leaf' | 'water') => {
+    setTimeout(() => {
+      setSubtitleText(narrationTexts[type])
+      setShowSubtitle(true)
+
+      // 5초 후 자막 숨기기
+      setTimeout(() => {
+        setShowSubtitle(false)
+      }, 5000)
+    }, 3000)
+  }
+
   const handleEnterExperience = () => {
     playClickSound()
     setTimeout(() => {
@@ -180,7 +687,16 @@ export default function Home() {
   }
 
   // 카메라 애니메이션 핸들러
-  const handleCameraMove = (preset: 'leaf' | 'root' | 'stem' | 'default') => {
+  const handleCameraMove = (preset: 'leaf' | 'root' | 'stem' | 'water' | 'default') => {
+    // 나레이션 재생 및 자막 표시
+    if (preset !== 'default') {
+      playNarration(preset)
+      showSubtitleWithDelay(preset)
+      playBackgroundButton()
+    } else {
+      stopBackgroundButton()
+    }
+
     // 첫 번째 이동이면 현재 카메라 상태 저장
     if (!isViewingSpecificPart && preset !== 'default') {
       setOriginalCameraState({
@@ -201,7 +717,24 @@ export default function Home() {
       orbitControlsRef.current.enabled = false
     }
 
+    // 현재 뷰 상태 업데이트
+    setCurrentView(preset)
     setIsViewingSpecificPart(preset !== 'default')
+
+    // 정보 패널 표시 (물 보기 제외)
+    if (preset !== 'default' && preset !== 'water') {
+      setInfoPanelType(preset)
+      setShowInfoPanel(true)
+    } else {
+      setShowInfoPanel(false)
+    }
+  }
+
+  // 물의 이동 확인하기 버튼 핸들러
+  const handleWaterFlowClick = () => {
+    playGeneralButton()
+    handleCameraMove('water')
+    setIsAnimationPlaying(true)
   }
 
   const handleCameraAnimationComplete = () => {
@@ -210,6 +743,11 @@ export default function Home() {
       orbitControlsRef.current.enabled = true
     }
     setCameraTarget(null)
+  }
+
+  // 정보 패널 닫기
+  const handleCloseInfoPanel = () => {
+    setShowInfoPanel(false)
   }
 
   // 모델 로딩 상태 관리
@@ -229,25 +767,6 @@ export default function Home() {
     }
   }, [isAnimationPlaying, showTransformControls])
 
-  // 경로 활성화/비활성화
-  const togglePathActive = (index: number) => {
-    setActiveConfigs((prev) =>
-      prev.map((config, i) => (i === index ? { ...config, isActive: !config.isActive } : config)),
-    )
-  }
-
-  const handleStartAnimation = () => {
-    if (!isLoading) {
-      setIsAnimationPlaying(true)
-      console.log(`물 애니메이션 시작 - 루프: ${isLooping ? '활성' : '비활성'}`)
-    }
-  }
-
-  const handleStopAnimation = () => {
-    setIsAnimationPlaying(false)
-    console.log('물 애니메이션 정지')
-  }
-
   const handleAnimationComplete = () => {
     if (!isLooping) {
       console.log('물 이동 애니메이션 완료!')
@@ -255,75 +774,25 @@ export default function Home() {
     }
   }
 
-  // TransformControls로 점 위치 변경 핸들러
-  const handlePointPositionChange = (index: number, newPosition: THREE.Vector3) => {
-    const newPoints = [...basePathPoints]
-    newPoints[index] = newPosition.clone()
-    setBasePathPoints(newPoints)
-  }
-
-  // 드래그 시작/종료 핸들러
-  const handleDragStart = (index: number) => {
-    console.log('Drag started for point', index)
-    setIsDragging(true)
-    setSelectedPointIndex(index)
-    if (orbitControlsRef.current) {
-      orbitControlsRef.current.enabled = false
-    }
-  }
-
-  const handleDragEnd = () => {
-    console.log('Drag ended')
-    setIsDragging(false)
-    setTimeout(() => {
-      if (orbitControlsRef.current) {
-        orbitControlsRef.current.enabled = true
-      }
-    }, 150)
-  }
-
-  // 점 선택 핸들러
-  const handlePointSelect = (index: number, position: THREE.Vector3) => {
-    setSelectedPointIndex(index)
-    setSelectedPointPosition(position.clone())
-  }
-
-  // 좌표 직접 입력 핸들러
-  const handleCoordinateChange = (axis: 'x' | 'y' | 'z', value: string) => {
-    if (selectedPointIndex === null) return
-
-    const numValue = parseFloat(value)
-    if (isNaN(numValue)) return
-
-    const newPoints = [...basePathPoints]
-    const currentPos = newPoints[selectedPointIndex].clone()
-    currentPos[axis] = numValue
-    newPoints[selectedPointIndex] = currentPos
-    setBasePathPoints(newPoints)
-    setSelectedPointPosition(currentPos.clone())
-  }
-
-  // 경로 리셋 함수
-  const resetPath = () => {
-    const defaultPoints = [
-      new THREE.Vector3(1.48, -5.0, 0.82),
-      new THREE.Vector3(1.62, -3.42, 0.92),
-      new THREE.Vector3(1.6, -2.01, 1.9),
-      new THREE.Vector3(-0.18, 0.17, 0.47),
-      new THREE.Vector3(0, 1.52, 0.24),
-      new THREE.Vector3(-0.07, 3.61, 0.27),
-      new THREE.Vector3(0.35, 6.28, 0.37),
-      new THREE.Vector3(0.35, 8.18, 0.37),
-      new THREE.Vector3(1.16, 9.34, 1.51),
-      new THREE.Vector3(2.15, 10.1, 1.36),
-    ]
-    setBasePathPoints(defaultPoints)
-    setSelectedPointIndex(null)
-    setSelectedPointPosition(null)
-  }
-
   return (
     <div className='w-screen h-screen bg-white relative'>
+      {/* 되돌아가기 버튼 */}
+      <BackButton
+        isVisible={isViewingSpecificPart && !showIntro}
+        onBack={() => {
+          handleCameraMove('default')
+          playGeneralButton()
+          setIsAnimationPlaying(false)
+          stopBackgroundButton() 
+        }}
+      />
+
+      {/* 물의 이동 확인하기 버튼 */}
+      <WaterFlowButton isVisible={currentView === 'default' && !showIntro} onClick={handleWaterFlowClick} />
+
+      {/* 자막 */}
+      <Subtitle text={subtitleText} isVisible={showSubtitle} />
+
       <Scene camera={{ position: [16, 10, 20], fov: 50 }} shadows='soft'>
         <Suspense fallback={null}>
           <LoadingTracker onLoadingComplete={handleLoadingComplete} />
@@ -349,37 +818,55 @@ export default function Home() {
             shadow-bias={-0.0001}
           />
 
-          <group ref={sceneRef} position={[0, -2, 0]}>
+          <group ref={sceneRef} position={[0, -2, 0]} rotation={[0, Math.PI + Math.PI / 2, 0]}>
             <Model />
 
-            {/* 활성화된 경로들을 회전시켜서 렌더링 */}
-            {activeConfigs
-              .filter((config) => config.isActive)
-              .map((config, index) => (
-                <group key={`waterflow-${index}`} rotation={[0, config.rotation, 0]}>
-                  <WaterFlowAnimation
-                    arrowSize={4}
-                    lineWidth={3}
-                    isPlaying={isAnimationPlaying}
-                    speed={animationSpeed}
-                    pathPoints={basePathPoints} // 모든 경로가 같은 기본 경로 사용
-                    showPath={showPath}
-                    onComplete={handleAnimationComplete}
-                    loop={isLooping}
-                    trailCount={trailCount}
-                    trailSpacing={trailSpacing}
-                  />
-                </group>
-              ))}
+            {/* 물줄기 애니메이션 - 버튼 클릭 시에만 재생 */}
+            {isAnimationPlaying &&
+              activeConfigs
+                .filter((config) => config.isActive)
+                .map((config, index) => (
+                  <group key={`waterflow-${index}`} rotation={[0, config.rotation, 0]}>
+                    <WaterFlowAnimation
+                      arrowSize={2}
+                      lineWidth={1.5}
+                      isPlaying={isAnimationPlaying}
+                      speed={animationSpeed}
+                      pathPoints={basePathPoints}
+                      showPath={showPath}
+                      onComplete={handleAnimationComplete}
+                      loop={isLooping}
+                      trailCount={trailCount}
+                      trailSpacing={trailSpacing}
+                    />
+                  </group>
+                ))}
+
+            {/* 뿌리 물 흡수 효과 */}
+            <RootWaterAbsorption
+              isActive={currentView === 'root'}
+              rootPosition={new THREE.Vector3(3.48, -2.42, 1.82)}
+            />
+
+            {/* 줄기 물 이동 효과 */}
+            <group position={[0.4, 0, -0.6]}>
+              <StemWaterMovement isActive={currentView === 'stem'} pathPoints={basePathPoints} />
+            </group>
+
+            {/* 잎 증발 효과 */}
+            <LeafEvaporation isActive={currentView === 'leaf'} leafPosition={new THREE.Vector3(2.15, 10.1, -1.36)} />
 
             {/* SpeechBubble 컴포넌트들 - 인트로가 끝난 후에만 표시 */}
-            {!showIntro && (
+            {!showIntro && currentView === 'default' && (
               <>
                 {/* 뿌리 부분 설명 */}
                 <SpeechBubble
                   position={[3.5, -2.5, 2]}
-                  html='<strong>뿌리</strong><br/>물을 흡수하는 곳'
-                  onBubbleClick={() => handleCameraMove('root')}
+                  html='<strong>뿌리 보기</strong>'
+                  onBubbleClick={() => {
+                    handleCameraMove('root')
+                    playGeneralButton()
+                  }}
                   pointColor='#8B4513'
                   bubbleOffset={[1, 0.5, 0]}
                 />
@@ -387,8 +874,11 @@ export default function Home() {
                 {/* 줄기 부분 설명 */}
                 <SpeechBubble
                   position={[0.5, 3, 0.5]}
-                  html='<strong>줄기</strong><br/>물이 이동하는 통로'
-                  onBubbleClick={() => handleCameraMove('stem')}
+                  html='<strong>줄기 보기</strong>'
+                  onBubbleClick={() => {
+                    handleCameraMove('stem')
+                    playGeneralButton()
+                  }}
                   pointColor='#228B22'
                   bubbleOffset={[-1, 0.5, 0]}
                 />
@@ -396,22 +886,14 @@ export default function Home() {
                 {/* 잎 부분 설명 */}
                 <SpeechBubble
                   position={[2, 9.5, 1.5]}
-                  html='<strong>잎</strong><br/>증산작용이 일어나는 곳'
-                  onBubbleClick={() => handleCameraMove('leaf')}
+                  html='<strong>잎 보기</strong>'
+                  onBubbleClick={() => {
+                    handleCameraMove('leaf')
+                    playGeneralButton()
+                  }}
                   pointColor='#32CD32'
                   bubbleOffset={[0, 0.5, 0]}
                 />
-
-                {/* 전체 보기 버튼 (특정 부분을 보고 있을 때만 표시) */}
-                {isViewingSpecificPart && (
-                  <SpeechBubble
-                    position={[0, 12, 0]}
-                    html='<strong>전체 보기</strong><br/>처음 화면으로 돌아가기'
-                    onBubbleClick={() => handleCameraMove('default')}
-                    pointColor='#FF6B6B'
-                    bubbleOffset={[0, 0.5, 0]}
-                  />
-                )}
               </>
             )}
           </group>
@@ -427,9 +909,16 @@ export default function Home() {
             mieDirectionalG={0.85}
           />
 
-          <Clouds material={THREE.MeshBasicMaterial} position={[0,19,0]}>
-            <Cloud segments={20} bounds={[10, 0, 10]} volume={4} color='white' />
-            <Cloud seed={1} scale={[5,5,2]} volume={5} color='white' fade={100} />
+          <Clouds material={THREE.MeshBasicMaterial} position={[0, 16, 0]}>
+            <Cloud
+              seed={2}
+              position={[0, 5, 0]}
+              bounds={[8, 0.001, 8]}
+              scale={[5, 5, 3]}
+              volume={5}
+              color='white'
+              fade={70}
+            />
           </Clouds>
 
           <Environment preset={'sunset'} />
@@ -448,6 +937,9 @@ export default function Home() {
           enabled={(!showTransformControls || !isDragging) && !showIntro}
         />
       </Scene>
+
+      {/* 정보 패널 */}
+      <InfoPanel type={infoPanelType} isVisible={showInfoPanel} onClose={handleCloseInfoPanel} />
 
       {isLoaded && showIntro && (
         <Intro
