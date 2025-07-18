@@ -7,15 +7,14 @@ import CameraLogger from '@/components/CameraLogger'
 import Intro from '@/components/intro/Intro'
 import { Environment } from '@react-three/drei'
 import { SpeechBubble } from '@/components/5-2-3/SpeechBubble'
+import IntroMouseCameraController from '@/components/IntroMouseCameraController'
 
-// Define interfaces for better type safety
 interface PopupContent {
   title: string
   content: string
   narrationPath: string
 }
 
-// 카메라 컨트롤러 컴포넌트 - 개선된 버전
 const CameraController = ({
   targetPosition,
   targetLookAt,
@@ -540,6 +539,7 @@ export default function Home() {
       {/* 3D Scene */}
       <Scene camera={{ position: [30, 20, 80], fov: 50, far: 1000 }} shadows>
         <LoadingTracker onLoadingComplete={handleLoadingComplete} />
+        <IntroMouseCameraController enabled={showIntro} />
         <ambientLight intensity={isDay ? 1.0 : 0.3} />
         <Model
           scale={1.0}
