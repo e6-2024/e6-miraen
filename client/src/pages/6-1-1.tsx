@@ -31,11 +31,9 @@ import IntroMouseCameraController from '@/components/IntroMouseCameraController'
 import { FishSmellEffect } from '@/components/6-1-1/FishSmellParticles'
 import { Toilet } from '@/components/6-1-1/Toilet'
 
-// 타입과 상수 import
 import { CleaningToolType, SplashType, GamePhase, missions, wipingEfficiency, initialCamera } from '../types/6-1-1'
 
-// UI 컴포넌트들 import
-import { BackButton, WipingProgressUI, CleaningProgressUI, SolutionSelector, GameMessages } from '@/components/6-1-1/UI'
+import { BackButton, WipingProgressUI, SolutionSelector, GameMessages } from '@/components/6-1-1/UI'
 import { BathroomLight } from '@/components/6-1-1/BathroomLight'
 
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
@@ -48,6 +46,86 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
   }, [active, progress, onLoadingComplete])
 
   return null
+}
+
+function CleaningProgressUI({ 
+  cleaningProgress, 
+  completedMissions,
+  showIntro, 
+  isZoomed, 
+  onReset, 
+  onButtonClick 
+}: {
+  cleaningProgress: {
+    splash01: number
+    splash02: number
+    splash03: number
+    splash04: number
+  }
+  completedMissions: {
+    splash01: boolean
+    splash02: boolean
+    splash03: boolean
+    splash04: boolean
+  }
+  showIntro: boolean
+  isZoomed: boolean
+  onReset: (missionId: 'splash01' | 'splash02' | 'splash03' | 'splash04') => void
+  onButtonClick: () => void
+}) {
+  if (showIntro || isZoomed) return null
+
+  const missions = [
+    { id: 'splash01' as const, name: '유리창', color: '#2985ee' },
+    { id: 'splash02' as const, name: '변기', color: '#25e5c2' },
+    { id: 'splash03' as const, name: '욕실', color: '#129d3a' },
+    { id: 'splash04' as const, name: '도마', color: '#ff6b6b' }
+  ]
+
+  const handleReset = (missionId: 'splash01' | 'splash02' | 'splash03' | 'splash04') => {
+    onButtonClick()
+    onReset(missionId)
+  }
+
+  return (
+    <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg border border-gray-200 min-w-[200px] z-10">
+      <h3 className="text-lg font-bold mb-3 text-gray-800">청소 진행도</h3>
+      <div className="space-y-3 font-light">
+        {missions.map((mission) => {
+          const progress = cleaningProgress[mission.id]
+          const isCompleted = completedMissions[mission.id]
+          
+          return (
+            <div key={mission.id} className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-700">{mission.name}</span>
+                <span className="text-xs text-gray-500">
+                  {isCompleted ? '완료' : `${Math.round(progress)}%`}
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="h-2 rounded-full transition-all duration-300"
+                  style={{ 
+                    width: `${100 - progress}%`,
+                    backgroundColor: mission.color
+                  }}
+                />
+              </div>
+              {isCompleted && (
+                <button
+                  onClick={() => handleReset(mission.id)}
+                  className="w-full text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded border border-gray-300 transition-colors duration-200"
+                >
+                  다시 하기
+                </button>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
 }
 
 export default function Home() {
@@ -66,12 +144,18 @@ export default function Home() {
   const currentAudioRef = useRef<HTMLAudioElement | null>(null)
   const [isBathroomLightOn, setIsBathroomLightOn] = useState(false)
 
-  // 청소 진행도 상태들
   const [cleaningProgress, setCleaningProgress] = useState({
     splash01: 100,
     splash02: 100,
     splash03: 100,
     splash04: 100,
+  })
+
+  const [completedMissions, setCompletedMissions] = useState({
+    splash01: false,
+    splash02: false,
+    splash03: false,
+    splash04: false,
   })
 
   const [wipingProgress, setWipingProgress] = useState({
@@ -92,7 +176,6 @@ export default function Home() {
     splash04: cleaningProgress.splash04 / 100,
   }
 
-  // 사운드 함수들
   const playClickSound = (audioPath: string = '/sounds/Enter_Cute.mp3') => {
     try {
       const audio = new Audio(audioPath)
@@ -162,26 +245,42 @@ export default function Home() {
 
     const mission = missions[currentMission]
 
+    setCompletedMissions(prev => ({
+      ...prev,
+      [currentMission]: true
+    }))
+
     if (currentMission === 'splash01') {
-      // 창문
       playNarration('/sounds/6-1-1/narration/6-1-1-D.MP3')
       setShowMessage('단백질 등으로 이루어진 얼룩은 염기성 물질인 유리 세정제와 만나면 성질이 변하여 제거됩니다.')
     } else if (currentMission === 'splash02') {
-      // 변기
       playNarration('/sounds/6-1-1/narration/6-1-1-F.MP3')
       setShowMessage('산성 용액인 변기용 세제로 변기를 청소하면 변기의 때가 성질이 변하여 제거됩니다.')
     } else if (currentMission === 'splash03') {
-      // 욕실바닥
       playNarration('/sounds/6-1-1/narration/6-1-1-H.MP3')
       setShowMessage('염기성 용액인 표백제로 욕실 바닥을 청소하면 욕실 바닥의 때가 성질이 변하여 제거됩니다.')
     } else if (currentMission === 'splash04') {
-      // 도마
       playNarration('/sounds/6-1-1/narration/6-1-1-B.MP3')
       setShowMessage('염기성 물질인 비린내는 산성 용액인 식초와 만나면 성질이 변하여 제거됩니다.')
     }
 
     playClickSound('/sounds/complete_cleaning.mp3')
     setGamePhase('completed')
+  }
+
+  const resetMission = (missionId: SplashType) => {
+    setCleaningProgress(prev => ({
+      ...prev,
+      [missionId]: 100
+    }))
+    setWipingProgress(prev => ({
+      ...prev,
+      [missionId]: 0
+    }))
+    setCompletedMissions(prev => ({
+      ...prev,
+      [missionId]: false
+    }))
   }
 
   const moveToTarget = (
@@ -362,7 +461,6 @@ export default function Home() {
     }
   }
 
-  // 마우스 이벤트 처리
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
       if (gamePhase === 'wiping') {
@@ -392,7 +490,6 @@ export default function Home() {
 
   return (
     <div className='w-screen h-screen bg-white flex flex-col'>
-      {/* UI 컴포넌트들 */}
       <BackButton
         isZoomed={isZoomed}
         showIntro={showIntro}
@@ -419,7 +516,14 @@ export default function Home() {
         onButtonClick={playGeneralButton}
       />
 
-      <CleaningProgressUI cleaningProgress={cleaningProgress} showIntro={showIntro} isZoomed={isZoomed} />
+      <CleaningProgressUI 
+        cleaningProgress={cleaningProgress} 
+        completedMissions={completedMissions}
+        showIntro={showIntro} 
+        isZoomed={isZoomed}
+        onReset={resetMission}
+        onButtonClick={playGeneralButton}
+      />
 
       <Scene shadows camera={{ position: initialCamera.position, fov: 50 }}>
         <LoadingTracker onLoadingComplete={handleLoadingComplete} />
@@ -530,8 +634,8 @@ export default function Home() {
 
         <OrbitControls
           ref={controlsRef}
-          maxPolarAngle={Math.PI / 3}
-          minPolarAngle={0}
+          maxPolarAngle={Math.PI / 2}
+          minPolarAngle={Math.PI/6}
           minAzimuthAngle={Math.PI / 2}
           maxAzimuthAngle={-Math.PI / 2}
           enablePan={false}

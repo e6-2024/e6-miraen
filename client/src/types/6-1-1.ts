@@ -19,7 +19,7 @@ export const missions: Record<SplashType, MissionData> = {
     name: '유리창',
     correctSolution: 'spray',
     position: [-6, 1, -1.2],
-    cameraPosition: [-2, -1, 1.2],
+    cameraPosition: [-2, -1, -1.2],
     selectMessage: '유리창의 얼룩을 제거하기 위해 이용해야 할 용액을 고르세요.',
     completionMessage: '산성 용액인 유리 세정제로 얼룩이 깨끗하게 제거되었습니다.',
     emoji: '🪟',

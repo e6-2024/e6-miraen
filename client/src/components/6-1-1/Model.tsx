@@ -1,4 +1,3 @@
-// components/Model.tsx (정확한 텍스처 매핑 + 그림자 설정 버전)
 import * as THREE from 'three'
 import React, { useRef, useEffect } from 'react'
 import { useGLTF } from '@react-three/drei'
@@ -11,9 +10,9 @@ interface ModelProps {
     splash02: number  
     splash03: number
   }
-  // 그림자 설정 옵션들
   castShadow?: boolean
   receiveShadow?: boolean
+  doubleSide?: boolean
 }
 
 export const Model = ({ 
@@ -21,7 +20,8 @@ export const Model = ({
   scale = 1, 
   position = [0, 0, 0],
   castShadow = true,
-  receiveShadow = true
+  receiveShadow = true,
+  doubleSide = true
 }: ModelProps) => {
   const gltf = useGLTF('/models/6-1-1/New_Clean_Room/New_Room.gltf')
   const modelRef = useRef<THREE.Group>(null)
@@ -51,10 +51,13 @@ export const Model = ({
           const materials = Array.isArray(child.material) ? child.material : [child.material]
           
           materials.forEach((material) => {
+            if (doubleSide) {
+              material.side = THREE.DoubleSide
+            }
+            
             if (material.name) {
               const matName = material.name.toLowerCase()
               
-              // splash01 - 유리
               if (matName.includes('Window_WindowsGlass') || 
                   (material.map?.name?.includes('Window_WindowsGlass'))) {
                 material.transparent = true
@@ -72,7 +75,6 @@ export const Model = ({
                 }
               }
               
-              // splash03 - 욕실
               else if (matName.includes('bathroom_dirt') || 
                        (material.map?.name?.includes('bathroom_dirt'))) {
                 material.transparent = true
@@ -107,14 +109,13 @@ export const Model = ({
         }
       })
     }
-  }, [splashOpacities, castShadow, receiveShadow])
+  }, [splashOpacities, castShadow, receiveShadow, doubleSide])
 
   useEffect(() => {
     if (modelRef.current && gltf.scene) {
       if (gltf.scene.children.length > 0) {
         gltf.scene.remove(gltf.scene.children[1]);
       }
-      // 그림자 설정 적용
       configureShadows(gltf.scene)
     }
   }, [gltf.scene, castShadow, receiveShadow])
