@@ -9,6 +9,9 @@ import { Environment } from '@react-three/drei'
 import { SpeechBubble } from '@/components/5-2-3/SpeechBubble'
 import IntroMouseCameraController from '@/components/IntroMouseCameraController'
 
+const INITIAL_CAMERA_POSITION: [number, number, number] = [-20, -15, 22];
+const INITIAL_CAMERA_TARGET: [number, number, number] = [-20, -15, 20];
+
 interface PopupContent {
   title: string
   content: string
@@ -30,7 +33,6 @@ const CameraController = ({
   const isAnimatingRef = useRef(false)
 
   useEffect(() => {
-    // 이미 애니메이션이 진행 중이면 중단
     if (isAnimatingRef.current) {
       console.log('Animation already in progress, canceling previous animation')
       if (animationRef.current) {
@@ -38,7 +40,6 @@ const CameraController = ({
       }
     }
 
-    // controls가 준비될 때까지 기다리는 함수
     const waitForControls = () => {
       return new Promise<void>((resolve) => {
         const checkControls = () => {
@@ -52,10 +53,8 @@ const CameraController = ({
       })
     }
 
-    // 애니메이션 시작
     const startAnimation = async () => {
       try {
-        // controls가 준비될 때까지 기다림
         await waitForControls()
 
         if (!controlsRef.current || !controlsRef.current.target) {
@@ -66,15 +65,13 @@ const CameraController = ({
         isAnimatingRef.current = true
         console.log('Starting camera animation')
 
-        // 카메라 이동 애니메이션
         const startPosition = camera.position.clone()
         const startLookAt = controlsRef.current.target.clone()
 
-        const duration = 2000 // 2초
+        const duration = 2000
         const startTime = Date.now()
 
         const animate = () => {
-          // controls가 여전히 존재하는지 확인
           if (!controlsRef.current || !controlsRef.current.target) {
             console.log('Controls disappeared during animation, stopping')
             isAnimatingRef.current = false
@@ -84,21 +81,18 @@ const CameraController = ({
           const elapsed = Date.now() - startTime
           const progress = Math.min(elapsed / duration, 1)
 
-          // easeInOutCubic 함수
           const easeInOutCubic = (t: number) => {
             return t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1
           }
 
           const easedProgress = easeInOutCubic(progress)
 
-          // 카메라 위치 보간
           camera.position.lerpVectors(
             startPosition,
             { x: targetPosition[0], y: targetPosition[1], z: targetPosition[2] } as any,
             easedProgress,
           )
 
-          // 카메라 타겟 보간
           const newTarget = startLookAt
             .clone()
             .lerp({ x: targetLookAt[0], y: targetLookAt[1], z: targetLookAt[2] } as any, easedProgress)
@@ -125,7 +119,6 @@ const CameraController = ({
 
     startAnimation()
 
-    // 클린업 함수
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current)
@@ -140,14 +133,11 @@ const CameraController = ({
       ref={controlsRef}
       enabled={true}
       onUpdate={() => {
-        // controls가 업데이트될 때 로그 (디버깅용)
-        // console.log('Controls updated')
       }}
     />
   )
 }
 
-// 온도계 컴포넌트
 const Thermometer = ({
   temperature,
   label,
@@ -173,10 +163,8 @@ const Thermometer = ({
       </div>
 
       <div className='relative w-8 h-32 mx-auto'>
-        {/* 온도계 배경 */}
         <div className='absolute left-1/2 transform -translate-x-1/2 w-3 h-28 bg-gray-200 rounded-full'></div>
 
-        {/* 온도 표시 */}
         <div
           className='absolute left-1/2 transform -translate-x-1/2 w-3 rounded-full transition-all duration-300'
           style={{
@@ -186,7 +174,6 @@ const Thermometer = ({
           }}
         />
 
-        {/* 온도계 구슬 */}
         <div
           className='absolute left-1/2 transform -translate-x-1/2 w-4 h-4 rounded-full'
           style={{
@@ -195,7 +182,6 @@ const Thermometer = ({
           }}
         />
 
-        {/* 온도 눈금 */}
         <div className='absolute right-0 h-28 flex flex-col justify-between text-xs text-gray-500'>
           <span>40°</span>
           <span>30°</span>
@@ -208,7 +194,6 @@ const Thermometer = ({
   )
 }
 
-// 로딩 트래커
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
   const { progress, active } = useProgress()
 
@@ -219,7 +204,6 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
   return null
 }
 
-// 아이콘 컴포넌트들
 const Sun = ({ size = 24 }: { size?: number }) => (
   <svg width={size} height={size} viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'>
     <circle cx='12' cy='12' r='4' />
@@ -248,7 +232,6 @@ const Wind = ({ size = 24 }: { size?: number }) => (
   </svg>
 )
 
-// 팝업 컴포넌트
 interface PopupProps {
   isOpen: boolean
   onClose: () => void
@@ -285,7 +268,6 @@ const Popup = ({ isOpen, onClose, title, content, narrationPath, onComplete }: P
   }, [isOpen, narrationPath])
 
   const handleConfirm = () => {
-    // 나레이션 중지
     if (audioRef.current) {
       audioRef.current.pause()
       audioRef.current.currentTime = 0
@@ -309,13 +291,11 @@ const Popup = ({ isOpen, onClose, title, content, narrationPath, onComplete }: P
         className={`bg-white rounded-xl shadow-lg max-w-md mx-4 relative transform transition-all duration-300 ${
           isVisible ? 'scale-100 opacity-100 translate-y-0' : 'scale-95 opacity-0 translate-y-4'
         }`}>
-        {/* 내용 */}
         <div className='p-6'>
           <h3 className='text-lg font-bold text-gray-900 mb-3'>{title}</h3>
 
           <p className='text-gray-600 text-m font-bold leading-relaxed mb-6'>{content}</p>
 
-          {/* 확인 버튼 */}
           <div className='flex justify-end'>
             <button
               onClick={handleConfirm}
@@ -329,17 +309,13 @@ const Popup = ({ isOpen, onClose, title, content, narrationPath, onComplete }: P
   )
 }
 
-// 메인 Home 컴포넌트
 export default function Home() {
-  // 기본 상태
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
   const [isDay, setIsDay] = useState(true)
 
-  // 단계 관리
   const [currentStep, setCurrentStep] = useState('initial')
 
-  // 팝업 관리
   const [showPopup, setShowPopup] = useState(false)
   const [popupContent, setPopupContent] = useState<PopupContent>({
     title: '',
@@ -347,25 +323,20 @@ export default function Home() {
     narrationPath: '',
   })
 
-  // 온도 관리
   const [seaTemperature, setSeaTemperature] = useState(22)
   const [landTemperature, setLandTemperature] = useState(22)
   const [showTemperatureDisplay, setShowTemperatureDisplay] = useState(false)
   const [isTemperatureAnimating, setIsTemperatureAnimating] = useState(false)
 
-  // 기압 관리
   const [showPressureDisplay, setShowPressureDisplay] = useState(false)
 
-  // 바람 관리
   const [showWind, setShowWind] = useState(false)
 
-  // 카메라 관리
   const [cameraTarget, setCameraTarget] = useState<{
     position: [number, number, number]
     lookAt: [number, number, number]
   } | null>(null)
 
-  // 기본 핸들러들
   const handleLoadingComplete = () => {
     setIsLoaded(true)
   }
@@ -386,15 +357,40 @@ export default function Home() {
     playClickSound()
     setTimeout(() => {
       setShowIntro(false)
+      setCameraTarget({
+        position: INITIAL_CAMERA_POSITION,
+        lookAt: INITIAL_CAMERA_TARGET,
+      })
     }, 300)
   }
 
-  // 낮/밤 선택 핸들러
+  const resetAllStates = () => {
+    setSeaTemperature(22)
+    setLandTemperature(22)
+    setShowTemperatureDisplay(false)
+    setIsTemperatureAnimating(false)
+    setShowPressureDisplay(false)
+    setShowWind(false)
+    setShowPopup(false)
+    setCurrentStep('initial') 
+    setCameraTarget({
+      position: INITIAL_CAMERA_POSITION,
+      lookAt: INITIAL_CAMERA_TARGET,
+    })
+  }
+
+  useEffect(() => {
+    if (!showIntro && currentStep === 'initial') {
+      setCameraTarget({
+        position: INITIAL_CAMERA_POSITION,
+        lookAt: INITIAL_CAMERA_TARGET,
+      })
+    }
+  }, [showIntro, currentStep])
+
   const handleDayClick = () => {
-    // 상태 초기화
     resetAllStates()
 
-    // 모델 전환을 위한 지연 처리
     setTimeout(() => {
       setIsDay(true)
       setCurrentStep('day-selected')
@@ -408,10 +404,8 @@ export default function Home() {
   }
 
   const handleNightClick = () => {
-    // 상태 초기화
     resetAllStates()
 
-    // 모델 전환을 위한 지연 처리
     setTimeout(() => {
       setIsDay(false)
       setCurrentStep('day-selected')
@@ -424,24 +418,6 @@ export default function Home() {
     }, 100)
   }
 
-  // 상태 초기화 함수
-  const resetAllStates = () => {
-    setSeaTemperature(22)
-    setLandTemperature(22)
-    setShowTemperatureDisplay(false)
-    setIsTemperatureAnimating(false)
-    setShowPressureDisplay(false)
-    setShowWind(false)
-    setShowPopup(false)
-    setCameraTarget(null)
-    setCurrentStep('initial') // 단계도 초기화
-    setCameraTarget({
-      position: [30, 20, 80],
-      lookAt: [0, 0, 0],
-    })
-  }
-
-  // 온도 관련 핸들러 수정
   const handleTemperatureButtonClick = () => {
     setCurrentStep('temperature-animation')
     setShowTemperatureDisplay(true)
@@ -452,13 +428,11 @@ export default function Home() {
       timeElapsed += 100
 
       if (isDay) {
-        // 낮: 바다 온도는 천천히 상승, 육지 온도는 빠르게 상승
         const newSeaTemp = Math.min(23, 22 + timeElapsed / 3000)
         const newLandTemp = Math.min(40, 22 + (timeElapsed / 1000) * 18)
         setSeaTemperature(Math.round(newSeaTemp))
         setLandTemperature(Math.round(newLandTemp))
       } else {
-        // 밤: 육지 온도는 빠르게 하강, 바다 온도는 천천히 하강
         const newSeaTemp = Math.max(18, 22 - timeElapsed / 3000)
         const newLandTemp = Math.max(5, 22 - (timeElapsed / 1000) * 17)
         setSeaTemperature(Math.round(newSeaTemp))
@@ -475,7 +449,6 @@ export default function Home() {
     }, 100)
   }
 
-  // 기압 관련 핸들러 (질문 팝업 없이 바로 표시)
   const handlePressureButtonClick = () => {
     setCurrentStep('pressure-animation')
     setShowPressureDisplay(true)
@@ -485,18 +458,15 @@ export default function Home() {
     }, 1500)
   }
 
-  // 바람 관련 핸들러
   const handleWindButtonClick = () => {
     setCurrentStep('wind-animation')
     setShowWind(true)
 
-    // 카메라 이동 설정
     setCameraTarget({
-      position: [-23, -15, 22], // 바람을 잘 볼 수 있는 위치
-      lookAt: [-22, -15, 20], // 바람 영역을 바라보도록
+      position: [-23, -15, 22],
+      lookAt: [-22, -15, 20],
     })
 
-    // 카메라 이동 후 팝업 표시
     setTimeout(() => {
       setShowPopup(true)
       setPopupContent({
@@ -506,19 +476,17 @@ export default function Home() {
           : '밤에는 육지 온도가 바다 온도보다 상대적으로 낮아져 바다는 저기압이 되고 육지는 고기압이 되어 육지에서 바다 쪽으로 바람이 분다.',
         narrationPath: isDay ? '/sounds/5-2-3/narration/5-2-3-C.MP3' : '/sounds/5-2-3/narration/5-2-3-F.MP3',
       })
-    }, 2200) // 카메라 이동 완료 후
+    }, 2200)
   }
 
   return (
     <div className='w-screen h-screen bg-red flex flex-col relative'>
-      {/* 밤 효과 오버레이 */}
       <div
         className={`absolute inset-0 transition-opacity duration-1000 z-5 ${
           !isDay ? 'bg-black opacity-60' : 'opacity-0'
         } pointer-events-none`}
       />
 
-      {/* 온도계들 */}
       {showTemperatureDisplay && (
         <>
           <Thermometer
@@ -536,7 +504,6 @@ export default function Home() {
         </>
       )}
 
-      {/* 3D Scene */}
       <Scene camera={{ position: [30, 20, 80], fov: 50, far: 1000 }} shadows>
         <LoadingTracker onLoadingComplete={handleLoadingComplete} />
         <IntroMouseCameraController enabled={showIntro} />
@@ -551,13 +518,11 @@ export default function Home() {
           isDay={isDay}
         />
 
-        {/* 카메라 컨트롤러 */}
         {cameraTarget ? (
           <CameraController
             targetPosition={cameraTarget.position}
             targetLookAt={cameraTarget.lookAt}
             onComplete={() => {
-              // 카메라 이동 완료 후 필요한 처리
             }}
           />
         ) : (
@@ -567,7 +532,6 @@ export default function Home() {
         <CameraLogger />
         <Environment preset={isDay ? 'sunset' : 'night'} blur={0.8} resolution={512} />
 
-        {/* 3D 공간의 기압 SpeechBubble */}
         {showPressureDisplay && (
           <>
             <SpeechBubble
@@ -590,7 +554,6 @@ export default function Home() {
         )}
       </Scene>
 
-      {/* 낮/밤 선택 버튼 */}
       {!showIntro && (
         <div className='absolute top-4 right-4 flex gap-2 z-30'>
           <button
@@ -610,10 +573,8 @@ export default function Home() {
         </div>
       )}
 
-      {/* 우상단 순차 버튼들 */}
       {!showIntro && (
         <div className='absolute bottom-4 left-1/2 text-2xl -transform-x-1/2 flex flex-col gap-2 z-30 font-bold'>
-          {/* 온도 버튼 */}
           {currentStep === 'day-selected' && (
             <button
               onClick={handleTemperatureButtonClick}
@@ -622,7 +583,6 @@ export default function Home() {
             </button>
           )}
 
-          {/* 기압 버튼 */}
           {currentStep === 'ready-for-pressure' && (
             <button
               onClick={handlePressureButtonClick}
@@ -631,7 +591,6 @@ export default function Home() {
             </button>
           )}
 
-          {/* 바람의 방향 버튼 */}
           {currentStep === 'ready-for-wind' && (
             <button
               onClick={handleWindButtonClick}
@@ -643,7 +602,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* 시계 - 온도 애니메이션 중에만 표시 */}
       {currentStep === 'temperature-animation' && (
         <div className='absolute top-20 left-1/2 transform -translate-x-1/2 z-20'>
           <style
@@ -694,7 +652,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Intro Overlay */}
       {isLoaded && showIntro && (
         <Intro
           onEnter={handleEnterExperience}

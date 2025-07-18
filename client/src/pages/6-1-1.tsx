@@ -173,7 +173,7 @@ export default function Home() {
     } else if (currentMission === 'splash03') {
       // 욕실바닥
       playNarration('/sounds/6-1-1/narration/6-1-1-H.MP3')
-      setShowMessage('염기성 용액인 표백제로 욕실 바닥을 청소하면 욕실 바닥의 떼가 성질이 변하여 제거됩니다.')
+      setShowMessage('염기성 용액인 표백제로 욕실 바닥을 청소하면 욕실 바닥의 때가 성질이 변하여 제거됩니다.')
     } else if (currentMission === 'splash04') {
       // 도마
       playNarration('/sounds/6-1-1/narration/6-1-1-B.MP3')
@@ -535,8 +535,8 @@ export default function Home() {
           minAzimuthAngle={Math.PI / 2}
           maxAzimuthAngle={-Math.PI / 2}
           enablePan={false}
-          enableZoom={!showIntro && gamePhase === 'selection'}
-          enableRotate={!showIntro && gamePhase === 'selection'}
+          enableZoom={!showIntro}
+          enableRotate={!showIntro}
           minDistance={0}
           maxDistance={20}
         />
