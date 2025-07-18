@@ -795,7 +795,6 @@ export default function Home() {
       <Subtitle text={subtitleText} isVisible={showSubtitle} />
 
       <Scene camera={{ position: [16, 10, 20], fov: 50 }} shadows='soft'>
-        <Suspense fallback={null}>
           <LoadingTracker onLoadingComplete={handleLoadingComplete} />
           <IntroMouseCameraController enabled={showIntro}/>
 
@@ -924,7 +923,6 @@ export default function Home() {
           </Clouds>
 
           <Environment preset={'sunset'} />
-        </Suspense>
 
         <OrbitControls
           ref={orbitControlsRef}
