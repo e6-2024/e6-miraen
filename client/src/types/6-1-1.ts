@@ -57,10 +57,10 @@ export const missions: Record<SplashType, MissionData> = {
 }
 
 export const solutions = [
-  { id: 'vinegar', name: '식초', color: '#ff6b6b' },
-  { id: 'spray', name: '유리 세정제', color: '#2985ee' },
-  { id: 'toilet_cleaner', name: '변기용 세제', color: '#25e5c2' },
-  { id: 'bleach', name: '표백제', color: '#129d3a' },
+  { id: 'vinegar', name: '식초', color: '#fff', img:'/img/Frame 25.svg' },
+  { id: 'spray', name: '유리 세정제', color: '#fff', img:'/img/Frame 27.svg' },
+  { id: 'toilet_cleaner', name: '변기용 세제', color: '#fff',  img:'/img/Frame 26.svg' },
+  { id: 'bleach', name: '표백제', color: '#fff', img:'/img/Frame 24.svg' },
 ]
 
 export const wipingEfficiency = {

@@ -33,40 +33,33 @@ interface WipingProgressUIProps {
   gamePhase: GamePhase
   showIntro: boolean
 }
-export function WipingProgressUI({ 
-  currentMission, 
-  wipingProgress, 
+export function WipingProgressUI({
+  currentMission,
+  wipingProgress,
   wipingIntensity,
   gamePhase,
-  showIntro
+  showIntro,
 }: WipingProgressUIProps) {
   if (gamePhase !== 'wiping' || showIntro || !currentMission) return null
 
   const mission = missions[currentMission]
-  
+
   return (
     <div className='absolute top-5 left-1/2 transform -translate-x-1/2 z-20 pointer-events-none'>
       <div className='bg-white bg-opacity-95 p-6 rounded-xl shadow-lg border-2 border-gray-200'>
         <div className='text-center'>
-          
-          <div className={`text-4xl font-bold mb-2 ${
-            wipingProgress >= 100 ? 'text-green-600' : 'text-blue-600'
-          }`}>
+          <div className={`text-4xl font-bold mb-2 ${wipingProgress >= 100 ? 'text-green-600' : 'text-blue-600'}`}>
             {Math.round(wipingProgress)}%
           </div>
-          
+
           <div className='text-sm text-gray-600 mb-2'>
-            {wipingProgress >= 100 ? (
-              <div className='text-green-600 font-bold animate-bounce'>✨ 완료!</div>
-            ) : null }
+            {wipingProgress >= 100 ? <div className='text-green-600 font-bold animate-bounce'>✨ 완료!</div> : null}
           </div>
-        
         </div>
       </div>
     </div>
   )
 }
-
 
 // 청소 진행도 UI
 interface CleaningProgressUIProps {
@@ -129,19 +122,19 @@ interface SolutionSelectorProps {
   onButtonClick: () => void
 }
 
-export function SolutionSelector({ 
-  gamePhase, 
-  showIntro, 
-  selectedSolution, 
+export function SolutionSelector({
+  gamePhase,
+  showIntro,
+  selectedSolution,
   onSolutionSelect,
-  onButtonClick 
+  onButtonClick,
 }: SolutionSelectorProps) {
   if (gamePhase !== 'solution_choice' || showIntro) return null
 
   return (
     <div className='absolute bottom-4 right-4 z-10'>
       <div className='bg-white bg-opacity-95 p-4 rounded-xl shadow-lg border-2 border-gray-200'>
-        <div className='text-lg font-bold mb-3 text-center text-gray-800'>🧪 용액 선택</div>
+        <div className='text-lg font-bold mb-3 text-center text-gray-800'>용액 선택</div>
         <div className='grid grid-cols-2 gap-3'>
           {solutions.map((solution) => (
             <button
@@ -152,10 +145,11 @@ export function SolutionSelector({
               }}
               className={`
                 px-4 py-3 rounded-lg font-bold text-white shadow-lg 
-                hover:scale-105 active:scale-95 transition-all
+                hover:scale-105 active:scale-95 transition-all text-black
                 ${selectedSolution === solution.id ? 'ring-4 ring-yellow-400' : ''}
               `}
               style={{ backgroundColor: solution.color }}>
+              {solution.img && <img src={solution.img} alt={solution.name} className='w-24 h-24 object-contain' />}
               {solution.name}
             </button>
           ))}
@@ -173,12 +167,7 @@ interface GameMessagesProps {
   sprayCount: number
 }
 
-export function GameMessages({ 
-  showMessage, 
-  showIntro, 
-  gamePhase, 
-  sprayCount 
-}: GameMessagesProps) {
+export function GameMessages({ showMessage, showIntro, gamePhase, sprayCount }: GameMessagesProps) {
   if (showIntro) return null
 
   return (
@@ -191,7 +180,6 @@ export function GameMessages({
           </div>
         </div>
       )}
-
 
       {/* 스프레이 안내 */}
       {gamePhase === 'spraying' && (

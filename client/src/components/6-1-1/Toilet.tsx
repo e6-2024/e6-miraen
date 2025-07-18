@@ -10,7 +10,6 @@ interface ModelProps {
     splash02: number
     splash03: number
   }
-  // 그림자 설정 옵션들
   castShadow?: boolean
   receiveShadow?: boolean
 }
@@ -24,6 +23,14 @@ export const Toilet = ({
 }: ModelProps) => {
   const gltf = useGLTF('/models/6-1-1/Toilet/Toilet.glb')
   const modelRef = useRef<THREE.Group>(null)
+  
+  // 원본 텍스처들을 저장할 ref
+  const originalTexturesRef = useRef<Map<string, {
+    map?: THREE.Texture
+    roughnessMap?: THREE.Texture
+    opacity: number
+    transparent: boolean
+  }>>(new Map())
 
   const configureShadows = (object: THREE.Object3D) => {
     object.traverse((child) => {
@@ -43,6 +50,54 @@ export const Toilet = ({
     })
   }
 
+  // 원본 텍스처 저장
+  const saveOriginalTextures = () => {
+    if (!modelRef.current) return
+
+    modelRef.current.traverse((child) => {
+      if (child instanceof THREE.Mesh && child.material) {
+        const materials = Array.isArray(child.material) ? child.material : [child.material]
+
+        materials.forEach((material, index) => {
+          const materialKey = `${child.uuid}_${index}`
+          
+          if (!originalTexturesRef.current.has(materialKey)) {
+            originalTexturesRef.current.set(materialKey, {
+              map: material.map?.clone(),
+              roughnessMap: material.roughnessMap?.clone(),
+              opacity: material.opacity,
+              transparent: material.transparent
+            })
+          }
+        })
+      }
+    })
+  }
+
+  // 텍스처 초기화
+  const restoreOriginalTextures = () => {
+    if (!modelRef.current) return
+
+    modelRef.current.traverse((child) => {
+      if (child instanceof THREE.Mesh && child.material) {
+        const materials = Array.isArray(child.material) ? child.material : [child.material]
+
+        materials.forEach((material, index) => {
+          const materialKey = `${child.uuid}_${index}`
+          const originalTexture = originalTexturesRef.current.get(materialKey)
+          
+          if (originalTexture && material instanceof THREE.MeshStandardMaterial) {
+            material.map = originalTexture.map || null
+            material.roughnessMap = originalTexture.roughnessMap || null
+            material.opacity = originalTexture.opacity
+            material.transparent = originalTexture.transparent
+            material.needsUpdate = true
+          }
+        })
+      }
+    })
+  }
+
   useEffect(() => {
     if (modelRef.current && splashOpacities) {
       const textureLoader = new THREE.TextureLoader()
@@ -50,6 +105,14 @@ export const Toilet = ({
       // Clean 텍스처들 로드
       const cleanBaseTexture = textureLoader.load('/models/6-1-1/Toilet/Toilet_Clean_Base_color.png')
       const cleanRoughnessTexture = textureLoader.load('/models/6-1-1/Toilet/Toilet_Clean_Roughness.png')
+      
+      // splash02가 100%로 초기화되었는지 확인 (다시하기 상태)
+      const isReset = splashOpacities.splash02 >= 0.99
+      
+      if (isReset) {
+        // 다시하기: 원본 더러운 텍스처로 복원
+        restoreOriginalTextures()
+      }
       
       modelRef.current.traverse((child) => {
         if (child instanceof THREE.Mesh && child.material) {
@@ -74,6 +137,8 @@ export const Toilet = ({
 
                 if (splashOpacities.splash02 <= 0.1) {
                   child.castShadow = false
+                } else {
+                  child.castShadow = castShadow
                 }
               }
               
@@ -86,19 +151,18 @@ export const Toilet = ({
                 matName.includes('body')
               ) {
                 if (material instanceof THREE.MeshStandardMaterial) {
+                  if (isReset) {
+                    // 다시하기: 이미 restoreOriginalTextures에서 처리됨
+                    return
+                  }
+                  
                   // splash02가 줄어들수록 깨끗해짐 (1 -> 0으로 갈 때 깨끗해짐)
                   const cleanProgress = 1 - splashOpacities.splash02
                   
-                  if (cleanProgress > 0) {
+                  if (cleanProgress > 0.05) {
                     // 청소 진행도에 따라 점진적으로 Clean 텍스처 적용
                     material.map = cleanBaseTexture
                     material.roughnessMap = cleanRoughnessTexture
-                    material.transparent = true
-                    // cleanProgress가 0에서 1로 증가하면서 Clean 텍스처가 점점 불투명해짐
-                    material.opacity = Math.min(cleanProgress, 1.0)
-                    material.needsUpdate = true
-                  } else {
-                    // 청소 안 함 - 기존 더러운 텍스처 유지
                     material.transparent = false
                     material.opacity = 1.0
                     material.needsUpdate = true
@@ -128,15 +192,16 @@ export const Toilet = ({
                   texName.includes('stain')
                 ) {
                   if (material instanceof THREE.MeshStandardMaterial) {
+                    if (isReset) {
+                      // 다시하기: 이미 restoreOriginalTextures에서 처리됨
+                      return
+                    }
+                    
                     const cleanProgress = 1 - splashOpacities.splash02
                     
                     if (cleanProgress >= 0.95) {
                       material.map = cleanBaseTexture
                       material.roughnessMap = cleanRoughnessTexture
-                      material.transparent = false
-                      material.opacity = 1.0
-                      material.needsUpdate = true
-                    } else {
                       material.transparent = false
                       material.opacity = 1.0
                       material.needsUpdate = true
@@ -158,6 +223,11 @@ export const Toilet = ({
       }
       
       configureShadows(gltf.scene)
+      
+      // 원본 텍스처 저장
+      setTimeout(() => {
+        saveOriginalTextures()
+      }, 100) // 텍스처 로딩 완료를 위한 약간의 지연
     }
   }, [gltf.scene, castShadow, receiveShadow])
 

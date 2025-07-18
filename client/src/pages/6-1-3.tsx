@@ -347,13 +347,6 @@ function BackButton({ isVisible, onBack }) {
       <button
         onClick={onBack}
         className='flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 hover:bg-white hover:shadow-xl transition-all duration-200 group'>
-        <svg
-          className='w-5 h-5 text-gray-600 group-hover:text-gray-800 transition-colors'
-          fill='none'
-          stroke='currentColor'
-          viewBox='0 0 24 24'>
-          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M10 19l-7-7m0 0l7-7m-7 7h18' />
-        </svg>
         <span className='text-lg font-bold text-gray-700 group-hover:text-gray-900 transition-colors'>전체 보기</span>
       </button>
     </div>
@@ -492,27 +485,22 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
 export default function Home() {
   // 기본 경로 정의
   const [basePathPoints, setBasePathPoints] = useState([
-    new THREE.Vector3(3.48, -2.42, 1.82), // 시작점 (뿌리 부근)
+    new THREE.Vector3(3.48, -2.42, 1.82),
     new THREE.Vector3(1.62, -1.42, 0.92),
     new THREE.Vector3(1.62, -1, 0.2),
     new THREE.Vector3(0, 0, 0),
-    new THREE.Vector3(0, 1.52, 0.24),
-    new THREE.Vector3(-0.07, 3.61, 0.27),
-    new THREE.Vector3(0.35, 6.28, 0.37),
-    new THREE.Vector3(0.35, 8.18, 0.37),
-    new THREE.Vector3(0.83, 8.11, 1.07),
-    new THREE.Vector3(1.16, 8.11, 1.84),
-    new THREE.Vector3(1.16, 8.65, 1.38),
-    new THREE.Vector3(1.16, 9.34, 1.51),
-    new THREE.Vector3(2.15, 10.1, 1.36), // 끝점 (잎 끝)
+    new THREE.Vector3(-0.3, 1.52, -0.1),
+    new THREE.Vector3(-0.3, 3.61, -0.13),
+    new THREE.Vector3(-0.3, 4.61, -0.17),
+    new THREE.Vector3(-0.3, 6.28, -0.21),
+    new THREE.Vector3(-0.3, 7.28, -0.24),
+    new THREE.Vector3(-0.3, 8.28, -0.23),
+    new THREE.Vector3(-0.3, 9.28, 0),
+    new THREE.Vector3(2.15, 10.1, 1.36),
   ])
 
   // 3개 경로의 설정
-  const waterFlowConfigs = [
-    { rotation: 0, color: '#4fc3f7', name: '물길 1', isActive: true },
-    { rotation: (Math.PI * 2) / 3, color: '#81c784', name: '물길 2', isActive: true },
-    { rotation: (Math.PI * 4) / 3, color: '#ff8a65', name: '물길 3', isActive: true },
-  ]
+  const waterFlowConfigs = [{ rotation: (Math.PI * 4) / 3, color: '#ff8a65', name: '물길 3', isActive: true }]
 
   const [activeConfigs, setActiveConfigs] = useState(waterFlowConfigs)
   const sceneRef = useRef<THREE.Group>(null)
@@ -784,7 +772,7 @@ export default function Home() {
           handleCameraMove('default')
           playGeneralButton()
           setIsAnimationPlaying(false)
-          stopBackgroundButton() 
+          stopBackgroundButton()
         }}
       />
 
@@ -795,134 +783,131 @@ export default function Home() {
       <Subtitle text={subtitleText} isVisible={showSubtitle} />
 
       <Scene camera={{ position: [16, 10, 20], fov: 50 }} shadows='soft'>
-          <LoadingTracker onLoadingComplete={handleLoadingComplete} />
-          <IntroMouseCameraController enabled={showIntro}/>
+        <LoadingTracker onLoadingComplete={handleLoadingComplete} />
+        <IntroMouseCameraController enabled={showIntro} />
 
-          {/* 카메라 애니메이션 컨트롤러 */}
-          <CameraAnimator
-            targetPosition={cameraTarget?.position || null}
-            targetLookAt={cameraTarget?.lookAt || null}
-            onAnimationComplete={handleCameraAnimationComplete}
-          />
+        {/* 카메라 애니메이션 컨트롤러 */}
+        <CameraAnimator
+          targetPosition={cameraTarget?.position || null}
+          targetLookAt={cameraTarget?.lookAt || null}
+          onAnimationComplete={handleCameraAnimationComplete}
+        />
 
-          <ambientLight intensity={0.2} />
-          <directionalLight
-            position={[5, 5, 5]}
-            intensity={1}
-            castShadow
-            shadow-mapSize={[4096, 4096]}
-            shadow-camera-far={50}
-            shadow-camera-left={-20}
-            shadow-camera-right={20}
-            shadow-camera-top={20}
-            shadow-camera-bottom={-20}
-            shadow-bias={-0.0001}
-          />
+        <ambientLight intensity={0.2} />
+        <directionalLight
+          position={[5, 5, 5]}
+          intensity={1}
+          castShadow
+          shadow-mapSize={[4096, 4096]}
+          shadow-camera-far={50}
+          shadow-camera-left={-20}
+          shadow-camera-right={20}
+          shadow-camera-top={20}
+          shadow-camera-bottom={-20}
+          shadow-bias={-0.0001}
+        />
 
-          <group ref={sceneRef} position={[0, -2, 0]} rotation={[0, Math.PI + Math.PI / 2, 0]}>
-            <Model />
+        <group ref={sceneRef} position={[0, -2, 0]} rotation={[0, Math.PI + Math.PI / 2, 0]}>
+          <Model />
 
-            {/* 물줄기 애니메이션 - 버튼 클릭 시에만 재생 */}
-            {isAnimationPlaying &&
-              activeConfigs
-                .filter((config) => config.isActive)
-                .map((config, index) => (
-                  <group key={`waterflow-${index}`} rotation={[0, config.rotation, 0]}>
-                    <WaterFlowAnimation
-                      arrowSize={2}
-                      lineWidth={1.5}
-                      isPlaying={isAnimationPlaying}
-                      speed={animationSpeed}
-                      pathPoints={basePathPoints}
-                      showPath={showPath}
-                      onComplete={handleAnimationComplete}
-                      loop={isLooping}
-                      trailCount={trailCount}
-                      trailSpacing={trailSpacing}
-                    />
-                  </group>
-                ))}
+          {/* 물줄기 애니메이션 - 버튼 클릭 시에만 재생 */}
+          {isAnimationPlaying &&
+            activeConfigs
+              .filter((config) => config.isActive)
+              .map((config, index) => (
+                <group key={`waterflow-${index}`} rotation={[0, config.rotation, 0]}>
+                  <WaterFlowAnimation
+                    arrowSize={2}
+                    lineWidth={1.5}
+                    isPlaying={isAnimationPlaying}
+                    speed={animationSpeed}
+                    pathPoints={basePathPoints}
+                    showPath={showPath}
+                    onComplete={handleAnimationComplete}
+                    loop={isLooping}
+                    trailCount={trailCount}
+                    trailSpacing={trailSpacing}
+                  />
+                </group>
+              ))}
 
-            {/* 뿌리 물 흡수 효과 */}
-            <RootWaterAbsorption
-              isActive={currentView === 'root'}
-              rootPosition={new THREE.Vector3(3.48, -2.42, 1.82)}
-            />
+          {/* 뿌리 물 흡수 효과 */}
+          <RootWaterAbsorption isActive={currentView === 'root'} rootPosition={new THREE.Vector3(3.48, -2.42, 1.82)} />
 
-            {/* 줄기 물 이동 효과 */}
-            <group position={[0.4, 0, -0.6]}>
-              <StemWaterMovement isActive={currentView === 'stem'} pathPoints={basePathPoints} />
-            </group>
-
-            {/* 잎 증발 효과 */}
-            <LeafEvaporation isActive={currentView === 'leaf'} leafPosition={new THREE.Vector3(2.15, 10.1, -1.36)} />
-
-            {/* SpeechBubble 컴포넌트들 - 인트로가 끝난 후에만 표시 */}
-            {!showIntro && currentView === 'default' && (
-              <>
-                {/* 뿌리 부분 설명 */}
-                <SpeechBubble
-                  position={[3.5, -2.5, 2]}
-                  html='<strong>뿌리 보기</strong>'
-                  onBubbleClick={() => {
-                    handleCameraMove('root')
-                    playGeneralButton()
-                  }}
-                  pointColor='#8B4513'
-                  bubbleOffset={[1, 0.5, 0]}
-                />
-
-                {/* 줄기 부분 설명 */}
-                <SpeechBubble
-                  position={[0.5, 3, 0.5]}
-                  html='<strong>줄기 보기</strong>'
-                  onBubbleClick={() => {
-                    handleCameraMove('stem')
-                    playGeneralButton()
-                  }}
-                  pointColor='#228B22'
-                  bubbleOffset={[-1, 0.5, 0]}
-                />
-
-                {/* 잎 부분 설명 */}
-                <SpeechBubble
-                  position={[2, 9.5, 1.5]}
-                  html='<strong>잎 보기</strong>'
-                  onBubbleClick={() => {
-                    handleCameraMove('leaf')
-                    playGeneralButton()
-                  }}
-                  pointColor='#32CD32'
-                  bubbleOffset={[0, 0.5, 0]}
-                />
-              </>
-            )}
+          {/* 줄기 물 이동 효과 */}
+          <group position={[0.8, 0, -0.2]}>
+            <StemWaterMovement isActive={currentView === 'stem'} pathPoints={basePathPoints} />
           </group>
 
-          <Sky
-            distance={4500}
-            sunPosition={[-10, 0.7, -10]}
-            inclination={0.49}
-            azimuth={0.25}
-            rayleigh={1.2}
-            turbidity={1}
-            mieCoefficient={0.08}
-            mieDirectionalG={0.85}
+          {/* 잎 증발 효과 */}
+          <LeafEvaporation isActive={currentView === 'leaf'} leafPosition={new THREE.Vector3(2.15, 10.1, -1.36)} />
+
+          {/* SpeechBubble 컴포넌트들 - 인트로가 끝난 후에만 표시 */}
+          {!showIntro && currentView === 'default' && (
+            <>
+              {/* 뿌리 부분 설명 */}
+              <SpeechBubble
+                position={[3.5, -2.5, 2]}
+                html='<strong>뿌리 보기</strong>'
+                onBubbleClick={() => {
+                  handleCameraMove('root')
+                  playGeneralButton()
+                }}
+                pointColor='#8B4513'
+                bubbleOffset={[1, 0.5, 0]}
+              />
+
+              {/* 줄기 부분 설명 */}
+              <SpeechBubble
+                position={[0.5, 3, 0.5]}
+                html='<strong>줄기 보기</strong>'
+                onBubbleClick={() => {
+                  handleCameraMove('stem')
+                  playGeneralButton()
+                }}
+                pointColor='#228B22'
+                bubbleOffset={[-1, 0.5, 0]}
+              />
+
+              {/* 잎 부분 설명 */}
+              <SpeechBubble
+                position={[2, 9.5, 1.5]}
+                html='<strong>잎 보기</strong>'
+                onBubbleClick={() => {
+                  handleCameraMove('leaf')
+                  playGeneralButton()
+                }}
+                pointColor='#32CD32'
+                bubbleOffset={[0, 0.5, 0]}
+              />
+            </>
+          )}
+        </group>
+
+        <Sky
+          distance={4500}
+          sunPosition={[-10, 0.7, -10]}
+          inclination={0.49}
+          azimuth={0.25}
+          rayleigh={1.2}
+          turbidity={1}
+          mieCoefficient={0.08}
+          mieDirectionalG={0.85}
+        />
+
+        <Clouds material={THREE.MeshBasicMaterial} position={[0, 16, 0]}>
+          <Cloud
+            seed={2}
+            position={[0, 5, 0]}
+            bounds={[8, 0.001, 8]}
+            scale={[5, 5, 3]}
+            volume={5}
+            color='white'
+            fade={70}
           />
+        </Clouds>
 
-          <Clouds material={THREE.MeshBasicMaterial} position={[0, 16, 0]}>
-            <Cloud
-              seed={2}
-              position={[0, 5, 0]}
-              bounds={[8, 0.001, 8]}
-              scale={[5, 5, 3]}
-              volume={5}
-              color='white'
-              fade={70}
-            />
-          </Clouds>
-
-          <Environment preset={'sunset'} />
+        <Environment preset={'sunset'} />
 
         <OrbitControls
           ref={orbitControlsRef}
