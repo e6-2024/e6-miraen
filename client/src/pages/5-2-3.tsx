@@ -127,7 +127,7 @@ const CameraController = ({
     }
   }, [camera, targetPosition, targetLookAt, onComplete])
 
-  return <OrbitControls ref={controlsRef} enabled={true} onUpdate={() => {}} />
+  return <OrbitControls ref={controlsRef} enabled={true} minDistance={0} maxDistance={10} minPolarAngle={0} maxPolarAngle={Math.PI/2} onUpdate={() => {}} />
 }
 
 const Thermometer = ({
@@ -662,10 +662,9 @@ export default function Home() {
             onComplete={() => {}}
           />
         ) : (
-          <OrbitControls enabled={!showIntro && !showPopup} minDistance={0} maxDistance={130} />
+          <OrbitControls enabled={!showIntro && !showPopup} minDistance={0} maxDistance={10} minPolarAngle={0} maxPolarAngle={Math.PI/2}/>
         )}
 
-        <CameraLogger />
         <Environment preset={isDay ? 'sunset' : 'night'} blur={0.8} resolution={512} />
       </Scene>
 
