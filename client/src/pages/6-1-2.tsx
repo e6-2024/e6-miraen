@@ -346,7 +346,7 @@ export default function Home() {
       setShowIntro(false)
       setTimeout(() => {
         playNarrationAudio(
-          '/sounds/6-1-2/narration/6-1-2-A.mp3',
+          '/sounds/6-1-2/narration/6-1-2-A.MP3',
           '운동 시작하기 버튼을 눌러 물체를 움직여 보세요.',
           5000,
         )
@@ -425,7 +425,7 @@ export default function Home() {
 
     setTimeout(() => {
       playNarrationAudio(
-        '/sounds/6-1-2/narration/6-1-2-C.mp3',
+        '/sounds/6-1-2/narration/6-1-2-C.MP3',
         '기차의 속력은 200 km/h, 자동차의 속력은 70 km/h, 자전거를 타는 사람의 속력은 30 km/h, 달리는 사람의 속력은 20 km/h, 말의 속력은 60 km/h이므로 기차, 자동차, 말, 자전거를 탄 사람, 달리는 사람 순으로 빠릅니다.',
       )
     }, 500)
