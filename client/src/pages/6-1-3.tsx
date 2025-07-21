@@ -923,7 +923,6 @@ export default function Home() {
         />
       </Scene>
 
-      {/* 정보 패널 */}
       <InfoPanel type={infoPanelType} isVisible={showInfoPanel} onClose={handleCloseInfoPanel} />
 
       {isLoaded && showIntro && (
