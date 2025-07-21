@@ -1,7 +1,7 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Environment, OrbitControls, Sky, useProgress } from '@react-three/drei'
 import Model from '../components/6-1-2/Model'
-import ResultModel from '../components/6-1-2/ResultModel' // 새로운 결과 모델 컴포넌트
+import ResultModel from '../components/6-1-2/ResultModel'
 import Scene from '@/components/canvas/Scene'
 import Intro from '@/components/intro/Intro'
 import { useState, useRef, useEffect } from 'react'
@@ -9,19 +9,31 @@ import * as THREE from 'three'
 import IntroMouseCameraController from '@/components/IntroMouseCameraController'
 
 const VEHICLE_SPEEDS = {
-  train: 200, // 기차
-  car: 70, // 자동차
-  horse: 60, // 말
-  bicycle: 30, // 자전거
-  runner: 20, // 달리는 사람
+  train: 200,
+  car: 70,
+  horse: 60,
+  bicycle: 30,
+  runner: 20,
 }
 
 const VEHICLES = [
   { id: 'train', name: '기차', speed: VEHICLE_SPEEDS.train, meshName: 'cap1', audioPath: '/sounds/6-1-2/train.mp3' },
   { id: 'car', name: '자동차', speed: VEHICLE_SPEEDS.car, meshName: 'Wheel_A', audioPath: '/sounds/6-1-2/car.mp3' },
   { id: 'horse', name: '말', speed: VEHICLE_SPEEDS.horse, meshName: 'Horse_fur', audioPath: '/sounds/6-1-2/horse.mp3' },
-  { id: 'bicycle', name: '자전거', speed: VEHICLE_SPEEDS.bicycle, meshName: 'Male_Head', audioPath: '/sounds/6-1-2/bicycle.mp3' },
-  { id: 'runner', name: '달리는 사람', speed: VEHICLE_SPEEDS.runner, meshName: 'female_genericMesh2', audioPath: '/sounds/6-1-2/runner.mp3' },
+  {
+    id: 'bicycle',
+    name: '자전거',
+    speed: VEHICLE_SPEEDS.bicycle,
+    meshName: 'Male_Head',
+    audioPath: '/sounds/6-1-2/bicycle.mp3',
+  },
+  {
+    id: 'runner',
+    name: '달리는 사람',
+    speed: VEHICLE_SPEEDS.runner,
+    meshName: 'female_genericMesh2',
+    audioPath: '/sounds/6-1-2/runner.mp3',
+  },
 ]
 
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
@@ -36,190 +48,194 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
   return null
 }
 
+function NarrationSubtitle({ visible, text }: { visible: boolean; text: string }) {
+  if (!visible) return null
+
+  return (
+    <div className='fixed bottom-[120px] left-1/2 transform -translate-x-1/2 bg-black bg-opacity-90 text-white px-6 py-4 rounded-xl shadow-2xl z-[2000] text-base font-bold max-w-[80vw] text-center backdrop-blur-sm border border-white border-opacity-10 animate-in slide-in-from-bottom-5 fade-in duration-400'>
+      {text}
+    </div>
+  )
+}
+
 function CameraController({
- viewMode,
- selectedVehicle,
- isAnimationPlaying,
- sceneRef,
- showIntro,
- showResult,
+  viewMode,
+  selectedVehicle,
+  isAnimationPlaying,
+  sceneRef,
+  showIntro,
+  showResult,
 }: {
- viewMode: 'start' | 'firstPerson' | 'approaching' | 'free'
- selectedVehicle: string
- isAnimationPlaying: boolean
- sceneRef: React.RefObject<THREE.Group>
- showIntro: boolean
- showResult: boolean
+  viewMode: 'start' | 'firstPerson' | 'approaching' | 'free'
+  selectedVehicle: string
+  isAnimationPlaying: boolean
+  sceneRef: React.RefObject<THREE.Group>
+  showIntro: boolean
+  showResult: boolean
 }) {
- const { camera } = useThree()
- const orbitControlsRef = useRef<any>()
- const timeRef = useRef(0)
- const frozenCameraState = useRef<{
-   position: THREE.Vector3
-   lookAtTarget: THREE.Vector3
- } | null>(null)
+  const { camera } = useThree()
+  const orbitControlsRef = useRef<any>()
+  const timeRef = useRef(0)
+  const frozenCameraState = useRef<{
+    position: THREE.Vector3
+    lookAtTarget: THREE.Vector3
+  } | null>(null)
 
- // 선택된 물체가 변경될 때 frozenCameraState를 초기화
- const prevSelectedVehicle = useRef(selectedVehicle)
- useEffect(() => {
-   if (prevSelectedVehicle.current !== selectedVehicle) {
-     frozenCameraState.current = null
-     prevSelectedVehicle.current = selectedVehicle
-   }
- }, [selectedVehicle])
+  const prevSelectedVehicle = useRef(selectedVehicle)
+  useEffect(() => {
+    if (prevSelectedVehicle.current !== selectedVehicle) {
+      frozenCameraState.current = null
+      prevSelectedVehicle.current = selectedVehicle
+    }
+  }, [selectedVehicle])
 
- // 시점 모드가 변경될 때 frozenCameraState를 초기화
- const prevViewMode = useRef(viewMode)
- useEffect(() => {
-   if (prevViewMode.current !== viewMode) {
-     frozenCameraState.current = null
-     prevViewMode.current = viewMode
-   }
- }, [viewMode])
+  const prevViewMode = useRef(viewMode)
+  useEffect(() => {
+    if (prevViewMode.current !== viewMode) {
+      frozenCameraState.current = null
+      prevViewMode.current = viewMode
+    }
+  }, [viewMode])
 
- // 결과 화면으로 전환될 때 카메라 위치 초기화
- useEffect(() => {
-   if (showResult) {
-     camera.position.set(20.78, 12.35, -42.22)
-     camera.lookAt(0, 0, 0)
-     
-     if (orbitControlsRef.current) {
-       orbitControlsRef.current.target.set(0, 0, 0)
-       orbitControlsRef.current.update()
-     }
-   }
- }, [showResult, camera])
+  useEffect(() => {
+    if (showResult) {
+      camera.position.set(20.78, 12.35, -42.22)
+      camera.lookAt(0, 0, 0)
 
- const getVehiclePosition = (vehicleId: string) => {
-   if (!sceneRef.current) return new THREE.Vector3(0, 0, 0)
+      if (orbitControlsRef.current) {
+        orbitControlsRef.current.target.set(0, 0, 0)
+        orbitControlsRef.current.update()
+      }
+    }
+  }, [showResult, camera])
 
-   const vehicle = VEHICLES.find((v) => v.id === vehicleId)
-   if (!vehicle) return new THREE.Vector3(0, 0, 0)
+  const getVehiclePosition = (vehicleId: string) => {
+    if (!sceneRef.current) return new THREE.Vector3(0, 0, 0)
 
-   let vehicleObject: THREE.Object3D | null = null
-   sceneRef.current.traverse((child) => {
-     if (child instanceof THREE.Mesh && child.name === vehicle.meshName) {
-       vehicleObject = child
-     }
-   })
+    const vehicle = VEHICLES.find((v) => v.id === vehicleId)
+    if (!vehicle) return new THREE.Vector3(0, 0, 0)
 
-   if (vehicleObject) {
-     const position = new THREE.Vector3()
-     vehicleObject.getWorldPosition(position)
-     return position
-   }
-   return new THREE.Vector3(0, 0, 0)
- }
+    let vehicleObject: THREE.Object3D | null = null
+    sceneRef.current.traverse((child) => {
+      if (child instanceof THREE.Mesh && child.name === vehicle.meshName) {
+        vehicleObject = child
+      }
+    })
 
- useFrame((state, delta) => {
-   if (showIntro || showResult) return
+    if (vehicleObject) {
+      const position = new THREE.Vector3()
+      vehicleObject.getWorldPosition(position)
+      return position
+    }
+    return new THREE.Vector3(0, 0, 0)
+  }
 
-   timeRef.current += delta
+  useFrame((state, delta) => {
+    if (showIntro || showResult) return
 
-   switch (viewMode) {
-     case 'start':
-       camera.position.set(20.78, 12.35, -42.22)
-       camera.lookAt(0, 0, 0)
+    timeRef.current += delta
 
-       if (orbitControlsRef.current) {
-         orbitControlsRef.current.target.set(0, 0, 0)
-       }
-       break
+    switch (viewMode) {
+      case 'start':
+        camera.position.set(20.78, 12.35, -42.22)
+        camera.lookAt(0, 0, 0)
 
-     case 'firstPerson':
-       const vehiclePos = getVehiclePosition(selectedVehicle)
+        if (orbitControlsRef.current) {
+          orbitControlsRef.current.target.set(0, 0, 0)
+        }
+        break
 
-       let cameraOffset = { x: 0, y: 2, z: 0 }
-       let lookAheadDistance = 10
+      case 'firstPerson':
+        const vehiclePos = getVehiclePosition(selectedVehicle)
 
-       switch (selectedVehicle) {
-         case 'train':
-           cameraOffset = { x: 0.3, y: 1.4, z: -14 }
-           lookAheadDistance = 15
-           break
-         case 'car':
-           cameraOffset = { x: -1.2, y: 2.0, z: -7.2 }
-           lookAheadDistance = 15
-           break
-         case 'horse':
-           cameraOffset = { x: 0, y: 3.2, z: -6 }
-           lookAheadDistance = 12
-           break
-         case 'bicycle':
-           cameraOffset = { x: 0, y: 2, z: -5 }
-           lookAheadDistance = 10
-           break
-         case 'runner':
-           cameraOffset = { x: 0, y: 2, z: -2 }
-           lookAheadDistance = 8
-           break
-       }
+        let cameraOffset = { x: 0, y: 2, z: 0 }
+        let lookAheadDistance = 10
 
-       const cameraPosition = new THREE.Vector3(
-         vehiclePos.x + cameraOffset.x,
-         vehiclePos.y + cameraOffset.y,
-         vehiclePos.z + cameraOffset.z,
-       )
+        switch (selectedVehicle) {
+          case 'train':
+            cameraOffset = { x: 0.3, y: 1.4, z: -14 }
+            lookAheadDistance = 15
+            break
+          case 'car':
+            cameraOffset = { x: -1.2, y: 2.0, z: -7.2 }
+            lookAheadDistance = 15
+            break
+          case 'horse':
+            cameraOffset = { x: 0, y: 3.2, z: -6 }
+            lookAheadDistance = 12
+            break
+          case 'bicycle':
+            cameraOffset = { x: 0, y: 2, z: -5 }
+            lookAheadDistance = 10
+            break
+          case 'runner':
+            cameraOffset = { x: 0, y: 2, z: -2 }
+            lookAheadDistance = 8
+            break
+        }
 
-       const lookAtTarget = new THREE.Vector3(
-         vehiclePos.x,
-         vehiclePos.y + cameraOffset.y - 0.5,
-         vehiclePos.z + lookAheadDistance,
-       )
+        const cameraPosition = new THREE.Vector3(
+          vehiclePos.x + cameraOffset.x,
+          vehiclePos.y + cameraOffset.y,
+          vehiclePos.z + cameraOffset.z,
+        )
 
-       // 일시정지 상태에서 저장된 카메라 상태가 있고, 물체가 변경되지 않았다면 저장된 상태 사용
-       if (!isAnimationPlaying && frozenCameraState.current) {
-         camera.position.copy(frozenCameraState.current.position)
-         camera.lookAt(frozenCameraState.current.lookAtTarget)
-         if (orbitControlsRef.current) {
-           orbitControlsRef.current.target.copy(frozenCameraState.current.lookAtTarget)
-         }
-       } else {
-         // 애니메이션 재생 중이거나 저장된 상태가 없을 때 현재 위치 적용
-         camera.position.copy(cameraPosition)
-         camera.lookAt(lookAtTarget)
+        const lookAtTarget = new THREE.Vector3(
+          vehiclePos.x,
+          vehiclePos.y + cameraOffset.y - 0.5,
+          vehiclePos.z + lookAheadDistance,
+        )
 
-         if (orbitControlsRef.current) {
-           orbitControlsRef.current.target.copy(lookAtTarget)
-         }
+        if (!isAnimationPlaying && frozenCameraState.current) {
+          camera.position.copy(frozenCameraState.current.position)
+          camera.lookAt(frozenCameraState.current.lookAtTarget)
+          if (orbitControlsRef.current) {
+            orbitControlsRef.current.target.copy(frozenCameraState.current.lookAtTarget)
+          }
+        } else {
+          camera.position.copy(cameraPosition)
+          camera.lookAt(lookAtTarget)
 
-         // 현재 카메라 상태를 저장 (일시정지를 위해)
-         frozenCameraState.current = {
-           position: cameraPosition.clone(),
-           lookAtTarget: lookAtTarget.clone(),
-         }
-       }
-       break
+          if (orbitControlsRef.current) {
+            orbitControlsRef.current.target.copy(lookAtTarget)
+          }
 
-     case 'approaching':
-       camera.position.set(-2.814, 1.8, 398.85)
-       camera.lookAt(0, 1, 0)
+          frozenCameraState.current = {
+            position: cameraPosition.clone(),
+            lookAtTarget: lookAtTarget.clone(),
+          }
+        }
+        break
 
-       if (orbitControlsRef.current) {
-         orbitControlsRef.current.target.set(0, 1, 0)
-       }
-       break
+      case 'approaching':
+        camera.position.set(-2.814, 1.8, 398.85)
+        camera.lookAt(0, 1, 0)
 
-     case 'free':
-       break
-   }
- })
+        if (orbitControlsRef.current) {
+          orbitControlsRef.current.target.set(0, 1, 0)
+        }
+        break
 
- return (
-   <OrbitControls
-     ref={orbitControlsRef}
-     enabled={(viewMode === 'free' && !showIntro) || (!isAnimationPlaying && viewMode !== 'firstPerson') || showResult}
-     enablePan={
-       (viewMode === 'free' && !showIntro) || (!isAnimationPlaying && viewMode !== 'firstPerson') || showResult
-     }
-     enableZoom={
-       (viewMode === 'free' && !showIntro) || (!isAnimationPlaying && viewMode !== 'firstPerson') || showResult
-     }
-     enableRotate={
-       (viewMode === 'free' && !showIntro) || (!isAnimationPlaying && viewMode !== 'firstPerson') || showResult
-     }
-   />
- )
+      case 'free':
+        break
+    }
+  })
+
+  return (
+    <OrbitControls
+      ref={orbitControlsRef}
+      enabled={(viewMode === 'free' && !showIntro) || (!isAnimationPlaying && viewMode !== 'firstPerson') || showResult}
+      enablePan={
+        (viewMode === 'free' && !showIntro) || (!isAnimationPlaying && viewMode !== 'firstPerson') || showResult
+      }
+      enableZoom={
+        (viewMode === 'free' && !showIntro) || (!isAnimationPlaying && viewMode !== 'firstPerson') || showResult
+      }
+      enableRotate={
+        (viewMode === 'free' && !showIntro) || (!isAnimationPlaying && viewMode !== 'firstPerson') || showResult
+      }
+    />
+  )
 }
 
 export default function Home() {
@@ -232,14 +248,14 @@ export default function Home() {
   const [selectedVehicle, setSelectedVehicle] = useState('train')
   const sceneRef = useRef<THREE.Group>(null)
 
-  // Intro 관련 상태
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
 
-  // 현재 재생 중인 오디오 참조
   const currentAudioRef = useRef<HTMLAudioElement | null>(null)
-  // narration 오디오 참조 (차량 오디오와 별도 관리)
   const narrationAudioRef = useRef<HTMLAudioElement | null>(null)
+
+  const [showNarrationSubtitle, setShowNarrationSubtitle] = useState(false)
+  const [narrationText, setNarrationText] = useState('')
 
   const handleLoadingComplete = () => {
     setIsLoaded(true)
@@ -257,9 +273,7 @@ export default function Home() {
     }
   }
 
-  // 나레이션 오디오 재생 함수
-  const playNarrationAudio = (audioPath: string) => {
-    // 이전 나레이션이 재생 중이면 중지
+  const playNarrationAudio = (audioPath: string, subtitleText: string, autoHideDelay?: number) => {
     if (narrationAudioRef.current) {
       narrationAudioRef.current.pause()
       narrationAudioRef.current.currentTime = 0
@@ -269,40 +283,52 @@ export default function Home() {
       const audio = new Audio(audioPath)
       audio.volume = 0.8
       narrationAudioRef.current = audio
-      
+
       audio.play().catch((error) => {
         console.log('나레이션 오디오 재생 실패:', error.name)
       })
 
-      // 오디오가 끝나면 참조 해제
+      setNarrationText(subtitleText)
+      setShowNarrationSubtitle(true)
+
+      if (autoHideDelay) {
+        setTimeout(() => {
+          setShowNarrationSubtitle(false)
+          setNarrationText('')
+        }, autoHideDelay)
+      }
+
       audio.onended = () => {
         if (narrationAudioRef.current === audio) {
           narrationAudioRef.current = null
+        }
+        if (!autoHideDelay) {
+          setShowNarrationSubtitle(false)
+          setNarrationText('')
         }
       }
     } catch (error) {
       console.log('나레이션 오디오 생성 실패:', error)
     }
   }
+
   const playVehicleAudio = (vehicleId: string) => {
-    // 이전 오디오가 재생 중이면 중지
     if (currentAudioRef.current) {
       currentAudioRef.current.pause()
       currentAudioRef.current.currentTime = 0
     }
 
-    const vehicle = VEHICLES.find(v => v.id === vehicleId)
+    const vehicle = VEHICLES.find((v) => v.id === vehicleId)
     if (vehicle && vehicle.audioPath) {
       try {
         const audio = new Audio(vehicle.audioPath)
         audio.volume = 0.8
         currentAudioRef.current = audio
-        
+
         audio.play().catch((error) => {
           console.log(`${vehicle.name} 오디오 재생 실패:`, error.name)
         })
 
-        // 오디오가 끝나면 참조 해제
         audio.onended = () => {
           if (currentAudioRef.current === audio) {
             currentAudioRef.current = null
@@ -318,32 +344,30 @@ export default function Home() {
     playClickSound()
     setTimeout(() => {
       setShowIntro(false)
-      // 메인 화면 진입 시 narrationA 재생
       setTimeout(() => {
-        playNarrationAudio('/sounds/6-1-2/narration/6-1-2-A.mp3')
-      }, 500) // 화면 전환 후 약간의 딜레이
+        playNarrationAudio(
+          '/sounds/6-1-2/narration/6-1-2-A.mp3',
+          '운동 시작하기 버튼을 눌러 물체를 움직여 보세요.',
+          5000,
+        )
+      }, 500)
     }, 300)
   }
 
   const handleToggleAnimation = () => {
     if (!isAnimationPlaying) {
-      // 애니메이션 시작 (처음 또는 완료 후)
       setIsAnimationPlaying(true)
       setIsAnimationPaused(false)
     } else {
-      // 재생/일시정지 토글
       setIsAnimationPaused(!isAnimationPaused)
-      
-      // 일시정지할 때 오디오 중지, 재생할 때 1인칭 시점이면 오디오 재생
+
       if (!isAnimationPaused) {
-        // 일시정지하는 경우
         if (currentAudioRef.current) {
           currentAudioRef.current.pause()
           currentAudioRef.current.currentTime = 0
           currentAudioRef.current = null
         }
       } else {
-        // 재생하는 경우 - 1인칭 시점이면 오디오 재생
         if (viewMode === 'firstPerson') {
           playVehicleAudio(selectedVehicle)
         }
@@ -352,19 +376,20 @@ export default function Home() {
   }
 
   const handleResetAnimation = () => {
-    // 현재 재생 중인 차량 오디오 중지
     if (currentAudioRef.current) {
       currentAudioRef.current.pause()
       currentAudioRef.current.currentTime = 0
       currentAudioRef.current = null
     }
 
-    // 나레이션 오디오도 중지
     if (narrationAudioRef.current) {
       narrationAudioRef.current.pause()
       narrationAudioRef.current.currentTime = 0
       narrationAudioRef.current = null
     }
+
+    setShowNarrationSubtitle(false)
+    setNarrationText('')
 
     setIsAnimationPlaying(false)
     setIsAnimationPaused(false)
@@ -373,12 +398,10 @@ export default function Home() {
     setViewMode('start')
     setResetTrigger(true)
 
-    // 리셋 트리거를 잠시 후 다시 false로 변경
     setTimeout(() => setResetTrigger(false), 100)
   }
 
   const handleAnimationComplete = () => {
-    // 애니메이션 완료 시 오디오 중지
     if (currentAudioRef.current) {
       currentAudioRef.current.pause()
       currentAudioRef.current.currentTime = 0
@@ -391,7 +414,6 @@ export default function Home() {
   }
 
   const handleShowResult = () => {
-    // 현재 재생 중인 차량 오디오 중지
     if (currentAudioRef.current) {
       currentAudioRef.current.pause()
       currentAudioRef.current.currentTime = 0
@@ -400,20 +422,27 @@ export default function Home() {
 
     setShowResult(true)
     setViewMode('start')
-    
-    // 결과 화면 진입 시 narrationB 재생
+
     setTimeout(() => {
-      playNarrationAudio('/sounds/6-1-2/narration/6-1-2-B.mp3')
-    }, 500) // 화면 전환 후 약간의 딜레이
+      playNarrationAudio(
+        '/sounds/6-1-2/narration/6-1-2-C.mp3',
+        '기차의 속력은 200 km/h, 자동차의 속력은 70 km/h, 자전거를 타는 사람의 속력은 30 km/h, 달리는 사람의 속력은 20 km/h, 말의 속력은 60 km/h이므로 기차, 자동차, 말, 자전거를 탄 사람, 달리는 사람 순으로 빠릅니다.',
+      )
+    }, 500)
   }
 
   const handleBackToAnimation = () => {
     setShowResult(false)
-    setViewMode('start') // 원래 화면으로 돌아갈 때는 시작 시점으로
+    setViewMode('start')
+    setShowNarrationSubtitle(false)
+    setNarrationText('')
+    if (narrationAudioRef.current) {
+      narrationAudioRef.current.pause()
+      narrationAudioRef.current.currentTime = 0
+    }
   }
 
   const handleViewChange = (mode: 'start' | 'firstPerson' | 'approaching' | 'free') => {
-    // 1인칭 시점이 아닌 다른 시점으로 변경할 때 오디오 중지
     if (mode !== 'firstPerson' && currentAudioRef.current) {
       currentAudioRef.current.pause()
       currentAudioRef.current.currentTime = 0
@@ -422,7 +451,6 @@ export default function Home() {
 
     setViewMode(mode)
 
-    // 1인칭 시점으로 변경할 때 애니메이션이 진행 중이면 현재 선택된 차량의 오디오 재생
     if (mode === 'firstPerson' && isAnimationPlaying && !isAnimationPaused) {
       playVehicleAudio(selectedVehicle)
     }
@@ -430,14 +458,12 @@ export default function Home() {
 
   const handleVehicleSelect = (vehicleId: string) => {
     setSelectedVehicle(vehicleId)
-    
-    // 1인칭 시점이고 애니메이션이 진행 중일 때만 오디오 재생
+
     if (viewMode === 'firstPerson' && isAnimationPlaying && !isAnimationPaused) {
       playVehicleAudio(vehicleId)
     }
   }
 
-  // 컴포넌트 언마운트 시 오디오 정리
   useEffect(() => {
     return () => {
       if (currentAudioRef.current) {
@@ -467,10 +493,10 @@ export default function Home() {
 
   return (
     <div className='w-screen h-screen bg-white relative'>
-      {/* Intro가 보일 때는 UI 숨김 */}
+      <NarrationSubtitle visible={showNarrationSubtitle} text={narrationText} />
+
       {!showIntro && (
         <>
-          {/* 결과 화면일 때 */}
           {showResult ? (
             <div className='absolute top-3 right-3 z-10'>
               <button
@@ -481,16 +507,14 @@ export default function Home() {
             </div>
           ) : (
             <>
-              {/* 메인 애니메이션 제어 - 하단 중앙 */}
               <div className='absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 flex gap-4'>
-                {/* 애니메이션이 완료되지 않았을 때만 재생/일시정지 버튼 표시 */}
                 {!animationCompleted && (
                   <button
                     onClick={handleToggleAnimation}
                     className={`px-8 py-4 rounded-xl font-bold text-lg transition-all shadow-lg ${
                       isAnimationPlaying && !isAnimationPaused
                         ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
-                        : 'bg-blue-500 hover:bg-blue-600 text-white'
+                        : 'bg-green-500 hover:bg-blue-600 text-white'
                     }`}>
                     {isAnimationPlaying && !isAnimationPaused
                       ? '일시정지'
@@ -517,7 +541,6 @@ export default function Home() {
                 )}
               </div>
 
-              {/* 시점 변경 버튼들 - 좌상단 */}
               {(isAnimationPlaying || animationCompleted) && (
                 <div className='absolute top-6 left-6 z-10 bg-white/90 p-4 rounded-xl shadow-lg'>
                   <h3 className='text-sm font-bold text-gray-700 mb-3'>관찰 시점을 고르세요</h3>
@@ -526,7 +549,7 @@ export default function Home() {
                       <button
                         key={idx}
                         onClick={() => handleViewChange(button.mode)}
-                        className={`block font-bold w-full px-4 py-2 rounded-lg font-medium transition-all text-m ${
+                        className={`block font-bold w-full px-4 py-2 rounded-lg font-light transition-all text-m ${
                           viewMode === button.mode
                             ? 'bg-orange-500 text-white shadow-md'
                             : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
@@ -538,16 +561,15 @@ export default function Home() {
                 </div>
               )}
 
-              {/* 1인칭 시점일 때 물체 선택 - 우상단 */}
               {viewMode === 'firstPerson' && (
                 <div className='absolute top-6 right-6 z-10 bg-white/90 p-4 rounded-xl shadow-lg'>
-                  <h4 className='text-sm font-bold text-gray-700 mb-3'>🚗 관찰할 물체</h4>
+                  <h4 className='text-sm font-bold text-gray-700 mb-3'>🚗 관찰하기</h4>
                   <div className='grid grid-cols-1 gap-2 min-w-[160px]'>
                     {VEHICLES.map((vehicle) => (
                       <button
                         key={vehicle.id}
                         onClick={() => handleVehicleSelect(vehicle.id)}
-                        className={`px-3 py-2 text-sm rounded-lg font-medium transition-all text-left ${
+                        className={`px-3 py-2 text-sm rounded-lg font-light transition-all text-left ${
                           selectedVehicle === vehicle.id
                             ? 'bg-blue-500 text-white shadow-md'
                             : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
