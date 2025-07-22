@@ -237,6 +237,8 @@ function CameraController({
       }
       minDistance={0}
       maxDistance={7}
+      minPolarAngle={0}
+      maxPolarAngle={Math.PI/2}
     />
   )
 }
