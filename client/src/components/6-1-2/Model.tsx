@@ -33,7 +33,7 @@ export default function Model({
       setHasCompletedOnce(false)
       setIsInitialized(false)
       animationTimeRef.current = 0
-      
+
       if (actions) {
         Object.values(actions).forEach((action) => {
           if (action) {
@@ -94,7 +94,7 @@ export default function Model({
       Object.values(actions).forEach((action) => {
         if (action && action.getClip()) {
           const clipDuration = action.getClip().duration
-          
+
           // 애니메이션이 완료되면
           if (animationTimeRef.current >= clipDuration && !hasCompletedOnce) {
             console.log('Animation completed')
@@ -111,22 +111,35 @@ export default function Model({
   })
 
   useEffect(() => {
-    // 모든 메쉬에 그림자 설정 적용
     if (scene) {
       scene.traverse((child) => {
         if (child instanceof Mesh) {
           child.castShadow = castShadow
           child.receiveShadow = receiveShadow
-          
+
+          // 디버깅: 기차만 확인
+          if (child.name === 'cap1') {
+            console.log('Train mesh found:', child.name)
+            // 임시로 기차는 그림자 받지 않기
+            child.receiveShadow = false
+          }
+
           if (child.material) {
             if (Array.isArray(child.material)) {
               child.material.forEach((mat) => {
                 if (mat.isMeshStandardMaterial || mat.isMeshPhongMaterial || mat.isMeshLambertMaterial) {
+                  // 임시로 double side 설정
+                  mat.side = 1 // DoubleSide
                   mat.needsUpdate = true
                 }
               })
             } else {
-              if (child.material.isMeshStandardMaterial || child.material.isMeshPhongMaterial || child.material.isMeshLambertMaterial) {
+              if (
+                child.material.isMeshStandardMaterial ||
+                child.material.isMeshPhongMaterial ||
+                child.material.isMeshLambertMaterial
+              ) {
+                child.material.side = 2 // DoubleSide
                 child.material.needsUpdate = true
               }
             }
@@ -135,7 +148,6 @@ export default function Model({
       })
     }
   }, [scene, castShadow, receiveShadow])
-
   return (
     <group ref={group} {...props}>
       <primitive object={scene} />

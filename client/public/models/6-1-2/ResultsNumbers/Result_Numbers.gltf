@@ -24,36 +24,31 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Cube.004",
+			"name":"Arrow",
 			"scale":[
 				0.6044971346855164,
 				0.3010673522949219,
-				88.39193725585938
+				88.39192962646484
 			],
 			"translation":[
 				11.55158805847168,
 				-2.4864587783813477,
-				44.01814651489258
+				44.01814270019531
 			]
 		},
 		{
 			"mesh":1,
-			"name":"typeMesh1",
+			"name":"polySurface44",
 			"rotation":[
-				0,
-				-0.7071068286895752,
 				0.7071068286895752,
-				5.338509012631221e-08
+				0,
+				0,
+				0.7071068286895752
 			],
 			"scale":[
-				0.2257077544927597,
-				0.2257077544927597,
-				0.2257077544927597
-			],
-			"translation":[
-				-8.14294719696045,
-				3.4394423961639404,
-				41.51478576660156
+				0.009999999776482582,
+				0.009999999776482582,
+				0.009999999776482582
 			]
 		}
 	],
@@ -62,12 +57,19 @@
 			"doubleSided":true,
 			"emissiveFactor":[
 				1,
-				0.8375716209411621,
+				0.837571591806171,
 				0
 			],
 			"extensions":{
 				"KHR_materials_emissive_strength":{
 					"emissiveStrength":2.6999998092651367
+				},
+				"KHR_materials_specular":{
+					"specularColorFactor":[
+						2.0,
+						2.0,
+						2.0
+					]
 				}
 			},
 			"name":"Material.002",
@@ -84,7 +86,15 @@
 		},
 		{
 			"doubleSided":true,
+			"emissiveFactor":[
+				0.25015183917623596,
+				0.25015183917623596,
+				1
+			],
 			"extensions":{
+				"KHR_materials_emissive_strength":{
+					"emissiveStrength":1.0000240802764893
+				},
 				"KHR_materials_specular":{
 					"specularColorFactor":[
 						2.0,
@@ -93,7 +103,7 @@
 					]
 				}
 			},
-			"name":"phong11",
+			"name":"phong11.001",
 			"pbrMetallicRoughness":{
 				"baseColorFactor":[
 					0.25,
@@ -107,7 +117,15 @@
 		},
 		{
 			"doubleSided":true,
+			"emissiveFactor":[
+				0.8878888662396692,
+				0.2746734340150748,
+				1
+			],
 			"extensions":{
+				"KHR_materials_emissive_strength":{
+					"emissiveStrength":1.0000240802764893
+				},
 				"KHR_materials_specular":{
 					"specularColorFactor":[
 						2.0,
@@ -116,7 +134,7 @@
 					]
 				}
 			},
-			"name":"phong10",
+			"name":"phong10.001",
 			"pbrMetallicRoughness":{
 				"baseColorFactor":[
 					0.8883000016212463,
@@ -131,7 +149,7 @@
 	],
 	"meshes":[
 		{
-			"name":"Cube.006",
+			"name":"Mesh",
 			"primitives":[
 				{
 					"attributes":{
@@ -156,7 +174,7 @@
 			]
 		},
 		{
-			"name":"Mesh",
+			"name":"Mesh.014",
 			"primitives":[
 				{
 					"attributes":{
@@ -234,85 +252,85 @@
 		},
 		{
 			"componentType":5126,
-			"count":13203,
+			"count":24117,
 			"max":[
-				42.46896743774414,
-				316.2529296875,
-				9.993780136108398
+				1604.365478515625,
+				3637.978515625,
+				-102.2318115234375
 			],
 			"min":[
-				-108.76242065429688,
-				0,
-				-11.213793754577637
+				-2144.879638671875,
+				-2959.8447265625,
+				-689.927001953125
 			],
 			"type":"VEC3"
 		},
 		{
 			"componentType":5126,
-			"count":13203,
+			"count":24117,
 			"type":"VEC3"
 		},
 		{
 			"componentType":5126,
-			"count":13203,
+			"count":24117,
 			"type":"VEC2"
 		},
 		{
 			"componentType":5123,
-			"count":50730,
+			"count":93294,
 			"type":"SCALAR"
 		},
 		{
 			"componentType":5126,
-			"count":11596,
+			"count":18938,
 			"max":[
-				21.343822479248047,
-				377.8788757324219,
-				24.623933792114258
+				1250.100341796875,
+				303.0271911621094,
+				217.96435546875
 			],
 			"min":[
-				-88.61083221435547,
-				173.03614807128906,
-				12.51037883758545
+				-1328.92724609375,
+				-4409.58203125,
+				8.165283203125
 			],
 			"type":"VEC3"
 		},
 		{
 			"componentType":5126,
-			"count":11596,
+			"count":18938,
 			"type":"VEC3"
 		},
 		{
 			"componentType":5126,
-			"count":11596,
+			"count":18938,
 			"type":"VEC2"
 		},
 		{
 			"componentType":5123,
-			"count":44160,
+			"count":72966,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":1134,
+			"byteLength":923,
 			"byteOffset":0
 		},
 		{
 			"buffer":0,
-			"byteLength":46773,
-			"byteOffset":1136
+			"byteLength":80102,
+			"byteOffset":924
 		},
 		{
 			"buffer":0,
-			"byteLength":45654,
-			"byteOffset":47912
+			"byteLength":75140,
+			"byteOffset":81028
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":93568,
+			"byteLength":156168,
 			"uri":"Result_Numbers.bin"
 		}
 	]

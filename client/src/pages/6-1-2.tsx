@@ -7,6 +7,7 @@ import Intro from '@/components/intro/Intro'
 import { useState, useRef, useEffect } from 'react'
 import * as THREE from 'three'
 import IntroMouseCameraController from '@/components/IntroMouseCameraController'
+import { ContactShadows, AccumulativeShadows, RandomizedLight } from '@react-three/drei'
 
 const VEHICLE_SPEEDS = {
   train: 200,
@@ -99,7 +100,7 @@ function CameraController({
 
   useEffect(() => {
     if (showResult) {
-      camera.position.set(20.78, 12.35, -42.22)
+      camera.position.set(2.078, 1.235, -4.222)
       camera.lookAt(0, 0, 0)
 
       if (orbitControlsRef.current) {
@@ -137,7 +138,7 @@ function CameraController({
 
     switch (viewMode) {
       case 'start':
-        camera.position.set(20.78, 12.35, -42.22)
+        camera.position.set(2.078, 1.235, -4.222)
         camera.lookAt(0, 0, 0)
 
         if (orbitControlsRef.current) {
@@ -148,29 +149,29 @@ function CameraController({
       case 'firstPerson':
         const vehiclePos = getVehiclePosition(selectedVehicle)
 
-        let cameraOffset = { x: 0, y: 2, z: 0 }
-        let lookAheadDistance = 10
+        let cameraOffset = { x: 0, y: 0.2, z: 0 }
+        let lookAheadDistance = 1.0
 
         switch (selectedVehicle) {
           case 'train':
-            cameraOffset = { x: 0.3, y: 1.4, z: -14 }
-            lookAheadDistance = 15
+            cameraOffset = { x: 0.03, y: 0.14, z: -1.4 }
+            lookAheadDistance = 1.5
             break
           case 'car':
-            cameraOffset = { x: -1.2, y: 2.0, z: -7.2 }
-            lookAheadDistance = 15
+            cameraOffset = { x: -0.12, y: 0.2, z: -0.72 }
+            lookAheadDistance = 1.5
             break
           case 'horse':
-            cameraOffset = { x: 0, y: 3.2, z: -6 }
-            lookAheadDistance = 12
+            cameraOffset = { x: 0, y: 0.32, z: -0.6 }
+            lookAheadDistance = 1.2
             break
           case 'bicycle':
-            cameraOffset = { x: 0, y: 2, z: -5 }
-            lookAheadDistance = 10
+            cameraOffset = { x: 0, y: 0.2, z: -0.5 }
+            lookAheadDistance = 1.0
             break
           case 'runner':
-            cameraOffset = { x: 0, y: 2, z: -2 }
-            lookAheadDistance = 8
+            cameraOffset = { x: 0, y: 0.2, z: -0.2 }
+            lookAheadDistance = 0.8
             break
         }
 
@@ -182,7 +183,7 @@ function CameraController({
 
         const lookAtTarget = new THREE.Vector3(
           vehiclePos.x,
-          vehiclePos.y + cameraOffset.y - 0.5,
+          vehiclePos.y + cameraOffset.y - 0.05,
           vehiclePos.z + lookAheadDistance,
         )
 
@@ -208,11 +209,11 @@ function CameraController({
         break
 
       case 'approaching':
-        camera.position.set(-2.814, 1.8, 398.85)
-        camera.lookAt(0, 1, 0)
+        camera.position.set(-0.2814, 0.18, 39.885)
+        camera.lookAt(0, 0.1, 0)
 
         if (orbitControlsRef.current) {
-          orbitControlsRef.current.target.set(0, 1, 0)
+          orbitControlsRef.current.target.set(0, 0.1, 0)
         }
         break
 
@@ -234,6 +235,8 @@ function CameraController({
       enableRotate={
         (viewMode === 'free' && !showIntro) || (!isAnimationPlaying && viewMode !== 'firstPerson') || showResult
       }
+      minDistance={0}
+      maxDistance={7}
     />
   )
 }
@@ -426,7 +429,7 @@ export default function Home() {
     setTimeout(() => {
       playNarrationAudio(
         '/sounds/6-1-2/narration/6-1-2-C.MP3',
-        '기차의 속력은 200 km/h, 자동차의 속력은 70 km/h, 자전거를 타는 사람의 속력은 30 km/h, 달리는 사람의 속력은 20 km/h, 말의 속력은 60 km/h이므로 기차, 자동차, 말, 자전거를 탄 사람, 달리는 사람 순으로 빠릅니다.',
+        '기차의 속력은 28.08 m/s, 자동차의 속력은 23.4 m/s, 자전거를 타는 사람의 속력은 14.58 m/s, 달리는 사람의 속력은 13.82 m/s, 말의 속력은 16.82 m/s이므로 기차, 자동차, 말, 자전거를 탄 사람, 달리는 사람 순으로 빠릅니다.',
       )
     }, 500)
   }
@@ -488,6 +491,10 @@ export default function Home() {
     {
       name: '1인칭 시점으로 관찰하기',
       mode: 'firstPerson' as const,
+    },
+    {
+      name: '자유롭게 관찰하기',
+      mode: 'free' as const,
     },
   ]
 
@@ -585,33 +592,38 @@ export default function Home() {
         </>
       )}
 
-      <Scene camera={{ position: [20.78, 12.35, -42.22], fov: 50, far: 1000 }} shadows='soft'>
+      <Scene camera={{ position: [2.078, 1.235, -4.222], fov: 50, far: 500 }} shadows='soft'>
         <LoadingTracker onLoadingComplete={handleLoadingComplete} />
         <IntroMouseCameraController enabled={showIntro} />
-
-        <ambientLight intensity={0.2} />
-
         <directionalLight
-          position={[50, 40, 50]}
-          intensity={10}
+          position={[5, 20, 5]}
+          intensity={1.2}
           castShadow
-          shadow-mapSize={[4096, 4096]}
-          shadow-camera-far={200}
-          shadow-camera-left={-200}
-          shadow-camera-right={200}
-          shadow-camera-top={200}
-          shadow-camera-bottom={-200}
+          color='#FFF8DC'
+          shadow-mapSize-width={4096} // 해상도 대폭 증가
+          shadow-mapSize-height={4096}
+          shadow-camera-far={100}
+          shadow-camera-left={-50}
+          shadow-camera-right={50}
+          shadow-camera-top={50}
+          shadow-camera-bottom={-50}
           shadow-bias={-0.001}
+          shadow-normalBias={0.02}
         />
+        <directionalLight position={[-20, 30, 20]} intensity={0.8} color='#E6F3FF' />
+        <mesh position={[0, -0.285, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+          <planeGeometry args={[130, 130]} />
+          <shadowMaterial transparent opacity={0.3} />
+        </mesh>
 
         <group ref={sceneRef}>
           {showResult ? (
-            <ResultModel scale={1} position={[0, 0, 20]} castShadow={true} receiveShadow={true} />
+            <ResultModel scale={0.1} position={[0, 0, 2]} castShadow={true} receiveShadow={true} />
           ) : (
             <Model
-              scale={1}
+              scale={0.1}
               position={[0, 0, 0]}
-              animationSpeed={isAnimationPlaying && !isAnimationPaused ? 0.7 : 0}
+              animationSpeed={isAnimationPlaying && !isAnimationPaused ? 1.0 : 0}
               onAnimationComplete={handleAnimationComplete}
               resetTrigger={resetTrigger}
               castShadow={true}
@@ -619,7 +631,6 @@ export default function Home() {
             />
           )}
         </group>
-
         <CameraController
           viewMode={viewMode}
           selectedVehicle={selectedVehicle}
@@ -628,10 +639,9 @@ export default function Home() {
           showIntro={showIntro}
           showResult={showResult}
         />
-
         <Sky
-          distance={450000}
-          sunPosition={[-10, 0.9, -10]}
+          distance={45000}
+          sunPosition={[-1, 0.09, -1]}
           inclination={0.49}
           azimuth={0.25}
           rayleigh={1.2}
@@ -640,8 +650,6 @@ export default function Home() {
           mieDirectionalG={0.85}
         />
         <Environment preset={'apartment'} />
-
-        <OrbitControls />
       </Scene>
 
       {isLoaded && showIntro && (
