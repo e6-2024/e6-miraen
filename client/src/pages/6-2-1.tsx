@@ -123,7 +123,7 @@ function SunLight({ azimuth, altitude }) {
 }
 
 function Model({ currentData, onSceneLoaded, child2Scale, child2Position }) {
-  const { scene } = useGLTF('models/6-2-1/pole2.glb');
+  const { scene } = useGLTF('models/6-2-1/pole.gltf');
   
   React.useEffect(() => {
     if (scene) {
@@ -396,7 +396,8 @@ export default function ShadowSimulation() {
           description={[
             "태양이 위치가 달라지는 동안 태양 고도, 그림자 길이는 계속 변합니다. 이들이 어떤 관계가 있는지 알아봅시다."
           ]}
-          simbolSvgPath="/img/icon/계절의변화.svg"
+          backgroundSvg="/img/cover/6-2-1.svg"
+          descriptionSound='/sounds/6-1-3/narration/6-1-3-Goal.MP3'
         />
       )}
     </div>

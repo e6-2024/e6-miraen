@@ -17,7 +17,17 @@ export default function Light1({
   const { actions, mixer } = useAnimations(animations, groupRef)
   const [lightOn, setLightOn] = useState(false)
 
-  // 애니메이션 제어
+  useEffect(() => {
+    if (scene) {
+      scene.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          child.castShadow = true
+          child.receiveShadow = true
+        }
+      })
+    }
+  }, [scene])
+
   useEffect(() => {
     if (actions && Object.keys(actions).length > 0) {
       const actionName = Object.keys(actions)[0]
@@ -53,7 +63,6 @@ export default function Light1({
     
     while (obj) {
       if (obj.name === 'Switch' && scene.getObjectById(obj.id)) {
-        // 스위치 클릭 시에만 이벤트 전파 차단
         e.stopPropagation()
         e.nativeEvent.stopImmediatePropagation()
         console.log('Light1 Switch clicked - toggling light and animation')
@@ -62,7 +71,6 @@ export default function Light1({
       }
       obj = obj.parent
     }
-    // 스위치가 아닌 경우 이벤트 전파를 허용 (OrbitControls가 작동할 수 있도록)
   }
 
   return (
@@ -70,11 +78,9 @@ export default function Light1({
       <primitive
         object={scene}
         onPointerDown={handlePointerDown}
-        // onClick 이벤트에서 전체 차단 제거
       />
 
-      {/* 전구 발광체 */}
-      <mesh position={[0.1, 1.0, -2.0]}>
+      <mesh position={[0.1, 1.0, -2.0]} castShadow>
         <sphereGeometry args={[0.03, 16, 16]} />
         <meshStandardMaterial
           color={new THREE.Color(1, 0.8, 0.4)}
@@ -95,13 +101,13 @@ export default function Light1({
         스위치를 눌러보세요!
       </Text>
 
-      {/* 포인트 라이트 */}
       <pointLight
         position={[0.1, 1.0, -2.0]}
         intensity={lightOn ? lightIntensity * 2 : 0}
         distance={10}
         decay={2}
         color={new THREE.Color(1, 0.8, 0.4)}
+        castShadow
       />
     </group>
   )

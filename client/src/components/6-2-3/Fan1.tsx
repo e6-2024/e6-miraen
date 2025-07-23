@@ -31,16 +31,16 @@ export default function Fan1({ speed = 1.0, ...props }: Fan1Props) {
     if (actions && Object.keys(actions).length > 0) {
       const actionName = Object.keys(actions)[0] // 첫 번째 애니메이션 사용
       const action = actions[actionName]
-      
+
       if (action) {
         const animationDuration = action.getClip().duration
         const halfDuration = animationDuration / 2
-        
+
         action.reset()
         action.setLoop(THREE.LoopOnce, 1)
         action.clampWhenFinished = true
         action.timeScale = 1
-        
+
         if (isRotating) {
           // 스위치 닫기 (0초부터 절반까지)
           action.time = 0
@@ -64,9 +64,9 @@ export default function Fan1({ speed = 1.0, ...props }: Fan1Props) {
     // 이벤트 전파 완전 차단
     e.stopPropagation()
     e.nativeEvent.stopImmediatePropagation()
-    
+
     let obj: THREE.Object3D | null = e.object
-    
+
     // 이 컴포넌트의 scene 내부에 있는 Switch인지 확인
     while (obj) {
       if (obj.name === 'Switch' && scene.getObjectById(obj.id)) {
@@ -87,24 +87,25 @@ export default function Fan1({ speed = 1.0, ...props }: Fan1Props) {
 
   return (
     <group ref={groupRef} {...props}>
-      <primitive 
-        object={scene} 
+      <primitive
+        object={scene}
         onPointerDown={handlePointerDown}
         // 추가적인 이벤트 핸들러로 이벤트 차단 강화
         onClick={(e: ThreeEvent<MouseEvent>) => {
           e.stopPropagation()
           e.nativeEvent.stopImmediatePropagation()
         }}
+        castShadow
+        receiveShadow
       />
       <Text
-      position={[5, 3, 3]} // 스위치 위쪽 위치
-      fontSize={0.3}
-      color="white"
-      anchorX="center"
-      anchorY="middle"
-    >
-      스위치를 눌러보세요!
-    </Text>
+        position={[5, 3, 3]} // 스위치 위쪽 위치
+        fontSize={0.3}
+        color='white'
+        anchorX='center'
+        anchorY='middle'>
+        스위치를 눌러보세요!
+      </Text>
     </group>
   )
 }
