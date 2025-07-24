@@ -14,6 +14,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import ConnectedBuzzers from '@/components/6-2-3/ConnectedBuzzers'
 import ConnectedLights from '@/components/6-2-3/ConnectedLights'
 import ConnectedFans from '@/components/6-2-3/ConnectedFans'
+import IntroMouseCameraController from '@/components/IntroMouseCameraController'
 
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
   const { progress, active } = useProgress()
@@ -361,6 +362,7 @@ export default function Home() {
           }}
           camera={{ position: [14, 8, 15], fov: 50 }}>
           <LoadingTracker onLoadingComplete={handleLoadingComplete} />
+          <IntroMouseCameraController enabled={showIntro}/>
 
           <fog attach='fog' args={['#0c0c0cff', 10, 25]} />
           <fogExp2 attach='fog' color={'#ffffffff'} density={0.002} />
