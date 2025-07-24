@@ -43,12 +43,20 @@ export default function Intro2({
             absolute top-0 left-0 w-full h-full transition-all duration-1000 ease-in-out
             ${isAnimating ? 'scale-150 opacity-0' : 'scale-100 opacity-100'}
           `}>
+          <img src='/img/cover/Group 25.png' alt='Background' className='absolute inset-0 w-full h-full object-cover' />
+        </div>
+        <div
+          ref={backgroundRef}
+          className={`
+            absolute top-0 left-0 w-full h-full transition-all duration-1000 ease-in-out
+            ${isAnimating ? 'scale-150 opacity-0' : 'scale-100 opacity-100'}
+          `}>
           <img src={backgroundSvg} alt='Background' className='absolute inset-0 w-full h-full object-cover' />
         </div>
         {/* 제목 및 설명 */}
         <div className='absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-fit h-fit flex flex-col items-center justify-center gap-36'>
           <div className='w-fit h-fit flex flex-col items-center justify-center gap-6'>
-            <h1 className='text-7xl mb-7 text-white font-bold leading-tight text-center [text-shadow:_0px_4px_10px_rgb(0_0_0_/_0.50)]'>
+            <h1 className='text-7xl mb-7 text-white font-bold leading-tight text-center break-keep [text-shadow:_0px_4px_10px_rgb(0_0_0_/_0.50)] '>
               {title.split('\n').map((line, i) => (
                 <div key={i}>
                   {line}
@@ -56,7 +64,7 @@ export default function Intro2({
                 </div>
               ))}
             </h1>
-            <div className='text-white text-4xl font-light text-center [text-shadow:_0px_4px_10px_rgb(0_0_0_/_0.50)]'>
+            <div className='text-white text-4xl font-light text-center break-keep [text-shadow:_0px_4px_10px_rgb(0_0_0_/_0.50)]'>
               {Array.isArray(description) ? (
                 description.map((line, index) => (
                   <p key={index} className={index > 0 ? 'mt-1' : ''}>
