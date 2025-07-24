@@ -44,7 +44,7 @@ function AngleLines({ azimuth, altitude, shadowLength, angleGroundLevel = -0.3, 
 
       setPoleInfo({
         height: poleHeight,
-        topPosition: [0, poleTopY, 0] as const,
+        topPosition: [0, poleTopY, 0], // Removed 'as const'
       })
     }
 
