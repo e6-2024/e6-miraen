@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { OrbitControls, ContactShadows, useProgress } from '@react-three/drei'
+import { OrbitControls, ContactShadows, useProgress, Environment } from '@react-three/drei'
 import Light1 from '@/components/6-2-3/Light1'
 import Light2 from '@/components/6-2-3/Light2'
 import Fan1 from '@/components/6-2-3/Fan1'
@@ -9,7 +9,7 @@ import Scene from '@/components/canvas/Scene'
 import Intro from '@/components/intro/Intro'
 import BG from '@/components/6-2-3/BG'
 import * as THREE from 'three'
-
+import AudioManager from '@/components/6-2-3/AudioManager'
 import { AnimatePresence, motion } from 'framer-motion'
 import ConnectedBuzzers from '@/components/6-2-3/ConnectedBuzzers'
 import ConnectedLights from '@/components/6-2-3/ConnectedLights'
@@ -42,6 +42,7 @@ function SummaryPopup({
     buzzer: '전기 회로에 전지 한 개를 연결할 때보다 전지 두 개를 직렬연결할 때 버저에서 나는 소리가 더 큽니다.',
     fan: '전기 회로에 전지 한 개를 연결할 때보다 전지 두 개를 직렬연결할 때 전동기의 날개가 더 빠르게 돌아갑니다.',
   }
+  const audioManager = AudioManager.getInstance()
 
   if (!isOpen) return null
 
@@ -52,7 +53,10 @@ function SummaryPopup({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50'
-        onClick={onClose}>
+        onClick={() => {
+          audioManager.playGeneralButton()
+          onClose()
+        }}>
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -63,7 +67,10 @@ function SummaryPopup({
           <p className='text-lg text-center font-light text-gray-700 leading-relaxed mb-8'>{summaryTexts[mode]}</p>
           <div className='text-center'>
             <button
-              onClick={onClose}
+              onClick={() => {
+                audioManager.playGeneralButton()
+                onClose()
+              }}
               className='px-8 py-3 bg-blue-500 text-white rounded-xl font-light hover:bg-blue-600 transition-colors duration-200'>
               확인
             </button>
@@ -75,6 +82,9 @@ function SummaryPopup({
 }
 
 export default function Home() {
+  // AudioManager 인스턴스
+  const audioManager = AudioManager.getInstance()
+
   // 랜덤 모드 선택 함수
   const getRandomMode = useCallback((): 'light' | 'buzzer' | 'fan' => {
     const modes: ('light' | 'buzzer' | 'fan')[] = ['light', 'buzzer', 'fan']
@@ -98,46 +108,41 @@ export default function Home() {
   const [showSubtitle, setShowSubtitle] = useState(false)
   const [subtitleText, setSubtitleText] = useState('')
 
-  const playClickSound = useCallback((audioPath: string = '/sounds/Enter_Cute.mp3') => {
-    try {
-      const audio = new Audio(audioPath)
-      audio.volume = 0.7
-      audio.play().catch((error) => {
-        console.log('효과음 재생 실패:', error.name)
+  const playClickSound = useCallback(
+    (audioPath: string = '/sounds/Enter_Cute.mp3') => {
+      audioManager.playEffect(audioPath, 0.7).catch((error) => {
+        console.log('효과음 재생 실패:', error)
       })
-    } catch (error) {
-      console.log('효과음 생성 실패:', error)
-    }
-  }, [])
+    },
+    [audioManager],
+  )
 
   // 자막과 함께 오디오 재생하는 함수
-  const playAudioWithSubtitle = useCallback((audioPath: string, subtitle: string, duration: number = 5000) => {
-    try {
-      const audio = new Audio(audioPath)
-      audio.volume = 0.7
-
+  const playAudioWithSubtitle = useCallback(
+    (audioPath: string, subtitle: string, duration: number = 5000) => {
       // 자막 표시
       setSubtitleText(subtitle)
       setShowSubtitle(true)
 
-      // 오디오 재생
-      audio.play().catch((error) => {
-        console.log('오디오 재생 실패:', error.name)
-      })
-
-      // 오디오 종료 시 자막 숨김
-      audio.addEventListener('ended', () => {
-        setShowSubtitle(false)
-      })
+      // 나레이션 재생
+      audioManager
+        .playNarration(audioPath, 0.7)
+        .then(() => {
+          // 오디오 종료 시 자막 숨김
+          setShowSubtitle(false)
+        })
+        .catch((error) => {
+          console.log('나레이션 재생 실패:', error)
+          setShowSubtitle(false)
+        })
 
       // fallback: 지정된 시간 후 자막 숨김
       setTimeout(() => {
         setShowSubtitle(false)
       }, duration)
-    } catch (error) {
-      console.log('오디오 생성 실패:', error)
-    }
-  }, [])
+    },
+    [audioManager],
+  )
 
   const handleLoadingComplete = useCallback(() => {
     setIsLoaded(true)
@@ -156,7 +161,7 @@ export default function Home() {
 
   const handleModeSelect = useCallback(
     (selectedMode: 'light' | 'buzzer' | 'fan') => {
-      playClickSound()
+      audioManager.playGeneralButton()
       setMode(selectedMode)
 
       // 모드 진입 시 A 오디오와 자막 재생
@@ -164,22 +169,24 @@ export default function Home() {
         playAudioWithSubtitle('/sounds/6-2-3/narration/6-2-3-A.MP3', '전기 회로에 전지를 연결해 보세요.', 6000)
       }, 500)
     },
-    [playClickSound, playAudioWithSubtitle],
+    [playAudioWithSubtitle],
   )
 
   const handleBackToModeSelection = useCallback(() => {
-    playClickSound()
+    audioManager.playGeneralButton()
     // 부드러운 전환을 위해 약간의 지연 추가
     setTimeout(() => {
       setMode(null)
+      // 모드 변경 시 모든 컴포넌트 오디오 중지
+      audioManager.stopAll()
     }, 100)
-  }, [playClickSound])
+  }, [audioManager])
 
   const handleSummaryClick = useCallback(() => {
     if (!mode) return
 
     // 정리하기 버튼 클릭 사운드
-    playClickSound()
+    audioManager.playGeneralButton()
 
     // 각 모드별 정리하기 오디오 재생
     const summaryAudioMap = {
@@ -188,13 +195,23 @@ export default function Home() {
       fan: '/sounds/6-2-3/narration/6-2-3-G.MP3',
     }
 
-    playClickSound(summaryAudioMap[mode])
+    audioManager.playNarration(summaryAudioMap[mode], 0.7).catch((error) => {
+      console.log('정리하기 나레이션 재생 실패:', error)
+    })
+
     setShowSummaryPopup(true)
-  }, [mode, playClickSound])
+  }, [mode, playClickSound, audioManager])
 
   const handleCloseSummaryPopup = useCallback(() => {
     setShowSummaryPopup(false)
   }, [])
+
+  // 컴포넌트 언마운트 시 모든 오디오 정리
+  useEffect(() => {
+    return () => {
+      audioManager.stopAll()
+    }
+  }, [audioManager])
 
   // 현재 모드에 따라 컴포넌트를 조건부 렌더링 (useMemo로 최적화)
   const getCurrentComponents = useMemo(() => {
@@ -275,7 +292,9 @@ export default function Home() {
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = color
                 }}
-                onClick={() => handleModeSelect(buttonMode)}
+                onClick={() => {
+                  handleModeSelect(buttonMode)
+                }}
                 aria-label={`${label} 모드 선택`}>
                 <div className='text-center justify-center text-white text-2xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
                   {label}
@@ -296,7 +315,10 @@ export default function Home() {
             transition={{ duration: 0.5, ease: 'easeInOut' }}
             className='absolute top-4 left-4 z-10 w-fit h-fit'>
             <button
-              onClick={handleBackToModeSelection}
+              onClick={() => {
+                audioManager.playGeneralButton()
+                handleBackToModeSelection()
+              }}
               className='px-6 pt-3 pb-4 bg-[#FF8026] rounded-[20px] shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#ff9b54] hover:shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(152,0,0,0.50)] transition-all duration-300'
               aria-label='모드 선택 화면으로 돌아가기'>
               <div className='text-center justify-center text-white text-2xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
@@ -332,29 +354,32 @@ export default function Home() {
       <div className='flex-1 relative overflow-hidden'>
         <Scene
           shadows
-          gl={{ shadowMap: { enabled: true, type: THREE.PCFSoftShadowMap } }}
+          gl={{
+            shadowMap: { enabled: true, type: THREE.PCFSoftShadowMap },
+            toneMapping: THREE.ACESFilmicToneMapping,
+            toneMappingExposure: 0.8,
+          }}
           camera={{ position: [14, 8, 15], fov: 50 }}>
           <LoadingTracker onLoadingComplete={handleLoadingComplete} />
 
           <fog attach='fog' args={['#0c0c0cff', 10, 25]} />
           <fogExp2 attach='fog' color={'#ffffffff'} density={0.002} />
-          <ambientLight intensity={0.5} />
           <directionalLight
-            intensity={mode === 'light' || (showIntro && initialRandomMode === 'light') ? 1 : 3}
-            position={[2, 5, 5]}
+            intensity={mode === 'light' || (showIntro && initialRandomMode === 'light') ? 2 : 4}
+            position={[5, 10, 5]}
             castShadow
-            shadow-mapSize-width={1024}
-            shadow-mapSize-height={1024}
+            shadow-mapSize-width={4096}
+            shadow-mapSize-height={4096}
             shadow-camera-far={50}
-            shadow-camera-left={-30}
-            shadow-camera-right={30}
-            shadow-camera-top={30}
-            shadow-camera-bottom={-30}
-            shadow-bias={-0.0001}
-            shadow-normalBias={0.2}
+            shadow-camera-left={-40}
+            shadow-camera-right={40}
+            shadow-camera-top={40}
+            shadow-camera-bottom={-40}
+            shadow-bias={-0.0005}
+            shadow-normalBias={0.1}
           />
 
-          <hemisphereLight args={['#ffffff', '#404040', 0.3]} />
+          <hemisphereLight args={['#ffffff', '#404040', 0.2]} />
           <AnimatePresence mode='wait'>
             {getCurrentComponents && (
               <group key={showIntro ? `intro-${initialRandomMode}` : mode}>{getCurrentComponents}</group>
@@ -371,10 +396,15 @@ export default function Home() {
             minPolarAngle={0}
             maxPolarAngle={Math.PI / 3}
           />
+          <Environment
+            preset='warehouse'
+            backgroundIntensity={mode === 'light' || (showIntro && initialRandomMode === 'light') ? 0.005 : 0.03}
+            backgroundBlurriness={0.5}
+            environmentIntensity={mode === 'light' || (showIntro && initialRandomMode === 'light') ? 0.2 : 0.8}
+          />
         </Scene>
       </div>
 
-      {/* Intro 화면 */}
       {isLoaded && showIntro && (
         <Intro
           onEnter={handleEnterExperience}

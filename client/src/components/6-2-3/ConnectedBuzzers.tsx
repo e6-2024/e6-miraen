@@ -3,8 +3,8 @@ import { GroupProps, ThreeEvent } from '@react-three/fiber'
 import { useRef, useEffect, useState, createContext, useContext } from 'react'
 import * as THREE from 'three'
 import { BatteryModule0, BatteryModule1, BatteryModule2 } from './BatteryModule'
+import AudioManager from '@/components/6-2-3/AudioManager' 
 
-// 전역 스위치 상태 컨텍스트
 interface SwitchContextType {
   activeBuzzer: string | null
   setActiveBuzzer: (buzzer: string | null) => void
@@ -33,13 +33,13 @@ function BuzzerComponent({
   const { scene, animations } = useGLTF(modelPath)
   const { actions } = useAnimations(animations, groupRef)
   
-  // 배터리 모드별 오디오 레퍼런스
-  const audioRef1 = useRef<HTMLAudioElement | null>(null) // 배터리 1개용
-  const audioRef2 = useRef<HTMLAudioElement | null>(null) // 배터리 2개용
-  
   const [buzzerOn, setBuzzerOn] = useState(false)
   const { activeBuzzer, setActiveBuzzer } = useContext(SwitchContext)
   const [blinkColor, setBlinkColor] = useState<'blue' | 'red'>('blue')
+
+  // AudioManager 인스턴스
+  const audioManager = AudioManager.getInstance()
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null)
 
   // 전역 활성 버저 상태가 변경될 때 현재 버저의 상태 업데이트
   useEffect(() => {
@@ -48,63 +48,41 @@ function BuzzerComponent({
     }
   }, [activeBuzzer, componentName])
 
-  // 오디오 초기화 - 배터리 모드별로 다른 파일
-  useEffect(() => {
-    // 배터리 1개용 오디오
-    if (!audioRef1.current) {
-      audioRef1.current = new Audio('/sounds/6-2-3/buzzer1.MP3') // 배터리 1개용 파일
-      audioRef1.current.loop = true
-      audioRef1.current.volume = 0.7
-    }
-
-    // 배터리 2개용 오디오
-    if (!audioRef2.current) {
-      audioRef2.current = new Audio('/sounds/6-2-3/buzzer2.MP3') // 배터리 2개용 파일
-      audioRef2.current.loop = true
-      audioRef2.current.volume = 0.7
-    }
-
-    return () => {
-      if (audioRef1.current) {
-        audioRef1.current.pause()
-        audioRef1.current = null
-      }
-      if (audioRef2.current) {
-        audioRef2.current.pause()
-        audioRef2.current = null
-      }
-    }
-  }, [])
-
   // 버저 상태와 배터리 모드에 따른 오디오 제어
   useEffect(() => {
-    // 모든 오디오 중지
-    if (audioRef1.current) {
-      audioRef1.current.pause()
-    }
-    if (audioRef2.current) {
-      audioRef2.current.pause()
+    // 기존 오디오 중지
+    if (currentAudioRef.current) {
+      audioManager.stopComponentSound(`buzzer-${componentName}`)
+      currentAudioRef.current = null
     }
 
     if (buzzerOn && batteryMode > 0) {
-      let currentAudio: HTMLAudioElement | null = null
+      // 배터리 모드에 따라 다른 오디오 파일 선택
+      const audioPath = batteryMode === 1 
+        ? '/sounds/6-2-3/buzzer1.MP3' 
+        : '/sounds/6-2-3/buzzer2.MP3'
 
-      // 배터리 모드에 따라 다른 오디오 선택
-      if (batteryMode === 1) {
-        currentAudio = audioRef1.current // 배터리 1개용 사운드
-      } else if (batteryMode === 2) {
-        currentAudio = audioRef2.current // 배터리 2개용 사운드
-      }
-
-      // 선택된 오디오 재생
-      if (currentAudio) {
-        currentAudio.currentTime = 0
-        currentAudio.play().catch((error) => {
-          console.log(`${componentName} 소리 재생 실패:`, error)
-        })
-      }
+      // 버저 사운드는 루프로 재생
+      audioManager.playComponentSound(
+        audioPath,
+        `buzzer-${componentName}`,
+        0.7,
+        true // 루프 재생
+      ).then((audio) => {
+        currentAudioRef.current = audio
+      }).catch((error) => {
+        console.log(`${componentName} 소리 재생 실패:`, error)
+      })
     }
-  }, [buzzerOn, batteryMode, componentName])
+  }, [buzzerOn, batteryMode, componentName, audioManager])
+
+  // 컴포넌트 언마운트 시 오디오 정리
+  useEffect(() => {
+    return () => {
+      audioManager.stopComponentSound(`buzzer-${componentName}`)
+      currentAudioRef.current = null
+    }
+  }, [audioManager, componentName])
 
   // 애니메이션 제어
   useEffect(() => {
@@ -233,16 +211,19 @@ export default function ConnectedBuzzers(props: GroupProps) {
   const [buttonBPressed, setButtonBPressed] = useState(false) // 버튼 B 상태
   const [activeBuzzer, setActiveBuzzer] = useState<string | null>(null)
 
+  // AudioManager 인스턴스
+  const audioManager = AudioManager.getInstance()
+
   const playBatteryAudio = () => {
-    const audio = new Audio('/sounds/6-2-3/narration/6-2-3-C.MP3')
-    audio.volume = 0.7
-    audio.play().catch((error) => console.log('오디오 재생 실패:', error))
+    audioManager.playNarration('/sounds/6-2-3/narration/6-2-3-C.MP3', 0.7)
+      .catch((error) => console.log('나레이션 재생 실패:', error))
   }
 
   // 버튼 A 클릭 - Buzzer1을 2개로, Buzzer2를 1개로
   const handleButtonAClick = () => {
     if (!buttonAPressed) {
       playBatteryAudio()
+      audioManager.playGeneralButton()
     }
     if (buttonAPressed) {
       // 이미 눌려있으면 해제 - 모든 배터리 모드를 0으로
@@ -262,6 +243,7 @@ export default function ConnectedBuzzers(props: GroupProps) {
   const handleButtonBClick = () => {
     if (!buttonBPressed) {
       playBatteryAudio()
+      audioManager.playGeneralButton()
     }
     if (buttonBPressed) {
       // 이미 눌려있으면 해제 - 모든 배터리 모드를 0으로
@@ -326,7 +308,7 @@ export default function ConnectedBuzzers(props: GroupProps) {
               position={[0, 0.26, 0]}
               rotation={[-Math.PI / 2, 0, 0]}
               fontSize={0.5}
-              color='white'
+              color='black'
               fontWeight='bold'
               font='/fonts/Maplestory Bold.ttf'
               anchorX='center'
@@ -352,7 +334,7 @@ export default function ConnectedBuzzers(props: GroupProps) {
               rotation={[-Math.PI / 2, 0, 0]}
               fontWeight='bold'
               fontSize={0.5}
-              color='white'
+              color='black'
               font='/fonts/Maplestory Bold.ttf'
               anchorX='center'
               anchorY='middle'>

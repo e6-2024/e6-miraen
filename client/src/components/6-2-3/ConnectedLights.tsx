@@ -3,6 +3,7 @@ import { GroupProps, ThreeEvent } from '@react-three/fiber'
 import { useRef, useEffect, useState } from 'react'
 import * as THREE from 'three'
 import { BatteryModule0, BatteryModule1, BatteryModule2 } from './BatteryModule'
+import AudioManager from '@/components/6-2-3/AudioManager'
 
 // Individual Light Component
 function LightComponent({
@@ -23,40 +24,33 @@ function LightComponent({
   const { actions } = useAnimations(animations, groupRef)
   const [lightOn, setLightOn] = useState(false)
   
-  // 오디오 레퍼런스 추가
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-
-  // 오디오 초기화
-  useEffect(() => {
-    if (!audioRef.current) {
-      audioRef.current = new Audio('/sounds/6-2-3/6-2-3-2_switch-light-04-82204.mp3') // 전구 켜짐 효과음 파일
-      audioRef.current.loop = false
-      audioRef.current.volume = 0.6
-    }
-
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause()
-        audioRef.current = null
-      }
-    }
-  }, [])
+  // AudioManager 인스턴스
+  const audioManager = AudioManager.getInstance()
 
   // 전구 상태와 배터리 모드에 따른 오디오 제어
   useEffect(() => {
-    if (!audioRef.current) return
-
     if (lightOn && batteryMode > 0) {
       // 전구가 켜지고 배터리가 있으면 오디오 재생
-      audioRef.current.currentTime = 0
-      audioRef.current.play().catch((error) => {
+      audioManager.playComponentSound(
+        '/sounds/6-2-3/6-2-3-2_switch-light-04-82204.mp3',
+        `light-${componentName}`,
+        0.6,
+        false // 전구 효과음은 루프하지 않음
+      ).catch((error) => {
         console.log(`${componentName} 전구 오디오 재생 실패:`, error)
       })
     } else {
       // 전구가 꺼지거나 배터리가 없으면 오디오 중지
-      audioRef.current.pause()
+      audioManager.stopComponentSound(`light-${componentName}`)
     }
-  }, [lightOn, batteryMode, componentName])
+  }, [lightOn, batteryMode, componentName, audioManager])
+
+  // 컴포넌트 언마운트 시 오디오 정리
+  useEffect(() => {
+    return () => {
+      audioManager.stopComponentSound(`light-${componentName}`)
+    }
+  }, [audioManager, componentName])
 
   // 그림자 설정
   useEffect(() => {
@@ -212,16 +206,19 @@ export default function ConnectedLights(props: GroupProps) {
   const [buttonAPressed, setButtonAPressed] = useState(false) // 버튼 A 상태
   const [buttonBPressed, setButtonBPressed] = useState(false) // 버튼 B 상태
 
+  // AudioManager 인스턴스
+  const audioManager = AudioManager.getInstance()
+
   const playBatteryAudio = () => {
-    const audio = new Audio('/sounds/6-2-3/narration/6-2-3-B.MP3')
-    audio.volume = 0.7
-    audio.play().catch((error) => console.log('오디오 재생 실패:', error))
+    audioManager.playNarration('/sounds/6-2-3/narration/6-2-3-B.MP3', 0.7)
+      .catch((error) => console.log('나레이션 재생 실패:', error))
   }
 
   // 버튼 A 클릭 - Light1을 2개로, Light2를 1개로
   const handleButtonAClick = () => {
     if (!buttonAPressed) {
       playBatteryAudio()
+      audioManager.playGeneralButton()
     }
     if (buttonAPressed) {
       // 이미 눌려있으면 해제 - 모든 배터리 모드를 0으로
@@ -241,6 +238,7 @@ export default function ConnectedLights(props: GroupProps) {
   const handleButtonBClick = () => {
     if (!buttonBPressed) {
       playBatteryAudio()
+      audioManager.playGeneralButton()
     }
     if (buttonBPressed) {
       // 이미 눌려있으면 해제 - 모든 배터리 모드를 0으로
@@ -304,7 +302,7 @@ export default function ConnectedLights(props: GroupProps) {
             position={[0, 0.26, 0]}
             rotation={[-Math.PI / 2, 0, 0]}
             fontSize={0.25}
-            color='white'
+            color='black'
             fontWeight='bold'
             anchorX='center'
             font='/fonts/Maplestory Bold.ttf'
@@ -332,7 +330,7 @@ export default function ConnectedLights(props: GroupProps) {
             fontWeight='bold'
             fontSize={0.25}
             font='/fonts/Maplestory Bold.ttf'
-            color='white'
+            color='black'
             anchorX='center'
             anchorY='middle'>
             전지 : 2개
@@ -343,6 +341,5 @@ export default function ConnectedLights(props: GroupProps) {
   )
 }
 
-// 모델 프리로드
 useGLTF.preload('models/6-2-3/Light1-notConnected.glb')
 useGLTF.preload('models/6-2-3/Light2-notConnected.glb')

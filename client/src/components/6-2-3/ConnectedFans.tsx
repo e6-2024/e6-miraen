@@ -3,8 +3,8 @@ import { GroupProps, useFrame, ThreeEvent } from '@react-three/fiber'
 import { useRef, useEffect, useState } from 'react'
 import * as THREE from 'three'
 import { BatteryModule0, BatteryModule1, BatteryModule2 } from './BatteryModule'
+import AudioManager from '@/components/6-2-3/AudioManager'
 
-// Individual Fan Component
 function FanComponent({
   modelPath,
   position,
@@ -24,67 +24,44 @@ function FanComponent({
   const fanBladeRef = useRef<THREE.Mesh | null>(null)
   const [isRotating, setIsRotating] = useState(false)
 
-  // 오디오 레퍼런스 추가 - 배터리 모드별로 다른 소리
-  const audioRef1 = useRef<HTMLAudioElement | null>(null) // 배터리 1개용
-  const audioRef2 = useRef<HTMLAudioElement | null>(null) // 배터리 2개용
-
-  // 오디오 초기화
-  useEffect(() => {
-    // 배터리 1개용 오디오 (느린 팬 소리)
-    if (!audioRef1.current) {
-      audioRef1.current = new Audio('/sounds/6-2-3/6-2-3-4_table-fan-sound-01-318509.mp3') // 느린 팬 소리 파일
-      audioRef1.current.loop = false
-      audioRef1.current.volume = 0.5
-    }
-
-    // 배터리 2개용 오디오 (빠른 팬 소리)
-    if (!audioRef2.current) {
-      audioRef2.current = new Audio('/sounds/6-2-3/6-2-3-4_table-fan-sound-01-318509.mp3') // 빠른 팬 소리 파일
-      audioRef2.current.loop = false
-      audioRef2.current.volume = 0.7
-    }
-
-    return () => {
-      if (audioRef1.current) {
-        audioRef1.current.pause()
-        audioRef1.current = null
-      }
-      if (audioRef2.current) {
-        audioRef2.current.pause()
-        audioRef2.current = null
-      }
-    }
-  }, [])
+  // AudioManager 인스턴스
+  const audioManager = AudioManager.getInstance()
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null)
 
   // 팬 회전 상태와 배터리 모드에 따른 오디오 제어
   useEffect(() => {
-    // 모든 오디오 중지
-    if (audioRef1.current) {
-      audioRef1.current.pause()
-    }
-    if (audioRef2.current) {
-      audioRef2.current.pause()
+    // 기존 오디오 중지
+    if (currentAudioRef.current) {
+      audioManager.stopComponentSound(`fan-${componentName}`)
+      currentAudioRef.current = null
     }
 
     if (isRotating && batteryMode > 0) {
-      let currentAudio: HTMLAudioElement | null = null
+      // 배터리 모드에 따라 다른 오디오 파일 경로 설정 (실제로는 같은 파일을 사용)
+      const audioPath = '/sounds/6-2-3/6-2-3-4_table-fan-sound-01-318509.mp3'
+      const volume = batteryMode === 1 ? 0.5 : 0.7
 
-      // 배터리 모드에 따라 다른 오디오 선택
-      if (batteryMode === 1) {
-        currentAudio = audioRef1.current // 배터리 1개용 느린 팬 소리
-      } else if (batteryMode === 2) {
-        currentAudio = audioRef2.current // 배터리 2개용 빠른 팬 소리
-      }
-
-      // 선택된 오디오 재생
-      if (currentAudio) {
-        currentAudio.currentTime = 0
-        currentAudio.play().catch((error) => {
-          console.log(`${componentName} 팬 오디오 재생 실패:`, error)
-        })
-      }
+      // 팬 사운드는 루프로 재생
+      audioManager.playComponentSound(
+        audioPath,
+        `fan-${componentName}`,
+        volume,
+        true // 루프 재생
+      ).then((audio) => {
+        currentAudioRef.current = audio
+      }).catch((error) => {
+        console.log(`${componentName} 팬 오디오 재생 실패:`, error)
+      })
     }
-  }, [isRotating, batteryMode, componentName])
+  }, [isRotating, batteryMode, componentName, audioManager])
+
+  // 컴포넌트 언마운트 시 오디오 정리
+  useEffect(() => {
+    return () => {
+      audioManager.stopComponentSound(`fan-${componentName}`)
+      currentAudioRef.current = null
+    }
+  }, [audioManager, componentName])
 
   // Fan 객체 찾기
   useEffect(() => {
@@ -211,16 +188,19 @@ export default function ConnectedFans(props: GroupProps) {
   const [buttonAPressed, setButtonAPressed] = useState(false) // 버튼 A 상태
   const [buttonBPressed, setButtonBPressed] = useState(false) // 버튼 B 상태
 
+  // AudioManager 인스턴스
+  const audioManager = AudioManager.getInstance()
+
   const playBatteryAudio = () => {
-    const audio = new Audio('/sounds/6-2-3/narration/6-2-3-D.MP3')
-    audio.volume = 0.7
-    audio.play().catch((error) => console.log('오디오 재생 실패:', error))
+    audioManager.playNarration('/sounds/6-2-3/narration/6-2-3-D.MP3', 0.7)
+      .catch((error) => console.log('나레이션 재생 실패:', error))
   }
 
   // 버튼 A 클릭 - Fan1을 2개로, Fan2를 1개로
   const handleButtonAClick = () => {
     if (!buttonAPressed) {
       playBatteryAudio()
+      audioManager.playGeneralButton()
     }
     if (buttonAPressed) {
       // 이미 눌려있으면 해제 - 모든 배터리 모드를 0으로
@@ -240,6 +220,7 @@ export default function ConnectedFans(props: GroupProps) {
   const handleButtonBClick = () => {
     if (!buttonBPressed) {
       playBatteryAudio()
+      audioManager.playGeneralButton()
     }
     if (buttonBPressed) {
       // 이미 눌려있으면 해제 - 모든 배터리 모드를 0으로
@@ -303,7 +284,7 @@ export default function ConnectedFans(props: GroupProps) {
             position={[0, 0.26, 0]}
             rotation={[-Math.PI / 2, 0, 0]}
             fontSize={0.25}
-            color='white'
+            color='black'
             fontWeight='bold'
             font='/fonts/Maplestory Bold.ttf'
             anchorX='center'
@@ -331,7 +312,7 @@ export default function ConnectedFans(props: GroupProps) {
             fontWeight='bold'
             fontSize={0.25}
             font='/fonts/Maplestory Bold.ttf'
-            color='white'
+            color='black'
             anchorX='center'
             anchorY='middle'>
             전지 : 2개
