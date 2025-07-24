@@ -21,8 +21,16 @@ export default function Light2({
     if (scene) {
       scene.traverse((child) => {
         if (child instanceof THREE.Mesh) {
-          child.castShadow = true
-          child.receiveShadow = true
+          // Light_Bulb 그룹 내의 mesh들은 shadow를 처리하지 않음
+          const isInLightBulbGroup = child.parent?.name === 'Light_Bulb'
+          
+          if (isInLightBulbGroup) {
+            child.castShadow = false
+            child.receiveShadow = false
+          } else {
+            child.castShadow = true
+            child.receiveShadow = true
+          }
         }
       })
     }
@@ -85,7 +93,7 @@ export default function Light2({
         }}
       />
 
-      <mesh position={[0.1, 1.0, -2.0]} castShadow>
+      <mesh position={[0.1, 1.0, -2.0]}>
         <sphereGeometry args={[0.03, 16, 16]} />
         <meshStandardMaterial
           color={new THREE.Color(1, 0.8, 0.4)}
