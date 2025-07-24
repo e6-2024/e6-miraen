@@ -30,7 +30,7 @@ export function Ruler({ shadowEnd, poleTopPosition, ...props }: RulerProps) {
   
   // 자의 위치 계산 (막대 가장자리에서 시작)
   const poleBase = new THREE.Vector3(poleTop.x, -1, poleTop.z) // 막대 바닥 기준점
-  const poleRadius = 0.33 // 막대의 반지름 (실제 값에 맞게 조정 필요)
+  const poleRadius = 0.62 // 막대의 반지름 (실제 값에 맞게 조정 필요)
   
   const shadowDirection = shadowEndVec.clone().sub(poleBase).normalize()
   
@@ -43,7 +43,7 @@ export function Ruler({ shadowEnd, poleTopPosition, ...props }: RulerProps) {
   // 자의 중심을 막대 가장자리와 그림자 끝점 사이에 배치
   const rulerPosition: [number, number, number] = [
     poleEdge.x ,
-    -0.275,
+    -0.36,
     poleEdge.z 
   ]
   
@@ -52,7 +52,7 @@ export function Ruler({ shadowEnd, poleTopPosition, ...props }: RulerProps) {
   const rotation: [number, number, number] = [0, rotationY, 0]
 
   return (
-    <group {...props} position={rulerPosition} rotation={rotation} scale={[0.2, 0.2, 0.2]} dispose={null}>
+    <group {...props} position={rulerPosition} rotation={rotation} scale={[0.4, 0.4, 0.4]} dispose={null}>
       {/* Layer_2 메시 */}
       <mesh
         castShadow

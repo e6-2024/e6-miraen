@@ -155,7 +155,7 @@ export default function ShadowSimulation() {
       {!showIntro && <ObservationTable currentData={currentData} />}
 
       {/* 3D 캔버스 */}
-      <Scene camera={{ position: [0.04, 0, 2.872], fov: 50 }} shadows>
+      <Scene camera={{ position: [2.04, 0.1, 2.872], fov: 50 }} shadows>
         <LoadingTracker onLoadingComplete={handleLoadingComplete} />
 
         <ambientLight intensity={0.6} />
