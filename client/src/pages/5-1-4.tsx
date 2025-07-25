@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { Environment, OrbitControls, useProgress, PerformanceMonitor, useGLTF, ContactShadows} from '@react-three/drei'
+import { Environment, OrbitControls, useProgress, PerformanceMonitor, useGLTF, ContactShadows } from '@react-three/drei'
 import AnimatedModel from '../components/AnimatedModel'
 import AnimatedModel2 from '../components/AnimatedModel2'
 import Scene from '@/components/canvas/Scene'
@@ -682,9 +682,10 @@ export default function IntegratedPage() {
       {isLoaded && showIntro && (
         <Intro
           onEnter={handleEnterExperience}
-          title='우리 몸의 구조와 기능'
-          description={['뼈와 근육의 생김새를 관찰하고 모형을 만들어 우리 몸이 움직이는 원리를 설명할 수 있어요.']}
+          title='뼈와 근육을 관찰하고, 우리 몸이 움직이는 원리 알아보기'
+          description={['우리 몸의 뼈와 근육의 생김새와 기능을 관찰하고, 우리 몸이 움직이는 원리를 알아봅시다.']}
           backgroundSvg='/img/cover/5-1-4.svg'
+          descriptionSound='/sounds/5-1-4/5-1-4-Goal.MP3'
         />
       )}
 
