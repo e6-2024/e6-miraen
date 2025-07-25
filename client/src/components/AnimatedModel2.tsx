@@ -150,12 +150,63 @@ export default function AnimatedModel2({
     }
   }, [scene, group])
 
+  // 그림자 설정을 위한 useEffect - 모든 children에 대해 castShadow와 receiveShadow 적용
   useEffect(() => {
+    if (!scene) return
+
     scene.traverse((obj) => {
+      // frustumCulled을 false로 설정하여 절두체 컬링 비활성화
       obj.frustumCulled = false
-      if ((obj as Mesh).isMesh || obj.type === 'SkinnedMesh') {
-        obj.castShadow = true
-        obj.receiveShadow = true
+      
+      // Mesh, SkinnedMesh, LineSegments 등 모든 렌더링 가능한 객체에 그림자 설정
+      if (obj instanceof THREE.Mesh || 
+          obj instanceof THREE.SkinnedMesh || 
+          obj.type === 'Mesh' || 
+          obj.type === 'SkinnedMesh') {
+        
+        const meshObj = obj as THREE.Mesh
+        
+        // castShadow: 이 객체가 그림자를 만들 수 있음
+        meshObj.castShadow = true
+        
+        // receiveShadow: 이 객체가 다른 객체의 그림자를 받을 수 있음
+        meshObj.receiveShadow = true
+        
+        // 재질이 있는 경우 그림자 관련 속성 최적화
+        if (meshObj.material) {
+          if (Array.isArray(meshObj.material)) {
+            // 다중 재질인 경우
+            meshObj.material.forEach((mat) => {
+              if (mat instanceof THREE.MeshStandardMaterial || 
+                  mat instanceof THREE.MeshPhongMaterial ||
+                  mat instanceof THREE.MeshLambertMaterial) {
+                mat.shadowSide = THREE.DoubleSide // 양면에서 그림자 처리
+              }
+            })
+          } else {
+            // 단일 재질인 경우
+            const material = meshObj.material as THREE.Material
+            if (material instanceof THREE.MeshStandardMaterial || 
+                material instanceof THREE.MeshPhongMaterial ||
+                material instanceof THREE.MeshLambertMaterial) {
+              material.shadowSide = THREE.DoubleSide // 양면에서 그림자 처리
+            }
+          }
+        }
+      }
+      
+      // LineSegments와 같은 다른 타입의 객체도 처리
+      if (obj instanceof THREE.LineSegments || obj.type === 'LineSegments') {
+        const lineObj = obj as THREE.LineSegments
+        lineObj.castShadow = true
+        lineObj.receiveShadow = true
+      }
+      
+      // Points 객체도 처리
+      if (obj instanceof THREE.Points || obj.type === 'Points') {
+        const pointsObj = obj as THREE.Points
+        pointsObj.castShadow = true
+        pointsObj.receiveShadow = true
       }
     })
   }, [scene])
