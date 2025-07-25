@@ -199,7 +199,7 @@ export default function ShadowSimulation() {
         <Environment
           files='/img/cover/hdri.JPG'
           background={true}
-          ground={{ height: 5, radius: 40, scale: 20 }}
+          ground={{ height: 1, radius: 40, scale: 20 }}
           backgroundBlurriness={0.8}
           backgroundIntensity={0.7}
           environmentIntensity={0.8}
