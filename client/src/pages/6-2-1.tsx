@@ -209,6 +209,7 @@ export default function ShadowSimulation() {
         <OrbitControls
           enabled={!showIntro && !showTimeIntervalImages}
           minDistance={0.2}
+          maxDistance={10}
           minPolarAngle={Math.PI / 2.5}
           maxPolarAngle={Math.PI / 2.55}
         />
