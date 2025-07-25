@@ -598,7 +598,7 @@ export default function IntegratedPage() {
               ? { position: [0, 0.9, 0.9], fov: 50 }
               : mode === 'arm'
               ? { position: [-0.1, 0.1, 0.4], fov: 50 }
-              : { position: [0, 0, 0.55], fov: 50 }
+              : { position: [-0.15, -0.1, 0.55], fov: 50 }
           }
           style={{ width: '100vw', height: '100vh' }}
           gl={{
@@ -610,9 +610,11 @@ export default function IntegratedPage() {
           <LoadingTracker onLoadingComplete={handleLoadingComplete} />
           <IntroMouseCameraController
             enabled={showIntro}
-            tiltSensitivity={0.3}
+            tiltSensitivity={0.01}
             smoothing={0.1}
-            maxTiltAngle={Math.PI / 4}
+            positionSensitivity={0.08}
+            maxTiltAngle={Math.PI / 6}
+            autoMovement={false}
           />
 
           {showIntro && <fog attach='fog' args={['#f0f0f0', 0, 10]} />}
