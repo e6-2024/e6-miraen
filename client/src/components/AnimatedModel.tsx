@@ -33,12 +33,8 @@ export default function AnimatedModel({
   const { scene, animations } = useGLTF(cacheKey)
   const { actions, mixer } = useAnimations(animations, group)
 
-  useEffect(() => {
-    // 컴포넌트 언마운트 시 캐시 정리
-    return () => {
-      useGLTF.clear(cacheKey)
-    }
-  }, [cacheKey])
+  // 뼈 모델인지 확인 (URL에 'Bone'이 포함된 경우)
+  const isBoneModel = url.includes('Bone')
 
   useEffect(() => {
     if (!animations || animations.length === 0) return
@@ -52,38 +48,33 @@ export default function AnimatedModel({
 
     // 이전 액션 중지 및 새 액션 시작
     mixer.stopAllAction()
-    const action = mixer.clipAction(clip, group.current!)
-    action.reset().play()
     
-    if (loop) {
-      action.setLoop(LoopRepeat, Infinity)
-    } else {
-      action.setLoop(LoopRepeat, 0)
-    }
-    
-    console.log('Animation started:', clip.name || 'unnamed clip', 'index:', animIndex)
-    
-    return () => {
-      action.stop()
+    try {
+      const action = mixer.clipAction(clip, group.current!)
+      action.reset().play()
+      
+      if (loop) {
+        action.setLoop(LoopRepeat, Infinity)
+      } else {
+        action.setLoop(LoopRepeat, 0)
+      }
+      
+      console.log('Animation started:', clip.name || 'unnamed clip', 'Action index:', animIndex)
+      
+      return () => {
+        action.stop()
+      }
+    } catch (error) {
+      console.warn('Animation failed to start, but continuing without animation:', error)
     }
   }, [cacheKey, animIndex, animations, mixer, loop])
 
   useEffect(() => {
     if (!scene || !scene.children || scene.children.length === 0) return
     
-    const modelRoot = scene.children[0]
-    if (!modelRoot || !modelRoot.children) return
-
-    // bone 모델일 경우에 muscle 레이어 제거
-    if (removeMuscleLayer) {
-      const muscleLayer = modelRoot.children[0]
-      
-      if (muscleLayer && modelRoot.children.includes(muscleLayer)) {
-        console.log('Removing muscle layer:', muscleLayer)
-        modelRoot.remove(muscleLayer)
-      }
-    }
-
+    // removeMuscleLayer 로직 제거 - 각 모델 파일이 이미 적절한 상태로 제공됨
+    // Bone_Pose.gltf는 이미 뼈만 있는 모델이고, Muscle_Pose.gltf는 근육이 있는 모델임
+    
     // 모든 메시에 그림자 속성 설정
     scene.traverse((obj) => {
       if ((obj as any).isMesh) {
@@ -91,11 +82,12 @@ export default function AnimatedModel({
         obj.receiveShadow = true
       }
     })
-  }, [scene, removeMuscleLayer, url])
+  }, [scene, url])
 
   useFrame((state, delta) => {
+    // 모든 모델에서 애니메이션 업데이트
     if (mixer) {
-      mixer.update(delta*0.3)
+      mixer.update(delta * 0.3)
     }
   })
 

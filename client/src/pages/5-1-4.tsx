@@ -7,7 +7,6 @@ import Scene from '@/components/canvas/Scene'
 import Intro from '@/components/intro/Intro'
 import * as THREE from 'three'
 import { AnimatePresence, motion } from 'framer-motion'
-import IntroMouseCameraController from '@/components/IntroMouseCameraController'
 
 type ModelType = 'boy' | 'muscle' | 'bone'
 type AnimationState = 'walk' | 'pose'
@@ -18,6 +17,8 @@ const preloadModelUrls = [
   '/models/Anatomy/Boy_Pose.gltf',
   '/models/Anatomy/Muscle_Walking.gltf',
   '/models/Anatomy/Muscle_Pose.gltf',
+  '/models/Anatomy/Bone_Pose.gltf',
+  '/models/Anatomy/Bone_Walking.gltf',
 ]
 
 const allPreloadUrls = [...preloadModelUrls, ...preloadModelUrls.map((url) => `${url}#bone`)]
@@ -34,28 +35,22 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
   return null
 }
 
-function IntroModels() {
+function IntroModels({ mousePosition }: { mousePosition: { x: number; y: number } }) {
+  const rotationY = (mousePosition.x - 0.5) * 0.3 // -0.15 to 0.15 radians
+  const rotationX = (mousePosition.y - 0.5) * 0.1 // -0.05 to 0.05 radians
+
   return (
-    <>
+    <group rotation={[rotationX, rotationY, 0]}>
       <group rotation={[0, Math.PI / 4, 0]}>
         <AnimatedModel
           url='/models/Anatomy/Boy_Pose.gltf'
           animIndex={0}
           scale={0.4}
-          position={[-0.2, -0.3, 0]}
+          position={[-0.3, -0.3, 0.1]}
           loop={true}
           removeMuscleLayer={false}
         />
       </group>
-
-      <AnimatedModel
-        url='/models/Anatomy/Muscle_Pose.gltf'
-        animIndex={0}
-        scale={0.004}
-        position={[0, -0.3, 0]}
-        loop={true}
-        removeMuscleLayer={true}
-      />
 
       <group rotation={[0, -Math.PI / 4, 0]}>
         <AnimatedModel
@@ -67,7 +62,18 @@ function IntroModels() {
           removeMuscleLayer={false}
         />
       </group>
-    </>
+
+      <group rotation={[0, 0, 0]}>
+        <AnimatedModel
+          url='/models/Anatomy/Bone_Pose.gltf'
+          animIndex={0}
+          scale={0.0043}
+          position={[0, -0.3, 0.1]}
+          loop={true}
+          removeMuscleLayer={false}
+        />
+      </group>
+    </group>
   )
 }
 
@@ -76,6 +82,9 @@ export default function IntegratedPage() {
   const [mode, setMode] = useState<PageMode>(null)
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
+  const [mousePosition, setMousePosition] = useState({ x: 0.5, y: 0.5 })
+  const [targetMousePosition, setTargetMousePosition] = useState({ x: 0.5, y: 0.5 })
+  const [smoothMousePosition, setSmoothMousePosition] = useState({ x: 0.5, y: 0.5 })
 
   // 뼈와 근육 관찰 관련 상태
   const [modelType, setModelType] = useState<ModelType>('boy')
@@ -95,11 +104,105 @@ export default function IntegratedPage() {
   // 인트로 모델 로딩 상태
   const [introModelsLoaded, setIntroModelsLoaded] = useState(false)
 
+  // 부드러운 마우스 위치 보간
+  useEffect(() => {
+    let animationFrame: number
+
+    const animate = () => {
+      setSmoothMousePosition(prev => {
+        const dx = targetMousePosition.x - prev.x
+        const dy = targetMousePosition.y - prev.y
+        const lerp = 0.05 // 보간 속도 (0.01 = 매우 느림, 0.1 = 빠름)
+        
+        const newX = prev.x + dx * lerp
+        const newY = prev.y + dy * lerp
+        
+        // 차이가 매우 작으면 목표 위치로 설정
+        if (Math.abs(dx) < 0.001 && Math.abs(dy) < 0.001) {
+          return targetMousePosition
+        }
+        
+        return { x: newX, y: newY }
+      })
+      
+      animationFrame = requestAnimationFrame(animate)
+    }
+
+    if (showIntro) {
+      animationFrame = requestAnimationFrame(animate)
+      return () => {
+        if (animationFrame) {
+          cancelAnimationFrame(animationFrame)
+        }
+      }
+    }
+  }, [targetMousePosition, showIntro])
+
+  // 마우스 움직임 감지
+  useEffect(() => {
+    let mouseLeaveTimeout: NodeJS.Timeout | null = null
+
+    const handleMouseMove = (event: MouseEvent) => {
+      if (showIntro) {
+        const x = event.clientX / window.innerWidth
+        const y = event.clientY / window.innerHeight
+        setTargetMousePosition({ x, y })
+        
+        const margin = 0.1
+        const isOutOfBounds = x < margin || x > (1 - margin) || y < margin || y > (1 - margin)
+        
+        if (isOutOfBounds) {
+          if (!mouseLeaveTimeout) {
+            mouseLeaveTimeout = setTimeout(() => {
+              setTargetMousePosition({ x: 0.5, y: 0.5 })
+              mouseLeaveTimeout = null
+            }, 400)
+          }
+        } else {
+          if (mouseLeaveTimeout) {
+            clearTimeout(mouseLeaveTimeout)
+            mouseLeaveTimeout = null
+          }
+        }
+      }
+    }
+
+    const handleMouseLeave = () => {
+      if (showIntro) {
+        // 완전히 화면을 벗어나면 즉시 중앙으로 돌아가기
+        if (mouseLeaveTimeout) {
+          clearTimeout(mouseLeaveTimeout)
+        }
+        mouseLeaveTimeout = setTimeout(() => {
+          setTargetMousePosition({ x: 0.5, y: 0.5 })
+          mouseLeaveTimeout = null
+        }, 300)
+      }
+    }
+
+    if (showIntro) {
+      window.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseleave', handleMouseLeave)
+      
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove)
+        document.removeEventListener('mouseleave', handleMouseLeave)
+        if (mouseLeaveTimeout) {
+          clearTimeout(mouseLeaveTimeout)
+        }
+      }
+    }
+  }, [showIntro])
+
   // 인트로용 모델들 사전 로딩
   useEffect(() => {
     const loadIntroModels = async () => {
       try {
-        const introUrls = ['/models/Anatomy/Boy_Pose.gltf', '/models/Anatomy/Muscle_Pose.gltf']
+        const introUrls = [
+          '/models/Anatomy/Boy_Pose.gltf',
+          '/models/Anatomy/Muscle_Pose.gltf',
+          '/models/Anatomy/Bone_Pose.gltf',
+        ]
 
         const loadPromises = introUrls.map(async (url) => {
           return new Promise<void>((resolve) => {
@@ -342,9 +445,8 @@ export default function IntegratedPage() {
     )
   }
 
-  // 유틸리티 함수들
   const getModelKey = () => {
-    let base = modelType === 'bone' ? 'Muscle' : modelType.charAt(0).toUpperCase() + modelType.slice(1)
+    let base = modelType.charAt(0).toUpperCase() + modelType.slice(1)
     const anim = animState === 'walk' ? 'Walking' : 'Pose'
     return `${base}_${anim}`
   }
@@ -375,13 +477,15 @@ export default function IntegratedPage() {
     Boy_Pose: 0,
     Muscle_Walking: 1,
     Muscle_Pose: 0,
+    Bone_Walking: 1,
+    Bone_Pose: 0,
   }
 
   const animIndex = animIndexMap[modelKey] ?? 0
 
   const getCurrentComponents = useMemo(() => {
     if (showIntro && introModelsLoaded) {
-      return <IntroModels />
+      return <IntroModels mousePosition={smoothMousePosition} />
     }
 
     if (mode === 'bones' && !isModelsLoading) {
@@ -410,7 +514,7 @@ export default function IntegratedPage() {
     }
 
     return null
-  }, [mode, showIntro, introModelsLoaded, modelUrl, modelType, animState, animIndex, action, isModelsLoading])
+  }, [mode, showIntro, introModelsLoaded, modelUrl, modelType, animState, animIndex, action, isModelsLoading, smoothMousePosition])
 
   const modeButtons = useMemo(
     () => [
@@ -608,14 +712,6 @@ export default function IntegratedPage() {
             preserveDrawingBuffer: mode === 'arm',
           }}>
           <LoadingTracker onLoadingComplete={handleLoadingComplete} />
-          <IntroMouseCameraController
-            enabled={showIntro}
-            tiltSensitivity={0.01}
-            smoothing={0.1}
-            positionSensitivity={0.08}
-            maxTiltAngle={Math.PI / 6}
-            autoMovement={false}
-          />
 
           {showIntro && <fog attach='fog' args={['#f0f0f0', 0, 10]} />}
           {showIntro && (
