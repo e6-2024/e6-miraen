@@ -895,6 +895,8 @@ export default function Home() {
           mieDirectionalG={0.85}
         />
 
+        
+
         <Clouds material={THREE.MeshBasicMaterial} position={[0, 16, 0]}>
           <Cloud
             seed={2}
