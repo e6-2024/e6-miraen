@@ -1,5 +1,24 @@
-import React, { useState } from 'react';
-import SummaryPopup from './SummaryPopup'; // 팝업 컴포넌트 import
+import React, { useState } from 'react'
+
+interface ControlButtonsProps {
+  showObservationLines: boolean
+  setShowObservationLines: (show: boolean) => void
+  timeData: Array<{
+    time: string
+    azimuth: number
+    altitude: number
+    temperature: number
+    shadowLength: number
+  }>
+  currentData: {
+    time: string
+    azimuth: number
+    altitude: number
+    temperature: number
+    shadowLength: number
+  }
+  onTimeSelect: (data: any) => void
+}
 
 function ControlButtons({ 
   showObservationLines, 
@@ -7,106 +26,70 @@ function ControlButtons({
   timeData, 
   currentData, 
   onTimeSelect 
-}) {
-  const [showTimeButtons, setShowTimeButtons] = useState(false);
-  const [showSummaryPopup, setShowSummaryPopup] = useState(false);
-  
-  // 특정 시각들
-  const targetTimes = ['09:30', '10:30', '11:30', '12:30', '13:30', '14:30', '15:30'];
-  
-  // timeData에서 해당 시각의 데이터 찾기
-  const findDataByTime = (targetTime) => {
-    return timeData?.find(data => data.time === targetTime);
-  };
+}: ControlButtonsProps) {
+  const [showTimeSelector, setShowTimeSelector] = useState(false)
 
-  const handleObservationClick = () => {
-    if (showTimeButtons) {
-      // 시간 간격 모드 종료 - 돌아가기
-      setShowTimeButtons(false);
-      setShowObservationLines(false);
-      if (onTimeSelect) {
-        onTimeSelect(null);
-      }
-    } else {
-      // 시간 간격 모드 시작
-      setShowObservationLines(true);
-      setShowTimeButtons(true);
-    }
-  };
+  const handleTimeIntervalClick = () => {
+    setShowTimeSelector(!showTimeSelector)
+  }
 
-  const handleTimeClick = (time) => {
-    const data = findDataByTime(time);
-    if (data) {
-      // 부모 컴포넌트에 선택된 시각 전달 (3D 모델 업데이트용)
-      if (onTimeSelect) {
-        onTimeSelect(data);
-      }
-    }
-  };
+  const handleTimeSelect = (data: any) => {
+    onTimeSelect(data)
+    setShowTimeSelector(false)
+  }
 
-  const handleSummaryClick = () => {
-    setShowSummaryPopup(true);
-  };
+  const handleAngleLineToggle = () => {
+    setShowObservationLines(!showObservationLines)
+  }
 
   return (
-    <>
-      <div className='absolute top-4 right-4 z-10 flex flex-col items-end gap-3'>
-        {/* 시각 선택 패널 - 시간 간격 모드일 때만 표시 */}
-        {showTimeButtons && (
-          <div className="bg-white rounded-lg p-4 shadow-lg border mb-2">
-            <h3 className="text-lg font-bold text-gray-800 mb-3 text-center">시각 선택</h3>
-            
-            <div className="grid grid-cols-2 gap-2">
-              {targetTimes.map((time) => {
-                const data = findDataByTime(time);
-                return (
-                  <button
-                    key={time}
-                    onClick={() => handleTimeClick(time)}
-                    disabled={!data}
-                    className={`py-2 px-3 rounded text-sm font-semibold transition-colors duration-200 ${
-                      data
-                        ? 'bg-blue-100 hover:bg-blue-200 text-blue-800 border border-blue-300'
-                        : 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
-                    }`}
-                  >
-                    {time}
-                  </button>
-                );
-              })}
-            </div>
+    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+      {/* 관측선 표시/숨김 버튼 */}
+      <button
+        onClick={handleAngleLineToggle}
+        className={`px-4 py-2 rounded-lg shadow-lg transition-colors duration-200 text-lg font-bold ${
+          showObservationLines
+            ? 'bg-black hover:bg-gray-400 text-white'
+            : 'bg-white hover:bg-gray-400 text-black'
+        }`}
+      >
+        {showObservationLines ? '관측선 숨기기' : '관측선 표시하기'}
+      </button>
+
+      {/* 시간 선택 드롭다운 */}
+      {showTimeSelector && (
+        <div className="bg-white rounded-lg shadow-xl p-3 border border-gray-200 max-h-48 overflow-y-auto">
+          <div className="text-sm font-semibold text-gray-700 mb-2">시간 선택:</div>
+          <div className="space-y-1">
+            {timeData.map((data, index) => (
+              <button
+                key={index}
+                onClick={() => handleTimeSelect(data)}
+                className={`w-full text-left px-3 py-2 rounded text-sm transition-colors duration-150 ${
+                  data.time === currentData.time
+                    ? 'bg-blue-100 text-blue-800 font-medium'
+                    : 'hover:bg-gray-100 text-gray-700'
+                }`}
+              >
+                {data.time} - 고도: {data.altitude.toFixed(1)}°, 온도: {data.temperature}°C
+              </button>
+            ))}
           </div>
-        )}
-
-        {/* 메인 컨트롤 버튼들 */}
-        <button
-          onClick={handleObservationClick}
-          className={`px-6 py-3 rounded-lg font-light transition-all duration-200 shadow-lg ${
-            showTimeButtons
-              ? 'bg-gray-600 text-white hover:bg-gray-700'
-              : showObservationLines
-              ? 'bg-orange-500 text-white hover:bg-orange-600'
-              : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-300'
-          }`}
-        >
-          {showTimeButtons ? '돌아가기' : '일정 시간 간격 관측 자료 확인하기'}
-        </button>
-        
-        <button
-          onClick={handleSummaryClick}
-          className='px-6 py-3 bg-green-500 text-white rounded-lg font-light hover:bg-green-600 transition-all duration-200 shadow-lg'
-        >
-          정리하기
-        </button>
-      </div>
-
-      {/* 정리하기 팝업 */}
-      <SummaryPopup 
-        isOpen={showSummaryPopup} 
-        onClose={() => setShowSummaryPopup(false)} 
-      />
-    </>
-  );
+          <div className="mt-2 pt-2 border-t border-gray-200">
+            <button
+              onClick={() => {
+                onTimeSelect(null)
+                setShowTimeSelector(false)
+              }}
+              className="w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded transition-colors duration-150"
+            >
+              원래 모드로 돌아가기
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
-export default ControlButtons;
+export default ControlButtons

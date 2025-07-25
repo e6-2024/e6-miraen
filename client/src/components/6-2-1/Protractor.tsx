@@ -31,7 +31,7 @@ export function Protractor({
   sunPosition, 
   shadowEnd, 
   poleTopPosition, 
-  angleGroundLevel = -0.3,
+  angleGroundLevel = -0.4,
   ...props 
 }: ProtractorProps) {
   const { nodes, materials } = useGLTF('/models/6-2-1/Protractor.glb') as ProtractorGLTFResult
@@ -80,7 +80,7 @@ export function Protractor({
       materials['blinn1.001'].side = THREE.DoubleSide
       materials['blinn1.001'].needsUpdate = true
       materials['blinn1.001'].transparent = true
-      materials['blinn1.001'].opacity = 0.9 // 거의 불투명하게
+      materials['blinn1.001'].opacity = 0.9
     }
   }, [materials])
 
@@ -89,17 +89,16 @@ export function Protractor({
       {...props} 
       position={position} 
       rotation={rotation}
-      scale={[4, 4, 4]} 
+      scale={[1, 7, 7]} 
       dispose={null}
     >
       <mesh
-        castShadow
         receiveShadow
         geometry={nodes.pCylinder1.geometry}
         material={materials['blinn1.001']}
         rotation={[0, Math.PI / 2, Math.PI / 2]}
-        scale={[0.054, 0.054, 0.001]}
-        position={[0,0.0,0.005]}
+        scale={[0.054, 0.054, 0.0001]}
+        position={[0,0,0.0036]}
       />
     </group>
   )

@@ -13,14 +13,15 @@ import LoadingTracker from '@/components/6-2-1/LoadingTracker'
 import CompassBillboard from '@/components/6-2-1/CompassBillboard'
 import SunLight from '@/components/6-2-1/SunLight'
 import AngleLines from '@/components/6-2-1/AngleLines'
-import TimeIntervalImages from '@/components/6-2-1/TimeIntervalImages'
 import ThermometerDisplay from '@/components/6-2-1/ThermometerDisplay'
 import ObservationTable from '@/components/6-2-1/ObservationTable'
 import ControlButtons from '@/components/6-2-1/ControlButtons'
 import ProgressBar from '@/components/6-2-1/ProgressBar'
 
+// 엑셀에서 변환한 실제 데이터
 const timeData = timeData2
 
+// 태양 위치 계산 유틸리티 함수
 const calculateSunPosition = (azimuth: number, altitude: number, distance: number = 15) => {
   const azimuthRad = azimuth * (Math.PI / 180)
   const altitudeRad = altitude * (Math.PI / 180)
@@ -38,7 +39,6 @@ export default function ShadowSimulation() {
   const [isPlaying, setIsPlaying] = useState(false)
   const [progress, setProgress] = useState(0)
   const [showObservationLines, setShowObservationLines] = useState(false)
-  const [showTimeIntervalImages, setShowTimeIntervalImages] = useState(false)
   const [modelScene, setModelScene] = useState(null)
   const backgroundMusicRef = useRef(null)
 
@@ -46,15 +46,12 @@ export default function ShadowSimulation() {
   const [isTimeIntervalMode, setIsTimeIntervalMode] = useState(false)
   const [timeIntervalData, setTimeIntervalData] = useState(null)
 
-  // TimeIntervalImages에서 선택된 시간 데이터
-  const [selectedTimeData, setSelectedTimeData] = useState(null)
-
   // Intro 관련 상태
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
 
-  // 현재 표시할 데이터 결정
-  const currentData = selectedTimeData || timeIntervalData || timeData[currentTimeIndex]
+  // 현재 표시할 데이터 결정 (시간 간격 모드일 때는 선택된 데이터, 아니면 현재 인덱스의 데이터)
+  const currentData = timeIntervalData || timeData[currentTimeIndex]
 
   // 공통 태양 위치 계산
   const sunPosition = useMemo(() => {
@@ -118,24 +115,6 @@ export default function ShadowSimulation() {
     }
   }
 
-  // 시간별 이미지 표시 토글 핸들러
-  const handleTimeIntervalImagesToggle = () => {
-    setShowTimeIntervalImages(!showTimeIntervalImages)
-    if (!showTimeIntervalImages) {
-      // 이미지 모드 활성화 시 다른 오버레이들 숨기기
-      setShowObservationLines(false)
-      setIsPlaying(false)
-    } else {
-      // 이미지 모드 비활성화 시 선택된 시간 데이터 초기화
-      setSelectedTimeData(null)
-    }
-  }
-
-  // TimeIntervalImages에서 시간 선택 시 호출되는 핸들러
-  const handleTimeIntervalSelect = (timeData) => {
-    setSelectedTimeData(timeData)
-  }
-
   // 진행바 클릭 핸들러 (시간 간격 모드가 아닐 때만 동작)
   const handleProgressClick = (clickX: number, barWidth: number) => {
     if (!isTimeIntervalMode) {
@@ -169,20 +148,27 @@ export default function ShadowSimulation() {
 
   return (
     <div className='w-screen h-screen bg-gradient-to-b relative'>
-      {/* ObservationTable이 showTimeIntervalImages 상태와 관계없이 표시되도록 수정 */}
+      {/* 온도계 표시 - 항상 3D 오브젝트 위에 표시 */}
+      {!showIntro && <ThermometerDisplay temperature={currentData.temperature} />}
+
+      {/* 관측 자료 테이블 */}
       {!showIntro && <ObservationTable currentData={currentData} />}
 
+      {/* 3D 캔버스 */}
       <Scene camera={{ position: [2.04, 0.9, 2.872], fov: 50 }} shadows>
         <LoadingTracker onLoadingComplete={handleLoadingComplete} />
 
         <ambientLight intensity={0.6} />
 
+        {/* 공통 태양 위치를 사용하는 조명 */}
         <SunLight sunPosition={sunPosition} />
+
 
         <Model modelPath='models/6-2-1/pole.glb' position={[0, 1.9, 0]} scale={1} rotation={[0, 0, 0]} />
         <CompassBillboard />
 
-        {showObservationLines && !showTimeIntervalImages && (
+        {/* 관측선 표시 - 공통 태양 위치 사용 */}
+        {showObservationLines && (
           <AngleLines
             azimuth={currentData.azimuth}
             altitude={currentData.altitude}
@@ -207,18 +193,16 @@ export default function ShadowSimulation() {
         />
 
         <OrbitControls
-          enabled={!showIntro && !showTimeIntervalImages}
+          enabled={!showIntro}
           minDistance={0.2}
           minPolarAngle={Math.PI / 2.5}
           maxPolarAngle={Math.PI / 2.55}
         />
         <CameraLogger />
-        {!showIntro && !showTimeIntervalImages && (
-          <ThermometerDisplay temperature={currentData.temperature} position={[0.3, 0.7, 0]} />
-        )}
       </Scene>
 
-      {!showIntro && !isTimeIntervalMode && !showTimeIntervalImages && (
+      {/* 진행바 - 시간 간격 모드가 아닐 때만 표시 */}
+      {!showIntro && !isTimeIntervalMode && (
         <ProgressBar
           progress={progress}
           isPlaying={isPlaying}
@@ -228,7 +212,8 @@ export default function ShadowSimulation() {
         />
       )}
 
-      {!showIntro && !showTimeIntervalImages && (
+      {/* 컨트롤 버튼들 */}
+      {!showIntro && (
         <ControlButtons
           showObservationLines={showObservationLines}
           setShowObservationLines={setShowObservationLines}
@@ -238,43 +223,7 @@ export default function ShadowSimulation() {
         />
       )}
 
-      {!showIntro && !showTimeIntervalImages && (
-        <div className='fixed top-4 right-4 z-50 flex flex-col gap-2'>
-          <button
-            onClick={handleTimeIntervalImagesToggle}
-            className='px-4 py-2 bg-white hover:bg-gray-400 text-black rounded-lg shadow-lg transition-colors duration-200 text-lg font-bold'>
-            일정 시간 간격 관측 자료 확인하기
-          </button>
-        </div>
-      )}
-
-      {showTimeIntervalImages && (
-        <div className='fixed top-4 right-4 z-[1001]'>
-          <button
-            onClick={() => {
-              setShowTimeIntervalImages(false)
-              setSelectedTimeData(null) // 돌아가기 시 선택된 시간 데이터 초기화
-            }}
-            className='px-4 py-2 bg-black hover:bg-black-700 text-white rounded-lg shadow-lg transition-colors duration-200 text-lg font-bold'>
-            돌아가기
-          </button>
-        </div>
-      )}
-
-      <TimeIntervalImages
-        currentData={currentData}
-        isVisible={showTimeIntervalImages}
-        timeData={timeData}
-        onTimeSelect={handleTimeIntervalSelect}
-      />
-
-      {/* ObservationTable을 TimeIntervalImages보다 위에 표시 */}
-      {!showIntro && showTimeIntervalImages && (
-        <div className='fixed z-[1002]'>
-          <ObservationTable currentData={currentData} />
-        </div>
-      )}
-
+      {/* Intro 오버레이 */}
       {isLoaded && showIntro && (
         <Intro
           onEnter={handleEnterExperience}

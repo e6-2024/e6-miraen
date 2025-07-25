@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useEffect, useState } from 'react'
 import * as THREE from 'three'
 import { useFrame, useThree } from '@react-three/fiber'
-import { Text } from '@react-three/drei'
+import { Billboard, Text } from '@react-three/drei'
 import Protractor from './Protractor'
 import Ruler from './Ruler'
 
@@ -19,7 +19,7 @@ interface AngleLinesProps {
   }
 }
 
-function AngleLines({ azimuth, altitude, shadowLength, angleGroundLevel = -0.3, sunPosition }: AngleLinesProps) {
+function AngleLines({ azimuth, altitude, shadowLength, angleGroundLevel = -0.39, sunPosition }: AngleLinesProps) {
   const { scene } = useThree()
   const dashedLineRef = useRef<THREE.Line>(null)
   const angleLineRef = useRef<THREE.Line>(null)
@@ -140,28 +140,29 @@ function AngleLines({ azimuth, altitude, shadowLength, angleGroundLevel = -0.3, 
       {/* 새로운 자 컴포넌트 */}
       <Ruler shadowEnd={shadowEnd} poleTopPosition={poleInfo.topPosition} />
 
-      {/* 각도 텍스트 */}
-      <Text
+      <Billboard
         position={[
           shadowEnd[0] +
             (poleInfo.topPosition[0] - shadowEnd[0]) *
               ((angleGroundLevel - shadowEnd[1]) / (poleInfo.topPosition[1] - shadowEnd[1])) +
-            0.35 * Math.sin(sunPosition.azimuthRad),
+            0.5 * Math.sin(sunPosition.azimuthRad),
           angleGroundLevel + 0.15,
           shadowEnd[2] +
             (poleInfo.topPosition[2] - shadowEnd[2]) *
               ((angleGroundLevel - shadowEnd[1]) / (poleInfo.topPosition[1] - shadowEnd[1])) +
             0.35 * Math.cos(sunPosition.azimuthRad),
-        ]}
-        fontSize={0.08}
-        color='#003366'
-        anchorX='center'
-        anchorY='middle'
-        outlineWidth={0.006}
-        outlineColor='#ffffff'
-        font='/fonts/Maplestory Bold.ttf'>
-        {altitude.toFixed(1)}°
-      </Text>
+        ]}>
+        <Text
+          fontSize={0.08}
+          color='#003366'
+          anchorX='center'
+          anchorY='middle'
+          outlineWidth={0.006}
+          outlineColor='#ffffff'
+          font='/fonts/Maplestory Bold.ttf'>
+          {altitude.toFixed(1)}°
+        </Text>
+      </Billboard>
     </group>
   )
 }

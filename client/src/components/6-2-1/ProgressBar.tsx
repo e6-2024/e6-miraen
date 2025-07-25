@@ -1,3 +1,4 @@
+import { time } from 'console'
 import React, { useRef } from 'react'
 
 function ProgressBar({ progress, isPlaying, setIsPlaying, timeData, onProgressClick }) {
