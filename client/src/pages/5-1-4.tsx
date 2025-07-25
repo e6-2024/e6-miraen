@@ -148,7 +148,7 @@ export default function IntegratedPage() {
         const y = event.clientY / window.innerHeight
         setTargetMousePosition({ x, y })
         
-        const margin = 0.1
+        const margin = 0.05
         const isOutOfBounds = x < margin || x > (1 - margin) || y < margin || y > (1 - margin)
         
         if (isOutOfBounds) {
