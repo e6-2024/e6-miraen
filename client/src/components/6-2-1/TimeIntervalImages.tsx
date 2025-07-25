@@ -89,10 +89,6 @@ function TimeIntervalImages({ currentData, isVisible, timeData, onTimeSelect }: 
         width: '100vw',
         height: '100vh',
       }}>
-      {/* ObservationTable을 TimeIntervalImages 내부에 포함 */}
-      <div className="absolute z-[1002]">
-        <ObservationTable currentData={currentSelectedData} />
-      </div>
 
       {/* 메인 이미지 */}
       <div className='w-full h-full flex justify-center items-center bg-white rounded-lg shadow-2xl'>
