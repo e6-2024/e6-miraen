@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Billboard, Html } from '@react-three/drei'
 import { Vector3 } from 'three'
-import { useAudioManager } from '@/components/6-2-1/GlobalAudioManager' // 위에서 만든 훅 import
+import { useNarrationManager } from './useNarrationManager'
 
 interface ThermometerDisplayProps {
   temperature: number
@@ -15,21 +15,19 @@ function ThermometerDisplay({
   temperature, 
   maxTemp = 28, 
   position = [0, 0, 0],
-  audioPath = '/sounds/6-2-1/narration/thermometer.mp3',
-  subtitle = '현재 온도를 나타내는 온도계입니다.'
+  audioPath = '/sounds/6-2-1/narration/6-2-1-D.MP3',
+  subtitle = '시간에 따라 변하는 태양 고도, 그림자 길이, 기온을 살펴봅시다.'
 }: ThermometerDisplayProps) {
   const [isHovered, setIsHovered] = useState(false)
-  const [showSubtitle, setShowSubtitle] = useState(false)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // 전역 오디오 매니저 사용
   const {
-    playAudio,
-    stopAudio,
+    playNarration,
+    stopNarration,
     isCurrentlyPlaying,
-    isOtherAudioPlaying,
-    isAnyAudioPlaying
-  } = useAudioManager('thermometer') 
+    isOtherNarrationPlaying,
+    isAnyNarrationPlaying
+  } = useNarrationManager('thermometer')
 
   const height = Math.max(0, (temperature / maxTemp) * 100)
 
@@ -37,37 +35,20 @@ function ThermometerDisplay({
     return 'from-red-500 to-red-400'
   }
 
-  const handlePlayAudio = async () => {
+  const handlePlayNarration = async () => {
     try {
-      await playAudio(audioPath, 0.7)
-      setShowSubtitle(true)
-      
-      setTimeout(() => {
-        if (!isCurrentlyPlaying()) {
-          setShowSubtitle(false)
-        }
-      }, 3000)
+      await playNarration(audioPath, subtitle, 0.7)
     } catch (error) {
-      console.log('오디오 재생 실패:', error)
-      setShowSubtitle(false)
+      console.log('나레이션 재생 실패:', error)
     }
   }
 
-  // 현재 재생 상태가 변경될 때 자막 처리
-  useEffect(() => {
-    if (!isCurrentlyPlaying()) {
-      setShowSubtitle(false)
-    }
-  }, [isCurrentlyPlaying])
-
-  // 호버 핸들러
   const handleMouseEnter = () => {
     setIsHovered(true)
     
-    // 다른 오디오가 재생 중이거나 현재 오디오가 재생 중이면 새로 재생하지 않음
-    if (!isAnyAudioPlaying()) {
+    if (!isAnyNarrationPlaying()) {
       timeoutRef.current = setTimeout(() => {
-        handlePlayAudio()
+        handlePlayNarration()
       }, 200)
     }
   }
@@ -75,14 +56,12 @@ function ThermometerDisplay({
   const handleMouseLeave = () => {
     setIsHovered(false)
     
-    // 호버 해제 시 타이머 클리어
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current)
       timeoutRef.current = null
     }
   }
 
-  // 컴포넌트 언마운트 시 정리
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
@@ -91,49 +70,29 @@ function ThermometerDisplay({
     }
   }, [])
 
-  // 다른 오디오가 재생 중일 때 시각적 표시
-  const isDisabled = isOtherAudioPlaying()
+  const isDisabled = isOtherNarrationPlaying()
   const isPlaying = isCurrentlyPlaying()
 
   return (
     <Billboard>
       <Html position={position} center distanceFactor={3.5} transform occlude>
         <div className="relative">
-          {/* 자막 표시 */}
-          {showSubtitle && isPlaying && (
-            <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 w-64 z-50">
-              <div className="bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg shadow-xl border border-white/20">
-                <p className="text-sm text-center leading-relaxed">{subtitle}</p>
-                {/* 말풍선 꼬리 */}
-                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-black/80"></div>
-              </div>
-            </div>
-          )}
-
-          {/* 다른 오디오 재생 중 알림 */}
           {isDisabled && isHovered && (
             <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 whitespace-nowrap z-40">
-              <div className="bg-orange-500/90 text-white px-3 py-1 rounded-lg text-xs shadow-lg">
+              <div className="bg-orange-500/90 text-white font-light px-3 py-1 rounded-lg text-xs shadow-lg">
                 다른 설명이 재생 중입니다
               </div>
             </div>
           )}
 
-          {/* 온도계 본체 */}
           <div 
             className={`flex items-center gap-4 bg-white/95 backdrop-blur-sm px-4 py-3 rounded-2xl shadow-xl border border-white/20 transition-all duration-200 ${
-              isDisabled 
-                ? 'opacity-60 cursor-not-allowed' 
-                : 'cursor-pointer hover:scale-105 hover:shadow-2xl hover:bg-white'
-            } ${isPlaying ? 'ring-2 ring-blue-400 ring-opacity-50 scale-105' : ''}`}
+              isPlaying ? 'ring-2 ring-blue-400 ring-opacity-50 scale-105' : ''}`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
-            {/* 온도계 */}
             <div className="relative">
-              {/* 온도계 튜브 */}
               <div className="w-4 h-24 bg-gray-100 rounded-full relative overflow-hidden border border-gray-200 shadow-inner">
-                {/* 온도 액체 */}
                 <div
                   className={`absolute bottom-0 w-full bg-gradient-to-t ${getTemperatureColor(
                     temperature,
@@ -143,13 +102,11 @@ function ThermometerDisplay({
                   style={{ height: `${height}%` }}
                 />
 
-                {/* 온도계 눈금 */}
                 {[20, 40, 60, 80].map((pos) => (
                   <div key={pos} className="absolute right-0 w-1 h-px bg-gray-300" style={{ top: `${pos}%` }} />
                 ))}
               </div>
 
-              {/* 온도계 구 (하단) */}
               <div
                 className={`absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-gradient-to-br ${getTemperatureColor(
                   temperature,
@@ -158,14 +115,12 @@ function ThermometerDisplay({
                 }`}
               />
 
-              {/* 재생 중 표시 아이콘 */}
               {isPlaying && (
                 <div className="absolute -top-2 -right-2 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center animate-pulse">
                   <div className="w-2 h-2 bg-white rounded-full animate-ping"></div>
                 </div>
               )}
 
-              {/* 비활성화 상태 표시 */}
               {isDisabled && (
                 <div className="absolute -top-2 -right-2 w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center">
                   <div className="w-2 h-2 bg-white rounded-full"></div>
@@ -173,7 +128,6 @@ function ThermometerDisplay({
               )}
             </div>
 
-            {/* 온도 표시 */}
             <div className="flex flex-col items-start">
               <div className="flex items-baseline gap-1">
                 <span className={`text-3xl font-light tabular-nums transition-colors duration-200 ${
@@ -202,12 +156,6 @@ function ThermometerDisplay({
               </div>
             </div>
 
-            {/* 호버 힌트 */}
-            {isHovered && !isDisabled && !isPlaying && (
-              <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs text-gray-500 whitespace-nowrap animate-fade-in">
-                🔊 음성 설명 재생 중...
-              </div>
-            )}
           </div>
         </div>
       </Html>

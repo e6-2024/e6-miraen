@@ -12,7 +12,7 @@ import Intro3 from '@/components/intro/Intro3'
 import Pan from '@/components/5-2-2/models/Pan'
 import { BG } from '@/components/5-2-2/models/BG'
 import {Dish} from '@/components/5-2-2/models/Dish'
-import CameraLogger from '@/components/CameraLogger'
+import CameraLogger from '@/hook/CameraLogger'
 import StoveController from '@/components/5-2-2/models/StoveController'
 import IntroMouseCameraController from '@/components/IntroMouseCameraController'
 

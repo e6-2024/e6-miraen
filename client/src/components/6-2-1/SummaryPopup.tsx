@@ -60,7 +60,6 @@ const SummaryPopup = ({ isOpen, onClose }) => {
         playNarration(audioPath)
       }
     } else {
-      // 그래프가 비활성화될 때 나레이션 정지
       stopNarration()
     }
   }

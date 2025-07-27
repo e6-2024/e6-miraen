@@ -40,7 +40,7 @@ export default function Intro({
     setTimeout(() => {
       setIsVisible(false)
       onEnter()
-    }, 1000) // 애니메이션 끝나고 UI 제거 (1초 뒤)
+    }, 1000)
   }
 
   const handleGoalClick = () => {
@@ -59,9 +59,7 @@ export default function Intro({
       absolute inset-0 z-50 transition-opacity duration-1000 ease-in-out overflow-hidden
       ${isAnimating ? 'opacity-0' : 'opacity-100'}
     `}>
-      {/* 데스크탑 */}
       <div className='hidden md:block w-full h-full'>
-        {/* 배경 이미지 */}
         <div
           ref={backgroundRef}
           className={`
@@ -71,7 +69,6 @@ export default function Intro({
           <img src={backgroundSvg} alt='Background' className='absolute inset-0 w-full h-full object-cover' />
         </div>
 
-        {/* 제목 */}
         <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-fit h-fit flex flex-col items-center justify-center gap-6'>
           <div className='w-fit h-fit flex flex-col items-center justify-center'>
             <h1 className='text-7xl mb-7 text-white font-bold leading-tight text-center [text-shadow:_0px_4px_10px_rgb(0_0_0_/_0.50)] break-keep'>
@@ -114,9 +111,7 @@ export default function Intro({
         </div>
       </div>
 
-      {/* 모바일 */}
       <div className='md:hidden w-full h-full'>
-        {/* 배경 이미지 */}
         <div
           className={`
       absolute top-0 left-0 w-full h-full transition-all duration-1000 ease-in-out
@@ -125,7 +120,6 @@ export default function Intro({
           <img src={backgroundSvg} alt='Background' className='absolute inset-0 w-full h-full object-cover' />
         </div>
 
-        {/* 텍스트와 버튼 */}
         <div
           className={`
       absolute inset-0 w-full h-full
@@ -144,9 +138,7 @@ export default function Intro({
             ))}
           </h1>
 
-          {/* 활동 목표 & 활동하기 버튼 (모바일) */}
           <div className='flex items-center gap-4 mb-12'>
-            {/* 활동 목표 버튼 */}
             <button
               onClick={handleGoalClick}
               className='px-6 py-3 bg-[#52AE46] rounded-[20px] shadow-[inset_0px_-6px_8px_0px_rgba(65,87,51,0.50)] inline-flex justify-center items-center overflow-hidden hover:bg-[#6BC05D] active:scale-95 transition-all duration-300'>
@@ -155,7 +147,6 @@ export default function Intro({
               </div>
             </button>
 
-            {/* 활동하기 버튼 */}
             <button
               className='px-6 py-3 bg-[#52AE46] rounded-[20px] shadow-[inset_0px_-6px_8px_0px_rgba(65,87,51,0.50)] inline-flex justify-center items-center overflow-hidden opacity-50 cursor-not-allowed transition-all duration-300'
               disabled>
@@ -182,7 +173,6 @@ export default function Intro({
         </div>
       </div>
 
-      {/* 활동 목표 팝업 */}
       {showGoalPopup && (
         <div className='absolute inset-0 bg-black/50 flex items-center justify-center z-60 p-4'>
           <div className='bg-white rounded-2xl p-8 max-w-lg mx-4 shadow-2xl transform animate-in fade-in zoom-in duration-300'>
@@ -190,7 +180,7 @@ export default function Intro({
               <h3 className='text-2xl font-bold text-gray-800'>활동 목표</h3>
             </div>
 
-            <div className='text-gray-700 text-lg font-light leading-relaxed mb-8 text-center'>
+            <div className='text-gray-700 text-lg font-light leading-relaxed mb-8 text-center break-keep'>
               {Array.isArray(description) ? (
                 description.map((line, index) => (
                   <p key={index} className={index > 0 ? 'mt-2' : ''}>

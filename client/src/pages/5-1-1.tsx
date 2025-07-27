@@ -9,7 +9,7 @@ import Scene from '@/components/canvas/Scene'
 import Intro from '@/components/intro/Intro'
 import { EffectComposer, TiltShift2, N8AO } from '@react-three/postprocessing'
 import { SpeechBubble } from '../components/6-1-1/SpeechBubble'
-import CameraLogger from '@/components/CameraLogger'
+import CameraLogger from '@/hook/CameraLogger'
 import NavigationUI from '@/components/5-1-1/NavigationUI'
 
 const modelPaths = [

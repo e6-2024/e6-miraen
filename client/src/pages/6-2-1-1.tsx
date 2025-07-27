@@ -4,7 +4,7 @@ import { Environment, Sky, OrbitControls, useGLTF, useProgress, Billboard, Text 
 import * as THREE from 'three'
 import Scene from '@/components/canvas/Scene'
 import CameraController from '@/components/cameraController'
-import CameraLogger from '@/components/CameraLogger'
+import CameraLogger from '@/hook/CameraLogger'
 import Intro from '@/components/intro/Intro'
 import { timeData2 } from '@/components/6-2-1/timeData'
 import Model from '@/components/6-2-1/Model'

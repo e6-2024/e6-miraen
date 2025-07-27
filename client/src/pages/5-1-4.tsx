@@ -7,6 +7,7 @@ import Scene from '@/components/canvas/Scene'
 import Intro from '@/components/intro/Intro'
 import * as THREE from 'three'
 import { AnimatePresence, motion } from 'framer-motion'
+import MouseInteractiveGroup from '@/components/MouseInteractiveGroup'
 
 type ModelType = 'boy' | 'muscle' | 'bone'
 type AnimationState = 'walk' | 'pose'
@@ -35,12 +36,16 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
   return null
 }
 
-function IntroModels({ mousePosition }: { mousePosition: { x: number; y: number } }) {
-  const rotationY = (mousePosition.x - 0.5) * 0.3 // -0.15 to 0.15 radians
-  const rotationX = (mousePosition.y - 0.5) * 0.1 // -0.05 to 0.05 radians
-
+function IntroModels() {
   return (
-    <group rotation={[rotationX, rotationY, 0]}>
+    <MouseInteractiveGroup
+      enabled={true}
+      sensitivity={{ x: 0.3, y: 0.1 }}
+      edgeReturnDelay={400}
+      leaveReturnDelay={300}
+      lerpSpeed={0.05}
+      edgeMargin={0.05}
+    >
       <group rotation={[0, Math.PI / 4, 0]}>
         <AnimatedModel
           url='/models/Anatomy/Boy_Pose.gltf'
@@ -73,7 +78,7 @@ function IntroModels({ mousePosition }: { mousePosition: { x: number; y: number 
           removeMuscleLayer={false}
         />
       </group>
-    </group>
+    </MouseInteractiveGroup>
   )
 }
 
@@ -485,7 +490,7 @@ export default function IntegratedPage() {
 
   const getCurrentComponents = useMemo(() => {
     if (showIntro && introModelsLoaded) {
-      return <IntroModels mousePosition={smoothMousePosition} />
+      return <IntroModels />
     }
 
     if (mode === 'bones' && !isModelsLoading) {

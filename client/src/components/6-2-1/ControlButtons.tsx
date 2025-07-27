@@ -42,11 +42,25 @@ function ControlButtons({
     setShowObservationLines(!showObservationLines)
   }
 
+  const playGeneralButton = (audioPath: string = '/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3') => {
+    try {
+      const audio = new Audio(audioPath)
+      audio.volume = 0.5
+      audio.play().catch((error) => {
+        console.log('효과음 재생 실패:', error.name)
+      })
+    } catch (error) {
+      console.log('효과음 생성 실패:', error)
+    }
+  }
+
   return (
     <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
-      {/* 관측선 표시/숨김 버튼 */}
       <button
-        onClick={handleAngleLineToggle}
+        onClick={()=>{
+          handleAngleLineToggle();
+          playGeneralButton();
+        }}
         className={`px-4 py-2 rounded-lg shadow-lg transition-colors duration-200 text-lg font-bold ${
           showObservationLines
             ? 'bg-black hover:bg-gray-400 text-white'
@@ -56,7 +70,6 @@ function ControlButtons({
         {showObservationLines ? '관측선 숨기기' : '관측선 표시하기'}
       </button>
 
-      {/* 시간 선택 드롭다운 */}
       {showTimeSelector && (
         <div className="bg-white rounded-lg shadow-xl p-3 border border-gray-200 max-h-48 overflow-y-auto">
           <div className="text-sm font-semibold text-gray-700 mb-2">시간 선택:</div>
