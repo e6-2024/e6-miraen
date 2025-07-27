@@ -47,7 +47,7 @@ function AngleLines({ azimuth, altitude, shadowLength, angleGroundLevel = 0, sun
     const shadowEndVec = new THREE.Vector3(...shadowEnd)
     const sunPositionVec = new THREE.Vector3(sunPosition.sunX, sunPosition.sunY, sunPosition.sunZ)
 
-    const visualDistance = 3.0
+    const visualDistance = 30.0
     const direction = sunPositionVec.clone().normalize()
     const visualSunPos = poleTop.clone().add(direction.multiplyScalar(visualDistance))
 
@@ -65,7 +65,7 @@ function AngleLines({ azimuth, altitude, shadowLength, angleGroundLevel = 0, sun
     const basePosition = shadowEndVec.clone().add(direction.multiplyScalar(t))
 
     const radius = 0.6
-    const segments = 10
+    const segments = 20
     const points = []
 
     const sunDir = new THREE.Vector3(sunPosition.sunX, sunPosition.sunY, sunPosition.sunZ).normalize()
@@ -123,7 +123,7 @@ function AngleLines({ azimuth, altitude, shadowLength, angleGroundLevel = 0, sun
   return (
     <group>
       <primitive object={new THREE.Line(straightLineGeometry)} ref={dashedLineRef}>
-        <lineDashedMaterial color='#ffffff' linewidth={10} dashSize={0.1} gapSize={0.04} transparent opacity={1} />
+        <lineDashedMaterial color='#ffffff' linewidth={60} dashSize={0.1} gapSize={0.04} transparent opacity={1} />
       </primitive>
 
       <primitive object={new THREE.Line(angleArcGeometry)} ref={angleLineRef}>
