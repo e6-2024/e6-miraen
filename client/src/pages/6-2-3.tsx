@@ -150,36 +150,27 @@ export default function Home() {
   }, [])
 
   const handleEnterExperience = useCallback(() => {
-    // 효과음 재생
     playClickSound()
-
-    // 효과음이 재생될 시간을 확보한 후 Intro 숨기고 모드 선택 화면으로 이동
-    setTimeout(() => {
-      setShowIntro(false)
-      // mode는 null로 유지해서 모드 선택 화면을 보여줌
-    }, 300) // 300ms 지연
-  }, [playClickSound])
+  }, [playClickSound, mode])
 
   const handleModeSelect = useCallback(
     (selectedMode: 'light' | 'buzzer' | 'fan') => {
       audioManager.playGeneralButton()
       setMode(selectedMode)
-
-      // 모드 진입 시 A 오디오와 자막 재생
+      setShowIntro(false)
       setTimeout(() => {
         playAudioWithSubtitle('/sounds/6-2-3/narration/6-2-3-A.MP3', '전기 회로에 전지를 연결해 보세요.', 6000)
       }, 500)
     },
-    [playAudioWithSubtitle],
+    [playAudioWithSubtitle, audioManager],
   )
 
   const handleBackToModeSelection = useCallback(() => {
     audioManager.playGeneralButton()
-    // 부드러운 전환을 위해 약간의 지연 추가
+    audioManager.stopAll()
     setTimeout(() => {
       setMode(null)
-      // 모드 변경 시 모든 컴포넌트 오디오 중지
-      audioManager.stopAll()
+      setShowIntro(true)
     }, 100)
   }, [audioManager])
 
@@ -268,19 +259,21 @@ export default function Home() {
 
   return (
     <div className='w-screen h-screen bg-white flex flex-col'>
-      {/* 모드 선택 버튼들 */}
-      <AnimatePresence>
-        {!showIntro && mode === null && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5, ease: 'easeInOut' }}
-            className='fixed top-0 left-0 z-10 w-full h-full p-4 flex gap-4 justify-center items-center bg-gray-100 border-b shadow-sm'>
-            {modeButtons.map(({ mode: buttonMode, label, color, hoverColor }) => (
-              <button
+      {mode === null && !showIntro && (
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -50 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+          className='absolute inset-0 z-40 flex flex-row items-center justify-center gap-8 bg-white/90 backdrop-blur-sm'>
+          <div className='flex flex-row gap-6 max-w-md w-full px-4'>
+            {modeButtons.map(({ mode: buttonMode, label, color, hoverColor }, index) => (
+              <motion.button
                 key={buttonMode}
-                className='px-6 pt-5 pb-6 rounded-[30px] shadow-[inset_0px_-10px_10px_0px_rgba(50,0,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:shadow-[inset_0px_-10px_10px_0px_rgba(50,0,0,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(50,0,0,0.50)] transition-all duration-300'
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 + index * 0.1, duration: 0.5 }}
+                className='w-full px-6 pt-5 pb-6 rounded-[30px] shadow-[inset_0px_-10px_10px_0px_rgba(50,0,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:shadow-[inset_0px_-10px_10px_0px_rgba(50,0,0,0.70)] active:scale-95 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(50,0,0,0.50)] transition-all duration-300 hover:scale-105'
                 style={
                   {
                     backgroundColor: color,
@@ -297,16 +290,15 @@ export default function Home() {
                   handleModeSelect(buttonMode)
                 }}
                 aria-label={`${label} 모드 선택`}>
-                <div className='text-center justify-center text-white text-2xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
+                <div className='text-center justify-center text-white text-xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
                   {label}
                 </div>
-              </button>
+              </motion.button>
             ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        </motion.div>
+      )}
 
-      {/* 뒤로가기 버튼 */}
       <AnimatePresence>
         {mode !== null && (
           <motion.div
@@ -362,7 +354,7 @@ export default function Home() {
           }}
           camera={{ position: [14, 8, 15], fov: 50 }}>
           <LoadingTracker onLoadingComplete={handleLoadingComplete} />
-          <IntroMouseCameraController enabled={showIntro}/>
+          <IntroMouseCameraController enabled={showIntro} />
 
           <fog attach='fog' args={['#0c0c0cff', 10, 25]} />
           <fogExp2 attach='fog' color={'#ffffffff'} density={0.002} />
@@ -411,9 +403,13 @@ export default function Home() {
         <Intro
           onEnter={handleEnterExperience}
           title='전지의 수에 따른 전기 회로의 특징 비교하기'
-          description={['전지 1 개를 연결한 전기 회로와 전지 2 개를 직렬연결한 전기 회로의 특징을 비교해 봅시다.']}
+          description={['전지 1 개를 연결한 전기 회로와 전지 2 개를 직렬연결한', '전기 회로의 특징을 비교해 봅시다.']}
           backgroundSvg='/img/cover/6-2-3.svg'
           descriptionSound='/sounds/6-2-3/narration/6-2-3-Goal.MP3'
+          // 모드 선택 관련 props 추가
+          showModeSelection={true}
+          modeButtons={modeButtons}
+          onModeSelect={handleModeSelect}
         />
       )}
 

@@ -1,6 +1,13 @@
 // components/Intro.tsx
 import { useRef, useState } from 'react'
 
+interface ModeButton {
+  mode: 'light' | 'buzzer' | 'fan'
+  label: string
+  color: string
+  hoverColor: string
+}
+
 interface IntroProps {
   onEnter: () => void
   title?: string
@@ -9,6 +16,10 @@ interface IntroProps {
   simbolSvgPath?: string
   backgroundSvg?: string
   descriptionSound?: string
+  // 모드 선택 관련 props 추가
+  showModeSelection?: boolean
+  modeButtons?: ModeButton[]
+  onModeSelect?: (mode: 'light' | 'buzzer' | 'fan') => void
 }
 
 export default function Intro({
@@ -17,11 +28,15 @@ export default function Intro({
   description = '바람은 왜 불까요? 그리고 어떤 방향으로 불까요?\n바닷가에서 바람이 부는 까닭과 바람이 부는 방향에 대해\n알아봅시다.',
   backgroundSvg = '/img/cover/5-1-1.svg',
   descriptionSound = '',
+  showModeSelection = false,
+  modeButtons = [],
+  onModeSelect,
 }: IntroProps) {
   const backgroundRef = useRef<HTMLDivElement>(null)
   const [isVisible, setIsVisible] = useState(true)
   const [isAnimating, setIsAnimating] = useState(false)
   const [showGoalPopup, setShowGoalPopup] = useState(false)
+  const [showModeButtons, setShowModeButtons] = useState(false)
 
   const playDescriptionSound = (audioPath: string = descriptionSound) => {
     try {
@@ -36,6 +51,25 @@ export default function Intro({
   }
 
   const handleEnter = () => {
+    if (showModeSelection && modeButtons.length > 0) {
+      // 모드 선택이 필요한 경우 버튼들을 표시
+      setShowModeButtons(true)
+    } else {
+      // 기존 동작: 바로 종료
+      setIsAnimating(true)
+      setTimeout(() => {
+        setIsVisible(false)
+        onEnter()
+      }, 1000)
+    }
+  }
+
+  const handleModeButtonClick = (selectedMode: 'light' | 'buzzer' | 'fan') => {
+    if (onModeSelect) {
+      onModeSelect(selectedMode)
+    }
+    
+    // Intro 종료
     setIsAnimating(true)
     setTimeout(() => {
       setIsVisible(false)
@@ -80,6 +114,7 @@ export default function Intro({
               ))}
             </h1>
           </div>
+          
           <div className='flex items-center gap-8'>
             <button
               onClick={() => {
@@ -101,16 +136,43 @@ export default function Intro({
             </button>
           </div>
 
-          <button
-            onClick={handleEnter}
-            className='px-9 pt-6 pb-8 bg-[#FF8026] rounded-[40px] shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#ff9b54] hover:shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(152,0,0,0.50)] transition-all duration-300'>
-            <div className='text-center justify-center text-white text-4xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
-              시작하기
+          {/* 시작하기 버튼 또는 모드 선택 버튼들 */}
+          {!showModeButtons ? (
+            <button
+              onClick={handleEnter}
+              className='px-9 pt-6 pb-8 bg-[#FF8026] rounded-[40px] shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#ff9b54] hover:shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(152,0,0,0.50)] transition-all duration-300'>
+              <div className='text-center justify-center text-white text-4xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
+                시작하기
+              </div>
+            </button>
+          ) : (
+            <div className='flex flex-row gap-4 items-center animate-in fade-in slide-in-from-bottom-4 duration-500'>
+              {modeButtons.map(({ mode, label, color, hoverColor }, index) => (
+                <button
+                  key={mode}
+                  onClick={() => handleModeButtonClick(mode)}
+                  className='pt-4 pb-5 rounded-[30px] shadow-[inset_0px_-8px_8px_0px_rgba(50,0,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:shadow-[inset_0px_-8px_8px_0px_rgba(50,0,0,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(50,0,0,0.50)] transition-all duration-300 hover:scale-105 min-w-[300px]'
+                  style={{
+                    backgroundColor: color,
+                    animationDelay: `${index * 100}ms`,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = hoverColor
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = color
+                  }}>
+                  <div className='text-center justify-center text-white text-2xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
+                    {label}
+                  </div>
+                </button>
+              ))}
             </div>
-          </button>
+          )}
         </div>
       </div>
 
+      {/* 모바일 버전도 동일한 로직으로 수정 */}
       <div className='md:hidden w-full h-full'>
         <div
           className={`
@@ -156,20 +218,48 @@ export default function Intro({
             </button>
           </div>
 
-          <button
-            onClick={handleEnter}
-            className='
-              bg-[#FF8026]
-              text-white font-bold
-              px-8 py-3 rounded-[20px]
-              transition-all duration-300
-              hover:bg-[#ff9b54]
-              active:scale-95
-              text-2xl
-              shadow-[inset_0px_-6px_8px_0px_rgba(152,0,0,0.50)]
-            '>
-            시작하기
-          </button>
+          {!showModeButtons ? (
+            <button
+              onClick={handleEnter}
+              className='
+                bg-[#FF8026]
+                text-white font-bold
+                px-8 py-3 rounded-[20px]
+                transition-all duration-300
+                hover:bg-[#ff9b54]
+                active:scale-95
+                text-2xl
+                shadow-[inset_0px_-6px_8px_0px_rgba(152,0,0,0.50)]
+              '>
+              시작하기
+            </button>
+          ) : (
+            <div className='flex flex-col gap-3 items-center w-full animate-in fade-in slide-in-from-bottom-4 duration-500'>
+              <h2 className='text-2xl font-bold text-white mb-2 [text-shadow:_0px_4px_10px_rgb(0_0_0_/_0.70)]'>
+                실험할 회로를 선택하세요
+              </h2>
+              {modeButtons.map(({ mode, label, color, hoverColor }, index) => (
+                <button
+                  key={mode}
+                  onClick={() => handleModeButtonClick(mode)}
+                  className='w-full px-6 py-3 rounded-[20px] shadow-[inset_0px_-6px_8px_0px_rgba(50,0,0,0.50)] inline-flex justify-center items-center overflow-hidden hover:shadow-[inset_0px_-6px_8px_0px_rgba(50,0,0,0.70)] active:scale-95 transition-all duration-300'
+                  style={{
+                    backgroundColor: color,
+                    animationDelay: `${index * 100}ms`,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = hoverColor
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = color
+                  }}>
+                  <div className='text-center justify-center text-white text-lg font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
+                    {label}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

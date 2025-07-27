@@ -257,17 +257,7 @@ export default function ConnectedFans(props: GroupProps) {
       />
 
       {/* 중앙 제어 버튼들 */}
-      <group position={[5.5, 0, 1]}>
-        <Text
-          position={[0, 1.5, -5]}
-          fontSize={0.4}
-          color='white'
-          fontWeight='bold'
-          font='/fonts/Maplestory Bold.ttf'
-          anchorX='center'
-          anchorY='middle'>
-          우측 회로의 전지 개수를 선택해 보세요!
-        </Text>
+      <group position={[1, 0, 6]}>
         <Box
           position={[-1.5, buttonAPressed ? -0.1 : 0, 0]}
           args={[2, 0.5, 1.2]}
