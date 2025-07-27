@@ -1,6 +1,6 @@
-import React, { useMemo, useRef, useEffect, useState } from 'react'
+import React, { useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { useFrame, useThree } from '@react-three/fiber'
+import { useFrame } from '@react-three/fiber'
 import { Billboard, Text } from '@react-three/drei'
 import Protractor from './Protractor'
 import Ruler from './Ruler'
@@ -19,44 +19,21 @@ interface AngleLinesProps {
   }
 }
 
-function AngleLines({ azimuth, altitude, shadowLength, angleGroundLevel = -0.39, sunPosition }: AngleLinesProps) {
-  const { scene } = useThree()
+function AngleLines({ azimuth, altitude, shadowLength, angleGroundLevel = 0, sunPosition }: AngleLinesProps) {
   const dashedLineRef = useRef<THREE.Line>(null)
   const angleLineRef = useRef<THREE.Line>(null)
-  const [poleInfo, setPoleInfo] = useState<{ height: number; topPosition: [number, number, number] }>({
-    height: 2.0,
-    topPosition: [0, 2.0, 0],
-  })
-
-  useEffect(() => {
-    const findPoleModel = () => {
-      let poleHeight = 4.0
-      let poleTopY = 2.0
-
-      scene.traverse((child) => {
-        if (child.name && child.name.toLowerCase().includes('cylinder')) {
-          const box = new THREE.Box3().setFromObject(child)
-          poleHeight = box.max.y - box.min.y
-          poleTopY = box.max.y
-          console.log('Pole found:', { height: poleHeight, topY: poleTopY })
-        }
-      })
-
-      setPoleInfo({
-        height: poleHeight,
-        topPosition: [0, poleTopY, 0], // Removed 'as const'
-      })
-    }
-
-    const timer = setTimeout(findPoleModel, 1000)
-    return () => clearTimeout(timer)
-  }, [scene])
+  
+  const poleInfo = {
+    height: 2.55,
+    topPosition: [0, 2.55, 0] as const,
+    radius: 0.1
+  }
 
   const shadowEnd = useMemo(() => {
     const poleTop = new THREE.Vector3(...poleInfo.topPosition)
     const sunDir = new THREE.Vector3(sunPosition.sunX, sunPosition.sunY, sunPosition.sunZ).normalize()
 
-    const groundLevel = -1
+    const groundLevel = 0
 
     const t = (poleTop.y - groundLevel) / sunDir.y
 
@@ -83,13 +60,12 @@ function AngleLines({ azimuth, altitude, shadowLength, angleGroundLevel = -0.39,
     const poleTop = new THREE.Vector3(...poleInfo.topPosition)
     const shadowEndVec = new THREE.Vector3(...shadowEnd)
 
-    // 그림자 끝점에서 막대 꼭대기로 향하는 직선에서 angleGroundLevel 높이의 지점 계산
     const direction = poleTop.clone().sub(shadowEndVec).normalize()
     const t = (angleGroundLevel - shadowEndVec.y) / direction.y
     const basePosition = shadowEndVec.clone().add(direction.multiplyScalar(t))
 
-    const radius = 0.25
-    const segments = 20
+    const radius = 0.6
+    const segments = 10
     const points = []
 
     const sunDir = new THREE.Vector3(sunPosition.sunX, sunPosition.sunY, sunPosition.sunZ).normalize()
@@ -112,6 +88,32 @@ function AngleLines({ azimuth, altitude, shadowLength, angleGroundLevel = -0.39,
     return new THREE.BufferGeometry().setFromPoints(points)
   }, [shadowEnd, angleGroundLevel, sunPosition, poleInfo.topPosition])
 
+  // Text 위치를 더 중심으로 계산
+  const textPosition = useMemo(() => {
+    const poleTop = new THREE.Vector3(...poleInfo.topPosition)
+    const shadowEndVec = new THREE.Vector3(...shadowEnd)
+    
+    // 각도 호의 기준점 계산
+    const direction = poleTop.clone().sub(shadowEndVec).normalize()
+    const t = (angleGroundLevel - shadowEndVec.y) / direction.y
+    const basePosition = shadowEndVec.clone().add(direction.multiplyScalar(t))
+    
+    // 각도의 중간점에서 텍스트 위치 계산
+    const sunDir = new THREE.Vector3(sunPosition.sunX, sunPosition.sunY, sunPosition.sunZ).normalize()
+    const horizontalDir = new THREE.Vector3(sunDir.x, 0, sunDir.z).normalize()
+    const angle = Math.asin(sunDir.y)
+    
+    // 각도의 절반 지점에서 텍스트 위치
+    const halfAngle = angle * 0.5
+    const textDirection = horizontalDir.clone()
+    textDirection.y = Math.tan(halfAngle) * Math.sqrt(textDirection.x * textDirection.x + textDirection.z * textDirection.z)
+    textDirection.normalize().multiplyScalar(1.7) // 호보다 조금 더 바깥쪽
+    
+    const textPos = basePosition.clone().add(textDirection)
+    
+    return [textPos.x, textPos.y, textPos.z] as const
+  }, [shadowEnd, angleGroundLevel, sunPosition, poleInfo.topPosition])
+
   useFrame(() => {
     if (dashedLineRef.current) {
       dashedLineRef.current.computeLineDistances()
@@ -120,16 +122,14 @@ function AngleLines({ azimuth, altitude, shadowLength, angleGroundLevel = -0.39,
 
   return (
     <group>
-      {/* 기존 선들 */}
       <primitive object={new THREE.Line(straightLineGeometry)} ref={dashedLineRef}>
-        <lineDashedMaterial color='#ffffff' linewidth={10} dashSize={0.08} gapSize={0.04} transparent opacity={0.9} />
+        <lineDashedMaterial color='#ffffff' linewidth={10} dashSize={0.1} gapSize={0.04} transparent opacity={1} />
       </primitive>
 
       <primitive object={new THREE.Line(angleArcGeometry)} ref={angleLineRef}>
-        <lineBasicMaterial color='#ffffff' linewidth={30} />
+        <lineBasicMaterial color='#ffffff' linewidth={60} />
       </primitive>
 
-      {/* 새로운 각도기 컴포넌트 */}
       <Protractor
         sunPosition={sunPosition}
         shadowEnd={shadowEnd}
@@ -137,23 +137,11 @@ function AngleLines({ azimuth, altitude, shadowLength, angleGroundLevel = -0.39,
         angleGroundLevel={angleGroundLevel}
       />
 
-      {/* 새로운 자 컴포넌트 */}
       <Ruler shadowEnd={shadowEnd} poleTopPosition={poleInfo.topPosition} />
 
-      <Billboard
-        position={[
-          shadowEnd[0] +
-            (poleInfo.topPosition[0] - shadowEnd[0]) *
-              ((angleGroundLevel - shadowEnd[1]) / (poleInfo.topPosition[1] - shadowEnd[1])) +
-            0.5 * Math.sin(sunPosition.azimuthRad),
-          angleGroundLevel + 0.15,
-          shadowEnd[2] +
-            (poleInfo.topPosition[2] - shadowEnd[2]) *
-              ((angleGroundLevel - shadowEnd[1]) / (poleInfo.topPosition[1] - shadowEnd[1])) +
-            0.35 * Math.cos(sunPosition.azimuthRad),
-        ]}>
+      <Billboard position={textPosition}>
         <Text
-          fontSize={0.08}
+          fontSize={0.3}
           color='#003366'
           anchorX='center'
           anchorY='middle'

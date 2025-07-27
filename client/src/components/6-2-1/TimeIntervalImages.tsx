@@ -35,10 +35,8 @@ function TimeIntervalImages({ currentData, isVisible, timeData, onTimeSelect }: 
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
 
-  // 사용 가능한 시간대들
   const availableTimes = Object.keys(timeImageMap)
 
-  // 선택된 시간에 해당하는 데이터 찾기
   const getDataByTime = (time: string) => {
     if (!timeData || timeData.length === 0) {
       console.warn('timeData가 없습니다:', timeData)
@@ -47,59 +45,44 @@ function TimeIntervalImages({ currentData, isVisible, timeData, onTimeSelect }: 
     const foundData = timeData.find(data => data.time === time)
     if (!foundData) {
       console.warn(`시간 ${time}에 해당하는 데이터를 찾을 수 없습니다`)
-      return timeData[0] // 첫 번째 데이터를 기본값으로 사용
+      return timeData[0] 
     }
     return foundData
   }
 
-  // 현재 선택된 시간의 데이터
   const currentSelectedData = getDataByTime(availableTimes[currentImageIndex]) || currentData
 
-  // 시간 인덱스가 변경될 때마다 부모에게 알림
   useEffect(() => {
     if (isVisible) {
       onTimeSelect(currentSelectedData)
     } else {
-      // TimeIntervalImages가 숨겨질 때 선택 데이터 초기화
       onTimeSelect(null)
     }
   }, [currentImageIndex, isVisible, onTimeSelect, currentSelectedData])
 
-  // 자동 재생 효과
   useEffect(() => {
     let interval: NodeJS.Timeout
     if (isPlaying && isVisible) {
       interval = setInterval(() => {
         setCurrentImageIndex((prev) => (prev + 1) % availableTimes.length)
-      }, 2000) // 2초마다 이미지 변경
+      }, 2000)
     }
     return () => clearInterval(interval)
   }, [isPlaying, isVisible, availableTimes.length])
 
-  // 컴포넌트가 보이지 않을 때는 렌더링하지 않음
   if (!isVisible) return null
 
   const currentTime = availableTimes[currentImageIndex]
   const currentImageName = timeImageMap[currentTime]
 
   return (
-    <div
-      className='fixed inset-0 z-[1000] bg-black bg-opacity-90 flex flex-col justify-center items-center'
-      style={{
-        width: '100vw',
-        height: '100vh',
-      }}>
-
-      {/* 메인 이미지 */}
-      <div className='w-full h-full flex justify-center items-center bg-white rounded-lg shadow-2xl'>
+    <div className='fixed inset-0 z-[1000] bg-white flex flex-col justify-center items-center'>
         <img
           src={`/img/6-2-1/${currentImageName}`}
           alt={`${currentTime} 관측 자료`}
-          className='max-w-full object-contain'
+          className='h-screen w-auto max-w-none'
         />
-      </div>
 
-      {/* 썸네일 네비게이션 */}
       <div className='absolute left-4 top-4 mt-4 gap-2 flex flex-col'>
         {availableTimes.map((time, index) => (
           <button

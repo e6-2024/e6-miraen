@@ -167,19 +167,19 @@ export default function ShadowSimulation() {
     }
   }, [currentTimeIndex, isTimeIntervalMode])
 
+
   return (
     <div className='w-screen h-screen bg-gradient-to-b relative'>
-      {/* ObservationTable이 showTimeIntervalImages 상태와 관계없이 표시되도록 수정 */}
       {!showIntro && <ObservationTable currentData={currentData} />}
 
-      <Scene camera={{ position: [2.04, 0.9, 2.872], fov: 50 }} shadows>
+
+      <Scene camera={{ position: [2.88, 3.82, 11.4], fov: 50 }} shadows>
         <LoadingTracker onLoadingComplete={handleLoadingComplete} />
 
         <ambientLight intensity={0.6} />
 
         <SunLight sunPosition={sunPosition} />
 
-        <Model modelPath='models/6-2-1/pole.glb' position={[0, 1.9, 0]} scale={1} rotation={[0, 0, 0]} />
         <CompassBillboard />
 
         {showObservationLines && !showTimeIntervalImages && (
@@ -191,15 +191,20 @@ export default function ShadowSimulation() {
           />
         )}
 
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.39, 0]} receiveShadow>
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
           <planeGeometry args={[100, 100]} />
           <shadowMaterial transparent opacity={0.5} />
+        </mesh>
+
+        <mesh position={[0, 1.25, 0]} castShadow receiveShadow>
+          <cylinderGeometry args={[0.1, 0.1, 2.5, 32]} />
+          <meshStandardMaterial color='black' envMapIntensity={0} />
         </mesh>
 
         <Environment
           files='/img/cover/hdri.JPG'
           background={true}
-          ground={{ height: 1, radius: 40, scale: 20 }}
+          ground={{ height: 5, radius: 20, scale: 90 }}
           backgroundBlurriness={0.8}
           backgroundIntensity={0.7}
           environmentIntensity={0.8}
@@ -209,13 +214,12 @@ export default function ShadowSimulation() {
         <OrbitControls
           enabled={!showIntro && !showTimeIntervalImages}
           minDistance={0.2}
-          maxDistance={10}
+          maxDistance={16}
           minPolarAngle={Math.PI / 2.5}
           maxPolarAngle={Math.PI / 2.55}
         />
-        <CameraLogger />
-        {!showIntro && !showTimeIntervalImages && (
-          <ThermometerDisplay temperature={currentData.temperature} position={[0.3, 0.7, 0]} />
+        {!showIntro && (
+          <ThermometerDisplay temperature={currentData.temperature} position={[0.6, 3.2, 0]} />
         )}
       </Scene>
 

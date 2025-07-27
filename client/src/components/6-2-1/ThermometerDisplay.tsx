@@ -29,23 +29,19 @@ function ThermometerDisplay({
     isCurrentlyPlaying,
     isOtherAudioPlaying,
     isAnyAudioPlaying
-  } = useAudioManager('thermometer') // 고유 ID 지정
+  } = useAudioManager('thermometer') 
 
   const height = Math.max(0, (temperature / maxTemp) * 100)
 
-  // 온도에 따른 색상 계산
   const getTemperatureColor = (temp) => {
     return 'from-red-500 to-red-400'
   }
 
-  // 오디오 재생 함수 (전역 매니저 사용)
   const handlePlayAudio = async () => {
     try {
       await playAudio(audioPath, 0.7)
       setShowSubtitle(true)
       
-      // 오디오 재생 시간 추정 (실제로는 오디오 duration을 가져와야 함)
-      // 여기서는 예시로 3초 후 자막 숨김
       setTimeout(() => {
         if (!isCurrentlyPlaying()) {
           setShowSubtitle(false)
@@ -101,7 +97,7 @@ function ThermometerDisplay({
 
   return (
     <Billboard>
-      <Html position={position} center distanceFactor={1.3} transform occlude>
+      <Html position={position} center distanceFactor={3.5} transform occlude>
         <div className="relative">
           {/* 자막 표시 */}
           {showSubtitle && isPlaying && (
