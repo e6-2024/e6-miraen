@@ -20,8 +20,7 @@
 				4,
 				5,
 				6,
-				7,
-				8
+				7
 			]
 		}
 	],
@@ -52,8 +51,13 @@
 			"rotation":[
 				0,
 				0,
-				0.16658122837543488,
+				0.16658121347427368,
 				0.9860278367996216
+			],
+			"scale":[
+				1.0255237817764282,
+				1.0253362655639648,
+				1
 			]
 		},
 		{
@@ -172,26 +176,6 @@
 				1.6323846578598022,
 				0.12176072597503662
 			]
-		},
-		{
-			"mesh":6,
-			"name":"plant09.005",
-			"rotation":[
-				0,
-				-0.8552393317222595,
-				0,
-				0.5182332396507263
-			],
-			"scale":[
-				0.019222451373934746,
-				0.01972825825214386,
-				0.01900000125169754
-			],
-			"translation":[
-				-0.6391832828521729,
-				1.6028531789779663,
-				0.12180072069168091
-			]
 		}
 	],
 	"animations":[
@@ -215,14 +199,14 @@
 			"name":"plant09.004",
 			"samplers":[
 				{
-					"input":50,
+					"input":43,
 					"interpolation":"LINEAR",
-					"output":51
+					"output":44
 				},
 				{
-					"input":50,
+					"input":43,
 					"interpolation":"LINEAR",
-					"output":52
+					"output":45
 				}
 			]
 		},
@@ -246,14 +230,14 @@
 			"name":"plant09.001",
 			"samplers":[
 				{
-					"input":50,
+					"input":43,
 					"interpolation":"LINEAR",
-					"output":53
+					"output":46
 				},
 				{
-					"input":50,
+					"input":43,
 					"interpolation":"LINEAR",
-					"output":54
+					"output":47
 				}
 			]
 		},
@@ -277,14 +261,14 @@
 			"name":"plant09.002",
 			"samplers":[
 				{
-					"input":50,
+					"input":43,
 					"interpolation":"LINEAR",
-					"output":55
+					"output":48
 				},
 				{
-					"input":50,
+					"input":43,
 					"interpolation":"LINEAR",
-					"output":56
+					"output":49
 				}
 			]
 		},
@@ -308,14 +292,14 @@
 			"name":"plant09.003",
 			"samplers":[
 				{
-					"input":50,
+					"input":43,
 					"interpolation":"LINEAR",
-					"output":57
+					"output":50
 				},
 				{
-					"input":50,
+					"input":43,
 					"interpolation":"LINEAR",
-					"output":58
+					"output":51
 				}
 			]
 		}
@@ -389,7 +373,7 @@
 					"index":7
 				},
 				"metallicFactor":0,
-				"roughnessFactor":0.5
+				"roughnessFactor":0.714545488357544
 			}
 		},
 		{
@@ -610,37 +594,6 @@
 						}
 					},
 					"indices":42,
-					"material":3,
-					"mode":4
-				}
-			]
-		},
-		{
-			"name":"plant09.005",
-			"primitives":[
-				{
-					"attributes":{
-						"POSITION":43,
-						"NORMAL":44,
-						"TEXCOORD_0":45,
-						"TEXCOORD_1":46,
-						"COLOR_0":47,
-						"COLOR_1":48
-					},
-					"extensions":{
-						"KHR_draco_mesh_compression":{
-							"bufferView":7,
-							"attributes":{
-								"POSITION":0,
-								"NORMAL":1,
-								"TEXCOORD_0":2,
-								"TEXCOORD_1":3,
-								"COLOR_0":4,
-								"COLOR_1":5
-							}
-						}
-					},
-					"indices":49,
 					"material":3,
 					"mode":4
 				}
@@ -1042,53 +995,7 @@
 			"type":"SCALAR"
 		},
 		{
-			"componentType":5126,
-			"count":119,
-			"max":[
-				230.89450073242188,
-				14.393898010253906,
-				232.8087921142578
-			],
-			"min":[
-				-239.86138916015625,
-				-14.71406364440918,
-				-237.9183807373047
-			],
-			"type":"VEC3"
-		},
-		{
-			"componentType":5126,
-			"count":119,
-			"type":"VEC3"
-		},
-		{
-			"componentType":5126,
-			"count":119,
-			"type":"VEC2"
-		},
-		{
-			"componentType":5126,
-			"count":119,
-			"type":"VEC2"
-		},
-		{
-			"componentType":5126,
-			"count":119,
-			"type":"VEC3"
-		},
-		{
-			"componentType":5123,
-			"count":119,
-			"normalized":true,
-			"type":"VEC4"
-		},
-		{
-			"componentType":5123,
-			"count":345,
-			"type":"SCALAR"
-		},
-		{
-			"bufferView":8,
+			"bufferView":7,
 			"componentType":5126,
 			"count":250,
 			"max":[
@@ -1098,6 +1005,12 @@
 				0.041666666666666664
 			],
 			"type":"SCALAR"
+		},
+		{
+			"bufferView":8,
+			"componentType":5126,
+			"count":250,
+			"type":"VEC3"
 		},
 		{
 			"bufferView":9,
@@ -1140,12 +1053,6 @@
 			"componentType":5126,
 			"count":250,
 			"type":"VEC3"
-		},
-		{
-			"bufferView":16,
-			"componentType":5126,
-			"count":250,
-			"type":"VEC3"
 		}
 	],
 	"bufferViews":[
@@ -1161,78 +1068,73 @@
 		},
 		{
 			"buffer":0,
-			"byteLength":1078,
+			"byteLength":1075,
 			"byteOffset":274088
 		},
 		{
 			"buffer":0,
-			"byteLength":814,
-			"byteOffset":275168
+			"byteLength":760,
+			"byteOffset":275164
 		},
 		{
 			"buffer":0,
-			"byteLength":1444,
-			"byteOffset":275984
+			"byteLength":1438,
+			"byteOffset":275924
 		},
 		{
 			"buffer":0,
-			"byteLength":1242,
-			"byteOffset":277428
+			"byteLength":1222,
+			"byteOffset":277364
 		},
 		{
 			"buffer":0,
-			"byteLength":1236,
-			"byteOffset":278672
-		},
-		{
-			"buffer":0,
-			"byteLength":1231,
-			"byteOffset":279908
+			"byteLength":1111,
+			"byteOffset":278588
 		},
 		{
 			"buffer":0,
 			"byteLength":1000,
-			"byteOffset":281140
+			"byteOffset":279700
 		},
 		{
 			"buffer":0,
 			"byteLength":3000,
-			"byteOffset":282140
+			"byteOffset":280700
 		},
 		{
 			"buffer":0,
 			"byteLength":3000,
-			"byteOffset":285140
+			"byteOffset":283700
 		},
 		{
 			"buffer":0,
 			"byteLength":3000,
-			"byteOffset":288140
+			"byteOffset":286700
 		},
 		{
 			"buffer":0,
 			"byteLength":3000,
-			"byteOffset":291140
+			"byteOffset":289700
 		},
 		{
 			"buffer":0,
 			"byteLength":3000,
-			"byteOffset":294140
+			"byteOffset":292700
 		},
 		{
 			"buffer":0,
 			"byteLength":3000,
-			"byteOffset":297140
+			"byteOffset":295700
 		},
 		{
 			"buffer":0,
 			"byteLength":3000,
-			"byteOffset":300140
+			"byteOffset":298700
 		},
 		{
 			"buffer":0,
 			"byteLength":3000,
-			"byteOffset":303140
+			"byteOffset":301700
 		}
 	],
 	"samplers":[
@@ -1243,7 +1145,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":306140,
+			"byteLength":304700,
 			"uri":"Dino_Death_Scene3.bin"
 		}
 	]

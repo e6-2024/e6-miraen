@@ -106,7 +106,7 @@
 		},
 		{
 			"mesh":3,
-			"name":"plant11.001",
+			"name":"Ground_half",
 			"rotation":[
 				0,
 				-1,
@@ -122,46 +122,6 @@
 				1.1013360023498535,
 				3.2410013675689697,
 				1.8449918031692505
-			]
-		}
-	],
-	"animations":[
-		{
-			"channels":[
-				{
-					"sampler":0,
-					"target":{
-						"node":4,
-						"path":"translation"
-					}
-				}
-			],
-			"name":"plant11",
-			"samplers":[
-				{
-					"input":42,
-					"interpolation":"LINEAR",
-					"output":43
-				}
-			]
-		},
-		{
-			"channels":[
-				{
-					"sampler":0,
-					"target":{
-						"node":5,
-						"path":"translation"
-					}
-				}
-			],
-			"name":"plant11.001",
-			"samplers":[
-				{
-					"input":42,
-					"interpolation":"LINEAR",
-					"output":44
-				}
 			]
 		}
 	],
@@ -917,82 +877,43 @@
 			"componentType":5123,
 			"count":336,
 			"type":"SCALAR"
-		},
-		{
-			"bufferView":7,
-			"componentType":5126,
-			"count":250,
-			"max":[
-				10.416666666666666
-			],
-			"min":[
-				0.041666666666666664
-			],
-			"type":"SCALAR"
-		},
-		{
-			"bufferView":8,
-			"componentType":5126,
-			"count":250,
-			"type":"VEC3"
-		},
-		{
-			"bufferView":9,
-			"componentType":5126,
-			"count":250,
-			"type":"VEC3"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":659885,
+			"byteLength":636999,
 			"byteOffset":0
 		},
 		{
 			"buffer":0,
-			"byteLength":2792,
-			"byteOffset":659888
+			"byteLength":3025,
+			"byteOffset":637000
 		},
 		{
 			"buffer":0,
-			"byteLength":736,
-			"byteOffset":662680
+			"byteLength":757,
+			"byteOffset":640028
 		},
 		{
 			"buffer":0,
-			"byteLength":947,
-			"byteOffset":663416
+			"byteLength":1119,
+			"byteOffset":640788
 		},
 		{
 			"buffer":0,
-			"byteLength":344,
-			"byteOffset":664364
+			"byteLength":352,
+			"byteOffset":641908
 		},
 		{
 			"buffer":0,
-			"byteLength":730,
-			"byteOffset":664708
+			"byteLength":740,
+			"byteOffset":642260
 		},
 		{
 			"buffer":0,
-			"byteLength":958,
-			"byteOffset":665440
-		},
-		{
-			"buffer":0,
-			"byteLength":1000,
-			"byteOffset":666400
-		},
-		{
-			"buffer":0,
-			"byteLength":3000,
-			"byteOffset":667400
-		},
-		{
-			"buffer":0,
-			"byteLength":3000,
-			"byteOffset":670400
+			"byteLength":1139,
+			"byteOffset":643000
 		}
 	],
 	"samplers":[
@@ -1003,8 +924,8 @@
 	],
 	"buffers":[
 		{
-			"byteLength":673400,
-			"uri":"Dino_Death_Scene4.bin"
+			"byteLength":644140,
+			"uri":"Dino_Death_Scene4_Half.bin"
 		}
 	]
 }

@@ -416,7 +416,7 @@ export default function Ocean({
       castShadow
       receiveShadow
     >
-      <planeGeometry args={[22.5, 23.5, 3, 3]} />
+      <planeGeometry args={[25.42,25.42, 3, 3]} />
     </mesh>
   )
 }

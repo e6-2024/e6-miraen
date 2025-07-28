@@ -197,12 +197,12 @@
 				0.5318273305892944,
 				0.4950430989265442,
 				-0.5068665146827698,
-				0.46387332677841187
+				0.4638732671737671
 			],
 			"scale":[
 				0.013541905209422112,
 				0.013533986173570156,
-				0.010780071839690208
+				0.009668003767728806
 			],
 			"translation":[
 				0.3265223503112793,
@@ -236,18 +236,18 @@
 			"rotation":[
 				0.5318273305892944,
 				0.4950430989265442,
-				-0.506866455078125,
+				-0.5068665146827698,
 				0.4638732671737671
 			],
 			"scale":[
-				0.014055238105356693,
-				0.014055238105356693,
-				0.014055236242711544
+				0.013921682722866535,
+				0.015092994086444378,
+				0.01405523531138897
 			],
 			"translation":[
-				-4.169883728027344,
+				-4.466376781463623,
 				1.7584960460662842,
-				-5.678608417510986
+				-5.611705780029297
 			]
 		}
 	],
@@ -1053,62 +1053,62 @@
 		},
 		{
 			"componentType":5126,
-			"count":577,
+			"count":574,
 			"max":[
-				309.4420471191406,
-				252.20870971679688,
-				19.169273376464844
+				309.44146728515625,
+				249.83473205566406,
+				19.375469207763672
 			],
 			"min":[
-				-193.71331787109375,
-				-204.8751220703125,
-				-29.979854583740234
+				-189.43319702148438,
+				-208.0536651611328,
+				-29.717830657958984
 			],
 			"type":"VEC3"
 		},
 		{
 			"componentType":5126,
-			"count":577,
+			"count":574,
 			"type":"VEC3"
 		},
 		{
 			"componentType":5126,
-			"count":577,
+			"count":574,
 			"type":"VEC2"
 		},
 		{
 			"componentType":5123,
-			"count":3072,
+			"count":3057,
 			"type":"SCALAR"
 		},
 		{
 			"componentType":5126,
-			"count":295,
+			"count":296,
 			"max":[
-				309.4420471191406,
-				254.49081420898438,
-				59.94265365600586
+				309.44146728515625,
+				252.6419677734375,
+				59.79364013671875
 			],
 			"min":[
-				-193.7626953125,
-				-204.8751220703125,
-				-29.979854583740234
+				-192.05770874023438,
+				-208.0536651611328,
+				-29.717830657958984
 			],
 			"type":"VEC3"
 		},
 		{
 			"componentType":5126,
-			"count":295,
+			"count":296,
 			"type":"VEC3"
 		},
 		{
 			"componentType":5126,
-			"count":295,
+			"count":296,
 			"type":"VEC2"
 		},
 		{
 			"componentType":5123,
-			"count":867,
+			"count":858,
 			"type":"SCALAR"
 		},
 		{
@@ -1145,13 +1145,13 @@
 			"componentType":5126,
 			"count":627,
 			"max":[
-				-180.47227478027344,
-				571.3651123046875,
+				-180.47291564941406,
+				571.1384887695312,
 				52.75694274902344
 			],
 			"min":[
-				-683.2850341796875,
-				107.5737533569336,
+				-683.654296875,
+				104.52217102050781,
 				-65.7469482421875
 			],
 			"type":"VEC3"
@@ -1205,83 +1205,83 @@
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":574,
+			"byteLength":562,
 			"byteOffset":0
 		},
 		{
 			"buffer":0,
-			"byteLength":555,
-			"byteOffset":576
+			"byteLength":541,
+			"byteOffset":564
 		},
 		{
 			"buffer":0,
-			"byteLength":156089,
-			"byteOffset":1132
+			"byteLength":156755,
+			"byteOffset":1108
 		},
 		{
 			"buffer":0,
-			"byteLength":659830,
-			"byteOffset":157224
+			"byteLength":636868,
+			"byteOffset":157864
 		},
 		{
 			"buffer":0,
-			"byteLength":695,
-			"byteOffset":817056
+			"byteLength":795,
+			"byteOffset":794732
 		},
 		{
 			"buffer":0,
-			"byteLength":695,
-			"byteOffset":817752
+			"byteLength":795,
+			"byteOffset":795528
 		},
 		{
 			"buffer":0,
-			"byteLength":697,
-			"byteOffset":818448
+			"byteLength":796,
+			"byteOffset":796324
 		},
 		{
 			"buffer":0,
-			"byteLength":700,
-			"byteOffset":819148
+			"byteLength":797,
+			"byteOffset":797120
 		},
 		{
 			"buffer":0,
-			"byteLength":4088,
-			"byteOffset":819848
+			"byteLength":4426,
+			"byteOffset":797920
 		},
 		{
 			"buffer":0,
-			"byteLength":2857,
-			"byteOffset":823936
+			"byteLength":2891,
+			"byteOffset":802348
 		},
 		{
 			"buffer":0,
-			"byteLength":957,
-			"byteOffset":826796
+			"byteLength":1102,
+			"byteOffset":805240
 		},
 		{
 			"buffer":0,
-			"byteLength":4823,
-			"byteOffset":827756
+			"byteLength":4861,
+			"byteOffset":806344
 		},
 		{
 			"buffer":0,
 			"byteLength":1000,
-			"byteOffset":832580
+			"byteOffset":811208
 		},
 		{
 			"buffer":0,
 			"byteLength":3000,
-			"byteOffset":833580
+			"byteOffset":812208
 		},
 		{
 			"buffer":0,
 			"byteLength":3000,
-			"byteOffset":836580
+			"byteOffset":815208
 		},
 		{
 			"buffer":0,
 			"byteLength":3000,
-			"byteOffset":839580
+			"byteOffset":818208
 		}
 	],
 	"samplers":[
@@ -1292,7 +1292,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":842580,
+			"byteLength":821208,
 			"uri":"Dino_Death_Scene2.bin"
 		}
 	]

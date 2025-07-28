@@ -11,6 +11,7 @@ interface ModelProps {
   onLoaded?: () => void
   animationTrigger?: number
   animationSpeed?: number // 애니메이션 속도 조절
+  customAnimation?: 'fadeAndMove' | null // 커스텀 애니메이션 타입 추가
 }
 
 export default function Model({ 
@@ -20,7 +21,8 @@ export default function Model({
   sceneIndex, 
   onLoaded,
   animationTrigger = 0,
-  animationSpeed = 1.0 // 기본 속도
+  animationSpeed = 1.0, // 기본 속도
+  customAnimation = null // 커스텀 애니메이션 prop 추가
 }: ModelProps) {
   const groupRef = useRef<THREE.Group>(null)
   const { scene, animations } = useGLTF(path) as any
@@ -101,31 +103,101 @@ export default function Model({
   useEffect(() => {
     console.log(`Model Scene ${sceneIndex}: animationTrigger changed to ${animationTrigger}`)
     
-    if (!mixer.current || !actionsRef.current.length) {
-      console.log(`Model Scene ${sceneIndex}: Cannot start animation - mixer or actions not ready`)
+    if (animationTrigger <= 0) return
+
+    // 커스텀 애니메이션이 있는 경우 (mixer나 actions가 필요없음)
+    if (customAnimation === 'fadeAndMove') {
+      if (!groupRef.current) {
+        console.log(`Model Scene ${sceneIndex}: Cannot start fadeAndMove - groupRef not ready`)
+        return
+      }
+      console.log(`Model Scene ${sceneIndex}: Starting fadeAndMove custom animation`)
+      startFadeAndMoveAnimation()
       return
     }
 
-    if (animationTrigger > 0) {
-      console.log(`Model Scene ${sceneIndex}: 모든 모델 애니메이션 시작! (총 ${actionsRef.current.length}개, 속도: ${animationSpeed})`)
-      
-      // 모든 애니메이션을 동시에 시작
-      actionsRef.current.forEach((action, index) => {
-        action.reset() // 애니메이션을 처음으로 되돌림
-        action.setLoop(THREE.LoopOnce, 1)
-        action.clampWhenFinished = true
-        action.paused = false // 일시정지 해제
-        action.play()
-        console.log(`Model Scene ${sceneIndex}: Animation ${index} started with speed ${animationSpeed}`)
-      })
-      
-      isAnimationPlayingRef.current = true
+    // 기본 GLTF 애니메이션의 경우 mixer와 actions가 필요
+    if (!mixer.current || !actionsRef.current.length) {
+      console.log(`Model Scene ${sceneIndex}: Cannot start GLTF animation - mixer or actions not ready`)
+      return
     }
-  }, [animationTrigger, sceneIndex, animationSpeed])
 
-  // 애니메이션 업데이트 및 완료 체크
+    // 기본 GLTF 애니메이션 실행
+    console.log(`Model Scene ${sceneIndex}: 모든 모델 애니메이션 시작! (총 ${actionsRef.current.length}개, 속도: ${animationSpeed})`)
+    
+    // 모든 애니메이션을 동시에 시작
+    actionsRef.current.forEach((action, index) => {
+      action.reset() // 애니메이션을 처음으로 되돌림
+      action.setLoop(THREE.LoopOnce, 1)
+      action.clampWhenFinished = true
+      action.paused = false // 일시정지 해제
+      action.play()
+      console.log(`Model Scene ${sceneIndex}: Animation ${index} started with speed ${animationSpeed}`)
+    })
+    
+    isAnimationPlayingRef.current = true
+  }, [animationTrigger, sceneIndex, animationSpeed, customAnimation])
+
+  // 커스텀 fadeAndMove 애니메이션 함수
+    const startFadeAndMoveAnimation = () => {
+    if (!scene || !scene.children[0]) return
+
+    const targetObject = scene.children[3]
+    const duration = 5000
+    const startTime = Date.now()
+
+    targetObject.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        const mesh = child as THREE.Mesh
+        if (Array.isArray(mesh.material)) {
+          mesh.material.forEach(material => {
+            material.transparent = true
+            material.opacity = 1
+          })
+        } else {
+          mesh.material.transparent = true
+          mesh.material.opacity = 1
+        }
+      }
+    })
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      
+      const eased = progress < 0.5 
+        ? 2 * progress * progress 
+        : -1 + (4 - 2 * progress) * progress
+
+
+      const opacity = 1 - eased
+      targetObject.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          const mesh = child as THREE.Mesh
+          if (Array.isArray(mesh.material)) {
+            mesh.material.forEach(material => {
+              material.opacity = opacity
+            })
+          } else {
+            mesh.material.opacity = opacity
+          }
+        }
+      })
+
+      if (progress < 1) {
+        requestAnimationFrame(animate)
+      } else {
+        console.log(`Model Scene ${sceneIndex}: FadeAndMove animation completed`)
+      }
+    }
+
+    animate()
+  }
+
+
+  // 애니메이션 업데이트 및 완료 체크 (GLTF 애니메이션용)
   useFrame((_, delta) => {
-    if (mixer.current && isAnimationPlayingRef.current) {
+    if (mixer.current && isAnimationPlayingRef.current && customAnimation !== 'fadeAndMove') {
       // 씬별 애니메이션 속도 적용
       mixer.current.update(delta * animationSpeed)
       
