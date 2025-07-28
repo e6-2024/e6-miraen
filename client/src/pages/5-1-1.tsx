@@ -10,7 +10,7 @@ import Intro from '@/components/intro/Intro'
 import { EffectComposer, TiltShift2, N8AO } from '@react-three/postprocessing'
 import { SpeechBubble } from '../components/6-1-1/SpeechBubble'
 import CameraLogger from '@/hook/CameraLogger'
-import NavigationUI from '@/components/5-1-1/NavigationUI'
+import NavigationUI, { NavigationUIRef } from '@/components/5-1-1/NavigationUI'
 import { AnimatePresence, motion } from 'framer-motion'
 import AudioManager from '@/components/5-1-1/AudioManager'
 
@@ -24,7 +24,7 @@ const modelPaths = [
 const sceneDescriptions = [
   '활발하게 살아가던 공룡은 수명이 다하면 죽습니다',
   '죽은 공룡의 몸체가 호수나 바다 밑에 가라 앉습니다.',
-  '간이 지나면서 죽은 생물의 몸체 위로 퇴적물이 쌓이며 지층이 만들어집니다.',
+  '시간이 지나면서 죽은 생물의 몸체 위로 퇴적물이 쌓이며 지층이 만들어집니다.',
   '시간이 지나 지층이 깎여서 사라지면 지층 속에 있던 화석이 지표에 드러나 발견됩니다.',
 ]
 
@@ -37,9 +37,16 @@ const cameraPositions = [
 
 const animationSpeeds = {
   0: 2.0,
-  1: 0.2,
+  1: 0.3,
   2: 0.4,
   3: 0.2,
+}
+
+// 단순화된 애니메이션 상태 타입
+interface AnimationState {
+  isPlaying: boolean;
+  isComplete: boolean;
+  waterLevel: number;
 }
 
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
@@ -147,311 +154,79 @@ function SceneCameraController({ sceneIndex }: { sceneIndex: number }) {
   return null
 }
 
-function CameraController({
-  targetPosition,
-  onMoveComplete,
-}: {
-  targetPosition: THREE.Vector3 | null
-  onMoveComplete: () => void
-}) {
-  const { camera } = useThree()
-  const startPosition = useRef<THREE.Vector3>(new THREE.Vector3())
-  const animationProgress = useRef(0)
-  const isAnimating = useRef(false)
-
-  useFrame((state, delta) => {
-    if (!targetPosition || !isAnimating.current) return
-
-    const duration = 2.0
-    animationProgress.current += delta / duration
-
-    if (animationProgress.current >= 1) {
-      camera.position.copy(targetPosition)
-      camera.lookAt(0, 0, 0)
-      isAnimating.current = false
-      animationProgress.current = 0
-      onMoveComplete()
-      return
-    }
-
-    const t = animationProgress.current
-    const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
-
-    const currentPosition = startPosition.current.clone().lerp(targetPosition, eased)
-    camera.position.copy(currentPosition)
-    camera.lookAt(0, 0, 0)
-  })
+// 물 레벨 애니메이션을 처리하는 훅
+function useWaterAnimation(sceneIndex: number, shouldAnimate: boolean) {
+  const [waterLevel, setWaterLevel] = useState(-2.0)
+  const animationRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
-    if (targetPosition) {
-      startPosition.current.copy(camera.position)
-      animationProgress.current = 0
-      isAnimating.current = true
+    // 씬 변경 시 초기화
+    const initialLevel = sceneIndex === 1 ? 1 : -2.0
+    setWaterLevel(initialLevel)
+    
+    // 기존 애니메이션 정리
+    if (animationRef.current) {
+      clearInterval(animationRef.current)
+      animationRef.current = null
     }
-  }, [targetPosition, camera])
-
-  return null
-}
-
-function AnimationController({
-  sceneIndex,
-  modelLoaded,
-  onWaterLevelUpdate,
-  animationTrigger,
-  onModelAnimationTrigger,
-  onAnimationComplete,
-  playButtonTrigger,
-  onShowDescription,
-  onCleanup,
-}: {
-  sceneIndex: number
-  modelLoaded: boolean
-  onWaterLevelUpdate: (level: number) => void
-  animationTrigger: boolean
-  onModelAnimationTrigger?: (trigger: number) => void
-  onAnimationComplete: () => void
-  playButtonTrigger: boolean
-  onShowDescription: () => void
-  onCleanup?: (cleanup: () => void) => void
-}) {
-  const animationStateRef = useRef({
-    isAnimating: false,
-    currentWaterLevel: -5.0,
-    lastSceneIndex: -1,
-    animationIntervalId: null as NodeJS.Timeout | null,
-  })
-
-  const cleanup = useCallback(() => {
-    const state = animationStateRef.current
-    if (state.animationIntervalId) {
-      clearInterval(state.animationIntervalId)
-      state.animationIntervalId = null
-    }
-    state.isAnimating = false
-    state.currentWaterLevel = -5.0
-    state.lastSceneIndex = -1
-  }, [])
+  }, [sceneIndex])
 
   useEffect(() => {
-    if (onCleanup) {
-      onCleanup(cleanup)
-    }
-  }, [cleanup, onCleanup])
-
-  useEffect(() => {
-    const state = animationStateRef.current
-
-    if (state.lastSceneIndex !== sceneIndex) {
-      console.log(`Scene changed from ${state.lastSceneIndex} to ${sceneIndex} - resetting animation state`)
-      state.lastSceneIndex = sceneIndex
-      state.isAnimating = false
-
-      if (state.animationIntervalId) {
-        clearInterval(state.animationIntervalId)
-        state.animationIntervalId = null
-      }
-      if (sceneIndex === 1) {
-        state.currentWaterLevel = 1
-      }
-      onWaterLevelUpdate(state.currentWaterLevel)
-    }
-  }, [sceneIndex, onWaterLevelUpdate])
-
-  useEffect(() => {
-    if (playButtonTrigger && modelLoaded) {
-      const state = animationStateRef.current
-
-      onShowDescription()
-
-      setTimeout(() => {
-        switch (sceneIndex) {
-          case 0:
-            startModelAnimation()
-            break
-          case 1:
-            startModelAnimation()
-            startWaterLevelAnimation(state, onWaterLevelUpdate, () => {
-              onAnimationComplete()
-            })
-            break
-          case 2:
-            startModelAnimation()
-            startWaterLevelAnimation(state, onWaterLevelUpdate, () => {
-              onAnimationComplete()
-            })
-          case 3:
-            startModelAnimation()
-            break
-        }
-      }, 300)
-    }
-  }, [playButtonTrigger, modelLoaded, sceneIndex, onWaterLevelUpdate, onShowDescription])
-
-  useEffect(() => {
-    if (animationTrigger && modelLoaded) {
-      console.log(`Scene ${sceneIndex}: animationTrigger received but will be handled by playButtonTrigger`)
-    }
-  }, [animationTrigger, modelLoaded, sceneIndex])
-
-  const startModelAnimation = () => {
-    const newTrigger = Date.now()
-    onModelAnimationTrigger && onModelAnimationTrigger(newTrigger)
-
-    setTimeout(() => {
-      console.log(`Scene ${sceneIndex}: Model animation completed`)
-      onAnimationComplete()
-    }, 5000)
-  }
-
-  const startModel4Animation = () => {
-    const newTrigger = Date.now()
-    onModelAnimationTrigger && onModelAnimationTrigger(newTrigger)
-
-    setTimeout(() => {
-      console.log(`Scene ${sceneIndex}: Model animation completed`)
-      onAnimationComplete()
-    }, 5000)
-  }
-
-  const startWaterLevelAnimation = (state: any, updateCallback: (level: number) => void, onComplete?: () => void) => {
-    if (state.isAnimating || state.animationIntervalId) return
-
-    console.log(`Scene ${sceneIndex}: Starting water level animation`)
-    state.isAnimating = true
+    if (!shouldAnimate || (sceneIndex !== 1 && sceneIndex !== 2)) return
 
     const startLevel = 1
     const targetLevel = 2.5
     const duration = 6000
     const startTime = Date.now()
 
-    state.animationIntervalId = setInterval(() => {
+    animationRef.current = setInterval(() => {
       const elapsed = Date.now() - startTime
       const progress = Math.min(elapsed / duration, 1.0)
-
       const eased = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2
-
       const currentLevel = startLevel + (targetLevel - startLevel) * eased
-      state.currentWaterLevel = currentLevel
 
-      updateCallback(currentLevel)
+      setWaterLevel(currentLevel)
 
       if (progress >= 1.0) {
-        clearInterval(state.animationIntervalId!)
-        state.animationIntervalId = null
-        state.isAnimating = false
-
-        if (onComplete) {
-          onComplete()
-        }
+        clearInterval(animationRef.current!)
+        animationRef.current = null
       }
     }, 50)
-  }
 
-  useEffect(() => {
     return () => {
-      const state = animationStateRef.current
-      if (state.animationIntervalId) {
-        clearInterval(state.animationIntervalId)
+      if (animationRef.current) {
+        clearInterval(animationRef.current)
+        animationRef.current = null
       }
     }
-  }, [])
+  }, [shouldAnimate, sceneIndex])
 
-  return null
-}
-
-function ModelRenderer({
-  sceneIndex,
-  modelAnimationTrigger,
-  onModelLoaded,
-}: {
-  sceneIndex: number
-  modelAnimationTrigger: number
-  onModelLoaded: () => void
-}) {
-  const currentModelPath = modelPaths[sceneIndex]
-
-  const modelPosition: [number, number, number] = sceneIndex === 1 ? [-2.44, -7, -1.31] : [1.5, -7, -2.0]
-
-  return (
-    <Model
-      key={`model-${sceneIndex}`}
-      path={currentModelPath}
-      scale={3.7}
-      position={modelPosition}
-      sceneIndex={sceneIndex}
-      onLoaded={onModelLoaded}
-      animationTrigger={modelAnimationTrigger}
-      animationSpeed={animationSpeeds[sceneIndex as keyof typeof animationSpeeds]}
-      customAnimation={sceneIndex === 3 ? 'fadeAndMove' : null}
-    />
-  )
+  return waterLevel
 }
 
 function SceneContent({
   sceneIndex,
-  waterLevel,
-  handleWaterLevelUpdate,
-  handleModelLoaded,
-  showIntro,
-  animationTrigger,
+  animationState,
   onAnimationComplete,
-  showSpeechBubble,
-  onSpeechBubbleClick,
-  cameraTarget,
-  onCameraMoveComplete,
-  playButtonTrigger,
-  onShowDescription,
-  onAnimationCleanup,
-  resetKey,
+  showIntro,
 }: {
-  sceneIndex: number
-  waterLevel: number
-  handleWaterLevelUpdate: (level: number) => void
-  handleModelLoaded: () => void
-  showIntro: boolean
-  animationTrigger: boolean
-  onAnimationComplete: () => void
-  showSpeechBubble: boolean
-  onSpeechBubbleClick: () => void
-  cameraTarget: THREE.Vector3 | null
-  onCameraMoveComplete: () => void
-  playButtonTrigger: boolean
-  onShowDescription: () => void
-  onAnimationCleanup?: (cleanup: () => void) => void
-  resetKey?: number
+  sceneIndex: number;
+  animationState: AnimationState;
+  onAnimationComplete: () => void;
+  showIntro: boolean;
 }) {
-  const [modelAnimationTrigger, setModelAnimationTrigger] = useState(0)
   const showWater = sceneIndex === 1
-  const modelLoaded = true
+  const waterLevel = useWaterAnimation(sceneIndex, animationState.isPlaying)
 
-  useEffect(() => {
-    console.log(`Scene changed to ${sceneIndex}, resetting modelAnimationTrigger to 0`)
-    setModelAnimationTrigger(0)
-  }, [sceneIndex, resetKey])
-
-  const handleModelAnimationTrigger = (trigger: number) => {
-    console.log(`SceneContent: Setting modelAnimationTrigger to: ${trigger} for scene ${sceneIndex}`)
-    setModelAnimationTrigger(trigger)
+  const handleModelAnimationComplete = () => {
+    console.log(`Model animation completed for scene ${sceneIndex}`)
+    onAnimationComplete()
   }
 
   return (
     <>
       <SceneCameraController sceneIndex={sceneIndex} />
       <IntroMouseCameraController enabled={showIntro} />
-      <AnimationController
-        key={`animation-${resetKey}`}
-        sceneIndex={sceneIndex}
-        modelLoaded={modelLoaded}
-        onWaterLevelUpdate={handleWaterLevelUpdate}
-        animationTrigger={animationTrigger}
-        onModelAnimationTrigger={handleModelAnimationTrigger}
-        onAnimationComplete={onAnimationComplete}
-        playButtonTrigger={playButtonTrigger}
-        onShowDescription={onShowDescription}
-        onCleanup={onAnimationCleanup}
-      />
-
-      <CameraController targetPosition={cameraTarget} onMoveComplete={onCameraMoveComplete} />
 
       {!showWater && (
         <>
@@ -466,7 +241,7 @@ function SceneContent({
             shadow-camera-far={100}
             shadow-mapSize={2048}
             shadow-bias={-0.0001}
-            shadow-normalBias = {0.2}
+            shadow-normalBias={0.2}
           />
           <EffectComposer multisampling={8}>
             <N8AO aoRadius={10} distanceFalloff={0.9} intensity={3} screenSpaceRadius halfRes />
@@ -475,11 +250,15 @@ function SceneContent({
         </>
       )}
 
-      <ModelRenderer
-        key={`model-${sceneIndex}-${resetKey}`}
+      <Model
+        path={modelPaths[sceneIndex]}
+        scale={3.7}
+        position={sceneIndex === 1 ? [-2.44, -7, -1.31] : [1.5, -7, -2.0]}
         sceneIndex={sceneIndex}
-        modelAnimationTrigger={modelAnimationTrigger}
-        onModelLoaded={handleModelLoaded}
+        shouldAnimate={animationState.isPlaying}
+        animationSpeed={animationSpeeds[sceneIndex as keyof typeof animationSpeeds]}
+        customAnimation={sceneIndex === 3 ? 'fadeAndMove' : null}
+        onAnimationComplete={handleModelAnimationComplete}
       />
 
       {showWater && (
@@ -509,110 +288,95 @@ function SceneContent({
 
 export default function Home() {
   const [sceneIndex, setSceneIndex] = useState(0)
-  const [waterLevel, setWaterLevel] = useState(-2.0)
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
-  const [animationTrigger, setAnimationTrigger] = useState(false)
-  const [isPlayButtonPressed, setIsPlayButtonPressed] = useState(false)
-  const [showSpeechBubble, setShowSpeechBubble] = useState(false)
-  const [cameraTarget, setCameraTarget] = useState<THREE.Vector3 | null>(null)
-  const [playButtonTrigger, setPlayButtonTrigger] = useState(false)
   const [showDescription, setShowDescription] = useState(false)
-  const [resetKey, setResetKey] = useState(0)
+  
+  // 단순화된 애니메이션 상태 관리
+  const [animationState, setAnimationState] = useState<AnimationState>({
+    isPlaying: false,
+    isComplete: false,
+    waterLevel: -2.0
+  })
+
   const audioManager = AudioManager.getInstance()
-  const animationCleanupRef = useRef<(() => void) | null>(null)
+  const navigationUIRef = useRef<NavigationUIRef>(null)
 
   const handleLoadingComplete = () => {
     setIsLoaded(true)
   }
 
-  const handleAnimationCleanup = useCallback((cleanup: () => void) => {
-    animationCleanupRef.current = cleanup
-  }, [])
-
   const handleBackToModeSelection = useCallback(() => {
-    audioManager.playGeneralButton()
+    console.log('뒤로가기 버튼 클릭 - 모든 오디오 정리 시작')
+
     audioManager.stopAll()
-    
-    if (animationCleanupRef.current) {
-      animationCleanupRef.current()
+
+    if (navigationUIRef.current) {
+      navigationUIRef.current.stopAllAudios()
     }
-    
+
+    audioManager.playGeneralButton()
+
+    // 상태 초기화
     setSceneIndex(0)
-    setWaterLevel(-2.0)
     setIsLoaded(false)
-    setAnimationTrigger(false)
-    setIsPlayButtonPressed(false)
-    setShowSpeechBubble(false)
-    setCameraTarget(null)
-    setPlayButtonTrigger(false)
     setShowDescription(false)
-    setResetKey(prev => prev + 1)
-    animationCleanupRef.current = null
-    
+    setAnimationState({
+      isPlaying: false,
+      isComplete: false,
+      waterLevel: -2.0
+    })
+
     setTimeout(() => {
       setShowIntro(true)
     }, 100)
   }, [audioManager])
 
+  useEffect(() => {
+    return () => {
+      console.log('컴포넌트 언마운트 - 모든 오디오 정리')
+      audioManager.stopAll()
+      if (navigationUIRef.current) {
+        navigationUIRef.current.stopAllAudios()
+      }
+    }
+  }, [audioManager])
+
   const handleSceneChange = (newSceneIndex: number) => {
     console.log(`Scene changing from ${sceneIndex} to ${newSceneIndex}`)
+
     setSceneIndex(newSceneIndex)
     setIsLoaded(false)
-    setAnimationTrigger(false)
-    setShowSpeechBubble(false)
-    setCameraTarget(null)
-    setPlayButtonTrigger(false)
     setShowDescription(false)
-  }
+    
+    // 애니메이션 상태 초기화 (자동 재생하지 않음)
+    setAnimationState({
+      isPlaying: false,
+      isComplete: false,
+      waterLevel: -2.0
+    })
 
-  const handleWaterLevelUpdate = (level: number) => {
-    setWaterLevel(level)
-  }
-
-  const handleModelLoaded = () => {
+    // 로딩 완료만 설정 (자동 애니메이션 제거)
+    setTimeout(() => {
+      setIsLoaded(true)
+    }, 100)
   }
 
   const handleAnimationComplete = () => {
     console.log(`Animation completed for scene ${sceneIndex}`)
-  }
-
-  const handleSpeechBubbleClick = () => {
-    const targetPosition = new THREE.Vector3(5, 2, 5)
-    setCameraTarget(targetPosition)
-    setShowSpeechBubble(false)
-  }
-
-  const handleCameraMoveComplete = () => {
-    setCameraTarget(null)
-  }
-
-  const handleShowDescription = () => {
-    setShowDescription(true)
+    setAnimationState(prev => ({
+      ...prev,
+      isPlaying: false,
+      isComplete: true
+    }))
   }
 
   const playClickSound = (audioPath: string = '/sounds/Enter_Cute.mp3') => {
-    try {
-      const audio = new Audio(audioPath)
-      audio.volume = 0.5
-      audio.play().catch((error) => {
-        console.log('효과음 재생 실패:', error.name)
-      })
-    } catch (error) {
-      console.log('효과음 생성 실패:', error)
-    }
+    audioManager.playEffect(audioPath, 0.5)
   }
 
   const playClickButtonSound = (audioPath: string = '/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3') => {
-    try {
-      const audio = new Audio(audioPath)
-      audio.volume = 0.5
-      audio.play().catch((error) => {
-        console.log('버튼 클릭 효과음 재생 실패:', error.name)
-      })
-    } catch (error) {
-      console.log('버튼 클릭 효과음 생성 실패:', error)
-    }
+    audioManager.playEffect(audioPath, 0.5)
   }
 
   const handleEnterExperience = () => {
@@ -624,28 +388,26 @@ export default function Home() {
 
   const handlePlayButtonClick = () => {
     playClickButtonSound()
-    setIsPlayButtonPressed(true)
-
-    setTimeout(() => {
-      setIsPlayButtonPressed(false)
-
-      console.log(`Play button clicked for scene ${sceneIndex}`)
-      setPlayButtonTrigger(true)
-
-      setTimeout(() => {
-        setPlayButtonTrigger(false)
-      }, 200)
-    }, 150)
+    
+    console.log(`Play button clicked for scene ${sceneIndex}`)
+    setShowDescription(true)
+    
+    // 애니메이션 상태를 즉시 업데이트하여 Model에서 감지할 수 있도록 함
+    setAnimationState(prev => ({
+      ...prev,
+      isPlaying: true,
+      isComplete: false
+    }))
   }
 
   return (
     <div className='w-screen h-screen flex flex-col overflow-hidden'>
       {!showIntro && (
         <NavigationUI
+          ref={navigationUIRef}
           sceneIndex={sceneIndex}
           onSceneChange={handleSceneChange}
           onPlayClick={handlePlayButtonClick}
-          isPlayButtonPressed={isPlayButtonPressed}
         />
       )}
 
@@ -684,19 +446,9 @@ export default function Home() {
 
           <SceneContent
             sceneIndex={sceneIndex}
-            waterLevel={waterLevel}
-            handleWaterLevelUpdate={handleWaterLevelUpdate}
-            handleModelLoaded={handleModelLoaded}
-            showIntro={showIntro}
-            animationTrigger={animationTrigger}
+            animationState={animationState}
             onAnimationComplete={handleAnimationComplete}
-            showSpeechBubble={showSpeechBubble}
-            onSpeechBubbleClick={handleSpeechBubbleClick}
-            cameraTarget={cameraTarget}
-            onCameraMoveComplete={handleCameraMoveComplete}
-            playButtonTrigger={playButtonTrigger}
-            onShowDescription={handleShowDescription}
-            onAnimationCleanup={handleAnimationCleanup}
+            showIntro={showIntro}
           />
         </Scene>
       </div>

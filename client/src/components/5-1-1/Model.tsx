@@ -7,145 +7,145 @@ interface ModelProps {
   path: string
   scale?: number
   position?: [number, number, number]
-  sceneIndex?: number
-  onLoaded?: () => void
-  animationTrigger?: number
-  animationSpeed?: number // 애니메이션 속도 조절
-  customAnimation?: 'fadeAndMove' | null // 커스텀 애니메이션 타입 추가
+  sceneIndex: number
+  shouldAnimate: boolean // 단순화된 애니메이션 트리거
+  animationSpeed?: number
+  customAnimation?: 'fadeAndMove' | null
+  onAnimationComplete?: () => void
 }
 
 export default function Model({ 
   path, 
   scale = 4, 
   position = [0, 0, 0], 
-  sceneIndex, 
-  onLoaded,
-  animationTrigger = 0,
-  animationSpeed = 1.0, // 기본 속도
-  customAnimation = null // 커스텀 애니메이션 prop 추가
+  sceneIndex,
+  shouldAnimate,
+  animationSpeed = 1.0,
+  customAnimation = null,
+  onAnimationComplete
 }: ModelProps) {
   const groupRef = useRef<THREE.Group>(null)
   const { scene, animations } = useGLTF(path) as any
   const mixer = useRef<THREE.AnimationMixer | null>(null)
   const actionsRef = useRef<THREE.AnimationAction[]>([])
-  const isAnimationPlayingRef = useRef(false)
-  const lastSceneIndexRef = useRef<number>(-1)
+  const animationStateRef = useRef({
+    isInitialized: false,
+    isPlaying: false,
+    isComplete: false,
+    currentSceneIndex: -1
+  })
 
-  // 씬이 변경될 때 애니메이션 상태 초기화
+  // 씬이 변경될 때마다 완전히 초기화
   useEffect(() => {
-    if (lastSceneIndexRef.current !== sceneIndex) {
-      console.log(`Model: Scene changed from ${lastSceneIndexRef.current} to ${sceneIndex} - resetting animation state`)
-      lastSceneIndexRef.current = sceneIndex
-      isAnimationPlayingRef.current = false
-      
-      // 모든 애니메이션 액션 정지
-      if (actionsRef.current.length > 0) {
-        actionsRef.current.forEach(action => {
-          action.stop()
-          action.reset()
-        })
-      }
+    const state = animationStateRef.current
+    
+    console.log(`Model: Scene changed to ${sceneIndex}, reinitializing...`)
+    
+    // 기존 상태 완전 초기화
+    state.isInitialized = false
+    state.isPlaying = false
+    state.isComplete = false
+    state.currentSceneIndex = sceneIndex
+    
+    // fadeAndMove 애니메이션 초기화 (투명도 복원)
+    if (scene && scene.children[3]) {
+      const targetObject = scene.children[3]
+      targetObject.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          const mesh = child as THREE.Mesh
+          if (Array.isArray(mesh.material)) {
+            mesh.material.forEach(material => {
+              material.transparent = true
+              material.opacity = 1 // 투명도를 1로 복원
+            })
+          } else {
+            mesh.material.transparent = true
+            mesh.material.opacity = 1 // 투명도를 1로 복원
+          }
+        }
+      })
+      console.log(`Model Scene ${sceneIndex}: FadeAndMove materials reset to opacity 1`)
     }
-  }, [sceneIndex])
+    
+    // 기존 애니메이션 정리
+    if (actionsRef.current.length > 0) {
+      actionsRef.current.forEach(action => {
+        action.stop()
+        action.reset()
+      })
+      actionsRef.current = []
+    }
+    
+    if (mixer.current) {
+      mixer.current.stopAllAction()
+      mixer.current = null
+    }
+  }, [sceneIndex, scene])
 
-  // 애니메이션 초기화
+  // 애니메이션 초기화 (씬별로 한 번만)
   useEffect(() => {
-    if (!scene || !animations.length || !groupRef.current) return
-
-    // 이미 같은 씬에 대해 초기화된 경우 스킵
-    if (mixer.current && lastSceneIndexRef.current === sceneIndex) {
+    if (!scene || !animations.length || !groupRef.current) {
+      console.log(`Model Scene ${sceneIndex}: Missing requirements - scene: ${!!scene}, animations: ${animations.length}, groupRef: ${!!groupRef.current}`)
+      return
+    }
+    
+    const state = animationStateRef.current
+    if (state.isInitialized && state.currentSceneIndex === sceneIndex) {
       console.log(`Model Scene ${sceneIndex}: Already initialized, skipping`)
       return
     }
 
-    console.log(`Model Scene ${sceneIndex}: Found ${animations.length} animations:`, animations.map(anim => anim.name))
-    console.log(`Model Scene ${sceneIndex}: Animation speed set to ${animationSpeed}`)
+    console.log(`Model Scene ${sceneIndex}: Initializing ${animations.length} animations`)
     
-    // 기존 믹서 정리
-    if (mixer.current) {
-      mixer.current.stopAllAction()
-    }
-    
+    // 믹서 생성
     mixer.current = new THREE.AnimationMixer(groupRef.current)
-
-    // 모든 애니메이션에 대해 액션 생성
+    
+    // 애니메이션 액션 생성
     const actions = animations.map((animation, index) => {
       const action = mixer.current!.clipAction(animation)
-      
-      // 모든 스텝에서 초기에는 정지 상태로 설정
       action.setLoop(THREE.LoopOnce, 1)
       action.clampWhenFinished = true
-      action.play()
-      action.paused = true // 초기에는 일시정지
+      action.reset()
       
-      console.log(`Model Scene ${sceneIndex}: Animation ${index} (${animation.name}) initialized and paused`)
+      console.log(`Model Scene ${sceneIndex}: Animation ${index} (${animation.name}) prepared - duration: ${animation.duration}s`)
       return action
     })
-
+    
     actionsRef.current = actions
-    isAnimationPlayingRef.current = false
-
-    if (onLoaded) {
-      onLoaded()
-    }
+    state.isInitialized = true
+    
+    console.log(`Model Scene ${sceneIndex}: Initialization complete`)
 
     return () => {
+      // 컴포넌트 언마운트 시에만 정리
       if (actionsRef.current.length > 0) {
         actionsRef.current.forEach(action => action.stop())
+        actionsRef.current = []
       }
       if (mixer.current) {
         mixer.current.stopAllAction()
+        mixer.current = null
       }
     }
-  }, [scene, animations, sceneIndex, animationSpeed, onLoaded])
+  }, [scene, animations, sceneIndex, groupRef.current])
 
-  // animationTrigger prop에 따라 애니메이션 시작
-  useEffect(() => {
-    console.log(`Model Scene ${sceneIndex}: animationTrigger changed to ${animationTrigger}`)
-    
-    if (animationTrigger <= 0) return
-
-    // 커스텀 애니메이션이 있는 경우 (mixer나 actions가 필요없음)
-    if (customAnimation === 'fadeAndMove') {
-      if (!groupRef.current) {
-        console.log(`Model Scene ${sceneIndex}: Cannot start fadeAndMove - groupRef not ready`)
-        return
-      }
-      console.log(`Model Scene ${sceneIndex}: Starting fadeAndMove custom animation`)
-      startFadeAndMoveAnimation()
+  // 커스텀 fadeAndMove 애니메이션 함수를 먼저 선언
+  const startFadeAndMoveAnimation = () => {
+    if (!scene || !scene.children[3]) {
+      console.log(`Model Scene ${sceneIndex}: FadeAndMove - scene or children[3] not found`)
       return
     }
 
-    // 기본 GLTF 애니메이션의 경우 mixer와 actions가 필요
-    if (!mixer.current || !actionsRef.current.length) {
-      console.log(`Model Scene ${sceneIndex}: Cannot start GLTF animation - mixer or actions not ready`)
-      return
-    }
-
-    // 기본 GLTF 애니메이션 실행
-    console.log(`Model Scene ${sceneIndex}: 모든 모델 애니메이션 시작! (총 ${actionsRef.current.length}개, 속도: ${animationSpeed})`)
-    
-    // 모든 애니메이션을 동시에 시작
-    actionsRef.current.forEach((action, index) => {
-      action.reset() // 애니메이션을 처음으로 되돌림
-      action.setLoop(THREE.LoopOnce, 1)
-      action.clampWhenFinished = true
-      action.paused = false // 일시정지 해제
-      action.play()
-      console.log(`Model Scene ${sceneIndex}: Animation ${index} started with speed ${animationSpeed}`)
-    })
-    
-    isAnimationPlayingRef.current = true
-  }, [animationTrigger, sceneIndex, animationSpeed, customAnimation])
-
-  // 커스텀 fadeAndMove 애니메이션 함수
-    const startFadeAndMoveAnimation = () => {
-    if (!scene || !scene.children[0]) return
+    const state = animationStateRef.current
+    state.isPlaying = true
 
     const targetObject = scene.children[3]
     const duration = 5000
     const startTime = Date.now()
 
+    console.log(`Model Scene ${sceneIndex}: Starting FadeAndMove animation`)
+
+    // 초기 투명도 설정
     targetObject.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         const mesh = child as THREE.Mesh
@@ -162,13 +162,17 @@ export default function Model({
     })
 
     const animate = () => {
+      if (state.currentSceneIndex !== sceneIndex) {
+        console.log(`Model Scene ${sceneIndex}: FadeAndMove animation interrupted by scene change`)
+        return
+      }
+
       const elapsed = Date.now() - startTime
       const progress = Math.min(elapsed / duration, 1)
       
       const eased = progress < 0.5 
         ? 2 * progress * progress 
         : -1 + (4 - 2 * progress) * progress
-
 
       const opacity = 1 - eased
       targetObject.traverse((child) => {
@@ -187,30 +191,76 @@ export default function Model({
       if (progress < 1) {
         requestAnimationFrame(animate)
       } else {
+        state.isPlaying = false
+        state.isComplete = true
         console.log(`Model Scene ${sceneIndex}: FadeAndMove animation completed`)
+        onAnimationComplete?.()
       }
     }
 
     animate()
   }
 
+  // 애니메이션 실행
+  useEffect(() => {
+    console.log(`Model Scene ${sceneIndex}: shouldAnimate changed to ${shouldAnimate}`)
+    
+    if (!shouldAnimate) return
+    
+    const state = animationStateRef.current
+    if (!state.isInitialized && customAnimation !== 'fadeAndMove') {
+      console.log(`Model Scene ${sceneIndex}: Not initialized yet, skipping animation`)
+      return
+    }
+    
+    if (state.isPlaying) {
+      console.log(`Model Scene ${sceneIndex}: Already playing, skipping`)
+      return
+    }
 
-  // 애니메이션 업데이트 및 완료 체크 (GLTF 애니메이션용)
-  useFrame((_, delta) => {
-    if (mixer.current && isAnimationPlayingRef.current && customAnimation !== 'fadeAndMove') {
-      // 씬별 애니메이션 속도 적용
-      mixer.current.update(delta * animationSpeed)
+    console.log(`Model Scene ${sceneIndex}: Starting animation (shouldAnimate: ${shouldAnimate})`)
+
+    // 커스텀 애니메이션 처리
+    if (customAnimation === 'fadeAndMove') {
+      startFadeAndMoveAnimation()
+      return
+    }
+
+    // GLTF 애니메이션 처리
+    if (mixer.current && actionsRef.current.length > 0) {
+      state.isPlaying = true
       
-      // 모든 애니메이션이 끝났는지 확인
-      if (actionsRef.current.length > 0) {
-        const allFinished = actionsRef.current.every(action => 
-          action.time >= action.getClip().duration
-        )
-        
-        if (allFinished) {
-          isAnimationPlayingRef.current = false
-          console.log(`Model Scene ${sceneIndex}: 모든 모델 애니메이션 완료! (총 ${actionsRef.current.length}개, 속도: ${animationSpeed})`)
-        }
+      actionsRef.current.forEach((action, index) => {
+        action.reset()
+        action.timeScale = animationSpeed
+        action.play()
+        console.log(`Model Scene ${sceneIndex}: Animation ${index} started with speed ${animationSpeed}`)
+      })
+    } else {
+      console.log(`Model Scene ${sceneIndex}: No mixer or actions available for GLTF animation`)
+    }
+  }, [shouldAnimate, sceneIndex, animationSpeed, customAnimation])
+
+  // GLTF 애니메이션 업데이트
+  useFrame((_, delta) => {
+    const state = animationStateRef.current
+    
+    if (!mixer.current || !state.isPlaying || customAnimation === 'fadeAndMove') return
+
+    // 애니메이션 업데이트
+    mixer.current.update(delta)
+    
+    // 완료 체크
+    if (actionsRef.current.length > 0) {
+      const allFinished = actionsRef.current.every(action => 
+        action.time >= action.getClip().duration
+      )
+      
+      if (allFinished && !state.isComplete) {
+        state.isPlaying = false
+        state.isComplete = true
+        console.log(`Model Scene ${sceneIndex}: All GLTF animations completed`)
+        onAnimationComplete?.()
       }
     }
   })
@@ -218,6 +268,7 @@ export default function Model({
   // 모델 설정 (그림자 등)
   useEffect(() => {
     if (!scene) return
+    
     scene.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         const mesh = child as THREE.Mesh
@@ -230,7 +281,7 @@ export default function Model({
         }
       }
     })
-  }, [sceneIndex, scene])
+  }, [scene])
 
   return (
     <group ref={groupRef} scale={scale} position={position}>

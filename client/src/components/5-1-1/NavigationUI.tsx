@@ -1,32 +1,40 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useImperativeHandle, forwardRef } from 'react'
 
-export default function NavigationUI({
-  sceneIndex,
-  onSceneChange,
-  onPlayClick,
-  isPlayButtonPressed,
-}: {
-  sceneIndex: number
-  onSceneChange: (index: number) => void
-  onPlayClick: () => void
-  isPlayButtonPressed: boolean
-}) {
+export interface NavigationUIRef {
+  stopAllAudios: () => void
+}
+
+const NavigationUI = forwardRef<
+  NavigationUIRef,
+  {
+    sceneIndex: number
+    onSceneChange: (index: number) => void
+    onPlayClick: () => void
+  }
+>(({ sceneIndex, onSceneChange, onPlayClick }, ref) => {
   const currentAudiosRef = useRef<HTMLAudioElement[]>([])
-
-  const [isResetButtonPressed, setResetButtonPressed] = useState(false)
+  const [isPlayButtonPressed, setIsPlayButtonPressed] = useState(false)
+  const [isResetButtonPressed, setIsResetButtonPressed] = useState(false)
 
   const stopAllAudios = () => {
+    console.log('NavigationUI: Stopping all audios:', currentAudiosRef.current.length)
     currentAudiosRef.current.forEach((audio) => {
       audio.pause()
       audio.currentTime = 0
+      audio.removeEventListener('ended', () => {})
+      audio.removeEventListener('error', () => {})
     })
     currentAudiosRef.current = []
   }
 
+  useImperativeHandle(ref, () => ({
+    stopAllAudios,
+  }))
+
   const stepAudioFiles = {
-    0: ['/sounds/5-1-1/5-1-1-0_0626.MP3'],
+    0: ['sounds/5-1-1/5-1-1-D.MP3', '/sounds/5-1-1/5-1-1-0_0626.MP3'],
     1: ['/sounds/5-1-1/5-1-1-A.MP3', '/sounds/5-1-1/5-1-1-2-1_lake-beach-waves-28492.mp3'],
-    2: ['/sounds/5-1-1/5-1-1-B.MP3', '/sounds/5-1-1/5-1-1-3_forest-atmosphere-003localization-poland-329746.mp3'],
+    2: ['/sounds/5-1-1/5-1-1-E.MP3', '/sounds/5-1-1/5-1-1-3_forest-atmosphere-003localization-poland-329746.mp3'],
     3: ['/sounds/5-1-1/5-1-1-C.MP3', '/sounds/5-1-1/5-1-1-4_footfalls-35757.mp3'],
   }
 
@@ -42,12 +50,28 @@ export default function NavigationUI({
         const audio = new Audio(audioPath)
         audio.volume = 0.5
 
+        const handleEnded = () => {
+          const audioIndex = currentAudiosRef.current.indexOf(audio)
+          if (audioIndex > -1) {
+            currentAudiosRef.current.splice(audioIndex, 1)
+          }
+        }
+
+        const handleError = (error: any) => {
+          console.log(`오디오 ${index + 1} 재생 실패:`, error)
+          const audioIndex = currentAudiosRef.current.indexOf(audio)
+          if (audioIndex > -1) {
+            currentAudiosRef.current.splice(audioIndex, 1)
+          }
+        }
+
+        audio.addEventListener('ended', handleEnded)
+        audio.addEventListener('error', handleError)
+
         currentAudiosRef.current.push(audio)
 
         setTimeout(() => {
-          audio.play().catch((error) => {
-            console.log(`오디오 ${index + 1} 재생 실패:`, error.name)
-          })
+          audio.play().catch(handleError)
         }, index * 100)
       } catch (error) {
         console.log(`오디오 ${index + 1} 생성 실패:`, error)
@@ -61,8 +85,23 @@ export default function NavigationUI({
   }
 
   const handlePlayClick = () => {
-    playStepAudio()
-    onPlayClick()
+    setIsPlayButtonPressed(true)
+
+    // 버튼 애니메이션을 위한 짧은 지연
+    setTimeout(() => {
+      setIsPlayButtonPressed(false)
+      playStepAudio()
+      onPlayClick()
+    }, 150)
+  }
+
+  const handleResetClick = () => {
+    setIsResetButtonPressed(true)
+
+    setTimeout(() => {
+      setIsResetButtonPressed(false)
+      handleSceneChange(0)
+    }, 150)
   }
 
   return (
@@ -114,9 +153,12 @@ export default function NavigationUI({
           ))}
         </div>
       </div>
+
+      {/* 플레이 버튼 */}
       <button
         onClick={handlePlayClick}
-        className='w-20 h-20 relative ml-6 z-10 cursor-pointer transition-all duration-150 hover:scale-105'>
+        disabled={isPlayButtonPressed}
+        className='w-20 h-20 relative ml-6 z-10 cursor-pointer transition-all duration-150 hover:scale-105 disabled:cursor-not-allowed'>
         <div
           className={`w-full h-full left-0 absolute bg-amber-700 rounded-full transition-all duration-150 ${
             isPlayButtonPressed ? 'top-0' : 'top-[8px]'
@@ -129,18 +171,19 @@ export default function NavigationUI({
 
         <img
           src='/img/icon/Polygon 1.svg'
-          alt='지층 아이콘'
+          alt='재생 아이콘'
           className={`w-10 h-10 absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-150 ${
             isPlayButtonPressed ? 'scale-90' : 'scale-100'
           }`}
         />
       </button>
+
+      {/* 리셋 버튼 (첫 번째 씬이 아닐 때만 표시) */}
       {sceneIndex !== 0 && (
         <button
-          onClick={() => {
-            handleSceneChange(0)
-          }}
-          className='w-20 h-20 relative ml-6 z-10 cursor-pointer transition-all duration-150 hover:scale-105'>
+          onClick={handleResetClick}
+          disabled={isResetButtonPressed}
+          className='w-20 h-20 relative ml-6 z-10 cursor-pointer transition-all duration-150 hover:scale-105 disabled:cursor-not-allowed'>
           <div
             className={`w-full h-full left-0 absolute bg-slate-700 rounded-full transition-all duration-150 ${
               isResetButtonPressed ? 'top-0' : 'top-[8px]'
@@ -150,6 +193,7 @@ export default function NavigationUI({
             className={`w-full h-full left-0 absolute bg-gradient-to-b from-slate-400 to-slate-600 rounded-full transition-all duration-150 ${
               isResetButtonPressed ? 'top-[5px] scale-95' : 'top-0'
             }`}></div>
+
           <svg
             className={`w-8 h-8 absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-150 ${
               isResetButtonPressed ? 'scale-90' : 'scale-100'
@@ -163,4 +207,8 @@ export default function NavigationUI({
       )}
     </div>
   )
-}
+})
+
+NavigationUI.displayName = 'NavigationUI'
+
+export default NavigationUI
