@@ -121,10 +121,14 @@ export default function SpaceScene({
               {(!isLockedToSurface || activeSeason === season) && (
                 <EarthModel
                   position={pos}
-                  onClick={() => {
-                    handleEarthClickLocal(pos, season)
-                    playBG2Sound()
-                  }}
+                  onClick={
+                    !isLockedToSurface
+                      ? () => {
+                          handleEarthClickLocal(pos, season)
+                          playBG2Sound()
+                        }
+                      : undefined
+                  }
                   fadeReady={isLockedToSurface && activeSeason === season && isInteracting}
                   season={season}
                   isResetting={isResetting}
@@ -157,7 +161,7 @@ export default function SpaceScene({
           <CameraAnimator
             target={cameraTarget}
             angleOffset={(-3 * Math.PI) / 7 - Math.PI / 35}
-            lookAtOffsetY={10}
+            lookAtOffsetY={13}
             onFinish={onMoveFinished}
           />
         )}

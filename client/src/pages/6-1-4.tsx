@@ -47,7 +47,7 @@ export default function HomePage() {
     }
   }
 
-  const playBGSound = (audioPath: string = '/sounds/6-1-4/6-1-4-3_night-sky-sound-effect-02-321718.mp3') => {
+  const playBGSound = (audioPath: string = '/sounds/6-1-4/space-rumble-29970.mp3') => {
     try {
       const audio = new Audio(audioPath)
       audio.volume = 0.5
