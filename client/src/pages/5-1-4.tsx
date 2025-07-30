@@ -44,8 +44,7 @@ function IntroModels() {
       edgeReturnDelay={400}
       leaveReturnDelay={300}
       lerpSpeed={0.05}
-      edgeMargin={0.05}
-    >
+      edgeMargin={0.05}>
       <group rotation={[0, Math.PI / 4, 0]}>
         <AnimatedModel
           url='/models/Anatomy/Boy_Pose.gltf'
@@ -87,9 +86,6 @@ export default function IntegratedPage() {
   const [mode, setMode] = useState<PageMode>(null)
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
-  const [mousePosition, setMousePosition] = useState({ x: 0.5, y: 0.5 })
-  const [targetMousePosition, setTargetMousePosition] = useState({ x: 0.5, y: 0.5 })
-  const [smoothMousePosition, setSmoothMousePosition] = useState({ x: 0.5, y: 0.5 })
 
   // 뼈와 근육 관찰 관련 상태
   const [modelType, setModelType] = useState<ModelType>('boy')
@@ -108,96 +104,6 @@ export default function IntegratedPage() {
 
   // 인트로 모델 로딩 상태
   const [introModelsLoaded, setIntroModelsLoaded] = useState(false)
-
-  // 부드러운 마우스 위치 보간
-  useEffect(() => {
-    let animationFrame: number
-
-    const animate = () => {
-      setSmoothMousePosition(prev => {
-        const dx = targetMousePosition.x - prev.x
-        const dy = targetMousePosition.y - prev.y
-        const lerp = 0.05 // 보간 속도 (0.01 = 매우 느림, 0.1 = 빠름)
-        
-        const newX = prev.x + dx * lerp
-        const newY = prev.y + dy * lerp
-        
-        // 차이가 매우 작으면 목표 위치로 설정
-        if (Math.abs(dx) < 0.001 && Math.abs(dy) < 0.001) {
-          return targetMousePosition
-        }
-        
-        return { x: newX, y: newY }
-      })
-      
-      animationFrame = requestAnimationFrame(animate)
-    }
-
-    if (showIntro) {
-      animationFrame = requestAnimationFrame(animate)
-      return () => {
-        if (animationFrame) {
-          cancelAnimationFrame(animationFrame)
-        }
-      }
-    }
-  }, [targetMousePosition, showIntro])
-
-  // 마우스 움직임 감지
-  useEffect(() => {
-    let mouseLeaveTimeout: NodeJS.Timeout | null = null
-
-    const handleMouseMove = (event: MouseEvent) => {
-      if (showIntro) {
-        const x = event.clientX / window.innerWidth
-        const y = event.clientY / window.innerHeight
-        setTargetMousePosition({ x, y })
-        
-        const margin = 0.05
-        const isOutOfBounds = x < margin || x > (1 - margin) || y < margin || y > (1 - margin)
-        
-        if (isOutOfBounds) {
-          if (!mouseLeaveTimeout) {
-            mouseLeaveTimeout = setTimeout(() => {
-              setTargetMousePosition({ x: 0.5, y: 0.5 })
-              mouseLeaveTimeout = null
-            }, 400)
-          }
-        } else {
-          if (mouseLeaveTimeout) {
-            clearTimeout(mouseLeaveTimeout)
-            mouseLeaveTimeout = null
-          }
-        }
-      }
-    }
-
-    const handleMouseLeave = () => {
-      if (showIntro) {
-        // 완전히 화면을 벗어나면 즉시 중앙으로 돌아가기
-        if (mouseLeaveTimeout) {
-          clearTimeout(mouseLeaveTimeout)
-        }
-        mouseLeaveTimeout = setTimeout(() => {
-          setTargetMousePosition({ x: 0.5, y: 0.5 })
-          mouseLeaveTimeout = null
-        }, 300)
-      }
-    }
-
-    if (showIntro) {
-      window.addEventListener('mousemove', handleMouseMove)
-      document.addEventListener('mouseleave', handleMouseLeave)
-      
-      return () => {
-        window.removeEventListener('mousemove', handleMouseMove)
-        document.removeEventListener('mouseleave', handleMouseLeave)
-        if (mouseLeaveTimeout) {
-          clearTimeout(mouseLeaveTimeout)
-        }
-      }
-    }
-  }, [showIntro])
 
   // 인트로용 모델들 사전 로딩
   useEffect(() => {
@@ -245,19 +151,17 @@ export default function IntegratedPage() {
     setIsLoaded(true)
   }, [])
 
-  // 시작하기 버튼 클릭 핸들러
+  // 시작하기 버튼 클릭 핸들러 (사용하지 않음)
   const handleEnterExperience = useCallback(() => {
     playClickSound()
-    setTimeout(() => {
-      setShowIntro(false)
-    }, 300)
+    // 더 이상 사용하지 않음 - 모드 선택이 바로 인트로에서 이루어짐
   }, [playClickSound])
 
-  // 모드 선택 핸들러
+  // 모드 선택 핸들러 (인트로에서 바로 실험 환경으로)
   const handleModeSelect = useCallback(
     (selectedMode: PageMode) => {
-      playClickSound()
       setMode(selectedMode)
+      setShowIntro(false) // 인트로 종료
 
       if (selectedMode === 'bones') {
         loadModels()
@@ -271,7 +175,7 @@ export default function IntegratedPage() {
     [playClickSound],
   )
 
-  // 뒤로가기 핸들러
+  // 뒤로가기 핸들러 (인트로 화면으로)
   const handleBackToModeSelection = useCallback(() => {
     playClickSound()
 
@@ -285,7 +189,8 @@ export default function IntegratedPage() {
     setNarrationText([])
 
     setTimeout(() => {
-      setMode(null)
+      setMode(null) // 모드 초기화
+      setShowIntro(true) // 인트로로 돌아가기
     }, 100)
   }, [playClickSound, currentNarration])
 
@@ -356,18 +261,18 @@ export default function IntegratedPage() {
       switch (modelType) {
         case 'boy':
           audioPath = '/sounds/5-1-4/5-1-4-A.MP3'
-          text = ['우리 몸은 뼈와 근육의 작용으로 움직입니다.']
+          text = ['•우리 몸은 뼈와 근육의 작용으로 움직입니다.']
           break
         case 'bone':
           audioPath = '/sounds/5-1-4/5-1-4-B.MP3'
           text = [
-            '우리 몸속의 뼈는 모양과 크기가 다양합니다.',
-            '뼈는 우리 몸의 형태를 만들고 몸을 지탱하며, 몸속에 있는 여러 기관을 보호합니다.',
+            '•우리 몸속의 뼈는 모양과 크기가 다양합니다.',
+            '•뼈는 우리 몸의 형태를 만들고 몸을 지탱하며, 몸속에 있는 여러 기관을 보호합니다.',
           ]
           break
         case 'muscle':
           audioPath = '/sounds/5-1-4/5-1-4-C.MP3'
-          text = ['우리 몸속의 근육은 모양과 크기가 다양합니다.', '근육은 뼈에 연결되어 있으며 뼈를 움직이게 합니다.']
+          text = ['•우리 몸속의 근육은 모양과 크기가 다양합니다.', '•근육은 뼈에 연결되어 있으며 뼈를 움직이게 합니다.']
           break
       }
 
@@ -406,18 +311,18 @@ export default function IntegratedPage() {
       switch (type) {
         case 'boy':
           audioPath = '/sounds/5-1-4/5-1-4-A.MP3'
-          text = ['우리 몸은 뼈와 근육의 작용으로 움직입니다.']
+          text = ['•우리 몸은 뼈와 근육의 작용으로 움직입니다.']
           break
         case 'bone':
           audioPath = '/sounds/5-1-4/5-1-4-B.MP3'
           text = [
-            '우리 몸속의 뼈는 모양과 크기가 다양합니다.',
-            '뼈는 우리 몸의 형태를 만들고 몸을 지탱하며, 몸속에 있는 여러 기관을 보호합니다.',
+            '•우리 몸속의 뼈는 모양과 크기가 다양합니다.',
+            '•뼈는 우리 몸의 형태를 만들고 몸을 지탱하며, 몸속에 있는 여러 기관을 보호합니다.',
           ]
           break
         case 'muscle':
           audioPath = '/sounds/5-1-4/5-1-4-C.MP3'
-          text = ['우리 몸속의 근육은 모양과 크기가 다양합니다.', '근육은 뼈에 연결되어 있으며 뼈를 움직이게 합니다.']
+          text = ['•우리 몸속의 근육은 모양과 크기가 다양합니다.', '•근육은 뼈에 연결되어 있으며 뼈를 움직이게 합니다.']
           break
       }
 
@@ -519,15 +424,25 @@ export default function IntegratedPage() {
     }
 
     return null
-  }, [mode, showIntro, introModelsLoaded, modelUrl, modelType, animState, animIndex, action, isModelsLoading, smoothMousePosition])
+  }, [
+    mode,
+    showIntro,
+    introModelsLoaded,
+    modelUrl,
+    modelType,
+    animState,
+    animIndex,
+    action,
+    isModelsLoading,
+  ])
 
   const modeButtons = useMemo(
     () => [
       {
         mode: 'bones' as const,
         label: '뼈와 근육의 생김새 관찰',
-        color: '#4CAF50',
-        hoverColor: '#66BB6A',
+        color: '#f5600a',
+        hoverColor: '#fc835b',
       },
       {
         mode: 'arm' as const,
@@ -541,43 +456,7 @@ export default function IntegratedPage() {
 
   return (
     <div className='w-screen h-screen bg-white flex font-bold flex-col'>
-      {/* 모드 선택 버튼들 */}
-      <AnimatePresence>
-        {!showIntro && mode === null && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5, ease: 'easeInOut' }}
-            className='fixed top-0 left-0 z-10 w-full h-full p-4 flex gap-4 justify-center items-center bg-gray-100 border-b shadow-sm'>
-            {modeButtons.map(({ mode: buttonMode, label, color, hoverColor }) => (
-              <button
-                key={buttonMode}
-                className='px-6 pt-5 pb-6 rounded-[30px] font-bold shadow-[inset_0px_-10px_10px_0px_rgba(50,0,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:shadow-[inset_0px_-10px_10px_0px_rgba(50,0,0,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(50,0,0,0.50)] transition-all duration-300'
-                style={
-                  {
-                    backgroundColor: color,
-                    '--hover-bg': hoverColor,
-                  } as React.CSSProperties & { '--hover-bg': string }
-                }
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = hoverColor
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = color
-                }}
-                onClick={() => {
-                  handleModeSelect(buttonMode)
-                }}
-                aria-label={`${label} 모드 선택`}>
-                <div className='text-center justify-center text-white text-xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
-                  {label}
-                </div>
-              </button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
+
 
       {/* 뒤로가기 버튼 */}
       <AnimatePresence>
@@ -738,7 +617,7 @@ export default function IntegratedPage() {
 
           <directionalLight
             position={mode === 'arm' ? [0, 5, 3] : [0, 5, 3]}
-            intensity={mode === 'bones' ? lightIntensity : 3.5}
+            intensity={mode === 'bones' ? lightIntensity : 6}
             castShadow
             shadow-mapSize-width={2048}
             shadow-mapSize-height={2048}
@@ -749,8 +628,6 @@ export default function IntegratedPage() {
             shadow-camera-top={showIntro ? 5 : mode === 'bones' ? 1 : 3}
             shadow-camera-bottom={showIntro ? -5 : mode === 'bones' ? -1 : -3}
           />
-
-          {mode === 'arm' && <PerformanceMonitor onDecline={() => degrade(true)} />}
 
           <AnimatePresence mode='wait'>
             {getCurrentComponents && <group key={showIntro ? 'intro' : mode}>{getCurrentComponents}</group>}
@@ -786,9 +663,12 @@ export default function IntegratedPage() {
         <Intro
           onEnter={handleEnterExperience}
           title='뼈와 근육을 관찰하고, 우리 몸이 움직이는 원리 알아보기'
-          description={['우리 몸의 뼈와 근육의 생김새와 기능을 관찰하고, 우리 몸이 움직이는 원리를 알아봅시다.']}
+          description={['우리 몸의 뼈와 근육의 생김새를 관찰하고', '팔이 움직이는 원리를 통해 우리 몸이 움직이는 원리를 알아봅시다.']}
           backgroundSvg='/img/cover/5-1-4.svg'
           descriptionSound='/sounds/5-1-4/5-1-4-Goal.MP3'
+          showModeSelection={true}
+          modeButtons={modeButtons}
+          onModeSelect={handleModeSelect}
         />
       )}
 
@@ -804,9 +684,9 @@ export default function IntegratedPage() {
             <div className='bg-white border border-black p-4 rounded-lg shadow-lg'>
               <ol className='text-black text-lg leading-relaxed'>
                 {narrationText.map((line, index) => (
-                  <li key={index} className='mb-1'>
+                  <p key={index} className='mb-1'>
                     {line}
-                  </li>
+                  </p>
                 ))}
               </ol>
             </div>

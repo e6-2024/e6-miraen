@@ -26,8 +26,8 @@ export default function AnimatedModel2({
   const textRefA = useRef<Group>(null)
   const textRefB = useRef<Group>(null)
 
-  const textOffsetA = new THREE.Vector3(-0.02, -0.01, 0.0)
-  const textOffsetB = new THREE.Vector3(0.02, -0.02, 0.0)
+  const textOffsetA = new THREE.Vector3(0, 0, 0)
+  const textOffsetB = new THREE.Vector3(0, 0, 0)
 
   const prevTextPosA = useRef(new THREE.Vector3())
   const prevTextPosB = useRef(new THREE.Vector3())
@@ -137,10 +137,10 @@ export default function AnimatedModel2({
     if (!scene || !group.current) return
 
     scene.traverse((obj) => {
-      if (obj.name === 'Muscle001' && obj.type === 'SkinnedMesh') {
+      if (obj.name === 'Tricep_Here') {
         muscle001Ref.current = obj as Mesh
       }
-      if (obj.name === 'Muscle002' && obj.type === 'SkinnedMesh') {
+      if (obj.name === 'Bicep_Here') {
         muscle002Ref.current = obj as Mesh
       }
     })
@@ -155,59 +155,8 @@ export default function AnimatedModel2({
     if (!scene) return
 
     scene.traverse((obj) => {
-      // frustumCulled을 false로 설정하여 절두체 컬링 비활성화
-      obj.frustumCulled = false
-      
-      // Mesh, SkinnedMesh, LineSegments 등 모든 렌더링 가능한 객체에 그림자 설정
-      if (obj instanceof THREE.Mesh || 
-          obj instanceof THREE.SkinnedMesh || 
-          obj.type === 'Mesh' || 
-          obj.type === 'SkinnedMesh') {
-        
-        const meshObj = obj as THREE.Mesh
-        
-        // castShadow: 이 객체가 그림자를 만들 수 있음
-        meshObj.castShadow = true
-        
-        // receiveShadow: 이 객체가 다른 객체의 그림자를 받을 수 있음
-        meshObj.receiveShadow = true
-        
-        // 재질이 있는 경우 그림자 관련 속성 최적화
-        if (meshObj.material) {
-          if (Array.isArray(meshObj.material)) {
-            // 다중 재질인 경우
-            meshObj.material.forEach((mat) => {
-              if (mat instanceof THREE.MeshStandardMaterial || 
-                  mat instanceof THREE.MeshPhongMaterial ||
-                  mat instanceof THREE.MeshLambertMaterial) {
-                mat.shadowSide = THREE.DoubleSide // 양면에서 그림자 처리
-              }
-            })
-          } else {
-            // 단일 재질인 경우
-            const material = meshObj.material as THREE.Material
-            if (material instanceof THREE.MeshStandardMaterial || 
-                material instanceof THREE.MeshPhongMaterial ||
-                material instanceof THREE.MeshLambertMaterial) {
-              material.shadowSide = THREE.DoubleSide // 양면에서 그림자 처리
-            }
-          }
-        }
-      }
-      
-      // LineSegments와 같은 다른 타입의 객체도 처리
-      if (obj instanceof THREE.LineSegments || obj.type === 'LineSegments') {
-        const lineObj = obj as THREE.LineSegments
-        lineObj.castShadow = true
-        lineObj.receiveShadow = true
-      }
-      
-      // Points 객체도 처리
-      if (obj instanceof THREE.Points || obj.type === 'Points') {
-        const pointsObj = obj as THREE.Points
-        pointsObj.castShadow = true
-        pointsObj.receiveShadow = true
-      }
+      obj.castShadow = true
+      obj.receiveShadow = true
     })
   }, [scene])
 
@@ -225,7 +174,7 @@ export default function AnimatedModel2({
       const meshCenter = getSkinnedMeshCenter(meshRef)
 
       const targetTextPos = new THREE.Vector3().copy(meshCenter).add(textOffset)
-      prevPosRef.current.lerp(targetTextPos, 0.1)
+      prevPosRef.current.lerp(targetTextPos, 1)
       textRef.position.copy(prevPosRef.current)
 
       textRef.quaternion.copy(camera.quaternion)
@@ -312,7 +261,6 @@ export default function AnimatedModel2({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      animation: 'pulse 2s infinite',
                       fontSize: '12px',
                       color: 'white',
                       fontWeight: 'bold',
@@ -370,7 +318,6 @@ export default function AnimatedModel2({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      animation: 'pulse 2s infinite',
                       fontSize: '12px',
                       color: 'white',
                       fontWeight: 'bold',
@@ -381,24 +328,6 @@ export default function AnimatedModel2({
           </group>
         </>
       )}
-
-      {/* CSS 애니메이션 */}
-      <style jsx>{`
-        @keyframes pulse {
-          0% {
-            transform: scale(1);
-            opacity: 1;
-          }
-          50% {
-            transform: scale(1.1);
-            opacity: 0.8;
-          }
-          100% {
-            transform: scale(1);
-            opacity: 1;
-          }
-        }
-      `}</style>
     </>
   )
 }
