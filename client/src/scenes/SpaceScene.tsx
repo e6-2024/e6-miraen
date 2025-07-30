@@ -121,7 +121,7 @@ export default function SpaceScene({
 
       <Scene camera={{ position: [0, 20, 50], fov: 40 }} shadows>
         <ambientLight intensity={0.5} />
-        <pointLight color='white' intensity={50} />
+        <pointLight color='white' intensity={120} />
 
         {/* 별자리 관찰 모드가 아닐 때만 태양과 별 표시 */}
         {!isLockedToSurface && (
