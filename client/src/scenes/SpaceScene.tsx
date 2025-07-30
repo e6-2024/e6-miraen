@@ -3,8 +3,8 @@ import { useState, useRef, useEffect, Suspense } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, SpotLight } from '@react-three/drei'
 import * as THREE from 'three'
-import { Sun, Stars, EarthModel } from '@/components/SpaceObjects'
-import { ConstellationLayer } from '@/components/ConstellationLayer'
+import { Sun, Stars, EarthModel } from '@/components/6-1-4/SpaceObjects'
+import { ConstellationLayer } from '@/components/6-1-4/ConstellationLayer'
 
 type Season = 'spring' | 'summer' | 'fall' | 'winter'
 const SEASONS: Season[] = ['spring', 'summer', 'fall', 'winter']
