@@ -17,7 +17,7 @@ export function Sun() {
   
   return (
     <mesh ref={sunRef} position={[0, 0, 0]}>
-      <sphereGeometry args={[2, 32, 32]} />
+      <sphereGeometry args={[10, 32, 32]} />
       <meshStandardMaterial
         map={sunTexture}
         emissive='orange'
@@ -35,9 +35,9 @@ export function Stars() {
     const pos = new Float32Array(6000)
     for (let i = 0; i < 2000; i++) {
       pos.set([
-        (Math.random() - 0.5) * 100, 
-        (Math.random() - 0.5) * 100, 
-        (Math.random() - 0.5) * 100
+        (Math.random() - 0.5) * 200, 
+        (Math.random() - 0.5) * 200, 
+        (Math.random() - 0.5) * 200
       ], i * 3)
     }
     g.setAttribute('position', new THREE.BufferAttribute(pos, 3))
@@ -259,19 +259,19 @@ export function EarthModel({
 
   return (
     <group onClick={onClick}>
-      <group position={position} ref={groupRef} rotation={[Math.PI * 23.5 / 180, 0, 0]}>
+      <group position={position} ref={groupRef} rotation={[Math.PI * 23.5 / 180, Math.PI/3, 0]}>
         <group ref={earthRef}>
           <primitive 
             object={clonedEarthScene} 
-            scale={[1, 1, 1]} 
+            scale={[1.5, 1.5, 1.5]} 
           />
         </group>
         
         {!hideAxisAndLabel && (
           <Line
             points={[
-              [0, -0.5, 0],
-              [0, 0.5, 0]
+              [0, -10.0, 0],
+              [0, 10.0, 0]
             ]}
             color="white"
             lineWidth={2}
@@ -280,10 +280,10 @@ export function EarthModel({
       </group>
 
       {!hideAxisAndLabel && (
-        <group position={[position[0], position[1] + 0.63, position[2]]}>
+        <group scale={3} position={[position[0], position[1]+10, position[2]]}>
           <Billboard>
             <Text
-              fontSize={0.1}
+              fontSize={0.6}
               color="white"
               anchorX="center"
               anchorY="bottom"
