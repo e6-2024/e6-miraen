@@ -58,7 +58,12 @@ export default function SpaceScene({
     const fromPos = controlsRef.current.object.position.clone()
     const fromTarget = controlsRef.current.target.clone()
     setTimeout(() => {
-      setResetState({ fromPos, fromTarget, toPos: INITIAL_CAMERA_POSITION.clone(), toTarget: INITIAL_CAMERA_TARGET.clone() })
+      setResetState({
+        fromPos,
+        fromTarget,
+        toPos: INITIAL_CAMERA_POSITION.clone(),
+        toTarget: INITIAL_CAMERA_TARGET.clone(),
+      })
     }, 50)
   }
 
@@ -81,30 +86,55 @@ export default function SpaceScene({
     }
   }
 
+  const playBG2Sound = (audioPath: string = '/sounds/6-1-4/6-1-4-2_zoom-up-2-slower-delay-107050.mp3') => {
+    setTimeout(() => {
+      try {
+        const audio = new Audio(audioPath)
+        audio.volume = 0.5
+        audio.play().catch((error) => {
+          console.log('효과음 재생 실패:', error.name)
+        })
+      } catch (error) {
+        console.log('효과음 생성 실패:', error)
+      }
+    }, 2000)
+  }
 
   return (
     <div className='absolute inset-0'>
-      <Scene camera={{ position: [0,40,100], fov: 40 }} shadows>
+      <Scene camera={{ position: [0, 40, 100], fov: 40 }} shadows>
         <ambientLight intensity={0.5} />
-        <pointLight intensity={3000}  castShadow/>
+        <pointLight intensity={3000} castShadow />
 
-        {!isLockedToSurface && <><Sun /><Stars /></>}
+        {!isLockedToSurface && (
+          <>
+            <Sun />
+            <Stars />
+          </>
+        )}
 
         {SEASONS.map((season, i) => {
           const ang = (i * Math.PI) / 2
-          const pos: [number, number, number] = [Math.cos(ang)*30, 0, Math.sin(ang)*30]
+          const pos: [number, number, number] = [Math.cos(ang) * 30, 0, Math.sin(ang) * 30]
           return (
             <group key={season}>
-              {(!isLockedToSurface || activeSeason===season) && (
+              {(!isLockedToSurface || activeSeason === season) && (
                 <EarthModel
                   position={pos}
-                  onClick={()=>handleEarthClickLocal(pos, season)}
-                  fadeReady={isLockedToSurface && activeSeason===season && isInteracting}
+                  onClick={() => {
+                    handleEarthClickLocal(pos, season)
+                    playBG2Sound()
+                  }}
+                  fadeReady={isLockedToSurface && activeSeason === season && isInteracting}
                   season={season}
                   isResetting={isResetting}
-                  onRotationComplete={season===pendingEarthClick?.season && !earthRotationComplete ? handleEarthRotationComplete : undefined}
-                  isSelected={season===pendingEarthClick?.season}
-                  hideAxisAndLabel={isLockedToSurface && activeSeason===season}
+                  onRotationComplete={
+                    season === pendingEarthClick?.season && !earthRotationComplete
+                      ? handleEarthRotationComplete
+                      : undefined
+                  }
+                  isSelected={season === pendingEarthClick?.season}
+                  hideAxisAndLabel={isLockedToSurface && activeSeason === season}
                 />
               )}
 
@@ -112,8 +142,8 @@ export default function SpaceScene({
                 <ConstellationModel
                   activeSeason={activeSeason}
                   position={pos}
-                  season={activeSeason} 
-                  visible={!!pendingEarthClick && activeSeason===season}
+                  season={activeSeason}
+                  visible={!!pendingEarthClick && activeSeason === season}
                   isResetting={isResetting}
                   fadeInDelay={2}
                   fadeSpeed={1}
@@ -124,16 +154,26 @@ export default function SpaceScene({
         })}
 
         {pendingEarthClick && earthRotationComplete && !isInteracting && (
-          <CameraAnimator target={cameraTarget} angleOffset={-3*Math.PI/7-Math.PI/35} lookAtOffsetY={10} onFinish={onMoveFinished} />
+          <CameraAnimator
+            target={cameraTarget}
+            angleOffset={(-3 * Math.PI) / 7 - Math.PI / 35}
+            lookAtOffsetY={10}
+            onFinish={onMoveFinished}
+          />
         )}
         {resetState && <ResetAnimator {...resetState} controlsRef={controlsRef} onFinish={onResetFinished} />}
-        <OrbitControls ref={controlsRef} enablePan={false} enableZoom enableRotate minPolarAngle={0}  maxPolarAngle={Math.PI} minDistance={0} maxDistance={isLockedToSurface ? 20 : 120}/>
+        <OrbitControls
+          ref={controlsRef}
+          enablePan={false}
+          enableZoom
+          enableRotate
+          minPolarAngle={0}
+          maxPolarAngle={Math.PI}
+          minDistance={0}
+          maxDistance={isLockedToSurface ? 20 : 120}
+        />
       </Scene>
-      <UI
-        isLockedToSurface={isLockedToSurface}
-        activeSeason={activeSeason}
-        onReset={handleResetClick}
-      />
+      <UI isLockedToSurface={isLockedToSurface} activeSeason={activeSeason} onReset={handleResetClick} />
     </div>
   )
 }
@@ -141,7 +181,7 @@ export default function SpaceScene({
 function CameraAnimator({
   target,
   angleOffset = 0,
-  lookAtOffsetY = 0,  
+  lookAtOffsetY = 0,
   onFinish,
 }: {
   target: [number, number, number] | null
@@ -149,7 +189,7 @@ function CameraAnimator({
   lookAtOffsetY?: number
   onFinish?: () => void
 }) {
- const { camera } = useThree()
+  const { camera } = useThree()
   const startRef = useRef<THREE.Vector3 | null>(null)
   const endRef = useRef<THREE.Vector3 | null>(null)
   const progress = useRef(0)
@@ -194,7 +234,7 @@ function CameraAnimator({
     const eased = t * t * (3 - 2 * t)
 
     const earthCenter = new THREE.Vector3(...target)
-    const constellationCenter = earthCenter.clone()  // y-offset은 lookAt 시에만 사용
+    const constellationCenter = earthCenter.clone() // y-offset은 lookAt 시에만 사용
 
     // 위치 보간
     const curVec = startRef.current.clone().lerp(endRef.current, eased)
@@ -257,14 +297,14 @@ function ResetAnimator({
 
     camera.position.lerpVectors(fromPos, toPos, eased)
     controlsRef.current.target.lerpVectors(fromTarget, toTarget, eased)
-    
+
     // PerspectiveCamera로 타입 단언하고 FOV를 원래 값(40)으로 되돌리기
     const perspectiveCamera = camera as THREE.PerspectiveCamera
     if (perspectiveCamera.fov !== undefined) {
       perspectiveCamera.fov = THREE.MathUtils.lerp(startFov.current, 40, eased)
       perspectiveCamera.updateProjectionMatrix()
     }
-    
+
     // OrbitControls 설정을 원래대로 되돌리기
     if (controlsRef.current) {
       controlsRef.current.zoomSpeed = THREE.MathUtils.lerp(2.0, 1.0, eased)
@@ -272,7 +312,7 @@ function ResetAnimator({
       controlsRef.current.minDistance = THREE.MathUtils.lerp(0.5, 0, eased)
       controlsRef.current.maxDistance = THREE.MathUtils.lerp(20, 120, eased)
     }
-    
+
     controlsRef.current.update()
 
     if (t === 1) {
