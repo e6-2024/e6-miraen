@@ -3,6 +3,8 @@ import { useGLTF } from '@react-three/drei'
 import { useRef, useMemo, useEffect, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
+import { Text } from '@react-three/drei'
+import { Billboard } from '@react-three/drei'
 
 type Season = 'spring' | 'summer' | 'fall' | 'winter'
 
@@ -41,9 +43,9 @@ export function ConstellationModel({
       case 'summer':
         return Math.PI
       case 'fall':
-        return Math.PI + Math.PI/2
+        return Math.PI + Math.PI / 2
       case 'winter':
-        return Math.PI/2
+        return Math.PI / 2
       default:
         return 0
     }
@@ -127,6 +129,51 @@ export function ConstellationModel({
       <group scale={0.5} position={[0, -12.5, 0]} rotation={[0, initialRotationY, 0]}>
         <primitive object={clonedScene} />
       </group>
+      <>
+        <Text
+          position={[18, -8, 0]}
+          rotation={[0,-Math.PI/2,0]}
+          fontSize={1}
+          color='white'
+          anchorX='center'
+          anchorY='middle'
+          font='/fonts/Maplestory Bold.ttf'>
+          동
+        </Text>
+
+        <Text
+          position={[-18, -8, 0]}
+          rotation={[0,Math.PI/2,0]}
+          fontSize={0.8}
+          color='white'
+          anchorX='center'
+          anchorY='middle'
+          font='/fonts/Maplestory Bold.ttf'>
+          서
+        </Text>
+
+        <Text
+          position={[0, -8, -18]}
+          rotation={[0,0,0]}
+          fontSize={1}
+          color='white'
+          anchorX='center'
+          anchorY='middle'
+          font='/fonts/Maplestory Bold.ttf'>
+          북
+        </Text>
+
+        <Text
+          position={[0, -8, 18]}
+          rotation={[0,Math.PI,0]}
+          fontSize={1}
+          color='white'
+          anchorX='center'
+          anchorY='middle'
+          font='/fonts/Maplestory Bold.ttf'>
+          남
+        </Text>
+      </>
     </group>
   )
 }

@@ -8,6 +8,7 @@ import Scene from '@/components/canvas/Scene'
 import { useThree } from '@react-three/fiber'
 import { useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
+import UI from '@/components/6-1-4/UI'
 
 type Season = 'spring' | 'summer' | 'fall' | 'winter'
 const SEASONS: Season[] = ['spring', 'summer', 'fall', 'winter']
@@ -128,9 +129,11 @@ export default function SpaceScene({
         {resetState && <ResetAnimator {...resetState} controlsRef={controlsRef} onFinish={onResetFinished} />}
         <OrbitControls ref={controlsRef} enablePan={false} enableZoom enableRotate minPolarAngle={0}  maxPolarAngle={Math.PI} minDistance={0} maxDistance={isLockedToSurface ? 20 : 120}/>
       </Scene>
-      {isLockedToSurface && (
-        <button onClick={handleResetClick} className='fixed top-4 left-4 font-bold bg-blue-600 text-white px-4 py-2 rounded'>돌아가기</button>
-      )}
+      <UI
+        isLockedToSurface={isLockedToSurface}
+        activeSeason={activeSeason}
+        onReset={handleResetClick}
+      />
     </div>
   )
 }
