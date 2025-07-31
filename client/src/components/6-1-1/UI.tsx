@@ -85,7 +85,7 @@ export function CleaningProgressUI({ cleaningProgress, showIntro, isZoomed }: Cl
                   <div className='flex justify-between text-sm mb-1'>
                     <span>{mission.name}</span>
                     <span className={progress <= 0 ? 'text-green-600 font-bold' : 'text-gray-600'}>
-                      {progress <= 0 ? '완료!' : `${Math.round(100 - progress)} %`}
+                      {progress <= 0 ? '완료!' : `${Math.round(100 - progress)}%`}
                     </span>
                   </div>
                   <div className='w-32 bg-gray-200 rounded-full h-3 overflow-hidden'>

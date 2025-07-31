@@ -87,10 +87,10 @@ export const SprayTool = ({ visible }: { visible: boolean }) => (
 
 export const VinegarTool = ({ visible }: { visible: boolean }) => (
   <CleaningTool 
-    modelPath="/models/6-1-1/Vinegar_Spray/Kitchen_Scrub.glb" 
+    modelPath="/models/6-1-1/Vinegar_Spray/Vinegar.glb" 
     visible={visible} 
-    scale={0.1} 
-    rotation={[0, 0, 0]}
+    scale={4} 
+    rotation={[Math.PI/2, 0, 0]}
   />
 )
 

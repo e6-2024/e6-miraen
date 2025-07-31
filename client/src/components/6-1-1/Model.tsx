@@ -58,8 +58,8 @@ export const Model = ({
             if (material.name) {
               const matName = material.name.toLowerCase()
               
-              if (matName.includes('Window_WindowsGlass') || 
-                  (material.map?.name?.includes('Window_WindowsGlass'))) {
+              if (matName.includes('WindowsGlass.003') || 
+                  (material.map?.name?.includes('WindowsGlass.003'))) {
                 material.transparent = true
                 material.opacity = splashOpacities.splash01
                 material.needsUpdate = true
@@ -75,8 +75,8 @@ export const Model = ({
                 }
               }
               
-              else if (matName.includes('bathroom_dirt') || 
-                       (material.map?.name?.includes('bathroom_dirt'))) {
+              else if (matName.includes('Red_01.003') || 
+                       (material.map?.name?.includes('Red_01.003'))) {
                 material.transparent = true
                 material.opacity = splashOpacities.splash03
                 material.needsUpdate = true

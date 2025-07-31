@@ -16,6 +16,16 @@ export interface MissionData {
 export const missions: Record<SplashType, MissionData> = {
   splash01: {
     id: 'splash01',
+    name: '도마',
+    correctSolution: 'vinegar',
+    position: [-2.7, 0.5, 6.1],
+    cameraPosition: [-0, 2.0, 7.1],
+    selectMessage: '도마에서 나는 비린내를 제거하기 위해 이용해야 할 용액을 고르세요.',
+    completionMessage: '염기성 물질인 비린내는 산성 용액인 식초와 만나면 성질이 변하여 제거됩니다.',
+    emoji: '🐟',
+  },
+  splash02: {
+    id: 'splash02',
     name: '유리창',
     correctSolution: 'spray',
     position: [-6, 1, -1.2],
@@ -24,8 +34,8 @@ export const missions: Record<SplashType, MissionData> = {
     completionMessage: '산성 용액인 유리 세정제로 얼룩이 깨끗하게 제거되었습니다.',
     emoji: '🪟',
   },
-  splash02: {
-    id: 'splash02',
+  splash03: {
+    id: 'splash03',
     name: '변기',
     correctSolution: 'toilet_cleaner',
     position: [10.22, 0, 0.33],
@@ -34,8 +44,8 @@ export const missions: Record<SplashType, MissionData> = {
     completionMessage: '염기성 용액인 변기용 세제로 오염이 깨끗하게 제거되었습니다.',
     emoji: '🚽',
   },
-  splash03: {
-    id: 'splash03',
+  splash04: {
+    id: 'splash04',
     name: '욕실',
     correctSolution: 'bleach',
     position: [9.22, -0.5, -2.33],
@@ -44,23 +54,13 @@ export const missions: Record<SplashType, MissionData> = {
     completionMessage: '염기성 용액인 표백제로 곰팡이가 깨끗하게 제거되었습니다.',
     emoji: '🛁',
   },
-  splash04: {
-    id: 'splash04',
-    name: '도마',
-    correctSolution: 'vinegar',
-    position: [-2.7, 0.5, 6.1],
-    cameraPosition: [-0, 2.0, 7.1],
-    selectMessage: '도마의 생선 비린내를 제거하기 위해 이용해야 할 용액을 고르세요.',
-    completionMessage: '염기성 물질인 비린내는 산성 용액인 식초와 만나면 성질이 변하여 제거됩니다.',
-    emoji: '🐟',
-  },
 }
 
 export const solutions = [
-  { id: 'vinegar', name: '식초', color: '#fff', img:'/img/Frame 25.svg' },
-  { id: 'spray', name: '유리 세정제', color: '#fff', img:'/img/Frame 27.svg' },
-  { id: 'toilet_cleaner', name: '변기용 세제', color: '#fff',  img:'/img/Frame 26.svg' },
-  { id: 'bleach', name: '표백제', color: '#fff', img:'/img/Frame 24.svg' },
+  { id: 'vinegar', name: '식초', color: '#fff', img: '/img/Frame 25.svg' },
+  { id: 'spray', name: '유리 세정제', color: '#fff', img: '/img/Frame 27.svg' },
+  { id: 'toilet_cleaner', name: '변기용 세제', color: '#fff', img: '/img/Frame 26.svg' },
+  { id: 'bleach', name: '표백제', color: '#fff', img: '/img/Frame 24.svg' },
 ]
 
 export const wipingEfficiency = {
@@ -71,6 +71,6 @@ export const wipingEfficiency = {
 }
 
 export const initialCamera = {
-  position: [-0.34, 12, -10] as [number, number, number],
+  position: [-0.34, 15, -20] as [number, number, number],
   target: [0, 0, 0] as [number, number, number],
 }

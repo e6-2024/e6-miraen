@@ -77,10 +77,10 @@ function CleaningProgressUI({
   if (showIntro || isZoomed) return null
 
   const missions = [
-    { id: 'splash01' as const, name: '유리창', color: '#2985ee' },
-    { id: 'splash02' as const, name: '변기', color: '#25e5c2' },
-    { id: 'splash03' as const, name: '욕실', color: '#129d3a' },
-    { id: 'splash04' as const, name: '도마', color: '#ff6b6b' },
+    { id: 'splash01' as const, name: '도마', color: '#2985ee' },
+    { id: 'splash02' as const, name: '유리창', color: '#25e5c2' },
+    { id: 'splash03' as const, name: '변기', color: '#129d3a' },
+    { id: 'splash04' as const, name: '욕실', color: '#ff6b6b' },
   ]
 
   const handleReset = (missionId: 'splash01' | 'splash02' | 'splash03' | 'splash04') => {
@@ -100,7 +100,7 @@ function CleaningProgressUI({
             <div key={mission.id} className='space-y-2'>
               <div className='flex justify-between items-center'>
                 <span className='text-sm text-gray-700'>{mission.name}</span>
-                <span className='text-xs text-gray-500'>{isCompleted ? '완료' : `${Math.round(progress)}%`}</span>
+                <span className='text-xs text-gray-500'>{isCompleted ? '완료' : `${Math.round(progress)} %`}</span>
               </div>
               <div className='w-full bg-gray-200 rounded-full h-2'>
                 <div
@@ -683,19 +683,20 @@ export default function Home() {
           <Lightformer
             intensity={1.2}
             form='ring'
+            castShadow
             color='white'
             rotation-y={Math.PI / 2}
             position={[1, 1, 1]}
             scale={[4, 4, 1]}
           />
         </Environment>
-        <ContactShadows position={[0, -0.89, 0]} opacity={0.9} scale={20} blur={2.5} far={2} color='black' frames={2} />
-        <AccumulativeShadows frames={20} alphaTest={0.15} opacity={0.1} scale={20} position={[0, -0.89, 0]}>
+        <ContactShadows position={[0, 0, 0]} opacity={0.9} scale={30} blur={2.5} far={10} color='black' frames={2} />
+        <AccumulativeShadows frames={20} alphaTest={0.15} opacity={0.1} scale={30} position={[0, -0.89, 0]}>
           <RandomizedLight amount={4} radius={3} ambient={0.3} intensity={0.5} position={[0, 2, 0]} bias={0.001} />
         </AccumulativeShadows>
 
-        <Model scale={1} position={[0, 0, 0]} splashOpacities={splashOpacities} />
-        <Toilet scale={1} position={[10.5, 4, 0.5]} splashOpacities={splashOpacities} />
+        <Model scale={1} position={[0, 1.04, 0]} splashOpacities={splashOpacities} />
+        <Toilet scale={1} position={[10.5, 5, 0.5]} splashOpacities={splashOpacities} />
         {isBathroomLightOn && (
           <>
             <pointLight intensity={7} position={[7.0, 2, -2]} color='#c0ce6f' distance={7} decay={1} />
@@ -735,8 +736,7 @@ export default function Home() {
           <>
             <SpeechBubble
               position={missions.splash01.position}
-              pointColor='#2985ee'
-              html='유리창의 얼룩 제거하기'
+              html='도마에서 나는 생선 비린내 제거하기'
               onBubbleClick={() => {
                 moveToTarget(missions.splash01.position, missions.splash01.cameraPosition, 'splash01')
                 playGeneralButton()
@@ -745,8 +745,7 @@ export default function Home() {
 
             <SpeechBubble
               position={missions.splash02.position}
-              pointColor='#25e5c2'
-              html='변기 청소하기'
+              html='유리창의 얼룩 제거하기'
               onBubbleClick={() => {
                 moveToTarget(missions.splash02.position, missions.splash02.cameraPosition, 'splash02')
                 playGeneralButton()
@@ -755,9 +754,7 @@ export default function Home() {
 
             <SpeechBubble
               position={missions.splash03.position}
-              pointColor='#129d3a'
-              html='욕실 청소하기'
-              bubbleOffset={[0.0, 0.4, 0.9]}
+              html='변기 청소하기'
               onBubbleClick={() => {
                 moveToTarget(missions.splash03.position, missions.splash03.cameraPosition, 'splash03')
                 playGeneralButton()
@@ -766,9 +763,7 @@ export default function Home() {
 
             <SpeechBubble
               position={missions.splash04.position}
-              pointColor='#ff6b6b'
-              html='생선 비린내를 제거하기'
-              bubbleOffset={[0.4, 0.6, -0.2]}
+              html='욕실 청소하기'
               onBubbleClick={() => {
                 moveToTarget(missions.splash04.position, missions.splash04.cameraPosition, 'splash04')
                 playGeneralButton()
@@ -788,6 +783,15 @@ export default function Home() {
           enableRotate={!showIntro}
           minDistance={0}
           maxDistance={20}
+        />
+
+        <Environment
+          files='/img/cover/hdri.JPG'
+          background={true}
+          ground={{ height: 5, radius: 80, scale: 100 }}
+          backgroundBlurriness={0.8}
+          backgroundIntensity={0.7}
+          environmentIntensity={0.8}
         />
       </Scene>
 
