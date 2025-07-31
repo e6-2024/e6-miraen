@@ -630,7 +630,9 @@ export default function Home() {
         </AccumulativeShadows>
 
         <Model scale={1} position={[0, 1.04, 0]} splashOpacities={splashOpacities} />
-        <Toilet scale={1} position={[10.5, 5, 0.5]} splashOpacities={splashOpacities} />
+        <group renderOrder={-1}>
+          <Toilet scale={1} position={[10.5, 5, 0.5]} splashOpacities={splashOpacities} />
+        </group>
         
         {isBathroomLightOn && (
           <pointLight intensity={7} position={[7.0, 2, -2]} color='#c0ce6f' distance={7} decay={1} />
