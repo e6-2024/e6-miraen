@@ -49,7 +49,7 @@ export function WipingProgressUI({
       <div className='bg-white bg-opacity-95 p-6 rounded-xl shadow-lg border-2 border-gray-200'>
         <div className='text-center'>
           <div className={`text-4xl font-bold mb-2 ${wipingProgress >= 100 ? 'text-green-600' : 'text-blue-600'}`}>
-            {Math.round(wipingProgress)}%
+            {Math.round(wipingProgress)} %
           </div>
 
           <div className='text-sm text-gray-600 mb-2'>
@@ -85,7 +85,7 @@ export function CleaningProgressUI({ cleaningProgress, showIntro, isZoomed }: Cl
                   <div className='flex justify-between text-sm mb-1'>
                     <span>{mission.name}</span>
                     <span className={progress <= 0 ? 'text-green-600 font-bold' : 'text-gray-600'}>
-                      {progress <= 0 ? '완료!' : `${Math.round(100 - progress)}%`}
+                      {progress <= 0 ? '완료!' : `${Math.round(100 - progress)} %`}
                     </span>
                   </div>
                   <div className='w-32 bg-gray-200 rounded-full h-3 overflow-hidden'>
@@ -194,7 +194,7 @@ export function GameMessages({ showMessage, showIntro, gamePhase, sprayCount }: 
       {gamePhase === 'wiping' && (
         <div className='absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none'>
           <div className='bg-green-600 bg-opacity-90 text-white px-6 py-4 rounded-xl text-center'>
-            <div className='text-lg font-bold'>🧽 마우스를 움직여서 닦아주세요!</div>
+            <div className='text-lg font-bold'>🧽 마우스를 움직여서 도마를 닦아주세요!</div>
           </div>
         </div>
       )}

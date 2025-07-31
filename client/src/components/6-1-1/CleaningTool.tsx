@@ -75,6 +75,17 @@ export const CleaningTool = ({ modelPath, visible, scale = 1, rotation = [0, 0, 
   )
 }
 
+//도마
+export const CuttingBoard = ({ visible }: { visible: boolean }) => (
+  <CleaningTool 
+    modelPath="/models/6-1-1/Cutting_Board/Cutting_Board.glb" 
+    visible={visible} 
+    scale={1.3} 
+    rotation={[Math.PI/4, Math.PI/6, -Math.PI/8]}
+  />
+)
+
+
 // 스프레이 도구들
 export const SprayTool = ({ visible }: { visible: boolean }) => (
   <CleaningTool 
@@ -117,8 +128,8 @@ export const GlassRagTool = ({ visible }: { visible: boolean }) => (
   <CleaningTool 
     modelPath="/models/6-1-1/Rag/Rag.glb" 
     visible={visible} 
-    scale={0.15} 
-    rotation={[0, -Math.PI/2, 0]}
+    scale={0.05} 
+    rotation={[Math.PI, Math.PI/2, Math.PI]}
   />
 )
 
@@ -144,7 +155,7 @@ export const KitchenSpongeTool = ({ visible }: { visible: boolean }) => (
   <CleaningTool 
     modelPath="/models/6-1-1/Kitchen_Scrub/Kitchen_Scrub.glb" 
     visible={visible} 
-    scale={2} 
+    scale={0.05} 
     rotation={[0, Math.PI/2, 0]}
   />
 )

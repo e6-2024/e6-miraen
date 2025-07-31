@@ -21,6 +21,7 @@ import {
   ToiletBrushTool,
   BathroomScrubTool,
   KitchenSpongeTool,
+  CuttingBoard,
 } from '@/components/6-1-1/CleaningTool'
 import Scene from '@/components/canvas/Scene'
 import Intro from '@/components/intro/Intro'
@@ -402,7 +403,7 @@ export default function Home() {
       const duration = 1000
       const startTime = Date.now()
 
-      if (missionId === 'splash02' || missionId === 'splash03') {
+      if (missionId === 'splash03' || missionId === 'splash04') {
         setIsBathroomLightOn(true)
       }
 
@@ -675,21 +676,6 @@ export default function Home() {
         />
 
         <PerformanceMonitor onDecline={() => degrade(true)} />
-        <Environment frames={perfSucks ? 1 : Infinity} preset='studio' resolution={256} background={false} blur={1}>
-          <Lightformer intensity={3} rotation-x={Math.PI / 2} position={[0, 5, -9]} scale={[10, 10, 1]} />
-          <group rotation={[Math.PI / 2, 1, 0]}>
-            <Lightformer intensity={0.5} rotation-y={Math.PI / 2} position={[-5, 1, -1]} scale={[50, 2, 1]} />
-          </group>
-          <Lightformer
-            intensity={1.2}
-            form='ring'
-            castShadow
-            color='white'
-            rotation-y={Math.PI / 2}
-            position={[1, 1, 1]}
-            scale={[4, 4, 1]}
-          />
-        </Environment>
         <ContactShadows position={[0, 0, 0]} opacity={0.9} scale={30} blur={2.5} far={10} color='black' frames={2} />
         <AccumulativeShadows frames={20} alphaTest={0.15} opacity={0.1} scale={30} position={[0, -0.89, 0]}>
           <RandomizedLight amount={4} radius={3} ambient={0.3} intensity={0.5} position={[0, 2, 0]} bias={0.001} />
@@ -704,7 +690,7 @@ export default function Home() {
         )}
         {gamePhase === 'spraying' && selectedSolution && (
           <>
-            {selectedSolution === 'vinegar' && <VinegarTool visible={true} />}
+            {selectedSolution === 'vinegar' && <VinegarTool visible={true}/>}
             {selectedSolution === 'spray' && <SprayTool visible={true} />}
             {selectedSolution === 'toilet_cleaner' && <ToiletCleanerTool visible={true} />}
             {selectedSolution === 'bleach' && <BleachTool visible={true} />}
@@ -713,10 +699,10 @@ export default function Home() {
 
         {gamePhase === 'wiping' && currentMission && (
           <>
-            {currentMission === 'splash01' && <GlassRagTool visible={true} />}
-            {currentMission === 'splash02' && <ToiletBrushTool visible={true} />}
-            {currentMission === 'splash03' && <BathroomScrubTool visible={true} />}
-            {currentMission === 'splash04' && <KitchenSpongeTool visible={true} />}
+            {currentMission === 'splash02' && <GlassRagTool visible={true} />}
+            {currentMission === 'splash03' && <ToiletBrushTool visible={true} />}
+            {currentMission === 'splash04' && <BathroomScrubTool visible={true} />}
+            {currentMission === 'splash01' && <KitchenSpongeTool visible={true} />}
           </>
         )}
 
@@ -774,15 +760,15 @@ export default function Home() {
 
         <OrbitControls
           ref={controlsRef}
-          maxPolarAngle={Math.PI / 2}
-          minPolarAngle={Math.PI / 6}
+          maxPolarAngle={Math.PI / 2 -Math.PI / 30 }
+          minPolarAngle={0}
           minAzimuthAngle={Math.PI / 2}
           maxAzimuthAngle={-Math.PI / 2}
           enablePan={false}
           enableZoom={!showIntro}
           enableRotate={!showIntro}
           minDistance={0}
-          maxDistance={20}
+          maxDistance={30}
         />
 
         <Environment
