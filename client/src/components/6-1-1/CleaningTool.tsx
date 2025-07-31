@@ -161,7 +161,7 @@ export const KitchenSpongeTool = ({ visible }: { visible: boolean }) => (
 )
 
 useGLTF.preload('/models/6-1-1/Window/Window_cleaner_Spray.glb')
-useGLTF.preload('/models/6-1-1/Vinegar_Spray/Kitchen_Scrub.glb')
+useGLTF.preload('/models/6-1-1/Vinegar_Spray/Vinegar.glb')
 useGLTF.preload('/models/6-1-1/Bleach/Bleach.glb')
 useGLTF.preload('/models/6-1-1/Toilet_bleach/Toilet_Spray.glb')
 

@@ -29,11 +29,9 @@ import { useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
 import CameraLogger from '@/hook/CameraLogger'
 import IntroMouseCameraController from '@/components/IntroMouseCameraController'
-import { FishSmellEffect } from '@/components/6-1-1/FishSmellParticles'
+import { CuttingBoardSmell } from '@/components/6-1-1/SmellPlane'
 import { Toilet } from '@/components/6-1-1/Toilet'
-
 import { CleaningToolType, SplashType, GamePhase, missions, wipingEfficiency, initialCamera } from '../types/6-1-1'
-
 import { BackButton, WipingProgressUI, SolutionSelector, GameMessages } from '@/components/6-1-1/UI'
 import { BathroomLight } from '@/components/6-1-1/BathroomLight'
 import { BubbleParticles } from '@/components/6-1-1/BubbleParticles'
@@ -75,7 +73,7 @@ function CleaningProgressUI({
   onReset: (missionId: 'splash01' | 'splash02' | 'splash03' | 'splash04') => void
   onButtonClick: () => void
 }) {
-  if (showIntro || isZoomed) return null
+  if (showIntro) return null
 
   const missions = [
     { id: 'splash01' as const, name: '도마', color: '#2985ee' },
@@ -140,6 +138,7 @@ export default function Home() {
   const [showIntro, setShowIntro] = useState(true)
   const [showMessage, setShowMessage] = useState<string>('')
   const [showWrongMessage, setShowWrongMessage] = useState(false)
+  const [wrongMessageShown, setWrongMessageShown] = useState(false)
   const currentAudioRef = useRef<HTMLAudioElement | null>(null)
   const [isBathroomLightOn, setIsBathroomLightOn] = useState(false)
   const wipingAudioRef = useRef<HTMLAudioElement | null>(null)
@@ -245,6 +244,7 @@ export default function Home() {
 
     const mission = missions[currentMission]
 
+    // 이 함수는 올바른 용액일 때만 호출되므로 바로 완료 처리
     setCompletedMissions((prev) => ({
       ...prev,
       [currentMission]: true,
@@ -433,22 +433,16 @@ export default function Home() {
 
     setSelectedSolution(solutionId)
     setShowMessage('')
+    setWrongMessageShown(false) // 새로운 용액 선택 시 초기화
 
     setWipingProgress((prev) => ({
       ...prev,
       [currentMission]: 0,
     }))
 
-    const mission = missions[currentMission]
-
-    if (solutionId === mission.correctSolution) {
-      setGamePhase('spraying')
-      setSprayCount(0)
-    } else {
-      setShowWrongMessage(true)
-      playNarration('/sounds/6-1-1/narration/6-1-1-I.MP3')
-      setShowMessage('용액을 다시 고르세요.')
-    }
+    // 이제 어떤 용액을 선택하든 스프레이 단계로 진행
+    setGamePhase('spraying')
+    setSprayCount(0)
   }
 
   const handleSpray = () => {
@@ -497,51 +491,87 @@ export default function Home() {
       }
     }
 
-    const efficiency = calculateWipingEfficiency(mouseVelocity, currentMission)
+    const mission = missions[currentMission]
+    
+    // 올바른 용액일 때만 진행도 증가
+    if (selectedSolution === mission.correctSolution) {
+      const efficiency = calculateWipingEfficiency(mouseVelocity, currentMission)
 
-    setWipingProgress((prev) => {
-      const newProgress = Math.min(100, prev[currentMission] + efficiency)
+      setWipingProgress((prev) => {
+        const newProgress = Math.min(100, prev[currentMission] + efficiency)
 
-      if (newProgress >= 100 && prev[currentMission] < 100) {
-        if (wipingAudioRef.current) {
-          wipingAudioRef.current.pause()
-          wipingAudioRef.current = null
+        if (newProgress >= 100 && prev[currentMission] < 100) {
+          if (wipingAudioRef.current) {
+            wipingAudioRef.current.pause()
+            wipingAudioRef.current = null
+          }
+
+          playCompletionSound(currentMission)
+
+          setCompletedMissions((prevCompleted) => {
+            const newCompleted = {
+              ...prevCompleted,
+              [currentMission]: true,
+            }
+
+            const allCompleted = Object.values(newCompleted).every((completed) => completed)
+            if (allCompleted) {
+              setTimeout(() => {
+                playAllCompletionSound()
+              }, 1000)
+            }
+
+            return newCompleted
+          })
+
+          handleWipingComplete()
         }
 
-        playCompletionSound(currentMission)
+        return {
+          ...prev,
+          [currentMission]: newProgress,
+        }
+      })
 
-        setCompletedMissions((prevCompleted) => {
-          const newCompleted = {
-            ...prevCompleted,
-            [currentMission]: true,
-          }
+      // 청소 진행도도 감소
+      const currentWipingProgress = wipingProgress[currentMission]
+      const decreaseAmount = efficiency * (1 + currentWipingProgress / 10)
 
-          const allCompleted = Object.values(newCompleted).every((completed) => completed)
-          if (allCompleted) {
-            setTimeout(() => {
-              playAllCompletionSound()
-            }, 1000)
-          }
-
-          return newCompleted
-        })
-
-        handleWipingComplete()
-      }
-
-      return {
+      setCleaningProgress((prev) => ({
         ...prev,
-        [currentMission]: newProgress,
+        [currentMission]: Math.max(0, prev[currentMission] - decreaseAmount),
+      }))
+    } else {
+      // 잘못된 용액일 때는 일정 시간 후 메시지 표시 (한 번만)
+      if (!wrongMessageShown) {
+        setWrongMessageShown(true)
+        
+        setTimeout(() => {
+          setShowMessage('해당 용액을 다시 고르세요.')
+          playNarration('/sounds/6-1-1/narration/6-1-1-I.MP3')
+          
+          // 3초 후 용액 선택 단계로 돌아가기
+          setTimeout(() => {
+            if (wipingAudioRef.current) {
+              wipingAudioRef.current.pause()
+              wipingAudioRef.current = null
+            }
+            
+            setGamePhase('solution_choice')
+            setSelectedSolution(null)
+            setSprayCount(0)
+            setShowMessage(missions[currentMission].selectMessage)
+            setWrongMessageShown(false)
+            
+            // 진행도 초기화
+            setWipingProgress((prev) => ({
+              ...prev,
+              [currentMission]: 0,
+            }))
+          }, 3000)
+        }, 2000) // 2초 후에 메시지 표시
       }
-    })
-
-    const currentWipingProgress = wipingProgress[currentMission]
-    const decreaseAmount = efficiency * (1 + currentWipingProgress / 10)
-
-    setCleaningProgress((prev) => ({
-      ...prev,
-      [currentMission]: Math.max(0, prev[currentMission] - decreaseAmount),
-    }))
+    }
   }
 
   const resetCamera = () => {
@@ -563,6 +593,7 @@ export default function Home() {
       setWipingIntensity(0)
       setMouseVelocity(0)
       setIsBathroomLightOn(false)
+      setWrongMessageShown(false) // 카메라 리셋 시 초기화
 
       const startTarget = controlsRef.current.target.clone()
       const startPosition = controlsRef.current.object.position.clone()
@@ -654,6 +685,7 @@ export default function Home() {
         onButtonClick={playGeneralButton}
       />
 
+
       <CleaningProgressUI
         cleaningProgress={cleaningProgress}
         completedMissions={completedMissions}
@@ -708,14 +740,12 @@ export default function Home() {
 
         {!showIntro && (
           <>
-            <FishSmellEffect position={[-2.7, 0.7, 6.5]} opacity={cleaningProgress.splash04 / 100} enabled={true} />
-            {gamePhase === 'wiping' && currentMission === 'splash03' && (
-              <BubbleParticles position={[9.22, -0.5, -2.33]} progress={cleaningProgress.splash03 / 100} />
-            )}
-
-            {gamePhase === 'wiping' && currentMission === 'splash02' && (
-              <BubbleParticles position={[10.22, 0, 0.33]} progress={cleaningProgress.splash02 / 100} />
-            )}
+            <CuttingBoardSmell 
+              position={missions.splash01.position} 
+              opacity={cleaningProgress.splash01 / 100} 
+              enabled={true} 
+            />
+            
           </>
         )}
         {!showIntro && gamePhase === 'selection' && (
