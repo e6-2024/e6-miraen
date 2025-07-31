@@ -3,7 +3,6 @@ import {
   OrbitControls,
   Environment,
   ContactShadows,
-  Lightformer,
   PerformanceMonitor,
   AccumulativeShadows,
   RandomizedLight,
@@ -12,7 +11,6 @@ import {
 import { Model } from '../components/6-1-1/Model'
 import { SpeechBubble } from '../components/6-1-1/SpeechBubble'
 import {
-  CleaningTool,
   VinegarTool,
   SprayTool,
   BleachTool,
@@ -20,22 +18,18 @@ import {
   GlassRagTool,
   ToiletBrushTool,
   BathroomScrubTool,
-  KitchenSpongeTool,
 } from '@/components/6-1-1/CleaningTool'
 import Scene from '@/components/canvas/Scene'
 import Intro from '@/components/intro/Intro'
 import { useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
-import CameraLogger from '@/hook/CameraLogger'
 import IntroMouseCameraController from '@/components/IntroMouseCameraController'
 import { CuttingBoardSmell } from '@/components/6-1-1/SmellPlane'
 import { Toilet } from '@/components/6-1-1/Toilet'
-import { CleaningToolType, SplashType, GamePhase, missions, wipingEfficiency, initialCamera } from '../types/6-1-1'
-import { BackButton, WipingProgressUI, SolutionSelector, GameMessages } from '@/components/6-1-1/UI'
-import { BathroomLight } from '@/components/6-1-1/BathroomLight'
-import { BubbleParticles } from '@/components/6-1-1/BubbleParticles'
 import { CuttingBoard } from '@/components/6-1-1/CuttingBoardTool'
+import { CleaningToolType, SplashType, GamePhase, missions, wipingEfficiency, initialCamera } from '../types/6-1-1'
 
+// 로딩 트래커
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
   const { progress, active } = useProgress()
 
@@ -48,50 +42,62 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
   return null
 }
 
+// 뒤로가기 버튼
+function BackButton({ 
+  isZoomed, 
+  showIntro, 
+  onBack, 
+  isAnimating, 
+  gamePhase 
+}: {
+  isZoomed: boolean
+  showIntro: boolean
+  onBack: () => void
+  isAnimating: boolean
+  gamePhase: GamePhase
+}) {
+  if (!isZoomed || showIntro || gamePhase === 'wiping') return null
+
+  return (
+    <div className='absolute top-4 left-4 z-10'>
+      <button
+        onClick={onBack}
+        disabled={isAnimating}
+        className='bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 font-light text-white px-4 py-2 rounded-lg shadow-lg transition-colors'>
+        🏠 돌아가기
+      </button>
+    </div>
+  )
+}
+
+// 청소 진행도 UI
 function CleaningProgressUI({
   cleaningProgress,
   completedMissions,
   showIntro,
   isZoomed,
   onReset,
-  onButtonClick,
 }: {
-  cleaningProgress: {
-    splash01: number
-    splash02: number
-    splash03: number
-    splash04: number
-  }
-  completedMissions: {
-    splash01: boolean
-    splash02: boolean
-    splash03: boolean
-    splash04: boolean
-  }
+  cleaningProgress: Record<SplashType, number>
+  completedMissions: Record<SplashType, boolean>
   showIntro: boolean
   isZoomed: boolean
-  onReset: (missionId: 'splash01' | 'splash02' | 'splash03' | 'splash04') => void
-  onButtonClick: () => void
+  onReset: (missionId: SplashType) => void
 }) {
-  if (showIntro) return null
+  if (showIntro || isZoomed) return null
 
-  const missions = [
+  const missionList = [
     { id: 'splash01' as const, name: '도마', color: '#2985ee' },
     { id: 'splash02' as const, name: '유리창', color: '#25e5c2' },
     { id: 'splash03' as const, name: '변기', color: '#129d3a' },
     { id: 'splash04' as const, name: '욕실', color: '#ff6b6b' },
   ]
 
-  const handleReset = (missionId: 'splash01' | 'splash02' | 'splash03' | 'splash04') => {
-    onButtonClick()
-    onReset(missionId)
-  }
-
   return (
     <div className='absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg border border-gray-200 min-w-[200px] z-10'>
       <h3 className='text-lg font-bold mb-3 text-gray-800'>청소 진행도</h3>
       <div className='space-y-3 font-light'>
-        {missions.map((mission) => {
+        {missionList.map((mission) => {
           const progress = cleaningProgress[mission.id]
           const isCompleted = completedMissions[mission.id]
 
@@ -99,7 +105,9 @@ function CleaningProgressUI({
             <div key={mission.id} className='space-y-2'>
               <div className='flex justify-between items-center'>
                 <span className='text-sm text-gray-700'>{mission.name}</span>
-                <span className='text-xs text-gray-500'>{isCompleted ? '완료' : `${Math.round(progress)} %`}</span>
+                <span className='text-xs text-gray-500'>
+                  {isCompleted ? '완료' : `${Math.round(progress)}%`}
+                </span>
               </div>
               <div className='w-full bg-gray-200 rounded-full h-2'>
                 <div
@@ -112,7 +120,7 @@ function CleaningProgressUI({
               </div>
               {isCompleted && (
                 <button
-                  onClick={() => handleReset(mission.id)}
+                  onClick={() => onReset(mission.id)}
                   className='w-full text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded border border-gray-300 transition-colors duration-200'>
                   다시 하기
                 </button>
@@ -122,6 +130,104 @@ function CleaningProgressUI({
         })}
       </div>
     </div>
+  )
+}
+
+// 용액 선택 UI
+function SolutionSelector({
+  gamePhase,
+  showIntro,
+  selectedSolution,
+  onSolutionSelect,
+}: {
+  gamePhase: GamePhase
+  showIntro: boolean
+  selectedSolution: CleaningToolType
+  onSolutionSelect: (solutionId: CleaningToolType) => void
+}) {
+  if (gamePhase !== 'solution_choice' || showIntro) return null
+
+  const solutions = [
+    { id: 'vinegar', name: '식초', color: '#ff9999', img: '/img/6-1-1/vinegar.png' },
+    { id: 'spray', name: '유리 세정제', color: '#99ccff', img: '/img/6-1-1/glass_cleaner.png' },
+    { id: 'toilet_cleaner', name: '변기용 세제', color: '#99ff99', img: '/img/6-1-1/toilet_cleaner.png' },
+    { id: 'bleach', name: '표백제', color: '#ffff99', img: '/img/6-1-1/bleach.png' },
+  ]
+
+  return (
+    <div className='absolute bottom-4 right-4 z-10'>
+      <div className='bg-white bg-opacity-95 p-4 rounded-xl shadow-lg border-2 border-gray-200'>
+        <div className='text-lg font-bold mb-3 text-center text-gray-800'>용액 선택</div>
+        <div className='grid grid-cols-2 gap-3'>
+          {solutions.map((solution) => (
+            <button
+              key={solution.id}
+              onClick={() => onSolutionSelect(solution.id as CleaningToolType)}
+              className={`
+                px-4 py-3 rounded-lg font-bold text-white shadow-lg 
+                hover:scale-105 active:scale-95 transition-all text-black
+                ${selectedSolution === solution.id ? 'ring-4 ring-yellow-400' : ''}
+              `}
+              style={{ backgroundColor: solution.color }}>
+              {solution.img && (
+                <img src={solution.img} alt={solution.name} className='w-24 h-24 object-contain' />
+              )}
+              {solution.name}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// 게임 메시지
+function GameMessages({ 
+  showMessage, 
+  showIntro, 
+  gamePhase, 
+  sprayCount,
+  wipingProgress 
+}: {
+  showMessage: string
+  showIntro: boolean
+  gamePhase: GamePhase
+  sprayCount: number
+  wipingProgress: number
+}) {
+  if (showIntro) return null
+
+  return (
+    <>
+      {/* 중앙 메시지 */}
+      {showMessage && (
+        <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none'>
+          <div className='bg-black bg-opacity-70 text-white px-6 py-4 rounded-xl text-center'>
+            <div className='text-xl font-bold'>{showMessage}</div>
+          </div>
+        </div>
+      )}
+
+      {/* 스프레이 안내 */}
+      {gamePhase === 'spraying' && (
+        <div className='absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none'>
+          <div className='bg-blue-600 bg-opacity-90 text-white px-6 py-4 rounded-xl text-center'>
+            <div className='text-lg font-bold'>🖱️ 클릭해서 용액을 뿌리세요! ({sprayCount}/3)</div>
+          </div>
+        </div>
+      )}
+
+      {/* 와이핑 안내 */}
+      {gamePhase === 'wiping' && (
+        <div className='absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none'>
+          <div className='bg-green-600 bg-opacity-90 text-white px-6 py-4 rounded-xl text-center'>
+            <div className='text-lg font-bold'>
+              🧽 마우스를 움직여서 닦아주세요! ({Math.round(wipingProgress)}%)
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 
@@ -137,27 +243,27 @@ export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
   const [showMessage, setShowMessage] = useState<string>('')
-  const [showWrongMessage, setShowWrongMessage] = useState(false)
   const [wrongMessageShown, setWrongMessageShown] = useState(false)
-  const currentAudioRef = useRef<HTMLAudioElement | null>(null)
   const [isBathroomLightOn, setIsBathroomLightOn] = useState(false)
+  
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null)
   const wipingAudioRef = useRef<HTMLAudioElement | null>(null)
 
-  const [cleaningProgress, setCleaningProgress] = useState({
+  const [cleaningProgress, setCleaningProgress] = useState<Record<SplashType, number>>({
     splash01: 100,
     splash02: 100,
     splash03: 100,
     splash04: 100,
   })
 
-  const [completedMissions, setCompletedMissions] = useState({
+  const [completedMissions, setCompletedMissions] = useState<Record<SplashType, boolean>>({
     splash01: false,
     splash02: false,
     splash03: false,
     splash04: false,
   })
 
-  const [wipingProgress, setWipingProgress] = useState({
+  const [wipingProgress, setWipingProgress] = useState<Record<SplashType, number>>({
     splash01: 0,
     splash02: 0,
     splash03: 0,
@@ -166,7 +272,6 @@ export default function Home() {
 
   const [mouseVelocity, setMouseVelocity] = useState(0)
   const [lastMousePosition, setLastMousePosition] = useState({ x: 0, y: 0 })
-  const [wipingIntensity, setWipingIntensity] = useState(0)
 
   const splashOpacities = {
     splash01: cleaningProgress.splash01 / 100,
@@ -175,214 +280,29 @@ export default function Home() {
     splash04: cleaningProgress.splash04 / 100,
   }
 
-  const playClickSound = (audioPath: string = '/sounds/Enter_Cute.mp3') => {
+  // 오디오 함수들
+  const playSound = (path: string, volume = 0.7) => {
     try {
-      const audio = new Audio(audioPath)
-      audio.volume = 0.7
-      audio.play().catch((error) => {
-        console.log('효과음 재생 실패:', error.name)
-      })
-    } catch (error) {
-      console.log('효과음 생성 실패:', error)
-    }
+      const audio = new Audio(path)
+      audio.volume = volume
+      audio.play().catch(() => {})
+    } catch (error) {}
   }
 
-  const playGeneralButton = (audioPath: string = '/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3') => {
-    try {
-      const audio = new Audio(audioPath)
-      audio.volume = 0.5
-      audio.play().catch((error) => {
-        console.log('효과음 재생 실패:', error.name)
-      })
-    } catch (error) {
-      console.log('효과음 생성 실패:', error)
-    }
-  }
-
-  const playNarration = (audioPath: string) => {
+  const playNarration = (path: string) => {
     if (currentAudioRef.current) {
       currentAudioRef.current.pause()
-      currentAudioRef.current.currentTime = 0
     }
-
+    
     try {
-      const audio = new Audio(audioPath)
+      const audio = new Audio(path)
       audio.volume = 0.7
-      audio.play().catch((error) => {
-        console.log('나레이션 재생 실패:', error.name)
-      })
+      audio.play().catch(() => {})
       currentAudioRef.current = audio
-
-      audio.addEventListener('ended', () => {
-        currentAudioRef.current = null
-      })
-    } catch (error) {
-      console.log('나레이션 생성 실패:', error)
-    }
+    } catch (error) {}
   }
 
-  const handleLoadingComplete = () => {
-    setIsLoaded(true)
-  }
-
-  const handleEnterExperience = () => {
-    playClickSound()
-    setTimeout(() => {
-      setShowIntro(false)
-    }, 300)
-  }
-
-  const calculateWipingEfficiency = (velocity: number, missionId: SplashType) => {
-    const efficiency = wipingEfficiency[missionId]
-    const baseProgress = efficiency.base
-    const velocityBonus = Math.min(velocity * efficiency.bonus, efficiency.bonus * 3)
-    return baseProgress + velocityBonus
-  }
-
-  const handleWipingComplete = () => {
-    if (!currentMission) return
-
-    const mission = missions[currentMission]
-
-    // 이 함수는 올바른 용액일 때만 호출되므로 바로 완료 처리
-    setCompletedMissions((prev) => ({
-      ...prev,
-      [currentMission]: true,
-    }))
-
-    if (currentMission === 'splash01') {
-      playNarration('/sounds/6-1-1/narration/6-1-1-B.MP3')
-      setShowMessage('염기성 물질인 비린내는 산성 용액인 식초와 만나면 성질이 변하여 제거됩니다.')
-    } else if (currentMission === 'splash02') {
-      playNarration('/sounds/6-1-1/narration/6-1-1-D.MP3')
-      setShowMessage('단백질 등으로 이루어진 얼룩은 염기성 물질인 유리 세정제와 만나면 성질이 변하여 제거됩니다.')
-    } else if (currentMission === 'splash03') {
-      playNarration('/sounds/6-1-1/narration/6-1-1-F.MP3')
-      setShowMessage('산성 용액인 변기용 세제로 변기를 청소하면 변기의 때가 성질이 변하여 제거됩니다.')
-    } else if (currentMission === 'splash04') {
-      playNarration('/sounds/6-1-1/narration/6-1-1-H.MP3')
-      setShowMessage('염기성 용액인 표백제로 욕실 바닥을 청소하면 욕실 바닥의 때가 성질이 변하여 제거됩니다.')
-    }
-
-    playClickSound('/sounds/complete_cleaning.mp3')
-    setGamePhase('completed')
-  }
-
-  const playWipingSound = (missionId: SplashType) => {
-    let audioPath = ''
-
-    switch (missionId) {
-      case 'splash01':
-        audioPath = '/sounds/6-1-1/6-1-1-9_varrendo-101422.mp3'
-        break
-      case 'splash02':
-        audioPath = '/sounds/6-1-1/6-1-1-4_Glass.MP3'
-        break
-      case 'splash03':
-        audioPath = '/sounds/6-1-1/6-1-1-5_toilet.MP3'
-        break
-      case 'splash04':
-        audioPath = '/sounds/6-1-1/6-1-1-8_Scrubbing.MP3'
-        break
-    }
-
-    try {
-      const audio = new Audio(audioPath)
-      audio.volume = 0.6
-      audio.loop = true
-      audio.play().catch((error) => {
-        console.log('wiping 효과음 재생 실패:', error.name)
-      })
-      return audio
-    } catch (error) {
-      console.log('wiping 효과음 생성 실패:', error)
-      return null
-    }
-  }
-
-  const playSpraySound = (missionId: SplashType) => {
-    let audioPath = ''
-
-    switch (missionId) {
-      case 'splash02':
-        audioPath = '/sounds/6-1-1/6-1-1-2_spray.MP3'
-        break
-      case 'splash01':
-      case 'splash03':
-      case 'splash04':
-        audioPath = '/sounds/6-1-1/6-1-1-7_slime-splatter-4-220263.mp3'
-        break
-    }
-
-    if (audioPath) {
-      try {
-        const audio = new Audio(audioPath)
-        audio.volume = 0.5
-        audio.play().catch((error) => {
-          console.log('spray 효과음 재생 실패:', error.name)
-        })
-      } catch (error) {
-        console.log('spray 효과음 생성 실패:', error)
-      }
-    }
-  }
-
-  const playCompletionSound = (missionId: SplashType) => {
-    let audioPath = ''
-
-    switch (missionId) {
-      case 'splash01':
-        audioPath = '/sounds/6-1-1/6-1-1-3_correct-356013.mp3'
-        break
-      case 'splash02':
-        audioPath = '/sounds/6-1-1/6-1-1-3_correct-356013.mp3'
-        break
-      case 'splash03':
-        audioPath = '/sounds/6-1-1/6-1-1-3_correct-356013.mp3'
-        break
-      case 'splash04':
-        audioPath = '/sounds/6-1-1/6-1-1-3_correct-356013.mp3'
-        break
-    }
-
-    try {
-      const audio = new Audio(audioPath)
-      audio.volume = 0.5
-      audio.play().catch((error) => {
-        console.log('완료 효과음 재생 실패:', error.name)
-      })
-    } catch (error) {
-      console.log('완료 효과음 생성 실패:', error)
-    }
-  }
-
-  const playAllCompletionSound = () => {
-    try {
-      const audio = new Audio('/sounds/6-1-1/6-1-1-6_goodresult-82807.mp3')
-      audio.volume = 0.2
-      audio.play().catch((error) => {
-        console.log('전체 완료 효과음 재생 실패:', error.name)
-      })
-    } catch (error) {
-      console.log('전체 완료 효과음 생성 실패:', error)
-    }
-  }
-
-  const resetMission = (missionId: SplashType) => {
-    setCleaningProgress((prev) => ({
-      ...prev,
-      [missionId]: 100,
-    }))
-    setWipingProgress((prev) => ({
-      ...prev,
-      [missionId]: 0,
-    }))
-    setCompletedMissions((prev) => ({
-      ...prev,
-      [missionId]: false,
-    }))
-  }
-
+  // 카메라 이동
   const moveToTarget = (
     targetPosition: [number, number, number],
     cameraPosition: [number, number, number],
@@ -399,13 +319,13 @@ export default function Home() {
       const endTarget = new THREE.Vector3(...targetPosition)
       const endPosition = new THREE.Vector3(...cameraPosition)
 
-      let progress = 0
-      const duration = 1000
-      const startTime = Date.now()
-
       if (missionId === 'splash03' || missionId === 'splash04') {
         setIsBathroomLightOn(true)
       }
+
+      let progress = 0
+      const duration = 1000
+      const startTime = Date.now()
 
       const animate = () => {
         const elapsed = Date.now() - startTime
@@ -428,152 +348,7 @@ export default function Home() {
     }
   }
 
-  const handleSolutionSelect = (solutionId: CleaningToolType) => {
-    if (!currentMission) return
-
-    setSelectedSolution(solutionId)
-    setShowMessage('')
-    setWrongMessageShown(false) // 새로운 용액 선택 시 초기화
-
-    setWipingProgress((prev) => ({
-      ...prev,
-      [currentMission]: 0,
-    }))
-
-    // 이제 어떤 용액을 선택하든 스프레이 단계로 진행
-    setGamePhase('spraying')
-    setSprayCount(0)
-  }
-
-  const handleSpray = () => {
-    if (gamePhase !== 'spraying' || !currentMission) return
-
-    playSpraySound(currentMission)
-
-    const newSprayCount = sprayCount + 1
-    setSprayCount(newSprayCount)
-
-    if (newSprayCount >= 3) {
-      setGamePhase('wiping')
-
-      const wipingAudio = playWipingSound(currentMission)
-      wipingAudioRef.current = wipingAudio
-    }
-  }
-
-  const handleWiping = (mouseEvent?: MouseEvent) => {
-    if (gamePhase !== 'wiping' || !currentMission) return
-
-    if (mouseEvent) {
-      const currentMousePos = { x: mouseEvent.clientX, y: mouseEvent.clientY }
-
-      if (lastMousePosition.x === 0 && lastMousePosition.y === 0) {
-        setLastMousePosition(currentMousePos)
-        return
-      }
-
-      const deltaX = currentMousePos.x - lastMousePosition.x
-      const deltaY = currentMousePos.y - lastMousePosition.y
-      const velocity = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
-
-      setMouseVelocity(velocity)
-      setLastMousePosition(currentMousePos)
-
-      const intensity = Math.min(velocity / 20, 1)
-      setWipingIntensity(intensity)
-
-      if (wipingAudioRef.current) {
-        wipingAudioRef.current.volume = Math.min(0.6, 0.3 + velocity / 50)
-      }
-
-      if (velocity < 8) {
-        return
-      }
-    }
-
-    const mission = missions[currentMission]
-
-    // 올바른 용액일 때만 진행도 증가
-    if (selectedSolution === mission.correctSolution) {
-      const efficiency = calculateWipingEfficiency(mouseVelocity, currentMission)
-
-      setWipingProgress((prev) => {
-        const newProgress = Math.min(100, prev[currentMission] + efficiency)
-
-        if (newProgress >= 100 && prev[currentMission] < 100) {
-          if (wipingAudioRef.current) {
-            wipingAudioRef.current.pause()
-            wipingAudioRef.current = null
-          }
-
-          playCompletionSound(currentMission)
-
-          setCompletedMissions((prevCompleted) => {
-            const newCompleted = {
-              ...prevCompleted,
-              [currentMission]: true,
-            }
-
-            const allCompleted = Object.values(newCompleted).every((completed) => completed)
-            if (allCompleted) {
-              setTimeout(() => {
-                playAllCompletionSound()
-              }, 1000)
-            }
-
-            return newCompleted
-          })
-
-          handleWipingComplete()
-        }
-
-        return {
-          ...prev,
-          [currentMission]: newProgress,
-        }
-      })
-
-      // 청소 진행도도 감소
-      const currentWipingProgress = wipingProgress[currentMission]
-      const decreaseAmount = efficiency * (1 + currentWipingProgress / 10)
-
-      setCleaningProgress((prev) => ({
-        ...prev,
-        [currentMission]: Math.max(0, prev[currentMission] - decreaseAmount),
-      }))
-    } else {
-      // 잘못된 용액일 때는 일정 시간 후 메시지 표시 (한 번만)
-      if (!wrongMessageShown) {
-        setWrongMessageShown(true)
-
-        setTimeout(() => {
-          setShowMessage('해당 용액을 다시 고르세요.')
-          playNarration('/sounds/6-1-1/narration/6-1-1-I.MP3')
-
-          // 3초 후 용액 선택 단계로 돌아가기
-          setTimeout(() => {
-            if (wipingAudioRef.current) {
-              wipingAudioRef.current.pause()
-              wipingAudioRef.current = null
-            }
-
-            setGamePhase('solution_choice')
-            setSelectedSolution(null)
-            setSprayCount(0)
-            setShowMessage(missions[currentMission].selectMessage)
-            setWrongMessageShown(false)
-
-            // 진행도 초기화
-            setWipingProgress((prev) => ({
-              ...prev,
-              [currentMission]: 0,
-            }))
-          }, 3000)
-        }, 2000) // 2초 후에 메시지 표시
-      }
-    }
-  }
-
+  // 카메라 리셋
   const resetCamera = () => {
     if (controlsRef.current && !isAnimating) {
       setIsAnimating(true)
@@ -590,10 +365,9 @@ export default function Home() {
         }))
       }
 
-      setWipingIntensity(0)
       setMouseVelocity(0)
       setIsBathroomLightOn(false)
-      setWrongMessageShown(false) // 카메라 리셋 시 초기화
+      setWrongMessageShown(false)
 
       const startTarget = controlsRef.current.target.clone()
       const startPosition = controlsRef.current.object.position.clone()
@@ -630,6 +404,152 @@ export default function Home() {
     }
   }
 
+  // 용액 선택
+  const handleSolutionSelect = (solutionId: CleaningToolType) => {
+    if (!currentMission) return
+
+    setSelectedSolution(solutionId)
+    setShowMessage('')
+    setWrongMessageShown(false)
+    setWipingProgress((prev) => ({ ...prev, [currentMission]: 0 }))
+    setGamePhase('spraying')
+    setSprayCount(0)
+  }
+
+  // 스프레이
+  const handleSpray = () => {
+    if (gamePhase !== 'spraying' || !currentMission) return
+
+    playSound('/sounds/6-1-1/6-1-1-2_spray.MP3', 0.5)
+
+    const newSprayCount = sprayCount + 1
+    setSprayCount(newSprayCount)
+
+    if (newSprayCount >= 3) {
+      setGamePhase('wiping')
+      
+      // 닦기 사운드 시작
+      try {
+        const audio = new Audio('/sounds/6-1-1/6-1-1-9_varrendo-101422.mp3')
+        audio.volume = 0.6
+        audio.loop = true
+        audio.play().catch(() => {})
+        wipingAudioRef.current = audio
+      } catch (error) {}
+    }
+  }
+
+  // 닦기
+  const handleWiping = (mouseEvent?: MouseEvent) => {
+    if (gamePhase !== 'wiping' || !currentMission) return
+
+    if (mouseEvent) {
+      const currentMousePos = { x: mouseEvent.clientX, y: mouseEvent.clientY }
+
+      if (lastMousePosition.x === 0 && lastMousePosition.y === 0) {
+        setLastMousePosition(currentMousePos)
+        return
+      }
+
+      const deltaX = currentMousePos.x - lastMousePosition.x
+      const deltaY = currentMousePos.y - lastMousePosition.y
+      const velocity = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
+
+      setMouseVelocity(velocity)
+      setLastMousePosition(currentMousePos)
+
+      if (velocity < 8) return
+    }
+
+    const mission = missions[currentMission]
+
+    // 올바른 용액일 때만 진행도 증가
+    if (selectedSolution === mission.correctSolution) {
+      const efficiency = wipingEfficiency[currentMission]
+      const baseProgress = efficiency.base
+      const velocityBonus = Math.min(mouseVelocity * efficiency.bonus, efficiency.bonus * 3)
+      const totalEfficiency = baseProgress + velocityBonus
+
+      setWipingProgress((prev) => {
+        const newProgress = Math.min(100, prev[currentMission] + totalEfficiency)
+
+        if (newProgress >= 100 && prev[currentMission] < 100) {
+          if (wipingAudioRef.current) {
+            wipingAudioRef.current.pause()
+            wipingAudioRef.current = null
+          }
+
+          playSound('/sounds/6-1-1/6-1-1-3_correct-356013.mp3', 0.5)
+
+          setCompletedMissions((prevCompleted) => {
+            const newCompleted = { ...prevCompleted, [currentMission]: true }
+            
+            // 모든 미션 완료 체크
+            if (Object.values(newCompleted).every((completed) => completed)) {
+              setTimeout(() => {
+                playSound('/sounds/6-1-1/6-1-1-6_goodresult-82807.mp3', 0.2)
+              }, 1000)
+            }
+
+            return newCompleted
+          })
+
+          // 완료 메시지
+          const messages = {
+            splash01: '염기성 물질인 비린내는 산성 용액인 식초와 만나면 성질이 변하여 제거됩니다.',
+            splash02: '단백질 등으로 이루어진 얼룩은 염기성 물질인 유리 세정제와 만나면 성질이 변하여 제거됩니다.',
+            splash03: '산성 용액인 변기용 세제로 변기를 청소하면 변기의 때가 성질이 변하여 제거됩니다.',
+            splash04: '염기성 용액인 표백제로 욕실 바닥을 청소하면 욕실 바닥의 때가 성질이 변하여 제거됩니다.',
+          }
+
+          setShowMessage(messages[currentMission])
+          setGamePhase('completed')
+        }
+
+        return { ...prev, [currentMission]: newProgress }
+      })
+
+      // 청소 진행도 감소
+      const decreaseAmount = totalEfficiency * (1 + wipingProgress[currentMission] / 10)
+      setCleaningProgress((prev) => ({
+        ...prev,
+        [currentMission]: Math.max(0, prev[currentMission] - decreaseAmount),
+      }))
+    } else {
+      // 잘못된 용액일 때
+      if (!wrongMessageShown) {
+        setWrongMessageShown(true)
+
+        setTimeout(() => {
+          setShowMessage('해당 용액을 다시 고르세요.')
+          playNarration('/sounds/6-1-1/narration/6-1-1-I.MP3')
+
+          setTimeout(() => {
+            if (wipingAudioRef.current) {
+              wipingAudioRef.current.pause()
+              wipingAudioRef.current = null
+            }
+
+            setGamePhase('solution_choice')
+            setSelectedSolution(null)
+            setSprayCount(0)
+            setShowMessage(missions[currentMission].selectMessage)
+            setWrongMessageShown(false)
+            setWipingProgress((prev) => ({ ...prev, [currentMission]: 0 }))
+          }, 3000)
+        }, 2000)
+      }
+    }
+  }
+
+  // 미션 리셋
+  const resetMission = (missionId: SplashType) => {
+    setCleaningProgress((prev) => ({ ...prev, [missionId]: 100 }))
+    setWipingProgress((prev) => ({ ...prev, [missionId]: 0 }))
+    setCompletedMissions((prev) => ({ ...prev, [missionId]: false }))
+  }
+
+  // 이벤트 리스너
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
       if (gamePhase === 'wiping') {
@@ -663,27 +583,23 @@ export default function Home() {
         isZoomed={isZoomed}
         showIntro={showIntro}
         onBack={resetCamera}
-        onButtonClick={playGeneralButton}
         isAnimating={isAnimating}
         gamePhase={gamePhase}
       />
 
-      <WipingProgressUI
-        currentMission={currentMission}
+      <GameMessages 
+        showMessage={showMessage} 
+        showIntro={showIntro} 
+        gamePhase={gamePhase} 
+        sprayCount={sprayCount}
         wipingProgress={currentMission ? wipingProgress[currentMission] : 0}
-        wipingIntensity={wipingIntensity}
-        gamePhase={gamePhase}
-        showIntro={showIntro}
       />
-
-      <GameMessages showMessage={showMessage} showIntro={showIntro} gamePhase={gamePhase} sprayCount={sprayCount} />
 
       <SolutionSelector
         gamePhase={gamePhase}
         showIntro={showIntro}
         selectedSolution={selectedSolution}
         onSolutionSelect={handleSolutionSelect}
-        onButtonClick={playGeneralButton}
       />
 
       <CleaningProgressUI
@@ -692,12 +608,12 @@ export default function Home() {
         showIntro={showIntro}
         isZoomed={isZoomed}
         onReset={resetMission}
-        onButtonClick={playGeneralButton}
       />
 
       <Scene shadows camera={{ position: initialCamera.position, fov: 50 }}>
-        <LoadingTracker onLoadingComplete={handleLoadingComplete} />
+        <LoadingTracker onLoadingComplete={() => setIsLoaded(true)} />
         <IntroMouseCameraController enabled={showIntro} />
+        
         <directionalLight
           castShadow
           intensity={1}
@@ -715,11 +631,12 @@ export default function Home() {
 
         <Model scale={1} position={[0, 1.04, 0]} splashOpacities={splashOpacities} />
         <Toilet scale={1} position={[10.5, 5, 0.5]} splashOpacities={splashOpacities} />
+        
         {isBathroomLightOn && (
-          <>
-            <pointLight intensity={7} position={[7.0, 2, -2]} color='#c0ce6f' distance={7} decay={1} />
-          </>
+          <pointLight intensity={7} position={[7.0, 2, -2]} color='#c0ce6f' distance={7} decay={1} />
         )}
+
+        {/* 청소 도구들 */}
         {gamePhase === 'spraying' && selectedSolution && (
           <>
             {selectedSolution === 'vinegar' && <VinegarTool visible={true} />}
@@ -737,6 +654,7 @@ export default function Home() {
           </>
         )}
 
+        {/* 도마 관련 */}
         {!showIntro && (
           <>
             <CuttingBoardSmell
@@ -748,12 +666,11 @@ export default function Home() {
               position={missions.splash01.position}
               wipingProgress={wipingProgress.splash01}
               isInteractive={currentMission === 'splash01' && gamePhase === 'wiping'}
-              onWiping={(intensity) => {
-                setWipingIntensity(intensity / 10)
-              }}
             />
           </>
         )}
+
+        {/* 미션 버블들 */}
         {!showIntro && gamePhase === 'selection' && (
           <>
             <SpeechBubble
@@ -761,7 +678,7 @@ export default function Home() {
               html='도마에서 나는 생선 비린내 제거하기'
               onBubbleClick={() => {
                 moveToTarget(missions.splash01.position, missions.splash01.cameraPosition, 'splash01')
-                playGeneralButton()
+                playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3', 0.5)
               }}
             />
 
@@ -770,7 +687,7 @@ export default function Home() {
               html='유리창의 얼룩 제거하기'
               onBubbleClick={() => {
                 moveToTarget(missions.splash02.position, missions.splash02.cameraPosition, 'splash02')
-                playGeneralButton()
+                playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3', 0.5)
               }}
             />
 
@@ -779,7 +696,7 @@ export default function Home() {
               html='변기 청소하기'
               onBubbleClick={() => {
                 moveToTarget(missions.splash03.position, missions.splash03.cameraPosition, 'splash03')
-                playGeneralButton()
+                playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3', 0.5)
               }}
             />
 
@@ -788,7 +705,7 @@ export default function Home() {
               html='욕실 청소하기'
               onBubbleClick={() => {
                 moveToTarget(missions.splash04.position, missions.splash04.cameraPosition, 'splash04')
-                playGeneralButton()
+                playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3', 0.5)
               }}
             />
           </>
@@ -819,7 +736,10 @@ export default function Home() {
 
       {isLoaded && showIntro && (
         <Intro
-          onEnter={handleEnterExperience}
+          onEnter={() => {
+            playSound('/sounds/Enter_Cute.mp3')
+            setTimeout(() => setShowIntro(false), 300)
+          }}
           title='산성 용액과 염기성 용액을 이용하는 예 알아보기'
           description={['집 안에서 이용하고 있는 산성 용액과 염기성 용액이 어떻게 이용되는지 알아봅시다.']}
           backgroundSvg='/img/cover/6-1-1.svg'

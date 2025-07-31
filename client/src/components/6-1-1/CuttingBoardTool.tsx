@@ -5,8 +5,8 @@ import * as THREE from 'three'
 
 interface CuttingBoardProps {
   position: [number, number, number]
-  wipingProgress: number // 0-100, 닦기 진행도
-  isInteractive: boolean // splash01 미션 중인지 여부
+  wipingProgress: number
+  isInteractive: boolean
   onWiping?: (intensity: number) => void
   scale?: number
   rotation?: [number, number, number]
@@ -18,7 +18,7 @@ export const CuttingBoard: React.FC<CuttingBoardProps> = ({
   isInteractive,
   onWiping,
   scale = 1.2,
-  rotation = [0,Math.PI/2, 0]
+  rotation = [0, Math.PI/2, 0]
 }) => {
   const gltf = useGLTF('/models/6-1-1/Cutting_Board/Cutting_Board.glb')
   const groupRef = useRef<THREE.Group>(null)
@@ -33,24 +33,19 @@ export const CuttingBoard: React.FC<CuttingBoardProps> = ({
   const initialRagX = useRef<number>(0)
   const currentRagX = useRef<number>(0)
 
-  // 머티리얼 설정
   useEffect(() => {
     if (gltf.scene) {
       gltf.scene.traverse((child) => {
         if (child instanceof THREE.Mesh && child.material) {
-          if (Array.isArray(child.material)) {
-            child.material.forEach(mat => {
-              mat.side = THREE.DoubleSide
-            })
-          } else {
-            child.material.side = THREE.DoubleSide
-          }
+          const materials = Array.isArray(child.material) ? child.material : [child.material]
+          materials.forEach(mat => {
+            mat.side = THREE.DoubleSide
+          })
         }
       })
     }
   }, [gltf])
 
-  // 메쉬 찾기 및 초기 설정
   useEffect(() => {
     if (gltf.scene) {
       gltf.scene.traverse((child) => {
@@ -102,12 +97,11 @@ export const CuttingBoard: React.FC<CuttingBoardProps> = ({
     }
   }, [isInteractive, onWiping])
 
-  // 애니메이션 업데이트
   useFrame((state, delta) => {
     if (!ragMeshRef.current || !bloodMeshRef.current) return
     
     if (isInteractive) {
-      // X축 이동 (마우스 속도에 따라 오른쪽으로)
+      // X축 이동 (마우스 속도에 따라 양옆으로)
       const targetX = initialRagX.current + mouseVelocity.current * 2
       currentRagX.current = THREE.MathUtils.lerp(currentRagX.current, targetX, delta * 10)
       ragMeshRef.current.position.x = currentRagX.current
@@ -146,5 +140,4 @@ export const CuttingBoard: React.FC<CuttingBoardProps> = ({
   )
 }
 
-// preload
 useGLTF.preload('/models/6-1-1/Cutting_Board/Cutting_Board.glb')
