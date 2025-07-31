@@ -128,11 +128,132 @@ export function ConstellationModel({
     <group ref={groupRef} position={position} visible={opacity > 0}>
       <group scale={0.5} position={[0, -12.5, 0]} rotation={[0, initialRotationY, 0]}>
         <primitive object={clonedScene} />
+        <Text
+          position={[-28, 40, -20]}
+          rotation={[0, Math.PI / 2, 0]}
+          fontSize={1}
+          color='white'
+          anchorX='center'
+          anchorY='middle'
+          font='/fonts/Maplestory Bold.ttf'>
+          목동자리
+        </Text>
+        <Text
+          position={[-10, 30, -38]}
+          rotation={[0, Math.PI / 4, 0]}
+          fontSize={1}
+          color='white'
+          anchorX='center'
+          anchorY='middle'
+          font='/fonts/Maplestory Bold.ttf'>
+          처녀자리
+        </Text>
+        <Text
+          position={[10, 34, -35]}
+          rotation={[0, 0, 0]}
+          fontSize={1}
+          color='white'
+          anchorX='center'
+          anchorY='middle'
+          font='/fonts/Maplestory Bold.ttf'>
+          사자자리
+        </Text>
+        <Text
+          position={[-28, 36, 20]}
+          rotation={[0, Math.PI / 2 + Math.PI / 3, 0]}
+          fontSize={1}
+          color='white'
+          anchorX='center'
+          anchorY='middle'
+          font='/fonts/Maplestory Bold.ttf'>
+          백조자리
+        </Text>
+        <Text
+          position={[-30, 36, 14]}
+          rotation={[0, Math.PI / 2 +Math.PI/6, 0]}
+          fontSize={1}
+          color='white'
+          anchorX='center'
+          anchorY='middle'
+          font='/fonts/Maplestory Bold.ttf'>
+          거문고자리
+        </Text>
+        <Text
+          position={[-30, 16, 8]}
+          rotation={[0, Math.PI / 2, 0]}
+          fontSize={1}
+          color='white'
+          anchorX='center'
+          anchorY='middle'
+          font='/fonts/Maplestory Bold.ttf'>
+          독수리자리
+        </Text>
+        <Text
+          position={[-10, 24, 30]}
+          rotation={[0, Math.PI, 0]}
+          fontSize={1}
+          color='white'
+          anchorX='center'
+          anchorY='middle'
+          font='/fonts/Maplestory Bold.ttf'>
+          페가수스자리
+        </Text>
+        <Text
+          position={[15, 38, 30]}
+          rotation={[0, Math.PI+Math.PI/4, 0]}
+          fontSize={1}
+          color='white'
+          anchorX='center'
+          anchorY='middle'
+          font='/fonts/Maplestory Bold.ttf'>
+          안드로메다자리
+        </Text>
+        <Text
+          position={[13, 17, 30]}
+          rotation={[0, Math.PI, 0]}
+          fontSize={1}
+          color='white'
+          anchorX='center'
+          anchorY='middle'
+          font='/fonts/Maplestory Bold.ttf'>
+          물고기자리
+        </Text>
+        <Text
+          position={[38, 32, -11]}
+          rotation={[0, -Math.PI/3, 0]}
+          fontSize={1}
+          color='white'
+          anchorX='center'
+          anchorY='middle'
+          font='/fonts/Maplestory Bold.ttf'>
+          쌍둥이자리
+        </Text>
+        <Text
+          position={[42, 25, -2]}
+          rotation={[0, -Math.PI/2, 0]}
+          fontSize={1}
+          color='white'
+          anchorX='center'
+          anchorY='middle'
+          font='/fonts/Maplestory Bold.ttf'>
+          오리온자리
+        </Text>
+        <Text
+          position={[38, 15, -10]}
+          rotation={[0, -Math.PI/2, 0]}
+          fontSize={1}
+          color='white'
+          anchorX='center'
+          anchorY='middle'
+          font='/fonts/Maplestory Bold.ttf'>
+          큰개자리
+        </Text>
       </group>
-      <>
+
+      <group rotation={[0, initialRotationY - Math.PI - Math.PI / 2, 0]}>
         <Text
           position={[18, -8, 0]}
-          rotation={[0,-Math.PI/2,0]}
+          rotation={[0, -Math.PI / 2, 0]}
           fontSize={1}
           color='white'
           anchorX='center'
@@ -143,7 +264,7 @@ export function ConstellationModel({
 
         <Text
           position={[-18, -8, 0]}
-          rotation={[0,Math.PI/2,0]}
+          rotation={[0, Math.PI / 2, 0]}
           fontSize={0.8}
           color='white'
           anchorX='center'
@@ -154,7 +275,7 @@ export function ConstellationModel({
 
         <Text
           position={[0, -8, -18]}
-          rotation={[0,0,0]}
+          rotation={[0, 0, 0]}
           fontSize={1}
           color='white'
           anchorX='center'
@@ -165,7 +286,7 @@ export function ConstellationModel({
 
         <Text
           position={[0, -8, 18]}
-          rotation={[0,Math.PI,0]}
+          rotation={[0, Math.PI, 0]}
           fontSize={1}
           color='white'
           anchorX='center'
@@ -173,7 +294,7 @@ export function ConstellationModel({
           font='/fonts/Maplestory Bold.ttf'>
           남
         </Text>
-      </>
+      </group>
     </group>
   )
 }
