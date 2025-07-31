@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import SpaceScene from '@/scenes/SpaceScene' 
+import SpaceScene from '@/scenes/SpaceScene'
 import Intro from '@/components/intro/Intro'
 
 type Season = 'spring' | 'summer' | 'fall' | 'winter'
@@ -20,10 +20,9 @@ export default function HomePage() {
     return () => clearTimeout(timer)
   }, [])
 
-
   const handleEarthClick = (position: [number, number, number], season: Season) => {
     if (showIntro) return
-    
+
     setCameraTarget(position)
     setActiveSeason(season)
     setIsLockedToSurface(true)
@@ -39,7 +38,7 @@ export default function HomePage() {
     try {
       const audio = new Audio(audioPath)
       audio.volume = 0.7
-      audio.play().catch(error => {
+      audio.play().catch((error) => {
         console.log('효과음 재생 실패:', error.name)
       })
     } catch (error) {
@@ -51,7 +50,9 @@ export default function HomePage() {
     try {
       const audio = new Audio(audioPath)
       audio.volume = 0.5
-      audio.play().catch(error => {
+      audio.loop = true
+
+      audio.play().catch((error) => {
         console.log('효과음 재생 실패:', error.name)
       })
     } catch (error) {
@@ -62,16 +63,14 @@ export default function HomePage() {
   const handleEnterExperience = () => {
     playClickSound()
     playBGSound()
-    
+
     setTimeout(() => {
       setShowIntro(false)
     }, 300)
   }
 
-
-
   return (
-    <div className="fixed inset-0 bg-black">
+    <div className='fixed inset-0 bg-black'>
       <SpaceScene
         onEarthClick={handleEarthClick}
         cameraTarget={cameraTarget}
@@ -81,11 +80,11 @@ export default function HomePage() {
       />
 
       {isLoaded && showIntro && (
-        <Intro 
+        <Intro
           onEnter={handleEnterExperience}
-          title="계절별 대표적인 별자리 관찰하기"
+          title='계절별 대표적인 별자리 관찰하기'
           description={[
-            "지구의 공전으로 나타나는 계절별 지구의 위치 변화와 이에 따라 달라지는 계절별 대표적인 별자리를 확인해 봅시다."
+            '지구의 공전으로 나타나는 계절별 지구의 위치 변화와 이에 따라 달라지는 계절별 대표적인 별자리를 확인해 봅시다.',
           ]}
           backgroundSvg='/img/cover/6-1-4.svg'
           descriptionSound='/sounds/6-1-4/narration/6-1-4-Goal.MP3'
