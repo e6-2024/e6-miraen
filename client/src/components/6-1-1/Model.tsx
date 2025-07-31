@@ -6,9 +6,10 @@ interface ModelProps {
   scale?: number
   position?: [number, number, number]
   splashOpacities?: {
-    splash01: number
-    splash02: number  
-    splash03: number
+    splash01: number // 도마
+    splash02: number // 유리창  
+    splash03: number // 변기
+    splash04: number // 욕실
   }
   castShadow?: boolean
   receiveShadow?: boolean
@@ -58,13 +59,13 @@ export const Model = ({
             if (material.name) {
               const matName = material.name.toLowerCase()
               
-              if (matName.includes('WindowsGlass.003') || 
-                  (material.map?.name?.includes('WindowsGlass.003'))) {
+              // splash02 - 유리창 얼룩 (WindowsGlass.001)
+              if (matName.includes('windowsglass.001')) {
                 material.transparent = true
-                material.opacity = splashOpacities.splash01
+                material.opacity = splashOpacities.splash02
                 material.needsUpdate = true
                 
-                if (splashOpacities.splash01 <= 0.1) {
+                if (splashOpacities.splash02 <= 0.1) {
                   material.visible = false
                   child.castShadow = false
                   child.receiveShadow = false
@@ -75,14 +76,18 @@ export const Model = ({
                 }
               }
               
-              else if (matName.includes('Red_01.003') || 
-                       (material.map?.name?.includes('Red_01.003'))) {
+              // splash04 - 욕실 바닥 얼룩 (Material.008)
+              else if (matName.includes('material.008')) {
                 material.transparent = true
-                material.opacity = splashOpacities.splash03
+                material.opacity = splashOpacities.splash04
                 material.needsUpdate = true
                 
-                if (splashOpacities.splash03 <= 0.1) {
+                if (splashOpacities.splash04 <= 0.1) {
+                  material.visible = false
                   child.castShadow = false
+                } else {
+                  material.visible = true
+                  child.castShadow = castShadow
                 }
               }
             }
@@ -93,14 +98,15 @@ export const Model = ({
               if (textureMap?.name) {
                 const texName = textureMap.name.toLowerCase()
                 
-                if (texName.includes('t_bigsplash08')) {
+                // 텍스처 이름으로 추가 확인 (필요시)
+                if (texName.includes('windowsglass') && texName.includes('001')) {
                   material.transparent = true
-                  material.opacity = splashOpacities.splash01
+                  material.opacity = splashOpacities.splash02
                   material.needsUpdate = true
                 }
-                else if (texName.includes('t_bigsplash03')) {
+                else if (texName.includes('material') && texName.includes('008')) {
                   material.transparent = true
-                  material.opacity = splashOpacities.splash03
+                  material.opacity = splashOpacities.splash04
                   material.needsUpdate = true
                 }
               }

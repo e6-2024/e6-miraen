@@ -6,9 +6,10 @@ interface ModelProps {
   scale?: number
   position?: [number, number, number]
   splashOpacities?: {
-    splash01: number
-    splash02: number
-    splash03: number
+    splash01: number // 도마
+    splash02: number // 유리창
+    splash03: number // 변기
+    splash04: number // 욕실
   }
   castShadow?: boolean
   receiveShadow?: boolean
@@ -106,8 +107,8 @@ export const Toilet = ({
       const cleanBaseTexture = textureLoader.load('/models/6-1-1/Toilet/Toilet_Clean_Base_color.png')
       const cleanRoughnessTexture = textureLoader.load('/models/6-1-1/Toilet/Toilet_Clean_Roughness.png')
       
-      // splash02가 100%로 초기화되었는지 확인 (다시하기 상태)
-      const isReset = splashOpacities.splash02 >= 0.99
+      // splash03이 100%로 초기화되었는지 확인 (다시하기 상태)
+      const isReset = splashOpacities.splash03 >= 0.99
       
       if (isReset) {
         // 다시하기: 원본 더러운 텍스처로 복원
@@ -122,7 +123,7 @@ export const Toilet = ({
             if (material.name) {
               const matName = material.name.toLowerCase()
               
-              // splash02 - 변기 splash 메테리얼 처리
+              // splash03 - 변기 splash 메테리얼 처리
               if (
                 matName.includes('bloodmaterialexample.001') ||
                 (matName.includes('bloodmaterialexample') &&
@@ -132,17 +133,17 @@ export const Toilet = ({
                 material.map?.name?.includes('T_BigSplash02')
               ) {
                 material.transparent = true
-                material.opacity = splashOpacities.splash02
+                material.opacity = splashOpacities.splash03
                 material.needsUpdate = true
 
-                if (splashOpacities.splash02 <= 0.1) {
+                if (splashOpacities.splash03 <= 0.1) {
                   child.castShadow = false
                 } else {
                   child.castShadow = castShadow
                 }
               }
               
-              // splash02 - 변기 본체 청소 진행도에 따른 텍스처 변경
+              // splash03 - 변기 본체 청소 진행도에 따른 텍스처 변경
               if (
                 matName.includes('toilet') || 
                 matName.includes('ceramic') ||
@@ -156,8 +157,8 @@ export const Toilet = ({
                     return
                   }
                   
-                  // splash02가 줄어들수록 깨끗해짐 (1 -> 0으로 갈 때 깨끗해짐)
-                  const cleanProgress = 1 - splashOpacities.splash02
+                  // splash03이 줄어들수록 깨끗해짐 (1 -> 0으로 갈 때 깨끗해짐)
+                  const cleanProgress = 1 - splashOpacities.splash03
                   
                   if (cleanProgress > 0.05) {
                     // 청소 진행도에 따라 점진적으로 Clean 텍스처 적용
@@ -180,7 +181,7 @@ export const Toilet = ({
 
                 if (texName.includes('t_bigsplash02')) {
                   material.transparent = true
-                  material.opacity = splashOpacities.splash02
+                  material.opacity = splashOpacities.splash03
                   material.needsUpdate = true
                 }
                 
@@ -197,7 +198,7 @@ export const Toilet = ({
                       return
                     }
                     
-                    const cleanProgress = 1 - splashOpacities.splash02
+                    const cleanProgress = 1 - splashOpacities.splash03
                     
                     if (cleanProgress >= 0.95) {
                       material.map = cleanBaseTexture

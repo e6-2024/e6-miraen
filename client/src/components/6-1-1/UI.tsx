@@ -6,10 +6,11 @@ interface BackButtonProps {
   onBack: () => void
   onButtonClick: () => void
   isAnimating: boolean
+  gamePhase :GamePhase
 }
 
-export function BackButton({ isZoomed, showIntro, onBack, onButtonClick, isAnimating }: BackButtonProps) {
-  if (!isZoomed || showIntro) return null
+export function BackButton({ isZoomed, showIntro, onBack, onButtonClick, isAnimating, gamePhase}: BackButtonProps) {
+  if (!isZoomed || showIntro || gamePhase==='wiping') return null
 
   return (
     <div className='absolute top-4 left-4 z-10'>

@@ -251,17 +251,17 @@ export default function Home() {
     }))
 
     if (currentMission === 'splash01') {
-      playNarration('/sounds/6-1-1/narration/6-1-1-D.MP3')
-      setShowMessage('단백질 등으로 이루어진 얼룩은 염기성 물질인 유리 세정제와 만나면 성질이 변하여 제거됩니다.')
-    } else if (currentMission === 'splash02') {
-      playNarration('/sounds/6-1-1/narration/6-1-1-F.MP3')
-      setShowMessage('산성 용액인 변기용 세제로 변기를 청소하면 변기의 때가 성질이 변하여 제거됩니다.')
-    } else if (currentMission === 'splash03') {
-      playNarration('/sounds/6-1-1/narration/6-1-1-H.MP3')
-      setShowMessage('염기성 용액인 표백제로 욕실 바닥을 청소하면 욕실 바닥의 때가 성질이 변하여 제거됩니다.')
-    } else if (currentMission === 'splash04') {
       playNarration('/sounds/6-1-1/narration/6-1-1-B.MP3')
       setShowMessage('염기성 물질인 비린내는 산성 용액인 식초와 만나면 성질이 변하여 제거됩니다.')
+    } else if (currentMission === 'splash02') {
+      playNarration('/sounds/6-1-1/narration/6-1-1-D.MP3')
+      setShowMessage('단백질 등으로 이루어진 얼룩은 염기성 물질인 유리 세정제와 만나면 성질이 변하여 제거됩니다.')
+    } else if (currentMission === 'splash03') {
+      playNarration('/sounds/6-1-1/narration/6-1-1-F.MP3')
+      setShowMessage('산성 용액인 변기용 세제로 변기를 청소하면 변기의 때가 성질이 변하여 제거됩니다.')
+    } else if (currentMission === 'splash04') {
+      playNarration('/sounds/6-1-1/narration/6-1-1-H.MP3')
+      setShowMessage('염기성 용액인 표백제로 욕실 바닥을 청소하면 욕실 바닥의 때가 성질이 변하여 제거됩니다.')
     }
 
     playClickSound('/sounds/complete_cleaning.mp3')
@@ -273,16 +273,16 @@ export default function Home() {
 
     switch (missionId) {
       case 'splash01':
-        audioPath = '/sounds/6-1-1/6-1-1-4_Glass.MP3'
+        audioPath = '/sounds/6-1-1/6-1-1-9_varrendo-101422.mp3'
         break
       case 'splash02':
-        audioPath = '/sounds/6-1-1/6-1-1-5_toilet.MP3'
+        audioPath = '/sounds/6-1-1/6-1-1-4_Glass.MP3'
         break
       case 'splash03':
-        audioPath = '/sounds/6-1-1/6-1-1-8_Scrubbing.MP3'
+        audioPath = '/sounds/6-1-1/6-1-1-5_toilet.MP3'
         break
       case 'splash04':
-        audioPath = '/sounds/6-1-1/6-1-1-9_varrendo-101422.mp3'
+        audioPath = '/sounds/6-1-1/6-1-1-8_Scrubbing.MP3'
         break
     }
 
@@ -304,12 +304,12 @@ export default function Home() {
     let audioPath = ''
 
     switch (missionId) {
-      case 'splash01':
-      case 'splash04':
+      case 'splash02':
         audioPath = '/sounds/6-1-1/6-1-1-2_spray.MP3'
         break
-      case 'splash02':
+      case 'splash01':
       case 'splash03':
+      case 'splash04':
         audioPath = '/sounds/6-1-1/6-1-1-7_slime-splatter-4-220263.mp3'
         break
     }
@@ -665,6 +665,7 @@ export default function Home() {
         onBack={resetCamera}
         onButtonClick={playGeneralButton}
         isAnimating={isAnimating}
+        gamePhase={gamePhase}
       />
 
       <WipingProgressUI
