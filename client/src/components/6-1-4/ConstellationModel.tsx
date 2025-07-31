@@ -51,6 +51,22 @@ export function ConstellationModel({
     }
   }, [season])
 
+   const initialRotationY2 = useMemo(() => {
+    switch (season) {
+      case 'spring':
+        return 0
+      case 'summer':
+        return -Math.PI/2
+      case 'fall':
+        return Math.PI
+      case 'winter':
+        return Math.PI / 2
+      default:
+        return 0
+    }
+  }, [season])
+
+
   const clonedScene = useMemo(() => {
     const cloned = scene.clone()
     const materials: THREE.Material[] = []
@@ -170,7 +186,7 @@ export function ConstellationModel({
         </Text>
         <Text
           position={[-30, 36, 14]}
-          rotation={[0, Math.PI / 2 +Math.PI/6, 0]}
+          rotation={[0, Math.PI / 2 + Math.PI / 6, 0]}
           fontSize={1}
           color='white'
           anchorX='center'
@@ -200,7 +216,7 @@ export function ConstellationModel({
         </Text>
         <Text
           position={[15, 38, 30]}
-          rotation={[0, Math.PI+Math.PI/4, 0]}
+          rotation={[0, Math.PI + Math.PI / 4, 0]}
           fontSize={1}
           color='white'
           anchorX='center'
@@ -220,7 +236,7 @@ export function ConstellationModel({
         </Text>
         <Text
           position={[38, 32, -11]}
-          rotation={[0, -Math.PI/3, 0]}
+          rotation={[0, -Math.PI / 3, 0]}
           fontSize={1}
           color='white'
           anchorX='center'
@@ -230,7 +246,7 @@ export function ConstellationModel({
         </Text>
         <Text
           position={[42, 25, -2]}
-          rotation={[0, -Math.PI/2, 0]}
+          rotation={[0, -Math.PI / 2, 0]}
           fontSize={1}
           color='white'
           anchorX='center'
@@ -240,7 +256,7 @@ export function ConstellationModel({
         </Text>
         <Text
           position={[38, 15, -10]}
-          rotation={[0, -Math.PI/2, 0]}
+          rotation={[0, -Math.PI / 2, 0]}
           fontSize={1}
           color='white'
           anchorX='center'
@@ -249,12 +265,11 @@ export function ConstellationModel({
           큰개자리
         </Text>
       </group>
-
-      <group rotation={[0, initialRotationY - Math.PI - Math.PI / 2, 0]}>
+      <group scale={1} rotation={[0, initialRotationY2, 0]}>
         <Text
-          position={[18, -8, 0]}
-          rotation={[0, -Math.PI / 2, 0]}
-          fontSize={1}
+          position={[0, -5, 15]}
+          rotation={[0, Math.PI, 0]}
+          fontSize={0.8}
           color='white'
           anchorX='center'
           anchorY='middle'
@@ -263,8 +278,8 @@ export function ConstellationModel({
         </Text>
 
         <Text
-          position={[-18, -8, 0]}
-          rotation={[0, Math.PI / 2, 0]}
+          position={[0, -5, -15]}
+          rotation={[0, 0, 0]}
           fontSize={0.8}
           color='white'
           anchorX='center'
@@ -274,9 +289,9 @@ export function ConstellationModel({
         </Text>
 
         <Text
-          position={[0, -8, -18]}
-          rotation={[0, 0, 0]}
-          fontSize={1}
+          position={[15, -5, 0]}
+          rotation={[0, -Math.PI / 2, 0]}
+          fontSize={0.8}
           color='white'
           anchorX='center'
           anchorY='middle'
@@ -285,9 +300,9 @@ export function ConstellationModel({
         </Text>
 
         <Text
-          position={[0, -8, 18]}
-          rotation={[0, Math.PI, 0]}
-          fontSize={1}
+          position={[-15, -5, 0]}
+          rotation={[0, Math.PI / 2, 0]}
+          fontSize={0.8}
           color='white'
           anchorX='center'
           anchorY='middle'

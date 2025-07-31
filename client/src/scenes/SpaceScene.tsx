@@ -91,6 +91,7 @@ export default function SpaceScene({
       try {
         const audio = new Audio(audioPath)
         audio.volume = 0.5
+        audio.loop = true
         audio.play().catch((error) => {
           console.log('효과음 재생 실패:', error.name)
         })
