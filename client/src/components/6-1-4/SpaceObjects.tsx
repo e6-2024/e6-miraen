@@ -93,10 +93,10 @@ export function EarthModel({
   }
 
   const seasonLabels: Record<string, string> = {
-    spring: '겨울',
-    summer: '가을',
-    fall: '여름',
-    winter: '봄',
+    spring: '봄',
+    summer: '겨울',
+    fall: '가을',
+    winter: '여름',
   }
 
   const { scene: earthScene } = useGLTF('/models/6-1-4/Earth.glb')
@@ -259,7 +259,7 @@ export function EarthModel({
 
   return (
     <group onClick={onClick}>
-      <group position={position} ref={groupRef} rotation={[Math.PI * 23.5 / 180, Math.PI/3, 0]}>
+      <group position={position} ref={groupRef} rotation={[Math.PI * 23.5 / 180, 0, 0]}>
         <group ref={earthRef}>
           <primitive 
             object={clonedEarthScene} 

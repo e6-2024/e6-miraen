@@ -46,10 +46,10 @@ export default function HomePage() {
     }
   }
 
-  const playBGSound = (audioPath: string = '/sounds/6-1-4/space-rumble-29970.mp3') => {
+  const playBGSound = (audioPath: string = '/sounds/6-1-4/6-1-4-BGM_airy-196973.mp3') => {
     try {
       const audio = new Audio(audioPath)
-      audio.volume = 0.5
+      audio.volume = 0.3
       audio.loop = true
 
       audio.play().catch((error) => {

@@ -9,6 +9,7 @@ import { useThree } from '@react-three/fiber'
 import { useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
 import UI from '@/components/6-1-4/UI'
+import CameraLogger from '@/hook/CameraLogger'
 
 type Season = 'spring' | 'summer' | 'fall' | 'winter'
 const SEASONS: Season[] = ['spring', 'summer', 'fall', 'winter']
@@ -21,7 +22,7 @@ interface SpaceSceneProps {
   onReset: () => void
 }
 
-const INITIAL_CAMERA_POSITION = new THREE.Vector3(0, 40, 100)
+const INITIAL_CAMERA_POSITION = new THREE.Vector3(-102, 34, 0)
 const INITIAL_CAMERA_TARGET = new THREE.Vector3(0, 0, 0)
 
 export default function SpaceScene({
@@ -104,7 +105,8 @@ export default function SpaceScene({
 
   return (
     <div className='absolute inset-0'>
-      <Scene camera={{ position: [0, 40, 100], fov: 40 }} shadows>
+      <Scene camera={{ position: [-102, 34, 0], fov: 40 }} shadows>
+        <CameraLogger/>
         <ambientLight intensity={2.0} />
         {!isLockedToSurface && (
           <>

@@ -38,14 +38,14 @@ export function ConstellationModel({
 
   const initialRotationY = useMemo(() => {
     switch (season) {
-      case 'spring':
-        return Math.PI
       case 'summer':
-        return Math.PI
+        return Math.PI /2
+      case 'spring':
+        return Math.PI/2
       case 'fall':
-        return Math.PI + Math.PI / 2
+        return Math.PI/2
       case 'winter':
-        return Math.PI / 2
+        return Math.PI/2
       default:
         return 0
     }
