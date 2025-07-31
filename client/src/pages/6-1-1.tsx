@@ -21,7 +21,6 @@ import {
   ToiletBrushTool,
   BathroomScrubTool,
   KitchenSpongeTool,
-  CuttingBoard,
 } from '@/components/6-1-1/CleaningTool'
 import Scene from '@/components/canvas/Scene'
 import Intro from '@/components/intro/Intro'
@@ -35,6 +34,7 @@ import { CleaningToolType, SplashType, GamePhase, missions, wipingEfficiency, in
 import { BackButton, WipingProgressUI, SolutionSelector, GameMessages } from '@/components/6-1-1/UI'
 import { BathroomLight } from '@/components/6-1-1/BathroomLight'
 import { BubbleParticles } from '@/components/6-1-1/BubbleParticles'
+import { CuttingBoard } from '@/components/6-1-1/CuttingBoardTool'
 
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
   const { progress, active } = useProgress()
@@ -492,7 +492,7 @@ export default function Home() {
     }
 
     const mission = missions[currentMission]
-    
+
     // 올바른 용액일 때만 진행도 증가
     if (selectedSolution === mission.correctSolution) {
       const efficiency = calculateWipingEfficiency(mouseVelocity, currentMission)
@@ -545,24 +545,24 @@ export default function Home() {
       // 잘못된 용액일 때는 일정 시간 후 메시지 표시 (한 번만)
       if (!wrongMessageShown) {
         setWrongMessageShown(true)
-        
+
         setTimeout(() => {
           setShowMessage('해당 용액을 다시 고르세요.')
           playNarration('/sounds/6-1-1/narration/6-1-1-I.MP3')
-          
+
           // 3초 후 용액 선택 단계로 돌아가기
           setTimeout(() => {
             if (wipingAudioRef.current) {
               wipingAudioRef.current.pause()
               wipingAudioRef.current = null
             }
-            
+
             setGamePhase('solution_choice')
             setSelectedSolution(null)
             setSprayCount(0)
             setShowMessage(missions[currentMission].selectMessage)
             setWrongMessageShown(false)
-            
+
             // 진행도 초기화
             setWipingProgress((prev) => ({
               ...prev,
@@ -685,7 +685,6 @@ export default function Home() {
         onButtonClick={playGeneralButton}
       />
 
-
       <CleaningProgressUI
         cleaningProgress={cleaningProgress}
         completedMissions={completedMissions}
@@ -722,7 +721,7 @@ export default function Home() {
         )}
         {gamePhase === 'spraying' && selectedSolution && (
           <>
-            {selectedSolution === 'vinegar' && <VinegarTool visible={true}/>}
+            {selectedSolution === 'vinegar' && <VinegarTool visible={true} />}
             {selectedSolution === 'spray' && <SprayTool visible={true} />}
             {selectedSolution === 'toilet_cleaner' && <ToiletCleanerTool visible={true} />}
             {selectedSolution === 'bleach' && <BleachTool visible={true} />}
@@ -734,18 +733,24 @@ export default function Home() {
             {currentMission === 'splash02' && <GlassRagTool visible={true} />}
             {currentMission === 'splash03' && <ToiletBrushTool visible={true} />}
             {currentMission === 'splash04' && <BathroomScrubTool visible={true} />}
-            {currentMission === 'splash01' && <KitchenSpongeTool visible={true} />}
           </>
         )}
 
         {!showIntro && (
           <>
-            <CuttingBoardSmell 
-              position={missions.splash01.position} 
-              opacity={cleaningProgress.splash01 / 100} 
-              enabled={true} 
+            <CuttingBoardSmell
+              position={missions.splash01.position}
+              opacity={cleaningProgress.splash01 / 100}
+              enabled={true}
             />
-            
+            <CuttingBoard
+              position={missions.splash01.position}
+              wipingProgress={wipingProgress.splash01}
+              isInteractive={currentMission === 'splash01' && gamePhase === 'wiping'}
+              onWiping={(intensity) => {
+                setWipingIntensity(intensity / 10)
+              }}
+            />
           </>
         )}
         {!showIntro && gamePhase === 'selection' && (
@@ -790,7 +795,7 @@ export default function Home() {
 
         <OrbitControls
           ref={controlsRef}
-          maxPolarAngle={Math.PI / 2 -Math.PI / 30 }
+          maxPolarAngle={Math.PI / 2 - Math.PI / 30}
           minPolarAngle={0}
           minAzimuthAngle={Math.PI / 2}
           maxAzimuthAngle={-Math.PI / 2}

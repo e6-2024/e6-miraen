@@ -75,17 +75,6 @@ export const CleaningTool = ({ modelPath, visible, scale = 1, rotation = [0, 0, 
   )
 }
 
-//도마
-export const CuttingBoard = ({ visible }: { visible: boolean }) => (
-  <CleaningTool 
-    modelPath="/models/6-1-1/Cutting_Board/Cutting_Board.glb" 
-    visible={visible} 
-    scale={1.3} 
-    rotation={[Math.PI/4, Math.PI/6, -Math.PI/8]}
-  />
-)
-
-
 // 스프레이 도구들
 export const SprayTool = ({ visible }: { visible: boolean }) => (
   <CleaningTool 

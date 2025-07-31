@@ -198,6 +198,7 @@ export function GameMessages({ showMessage, showIntro, gamePhase, sprayCount }: 
           </div>
         </div>
       )}
+      
     </>
   )
 }
