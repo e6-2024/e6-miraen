@@ -105,8 +105,12 @@ export default function SpaceScene({
   return (
     <div className='absolute inset-0'>
       <Scene camera={{ position: [0, 40, 100], fov: 40 }} shadows>
-        <ambientLight intensity={0.5} />
-        <pointLight intensity={3000} castShadow />
+        <ambientLight intensity={2.0} />
+        {!isLockedToSurface && (
+          <>
+            <pointLight intensity={3000} castShadow />
+          </>
+        )}
 
         {!isLockedToSurface && (
           <>
