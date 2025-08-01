@@ -10,11 +10,12 @@ const NavigationUI = forwardRef<
     sceneIndex: number
     onSceneChange: (index: number) => void
     onPlayClick: () => void
+    isAnimationComplete: boolean
+    animationState?: { isPlaying: boolean; isComplete: boolean; waterLevel: number }
   }
->(({ sceneIndex, onSceneChange, onPlayClick }, ref) => {
+>(({ sceneIndex, onSceneChange, onPlayClick, isAnimationComplete, animationState }, ref) => {
   const currentAudiosRef = useRef<HTMLAudioElement[]>([])
   const [isPlayButtonPressed, setIsPlayButtonPressed] = useState(false)
-  const [isResetButtonPressed, setIsResetButtonPressed] = useState(false)
 
   const stopAllAudios = () => {
     console.log('NavigationUI: Stopping all audios:', currentAudiosRef.current.length)
@@ -95,15 +96,6 @@ const NavigationUI = forwardRef<
     }, 150)
   }
 
-  const handleResetClick = () => {
-    setIsResetButtonPressed(true)
-
-    setTimeout(() => {
-      setIsResetButtonPressed(false)
-      handleSceneChange(0)
-    }, 150)
-  }
-
   return (
     <div className='absolute flex flex-row left-1/2 top-4 transform -translate-x-1/2 z-10 justify-center items-center'>
       <div className='flex items-center justify-center p-4 text-white z-10'>
@@ -140,10 +132,10 @@ const NavigationUI = forwardRef<
               </div>
               {num < 4 && (
                 <div className='flex items-center mx-3'>
-                  <svg width='32' height='16' viewBox='0 0 32 16' className='transition-all'>
+                  <svg width='48' height='32' viewBox='0 0 32 16' className='transition-all'>
                     <path
                       d='M0 6 L24 6 L24 4 L32 8 L24 12 L24 10 L0 10 Z'
-                      fill={sceneIndex >= num ? '#3b82f6' : '#4b5563'}
+                      fill={sceneIndex >= num ? '#fff' : '#4b5563'}
                       className='transition-colors'
                     />
                   </svg>
@@ -154,7 +146,7 @@ const NavigationUI = forwardRef<
         </div>
       </div>
 
-      {/* 플레이 버튼 */}
+      {/* 플레이 버튼 (재생/초기화 기능 통합) */}
       <button
         onClick={handlePlayClick}
         disabled={isPlayButtonPressed}
@@ -169,42 +161,29 @@ const NavigationUI = forwardRef<
             isPlayButtonPressed ? 'top-[5px] scale-95' : 'top-0'
           }`}></div>
 
-        <img
-          src='/img/icon/Polygon 1.svg'
-          alt='재생 아이콘'
-          className={`w-10 h-10 absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-150 ${
-            isPlayButtonPressed ? 'scale-90' : 'scale-100'
-          }`}
-        />
-      </button>
-
-      {/* 리셋 버튼 (첫 번째 씬이 아닐 때만 표시) */}
-      {sceneIndex !== 0 && (
-        <button
-          onClick={handleResetClick}
-          disabled={isResetButtonPressed}
-          className='w-20 h-20 relative ml-6 z-10 cursor-pointer transition-all duration-150 hover:scale-105 disabled:cursor-not-allowed'>
-          <div
-            className={`w-full h-full left-0 absolute bg-slate-700 rounded-full transition-all duration-150 ${
-              isResetButtonPressed ? 'top-0' : 'top-[8px]'
-            }`}></div>
-
-          <div
-            className={`w-full h-full left-0 absolute bg-gradient-to-b from-slate-400 to-slate-600 rounded-full transition-all duration-150 ${
-              isResetButtonPressed ? 'top-[5px] scale-95' : 'top-0'
-            }`}></div>
-
+        {/* 플레이/리플레이 버튼 */}
+        {isAnimationComplete || animationState?.isPlaying ? (
+          // 리플레이 버튼 (애니메이션 재생 중이거나 완료된 경우)
           <svg
             className={`w-8 h-8 absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-150 ${
-              isResetButtonPressed ? 'scale-90' : 'scale-100'
+              isPlayButtonPressed ? 'scale-90' : 'scale-100'
             }`}
             fill='white'
             viewBox='0 0 24 24'>
             <path d='M12 4V2.21c0-.45-.54-.67-.85-.35L9.35 3.64c-.2.2-.2.51 0 .71l1.79 1.79c.32.31.86.09.86-.36V4c3.31 0 6 2.69 6 6 0 .79-.15 1.56-.44 2.25-.15.36-.04.77.23 1.04.51.51 1.37.33 1.64-.34.37-.91.57-1.91.57-2.95 0-4.42-3.58-8-8-8z' />
             <path d='M12 20v1.79c0 .45.54.67.85.35l1.79-1.79c.2-.2.2-.51 0-.71l-1.79-1.79c-.32-.31-.86-.09-.86.36V20c-3.31 0-6-2.69-6-6 0-.79.15-1.56.44-2.25.15-.36.04-.77-.23-1.04-.51-.51-1.37-.33-1.64.34C4.4 12.05 4.2 13.05 4.2 14.1c0 4.42 3.58 8 8 8z' />
           </svg>
-        </button>
-      )}
+        ) : (
+          // 플레이 버튼 (초기 상태)
+          <img
+            src='/img/icon/Polygon 1.svg'
+            alt='재생 아이콘'
+            className={`w-10 h-10 absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-150 ${
+              isPlayButtonPressed ? 'scale-90' : 'scale-100'
+            }`}
+          />
+        )}
+      </button>
     </div>
   )
 })

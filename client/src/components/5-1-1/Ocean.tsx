@@ -326,7 +326,7 @@ export default function Ocean({
             vec4 vWaterNormalAndHeight = SampleFlowingNormal( worldUV, vFlowRate, fFoam, g_fTime, fWaterFoamTex );
             
             // 기본 물 색상 계산
-            vec3 deepWaterColor = vec3(0.0, 0.4, 0.7);
+            vec3 deepWaterColor = vec3(0.2, 0.6, 0.9);
             vec3 shallowWaterColor = vec3(0.3, 0.9, 0.9);
             vec3 foamColor = vec3(0.9, 0.95, 1.0);
             

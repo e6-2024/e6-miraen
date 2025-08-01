@@ -42,11 +42,11 @@ const animationSpeeds = {
   3: 0.2,
 }
 
-// 단순화된 애니메이션 상태 타입
 interface AnimationState {
-  isPlaying: boolean;
-  isComplete: boolean;
-  waterLevel: number;
+  isPlaying: boolean
+  isComplete: boolean
+  waterLevel: number
+  animationKey: number
 }
 
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
@@ -154,44 +154,85 @@ function SceneCameraController({ sceneIndex }: { sceneIndex: number }) {
   return null
 }
 
-// 물 레벨 애니메이션을 처리하는 훅
-function useWaterAnimation(sceneIndex: number, shouldAnimate: boolean) {
+function useWaterAnimation(sceneIndex: number, shouldAnimate: boolean, animationKey: number) {
   const [waterLevel, setWaterLevel] = useState(-2.0)
+  const [waterScale, setWaterScale] = useState(1.0)
   const animationRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
-    // 씬 변경 시 초기화
-    const initialLevel = sceneIndex === 1 ? 1 : -2.0
-    setWaterLevel(initialLevel)
+    let initialLevel = -2.0
+    let initialScale = 1.0
     
-    // 기존 애니메이션 정리
+    if (sceneIndex === 1) {
+      initialLevel = 1
+    } else if (sceneIndex === 2) {
+      initialLevel = 2.0
+      initialScale = 1.0
+    }
+    
+    setWaterLevel(initialLevel)
+    setWaterScale(initialScale)
+    
     if (animationRef.current) {
       clearInterval(animationRef.current)
       animationRef.current = null
     }
-  }, [sceneIndex])
+  }, [sceneIndex, animationKey])
 
   useEffect(() => {
-    if (!shouldAnimate || (sceneIndex !== 1 && sceneIndex !== 2)) return
+    if (!shouldAnimate) return
 
-    const startLevel = 1
-    const targetLevel = 2.5
-    const duration = 6000
-    const startTime = Date.now()
+    if (animationRef.current) {
+      clearInterval(animationRef.current)
+      animationRef.current = null
+    }
 
-    animationRef.current = setInterval(() => {
-      const elapsed = Date.now() - startTime
-      const progress = Math.min(elapsed / duration, 1.0)
-      const eased = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2
-      const currentLevel = startLevel + (targetLevel - startLevel) * eased
+    if (sceneIndex === 1) {
+      const startLevel = 1
+      const targetLevel = 2.5
+      const duration = 6000
+      const startTime = Date.now()
 
-      setWaterLevel(currentLevel)
+      console.log(`Water Animation Scene ${sceneIndex}: Starting water rise animation`)
+      
+      animationRef.current = setInterval(() => {
+        const elapsed = Date.now() - startTime
+        const progress = Math.min(elapsed / duration, 1.0)
+        const eased = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2
+        const currentLevel = startLevel + (targetLevel - startLevel) * eased
 
-      if (progress >= 1.0) {
-        clearInterval(animationRef.current!)
-        animationRef.current = null
-      }
-    }, 50)
+        setWaterLevel(currentLevel)
+
+        if (progress >= 1.0) {
+          clearInterval(animationRef.current!)
+          animationRef.current = null
+          console.log(`Water Animation Scene ${sceneIndex}: Water rise completed`)
+        }
+      }, 50)
+    }
+    else if (sceneIndex === 2) {
+      const startScale = 1.0
+      const targetScale = 0.0
+      const duration = 8000
+      const startTime = Date.now()
+
+      console.log(`Water Animation Scene ${sceneIndex}: Starting water scale down animation`)
+      
+      animationRef.current = setInterval(() => {
+        const elapsed = Date.now() - startTime
+        const progress = Math.min(elapsed / duration, 1.0)
+        const eased = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2
+        const currentScale = startScale + (targetScale - startScale) * eased
+
+        setWaterScale(currentScale)
+
+        if (progress >= 1.0) {
+          clearInterval(animationRef.current!)
+          animationRef.current = null
+          console.log(`Water Animation Scene ${sceneIndex}: Water scale down completed`)
+        }
+      }, 50)
+    }
 
     return () => {
       if (animationRef.current) {
@@ -199,10 +240,11 @@ function useWaterAnimation(sceneIndex: number, shouldAnimate: boolean) {
         animationRef.current = null
       }
     }
-  }, [shouldAnimate, sceneIndex])
+  }, [shouldAnimate, sceneIndex, animationKey])
 
-  return waterLevel
+  return { waterLevel, waterScale }
 }
+
 
 function SceneContent({
   sceneIndex,
@@ -210,13 +252,13 @@ function SceneContent({
   onAnimationComplete,
   showIntro,
 }: {
-  sceneIndex: number;
-  animationState: AnimationState;
-  onAnimationComplete: () => void;
-  showIntro: boolean;
+  sceneIndex: number
+  animationState: AnimationState
+  onAnimationComplete: () => void
+  showIntro: boolean
 }) {
-  const showWater = sceneIndex === 1
-  const waterLevel = useWaterAnimation(sceneIndex, animationState.isPlaying)
+  const showWater = sceneIndex === 1 || sceneIndex === 2
+  const { waterLevel, waterScale } = useWaterAnimation(sceneIndex, animationState.isPlaying, animationState.animationKey)
 
   const handleModelAnimationComplete = () => {
     console.log(`Model animation completed for scene ${sceneIndex}`)
@@ -253,20 +295,21 @@ function SceneContent({
       <Model
         path={modelPaths[sceneIndex]}
         scale={3.7}
-        position={sceneIndex === 1 ? [-2.44, -7, -1.31] : [1.5, -7, -2.0]}
+        position={sceneIndex === 1 || sceneIndex === 2 ? [-2.44, -7, -1.31] : [1.5, -7, -2.0]}
         sceneIndex={sceneIndex}
         shouldAnimate={animationState.isPlaying}
         animationSpeed={animationSpeeds[sceneIndex as keyof typeof animationSpeeds]}
         customAnimation={sceneIndex === 3 ? 'fadeAndMove' : null}
         onAnimationComplete={handleModelAnimationComplete}
+        animationKey={animationState.animationKey}
       />
 
-      {showWater && (
-        <>
-          <Ocean textureScale={1.0} textureOpacity={0.83} timeSpeed={0.9} flowSpeed={0.9} waterLevel={waterLevel} />
+      {showWater && waterScale > 0.01 && (
+        <group scale={[1, waterScale, 1]}>
+          <Ocean textureScale={1.0} textureOpacity={0.7} timeSpeed={0.9} flowSpeed={0.9} waterLevel={waterLevel} />
           <WaterBox waterLevel={waterLevel} />
           <UnderwaterEnvironment sceneIndex={sceneIndex} />
-        </>
+        </group>
       )}
 
       <Environment preset='sunset' background blur={0.6} />
@@ -291,12 +334,11 @@ export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
   const [showDescription, setShowDescription] = useState(false)
-  
-  // 단순화된 애니메이션 상태 관리
   const [animationState, setAnimationState] = useState<AnimationState>({
     isPlaying: false,
     isComplete: false,
-    waterLevel: -2.0
+    waterLevel: -2.0,
+    animationKey: 0,
   })
 
   const audioManager = AudioManager.getInstance()
@@ -317,14 +359,14 @@ export default function Home() {
 
     audioManager.playGeneralButton()
 
-    // 상태 초기화
     setSceneIndex(0)
     setIsLoaded(false)
     setShowDescription(false)
     setAnimationState({
       isPlaying: false,
       isComplete: false,
-      waterLevel: -2.0
+      waterLevel: -2.0,
+      animationKey: 0,
     })
 
     setTimeout(() => {
@@ -349,14 +391,14 @@ export default function Home() {
     setIsLoaded(false)
     setShowDescription(false)
     
-    // 애니메이션 상태 초기화 (자동 재생하지 않음)
+    const newKey = Date.now()
     setAnimationState({
       isPlaying: false,
       isComplete: false,
-      waterLevel: -2.0
+      waterLevel: -2.0,
+      animationKey: newKey,
     })
 
-    // 로딩 완료만 설정 (자동 애니메이션 제거)
     setTimeout(() => {
       setIsLoaded(true)
     }, 100)
@@ -364,10 +406,10 @@ export default function Home() {
 
   const handleAnimationComplete = () => {
     console.log(`Animation completed for scene ${sceneIndex}`)
-    setAnimationState(prev => ({
+    setAnimationState((prev) => ({
       ...prev,
       isPlaying: false,
-      isComplete: true
+      isComplete: true,
     }))
   }
 
@@ -388,16 +430,31 @@ export default function Home() {
 
   const handlePlayButtonClick = () => {
     playClickButtonSound()
-    
-    console.log(`Play button clicked for scene ${sceneIndex}`)
-    setShowDescription(true)
-    
-    // 애니메이션 상태를 즉시 업데이트하여 Model에서 감지할 수 있도록 함
-    setAnimationState(prev => ({
-      ...prev,
-      isPlaying: true,
-      isComplete: false
-    }))
+
+    console.log(`Play button clicked - Scene: ${sceneIndex}, Current state:`, animationState)
+
+    if (animationState.isPlaying || animationState.isComplete) {
+      console.log(`Restarting animation for scene ${sceneIndex}`)
+      
+      const newKey = Date.now()
+      console.log(`Using new animation key: ${newKey}`)
+      
+      setAnimationState({
+        isPlaying: true,
+        isComplete: false,
+        waterLevel: -2.0,
+        animationKey: newKey,
+      })
+      setShowDescription(true)
+    } else {
+      console.log(`Starting animation for scene ${sceneIndex}`)
+      setAnimationState(prev => ({
+        ...prev,
+        isPlaying: true,
+        isComplete: false,
+      }))
+      setShowDescription(true)
+    }
   }
 
   return (
@@ -408,6 +465,8 @@ export default function Home() {
           sceneIndex={sceneIndex}
           onSceneChange={handleSceneChange}
           onPlayClick={handlePlayButtonClick}
+          isAnimationComplete={animationState.isComplete}
+          animationState={animationState}
         />
       )}
 
