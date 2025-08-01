@@ -131,10 +131,10 @@ const NavigationUI = forwardRef<
                 </div>
               </div>
               {num < 4 && (
-                <div className='flex items-center mx-3'>
+                <div className='flex items-center pb-11 mx-3'>
                   <svg width='48' height='32' viewBox='0 0 32 16' className='transition-all'>
                     <path
-                      d='M0 6 L24 6 L24 4 L32 8 L24 12 L24 10 L0 10 Z'
+                      d='M0 4 L20 4 L20 1 L32 8 L20 15 L20 12 L0 12 Z'
                       fill={sceneIndex >= num ? '#fff' : '#4b5563'}
                       className='transition-colors'
                     />

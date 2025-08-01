@@ -166,8 +166,8 @@ function useWaterAnimation(sceneIndex: number, shouldAnimate: boolean, animation
     if (sceneIndex === 1) {
       initialLevel = 1
     } else if (sceneIndex === 2) {
-      initialLevel = 2.0
-      initialScale = 1.0
+      initialLevel = 1.0
+      initialScale = 0.9
     }
     
     setWaterLevel(initialLevel)
