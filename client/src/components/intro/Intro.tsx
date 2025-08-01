@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 
 interface ModeButton<T = string> {
   mode: T
@@ -18,6 +18,7 @@ interface IntroProps<T = string> {
   showModeSelection?: boolean
   modeButtons?: ModeButton<T>[]
   onModeSelect?: (mode: T) => void
+  showModeButtonsDirectly?: boolean // 새로운 prop 추가
 }
 
 export default function Intro<T = string>({
@@ -29,12 +30,20 @@ export default function Intro<T = string>({
   showModeSelection = false,
   modeButtons = [],
   onModeSelect,
+  showModeButtonsDirectly = false, // 새로운 prop
 }: IntroProps<T>) {
   const backgroundRef = useRef<HTMLDivElement>(null)
   const [isVisible, setIsVisible] = useState(true)
   const [isAnimating, setIsAnimating] = useState(false)
   const [showGoalPopup, setShowGoalPopup] = useState(false)
-  const [showModeButtons, setShowModeButtons] = useState(false)
+  const [showModeButtons, setShowModeButtons] = useState(false) // 초기값을 false로 변경
+
+  // showModeButtonsDirectly가 true면 바로 모드 버튼 표시 (뒤로가기 후)
+  useEffect(() => {
+    if (showModeButtonsDirectly) {
+      setShowModeButtons(true)
+    }
+  }, [showModeButtonsDirectly])
 
   const playDescriptionSound = (audioPath: string = descriptionSound) => {
     try {
@@ -264,7 +273,7 @@ export default function Intro<T = string>({
             <div className='text-gray-700 text-lg font-light leading-relaxed mb-8 text-center break-keep'>
               {Array.isArray(description) ? (
                 description.map((line, index) => (
-                  <p key={index} className={index > 0 ? 'mt-2' : ''}>
+                  <p key={index} className={index > 0 ? 'm0-2' : ''}>
                     {line}
                   </p>
                 ))

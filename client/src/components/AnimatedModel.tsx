@@ -87,7 +87,7 @@ export default function AnimatedModel({
   useFrame((state, delta) => {
     // 모든 모델에서 애니메이션 업데이트
     if (mixer) {
-      mixer.update(delta * 0.3)
+      mixer.update(delta * 0.07)
     }
   })
 

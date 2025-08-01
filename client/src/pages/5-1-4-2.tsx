@@ -73,7 +73,7 @@ export default function Home() {
 
     playNarration(
       '/sounds/5-1-4/5-1-4-E.MP3',
-      '팔을 구부릴 때 팔 바깥쪽 근육이 늘어나고 팔 안쪽 근육이 줄어듭니다. 근육이 서로 반대로 작용하여 팔이 움직입니다.'
+      '• 팔을 구부릴 때 팔 바깥쪽 근육이 늘어나고 팔 안쪽 근육이 줄어듭니다.\n • 근육이 서로 반대로 작용하여 팔이 움직입니다.'
     )
   }
 
@@ -142,7 +142,7 @@ export default function Home() {
             cursor: 'pointer',
             marginBottom: '10px',
           }}>
-          팔을 펼 때
+          팔을 구부릴 때
         </button>
         <button
           onClick={handleExtend}
@@ -156,7 +156,7 @@ export default function Home() {
             cursor: 'pointer',
             marginBottom: '10px',
           }}>
-          팔을 구부릴 때
+          팔을 펼 때
         </button>
       </div>
     </>

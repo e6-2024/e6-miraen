@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import SpaceScene from '@/scenes/SpaceScene'
 import Intro from '@/components/intro/Intro'
 
@@ -69,8 +70,43 @@ export default function HomePage() {
     }, 300)
   }
 
+  // 뒤로가기 핸들러 추가
+  const handleBackToIntro = useCallback(() => {
+    playClickSound()
+    
+    // 현재 상태 초기화
+    setCameraTarget(null)
+    setActiveSeason(null)
+    setIsLockedToSurface(false)
+    
+    setTimeout(() => {
+      setShowIntro(true)
+    }, 100)
+  }, [playClickSound])
+
   return (
     <div className='fixed inset-0 bg-black'>
+      {/* 뒤로가기 버튼 */}
+      <AnimatePresence>
+        {!showIntro && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5, ease: 'easeInOut' }}
+            className='absolute top-4 left-4 z-10 w-fit h-fit'>
+            <button
+              onClick={handleBackToIntro}
+              className='px-6 pt-3 pb-4 bg-[#FF8026] rounded-[20px] shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#ff9b54] hover:shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(152,0,0,0.50)] transition-all duration-300'
+              aria-label='인트로 화면으로 돌아가기'>
+              <div className='text-center justify-center text-white text-xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
+                뒤로가기
+              </div>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <SpaceScene
         onEarthClick={handleEarthClick}
         cameraTarget={cameraTarget}

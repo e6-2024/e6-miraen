@@ -86,6 +86,7 @@ export default function IntegratedPage() {
   const [mode, setMode] = useState<PageMode>(null)
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
+  const [showMode, setShowMode] = useState(true)
 
   // 뼈와 근육 관찰 관련 상태
   const [modelType, setModelType] = useState<ModelType>('boy')
@@ -104,6 +105,7 @@ export default function IntegratedPage() {
 
   // 인트로 모델 로딩 상태
   const [introModelsLoaded, setIntroModelsLoaded] = useState(false)
+  const [isBackFromMode, setIsBackFromMode] = useState(false)
 
   // 인트로용 모델들 사전 로딩
   useEffect(() => {
@@ -189,8 +191,9 @@ export default function IntegratedPage() {
     setNarrationText([])
 
     setTimeout(() => {
-      setMode(null) // 모드 초기화
-      setShowIntro(true) // 인트로로 돌아가기
+      setMode(null)
+      setShowIntro(true)
+      setIsBackFromMode(true)
     }, 100)
   }, [playClickSound, currentNarration])
 
@@ -261,18 +264,21 @@ export default function IntegratedPage() {
       switch (modelType) {
         case 'boy':
           audioPath = '/sounds/5-1-4/5-1-4-A.MP3'
-          text = ['•우리 몸은 뼈와 근육의 작용으로 움직입니다.']
+          text = ['• 우리 몸은 뼈와 근육의 작용으로 움직입니다.']
           break
         case 'bone':
           audioPath = '/sounds/5-1-4/5-1-4-B.MP3'
           text = [
-            '•우리 몸속의 뼈는 모양과 크기가 다양합니다.',
-            '•뼈는 우리 몸의 형태를 만들고 몸을 지탱하며, 몸속에 있는 여러 기관을 보호합니다.',
+            '• 우리 몸속의 뼈는 모양과 크기가 다양합니다.',
+            '• 뼈는 우리 몸의 형태를 만들고 몸을 지탱하며, 몸속에 있는 여러 기관을 보호합니다.',
           ]
           break
         case 'muscle':
           audioPath = '/sounds/5-1-4/5-1-4-C.MP3'
-          text = ['•우리 몸속의 근육은 모양과 크기가 다양합니다.', '•근육은 뼈에 연결되어 있으며 뼈를 움직이게 합니다.']
+          text = [
+            '• 우리 몸속의 근육은 모양과 크기가 다양합니다.',
+            '• 근육은 뼈에 연결되어 있으며 뼈를 움직이게 합니다.',
+          ]
           break
       }
 
@@ -338,10 +344,10 @@ export default function IntegratedPage() {
     setAction('extend')
     setHasExtended(true)
 
-    playNarration(
-      '/sounds/5-1-4/5-1-4-E.MP3',
-      '팔을 구부릴 때 팔 바깥쪽 근육이 늘어나고 팔 안쪽 근육이 줄어듭니다. 근육이 서로 반대로 작용하여 팔이 움직입니다.',
-    )
+    playNarration('/sounds/5-1-4/5-1-4-E-1.MP3', [
+      '• 팔을 구부릴 때 팔 바깥쪽 근육이 늘어나고 팔 안쪽 근육이 줄어듭니다.',
+      '• 이렇게 근육의 길이가 줄어들거나 늘어나면서 뼈가 움직이고 우리 몸도 움직입니다.',
+    ])
   }
 
   const handleFold = () => {
@@ -349,10 +355,10 @@ export default function IntegratedPage() {
     setAction('fold')
     setHasExtended(false)
 
-    playNarration(
-      '/sounds/5-1-4/5-1-4-D.MP3',
-      '팔을 펼 때 팔 바깥쪽 근육이 줄어들고 팔 안쪽 근육이 늘어납니다. 이렇게 근육이 협력하여 팔의 움직임을 만들어냅니다.',
-    )
+    playNarration('/sounds/5-1-4/5-1-4-D-1.MP3', [
+      '• 팔을 펼 때 팔 바깥쪽 근육이 줄어들고 팔 안쪽 근육이 늘어납니다.',
+      '• 이렇게 근육의 길이가 줄어들거나 늘어나면서 뼈가 움직이고 우리 몸도 움직입니다.',
+    ])
   }
 
   const getModelKey = () => {
@@ -424,17 +430,7 @@ export default function IntegratedPage() {
     }
 
     return null
-  }, [
-    mode,
-    showIntro,
-    introModelsLoaded,
-    modelUrl,
-    modelType,
-    animState,
-    animIndex,
-    action,
-    isModelsLoading,
-  ])
+  }, [mode, showIntro, introModelsLoaded, modelUrl, modelType, animState, animIndex, action, isModelsLoading])
 
   const modeButtons = useMemo(
     () => [
@@ -456,8 +452,6 @@ export default function IntegratedPage() {
 
   return (
     <div className='w-screen h-screen bg-white flex font-bold flex-col'>
-
-
       {/* 뒤로가기 버튼 */}
       <AnimatePresence>
         {mode !== null && (
@@ -468,7 +462,9 @@ export default function IntegratedPage() {
             transition={{ duration: 0.5, ease: 'easeInOut' }}
             className='absolute top-4 left-4 z-10 w-fit h-fit'>
             <button
-              onClick={handleBackToModeSelection}
+              onClick={() => {
+                handleBackToModeSelection()
+              }}
               className='px-6 pt-3 pb-4 bg-[#FF8026] rounded-[20px] shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#ff9b54] hover:shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(152,0,0,0.50)] transition-all duration-300'
               aria-label='모드 선택 화면으로 돌아가기'>
               <div className='text-center justify-center text-white text-xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
@@ -576,6 +572,26 @@ export default function IntegratedPage() {
           </motion.div>
         )}
       </AnimatePresence>
+      <AnimatePresence>
+        {showNarrationText && mode === 'arm' && Array.isArray(narrationText) && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3 }}
+            className='fixed bottom-8 left-8 z-50 max-w-lg'>
+            <div className='bg-white w-[540px] p-4 rounded-lg shadow-lg'>
+              <div className='text-black text-lg leading-relaxed'>
+                {narrationText.map((line, index) => (
+                  <p key={index} className='mb-1'>
+                    {line}
+                  </p>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* 3D 씬 */}
       <div className='flex-1 relative overflow-hidden'>
@@ -663,12 +679,16 @@ export default function IntegratedPage() {
         <Intro
           onEnter={handleEnterExperience}
           title='뼈와 근육을 관찰하고, 우리 몸이 움직이는 원리 알아보기'
-          description={['우리 몸의 뼈와 근육의 생김새를 관찰하고', '팔이 움직이는 원리를 통해 우리 몸이 움직이는 원리를 알아봅시다.']}
+          description={[
+            '우리 몸의 뼈와 근육의 생김새를 관찰하고,',
+            '팔이 움직이는 원리를 통해 우리 몸이 움직이는 원리를 알아봅시다.',
+          ]}
           backgroundSvg='/img/cover/5-1-4.svg'
-          descriptionSound='/sounds/5-1-4/5-1-4-Goal.MP3'
+          descriptionSound='/sounds/5-1-4/5-1-4-Goal-1.MP3'
           showModeSelection={true}
           modeButtons={modeButtons}
           onModeSelect={handleModeSelect}
+          showModeButtonsDirectly={isBackFromMode}
         />
       )}
 
@@ -681,7 +701,7 @@ export default function IntegratedPage() {
             exit={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.3 }}
             className='fixed bottom-8 left-8 z-50 max-w-lg'>
-            <div className='bg-white border border-black p-4 rounded-lg shadow-lg'>
+            <div className='bg-white p-4 rounded-lg shadow-lg'>
               <ol className='text-black text-lg leading-relaxed'>
                 {narrationText.map((line, index) => (
                   <p key={index} className='mb-1'>
@@ -703,7 +723,7 @@ export default function IntegratedPage() {
             exit={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.3 }}
             className='fixed bottom-8 left-8 z-50 max-w-lg'>
-            <div className='bg-white border border-black p-4 rounded-lg shadow-lg'>
+            <div className='bg-white p-4 rounded-lg shadow-lg'>
               <div className='text-black text-lg leading-relaxed'>{narrationText}</div>
             </div>
           </motion.div>
