@@ -13,6 +13,7 @@ import CameraLogger from '@/hook/CameraLogger'
 import NavigationUI, { NavigationUIRef } from '@/components/5-1-1/NavigationUI'
 import { AnimatePresence, motion } from 'framer-motion'
 import AudioManager from '@/components/5-1-1/AudioManager'
+import ActivityGuideModal from '@/components/5-1-1/ActivityGuideModal'
 
 const modelPaths = [
   'models/5-1-1/1/Dino.gltf',
@@ -245,7 +246,6 @@ function useWaterAnimation(sceneIndex: number, shouldAnimate: boolean, animation
   return { waterLevel, waterScale }
 }
 
-
 function SceneContent({
   sceneIndex,
   animationState,
@@ -334,6 +334,7 @@ export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
   const [showDescription, setShowDescription] = useState(false)
+  const [showActivityGuide, setShowActivityGuide] = useState(false)
   const [animationState, setAnimationState] = useState<AnimationState>({
     isPlaying: false,
     isComplete: false,
@@ -362,6 +363,7 @@ export default function Home() {
     setSceneIndex(0)
     setIsLoaded(false)
     setShowDescription(false)
+    setShowActivityGuide(false)
     setAnimationState({
       isPlaying: false,
       isComplete: false,
@@ -421,11 +423,21 @@ export default function Home() {
     audioManager.playEffect(audioPath, 0.5)
   }
 
+  // 인트로에서 "시작하기" 버튼을 눌렀을 때 - 바로 3D 화면으로 이동
   const handleEnterExperience = () => {
     playClickSound()
     setTimeout(() => {
       setShowIntro(false)
     }, 300)
+  }
+
+  const handleShowActivityGuide = () => {
+    audioManager.playGeneralButton()
+    setShowActivityGuide(true)
+  }
+
+  const handleCloseActivityGuide = () => {
+    setShowActivityGuide(false)
   }
 
   const handlePlayButtonClick = () => {
@@ -470,13 +482,15 @@ export default function Home() {
         />
       )}
 
+      {/* 상단 버튼들 */}
       {!showIntro && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.5, ease: 'easeInOut' }}
-          className='absolute top-4 left-4 z-10 w-fit h-fit'>
+          className='absolute top-4 left-4 z-10 flex gap-4'>
+          {/* 뒤로가기 버튼 */}
           <button
             onClick={() => {
               audioManager.playGeneralButton()
@@ -485,7 +499,7 @@ export default function Home() {
             className='px-6 pt-3 pb-4 bg-[#FF8026] rounded-[20px] shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#ff9b54] hover:shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(152,0,0,0.50)] transition-all duration-300'
             aria-label='모드 선택 화면으로 돌아가기'>
             <div className='text-center justify-center text-white text-2xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
-              뒤로가기
+            첫 화면으로
             </div>
           </button>
         </motion.div>
@@ -518,6 +532,7 @@ export default function Home() {
         </div>
       )}
 
+      {/* 인트로 화면 */}
       {isLoaded && showIntro && (
         <Intro
           onEnter={handleEnterExperience}
@@ -525,8 +540,15 @@ export default function Home() {
           description={['공룡 화석은 어떻게 만들어지는지 알아봅시다.']}
           backgroundSvg='/img/cover/5-1-1.svg'
           descriptionSound='/sounds/5-1-1/5-1-1-Goal.MP3'
+          onActivityGuide={handleShowActivityGuide}
         />
       )}
+
+      {/* 활동 방법 모달 */}
+      <ActivityGuideModal
+        isOpen={showActivityGuide}
+        onClose={handleCloseActivityGuide}
+      />
     </div>
   )
 }

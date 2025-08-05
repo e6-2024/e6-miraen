@@ -8,6 +8,7 @@ import Intro from '@/components/intro/Intro'
 import * as THREE from 'three'
 import { AnimatePresence, motion } from 'framer-motion'
 import MouseInteractiveGroup from '@/components/MouseInteractiveGroup'
+import ActivityGuideModal from '@/components/5-1-4/ActivityGuideModal'
 
 type ModelType = 'boy' | 'muscle' | 'bone'
 type AnimationState = 'walk' | 'pose'
@@ -106,6 +107,7 @@ export default function IntegratedPage() {
   // 인트로 모델 로딩 상태
   const [introModelsLoaded, setIntroModelsLoaded] = useState(false)
   const [isBackFromMode, setIsBackFromMode] = useState(false)
+  const [showActivityGuide, setShowActivityGuide] = useState(false)
 
   // 인트로용 모델들 사전 로딩
   useEffect(() => {
@@ -317,18 +319,21 @@ export default function IntegratedPage() {
       switch (type) {
         case 'boy':
           audioPath = '/sounds/5-1-4/5-1-4-A.MP3'
-          text = ['•우리 몸은 뼈와 근육의 작용으로 움직입니다.']
+          text = ['• 우리 몸은 뼈와 근육의 작용으로 움직입니다.']
           break
         case 'bone':
           audioPath = '/sounds/5-1-4/5-1-4-B.MP3'
           text = [
-            '•우리 몸속의 뼈는 모양과 크기가 다양합니다.',
-            '•뼈는 우리 몸의 형태를 만들고 몸을 지탱하며, 몸속에 있는 여러 기관을 보호합니다.',
+            '• 우리 몸속의 뼈는 모양과 크기가 다양합니다.',
+            '• 뼈는 우리 몸의 형태를 만들고 몸을 지탱하며, 몸속에 있는 여러 기관을 보호합니다.',
           ]
           break
         case 'muscle':
           audioPath = '/sounds/5-1-4/5-1-4-C.MP3'
-          text = ['•우리 몸속의 근육은 모양과 크기가 다양합니다.', '•근육은 뼈에 연결되어 있으며 뼈를 움직이게 합니다.']
+          text = [
+            '• 우리 몸속의 근육은 모양과 크기가 다양합니다.',
+            '• 근육은 뼈에 연결되어 있으며 뼈를 움직이게 합니다.',
+          ]
           break
       }
 
@@ -450,9 +455,15 @@ export default function IntegratedPage() {
     [],
   )
 
+  const handleShowActivityGuide = () => {
+    setShowActivityGuide(true)
+  }
+
+  const handleCloseActivityGuide = () => {
+    setShowActivityGuide(false)
+  }
   return (
     <div className='w-screen h-screen bg-white flex font-bold flex-col'>
-      {/* 뒤로가기 버튼 */}
       <AnimatePresence>
         {mode !== null && (
           <motion.div
@@ -468,7 +479,7 @@ export default function IntegratedPage() {
               className='px-6 pt-3 pb-4 bg-[#FF8026] rounded-[20px] shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#ff9b54] hover:shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(152,0,0,0.50)] transition-all duration-300'
               aria-label='모드 선택 화면으로 돌아가기'>
               <div className='text-center justify-center text-white text-xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
-                뒤로가기
+                첫 화면으로
               </div>
             </button>
           </motion.div>
@@ -483,36 +494,23 @@ export default function IntegratedPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5, ease: 'easeInOut' }}
-            style={{
-              position: 'absolute',
-              bottom: '20px',
-              right: '20px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '10px',
-              backgroundColor: 'rgba(255, 255, 255, 0.9)',
-              padding: '15px',
-              borderRadius: '15px',
-              zIndex: 10,
-              boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-            }}>
+            className='absolute bottom-5 right-5 flex flex-col gap-3 bg-white p-4 rounded-3xl z-10 shadow-2xl border border-gray-100'
+            style={{ backdropFilter: 'blur(10px)' }}>
             {/* 애니메이션 버튼 */}
             <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
               {['pose', 'walk'].map((state) => (
                 <button
                   key={state}
                   onClick={() => handleAnimationChange(state as AnimationState)}
-                  style={{
-                    padding: '10px 20px',
-                    backgroundColor: animState === state ? '#4CAF50' : '#f1f1f1',
-                    border: 'none',
-                    borderRadius: '8px',
-                    cursor: isModelsLoading ? 'not-allowed' : 'pointer',
-                    opacity: isModelsLoading ? 0.5 : 1,
-                    transition: 'all 0.2s ease',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                  }}
+                  className={`px-5 pt-3 pb-4 rounded-[20px] font-bold text-lg transition-all duration-300 ${
+                    animState === state
+                      ? 'bg-[#4CAF50] text-white shadow-[inset_0px_-8px_8px_0px_rgba(0,152,0,0.50)] hover:bg-[#66BB6A] hover:shadow-[inset_0px_-8px_8px_0px_rgba(0,152,0,0.70)] [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'
+                      : 'bg-[#9E9E9E] text-white shadow-[inset_0px_-8px_8px_0px_rgba(50,50,50,0.50)] hover:bg-[#BDBDBD] hover:shadow-[inset_0px_-8px_8px_0px_rgba(50,50,50,0.70)] [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'
+                  } ${
+                    isModelsLoading
+                      ? 'opacity-50 cursor-not-allowed'
+                      : 'active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(50,50,50,0.50)] hover:scale-105'
+                  }`}
                   disabled={isModelsLoading}>
                   {state === 'walk' ? '걷기' : '정지'}
                 </button>
@@ -525,18 +523,15 @@ export default function IntegratedPage() {
                 <button
                   key={type}
                   onClick={() => handleModelTypeChange(type)}
-                  style={{
-                    width: '60px',
-                    height: '60px',
-                    backgroundColor: modelType === type ? '#2196F3' : '#f1f1f1',
-                    border: 'none',
-                    borderRadius: '50%',
-                    cursor: isModelsLoading ? 'not-allowed' : 'pointer',
-                    opacity: isModelsLoading ? 0.5 : 1,
-                    fontSize: '12px',
-                    fontWeight: 'bold',
-                    transition: 'all 0.2s ease',
-                  }}
+                  className={`w-16 h-16 rounded-[20px] font-bold text-lg transition-all duration-300 ${
+                    modelType === type
+                      ? 'bg-[#2196F3] text-white shadow-[inset_0px_-8px_8px_0px_rgba(0,50,152,0.50)] hover:bg-[#42A5F5] hover:shadow-[inset_0px_-8px_8px_0px_rgba(0,50,152,0.70)] [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'
+                      : 'bg-[#9E9E9E] text-white shadow-[inset_0px_-8px_8px_0px_rgba(50,50,50,0.50)] hover:bg-[#BDBDBD] hover:shadow-[inset_0px_-8px_8px_0px_rgba(50,50,50,0.70)] [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'
+                  } ${
+                    isModelsLoading
+                      ? 'opacity-50 cursor-not-allowed'
+                      : 'active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(50,50,50,0.50)] hover:scale-105'
+                  }`}
                   disabled={isModelsLoading}>
                   {type === 'boy' ? '겉모습' : type === 'muscle' ? '근육' : '뼈'}
                 </button>
@@ -579,9 +574,9 @@ export default function IntegratedPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.3 }}
-            className='fixed bottom-8 left-8 z-50 max-w-lg'>
-            <div className='bg-white w-[540px] p-4 rounded-lg shadow-lg'>
-              <div className='text-black text-lg leading-relaxed'>
+            className='fixed bottom-8 left-8 z-50 w-80'>
+            <div className='bg-white p-6 rounded-3xl shadow-2xl border border-gray-100'>
+              <div className='text-black text-lg leading-relaxed font-medium'>
                 {narrationText.map((line, index) => (
                   <p key={index} className='mb-1'>
                     {line}
@@ -688,9 +683,12 @@ export default function IntegratedPage() {
           showModeSelection={true}
           modeButtons={modeButtons}
           onModeSelect={handleModeSelect}
+          onActivityGuide={handleShowActivityGuide}
           showModeButtonsDirectly={isBackFromMode}
         />
       )}
+
+      <ActivityGuideModal isOpen={showActivityGuide} onClose={handleCloseActivityGuide} />
 
       {/* 나레이션 텍스트 */}
       <AnimatePresence>
@@ -700,15 +698,26 @@ export default function IntegratedPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.3 }}
-            className='fixed bottom-8 left-8 z-50 max-w-lg'>
-            <div className='bg-white p-4 rounded-lg shadow-lg'>
-              <ol className='text-black text-lg leading-relaxed'>
-                {narrationText.map((line, index) => (
-                  <p key={index} className='mb-1'>
-                    {line}
-                  </p>
-                ))}
-              </ol>
+            className='fixed bottom-8 left-8 z-50'>
+            <div
+              className='bg-white p-6 rounded-2xl shadow-2xl border border-gray-200 w-fit max-w-2xl relative'
+              style={{
+                background: `
+           radial-gradient(circle at 3px 3px, rgba(0,0,0,0.03) 1px, transparent 0),
+           white
+         `,
+                backgroundSize: '8px 8px',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(0,0,0,0.05)',
+              }}>
+              <div className='text-black text-lg leading-relaxed font-medium'>
+                <ol className='text-black text-lg leading-relaxed'>
+                  {narrationText.map((line, index) => (
+                    <p key={index} className='mb-1'>
+                      {line}
+                    </p>
+                  ))}
+                </ol>
+              </div>
             </div>
           </motion.div>
         )}

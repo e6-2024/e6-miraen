@@ -38,6 +38,15 @@ export const Toilet = ({
 }: ModelProps) => {
   const gltf = useGLTF('/models/6-1-1/Toilet/New_Toilet.glb')
   const modelRef = useRef<THREE.Group>(null)
+  
+  // 텍스처들을 ref로 저장하여 재사용
+  const textureRefs = useRef<{
+    cleanBase?: THREE.Texture
+    cleanRoughness?: THREE.Texture
+    dirtyBase?: THREE.Texture
+    dirtyRoughness?: THREE.Texture
+    originalMaterials?: Map<THREE.Material, { map: THREE.Texture | null, roughnessMap: THREE.Texture | null }>
+  }>({})
 
   const configureShadows = (object: THREE.Object3D) => {
     object.traverse((child) => {
@@ -48,14 +57,38 @@ export const Toilet = ({
     })
   }
 
+  // 초기 텍스처와 재료 저장
+  useEffect(() => {
+    if (modelRef.current && !textureRefs.current.originalMaterials) {
+      const textureLoader = new THREE.TextureLoader()
+      textureRefs.current.originalMaterials = new Map()
+      
+      // 깨끗한 텍스처 로드
+      textureRefs.current.cleanBase = textureLoader.load('/models/6-1-1/Toilet/Toilet_Clean_Base_color.png')
+      textureRefs.current.cleanRoughness = textureLoader.load('/models/6-1-1/Toilet/Toilet_Clean_Roughness.png')
+      
+      // 원본 재료와 텍스처 저장
+      modelRef.current.traverse((child) => {
+        if (child instanceof THREE.Mesh && child.material) {
+          const material = child.material as THREE.MeshStandardMaterial
+          if (material.map?.name === 'Toilet_Dirty_Base_color') {
+            textureRefs.current.originalMaterials!.set(material, {
+              map: material.map.clone(),
+              roughnessMap: material.roughnessMap?.clone() || null
+            })
+            
+            // 더러운 텍스처도 저장
+            textureRefs.current.dirtyBase = material.map.clone()
+            textureRefs.current.dirtyRoughness = material.roughnessMap?.clone() || null
+          }
+        }
+      })
+    }
+  }, [gltf.scene])
+
   useEffect(() => {
     if (modelRef.current && splashOpacities) {
-      const textureLoader = new THREE.TextureLoader()
-      
-      const cleanBaseTexture = textureLoader.load('/models/6-1-1/Toilet/Toilet_Clean_Base_color.png')
-      const cleanRoughnessTexture = textureLoader.load('/models/6-1-1/Toilet/Toilet_Clean_Roughness.png')
-      
-      const isReset = splashOpacities.splash03 >= 0.99
+      const cleanProgress = 1 - splashOpacities.splash03 // 0 (더러움) ~ 1 (깨끗함)
       
       modelRef.current.traverse((child) => {
         if (child instanceof THREE.Mesh && child.material) {
@@ -117,18 +150,35 @@ export const Toilet = ({
             }
           }
           
-          if (material.map?.name === 'Toilet_Dirty_Base_color') {
-            if (isReset) {
-              material.needsUpdate = true
-            } else {
-              const cleanProgress = 1 - splashOpacities.splash03
-              
-              if (cleanProgress > 0.05) {
-                material.map = cleanBaseTexture
-                material.roughnessMap = cleanRoughnessTexture
-                material.needsUpdate = true
+          // 텍스처 교체 로직 수정
+          if (material.map?.name === 'Toilet_Dirty_Base_color' || material.map?.name === 'Toilet_Clean_Base_color') {
+            const cleanProgress = 1 - splashOpacities.splash03 // 0 (더러움) ~ 1 (깨끗함)
+            
+            if (cleanProgress > 0.95) { 
+              // 거의 완전히 깨끗할 때 - 깨끗한 텍스처 사용
+              if (textureRefs.current.cleanBase) {
+                material.map = textureRefs.current.cleanBase
+                material.roughnessMap = textureRefs.current.cleanRoughness || null
+                material.map.name = 'Toilet_Clean_Base_color' // 이름 업데이트
+              }
+            } else { 
+              // 더러울 때 - 원본 더러운 텍스처로 복원
+              const originalData = textureRefs.current.originalMaterials?.get(material)
+              if (originalData) {
+                material.map = originalData.map
+                material.roughnessMap = originalData.roughnessMap
+                if (material.map) {
+                  material.map.name = 'Toilet_Dirty_Base_color' // 이름 복원
+                }
+              } else if (textureRefs.current.dirtyBase) {
+                // fallback으로 저장된 더러운 텍스처 사용
+                material.map = textureRefs.current.dirtyBase
+                material.roughnessMap = textureRefs.current.dirtyRoughness || null
+                material.map.name = 'Toilet_Dirty_Base_color'
               }
             }
+            
+            material.needsUpdate = true
           }
         }
       })

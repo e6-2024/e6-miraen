@@ -29,6 +29,8 @@ import { CuttingBoardSmell } from '@/components/6-1-1/SmellPlane'
 import { Toilet } from '@/components/6-1-1/Toilet'
 import { CuttingBoard } from '@/components/6-1-1/CuttingBoardTool'
 import { CleaningToolType, SplashType, GamePhase, missions, wipingEfficiency, initialCamera } from '../types/6-1-1'
+import { AnimatePresence, motion } from 'framer-motion'
+import ActivityGuideModal from '@/components/6-1-1/ActivityGuideModal'
 
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
   const { progress, active } = useProgress()
@@ -62,22 +64,47 @@ function BackButton({
   if (!isZoomed || showIntro || gamePhase === 'wiping') return null
 
   return (
-    <div className='absolute top-4 left-4 z-10 flex gap-2'>
-      <button
-        onClick={onBack}
-        disabled={isAnimating}
-        className='bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 font-light text-white px-4 py-2 rounded-lg shadow-lg transition-colors'>
-        🏠 돌아가기
-      </button>
-      {currentMission && (
-        <button
-          onClick={onRestart}
-          disabled={isAnimating}
-          className='bg-orange-500 hover:bg-orange-600 disabled:bg-gray-400 font-light text-white px-4 py-2 rounded-lg shadow-lg transition-colors'>
-          🔄 다시하기
-        </button>
-      )}
-    </div>
+    <>
+      <div className='absolute w-fit top-4 left-4 z-10 flex gap-4'>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5, ease: 'easeInOut' }}>
+          <button
+            onClick={() => {
+              onBack()
+            }}
+            disabled={isAnimating}
+            className='px-6 pt-3 pb-4 bg-[#FF8026] rounded-[20px] shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#ff9b54] hover:shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(152,0,0,0.50)] transition-all duration-300'
+            aria-label='모드 선택 화면으로 돌아가기'>
+            <div className='text-center justify-center text-white text-2xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
+              뒤로가기
+            </div>
+          </button>
+        </motion.div>
+
+        {currentMission && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5, ease: 'easeInOut' }}>
+            <button
+              onClick={() => {
+                onRestart()
+              }}
+              disabled={isAnimating}
+              className='px-6 pt-3 pb-4 bg-[#52AE46] rounded-[20px] shadow-[inset_0px_-6px_8px_0px_rgba(65,87,51,0.50)] inline-flex justify-center items-center overflow-hidden hover:bg-[#6BC05D] inline-flex justify-center items-center gap-2.5 overflow-hidden active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(152,0,0,0.50)] transition-all duration-300'
+              aria-label='모드 선택 화면으로 돌아가기'>
+              <div className='text-center justify-center text-white text-2xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
+                다시하기
+              </div>
+            </button>
+          </motion.div>
+        )}
+      </div>
+    </>
   )
 }
 
@@ -97,6 +124,7 @@ export default function Home() {
   const [isBathroomLightOn, setIsBathroomLightOn] = useState(false)
   const [showLiquidMessage, setShowLiquidMessage] = useState<string>('')
   const [showClickMessage, setClickMessage] = useState<string>('')
+  const [showActivityGuide, setShowActivityGuide] = useState(false)
 
   const currentAudioRef = useRef<HTMLAudioElement | null>(null)
   const wipingAudioRef = useRef<HTMLAudioElement | null>(null)
@@ -227,6 +255,14 @@ export default function Home() {
     } catch (error) {
       // Web Audio API 지원하지 않는 경우 무시
     }
+  }
+
+  const handleShowActivityGuide = () => {
+    setShowActivityGuide(true)
+  }
+
+  const handleCloseActivityGuide = () => {
+    setShowActivityGuide(false)
   }
 
   const moveToTarget = (
@@ -631,6 +667,64 @@ export default function Home() {
 
   return (
     <div className='w-screen h-screen bg-white flex flex-col'>
+      {!showIntro && !currentMission && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5, ease: 'easeInOut' }}
+          className='absolute top-4 left-4 z-10 flex gap-4'>
+          {/* 뒤로가기 버튼 */}
+          <button
+            onClick={() => {
+              setShowIntro(true)
+              stopAllAudio()
+              setIsZoomed(false)
+              setCurrentMission(null)
+              setGamePhase('selection')
+              setSelectedSolution(null)
+              setSprayCount(0)
+              setCleaningProgress({
+                splash01: 0,
+                splash02: 0,
+                splash03: 0,
+                splash04: 0,
+              })
+              setWipingProgress({
+                splash01: 0,
+                splash02: 0,
+                splash03: 0,
+                splash04: 0,
+              })
+              setCompletedMissions({
+                splash01: false,
+                splash02: false,
+                splash03: false,
+                splash04: false,
+              })
+              setSprayEffects({
+                splash01: false,
+                splash02: false,
+                splash03: false,
+                splash04: false,
+              })
+              setMouseVelocity(0)
+              setLastMousePosition({ x: 0, y: 0 })
+              setIsBathroomLightOn(false)
+              setWrongMessageShown(false)
+              setShowMessage('')
+              setShowLiquidMessage('')
+              setClickMessage('')
+            }}
+            className='px-6 pt-3 pb-4 bg-[#FF8026] rounded-[20px] shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#ff9b54] hover:shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(152,0,0,0.50)] transition-all duration-300'
+            aria-label='모드 선택 화면으로 돌아가기'>
+            <div className='text-center justify-center text-white text-2xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
+              첫 화면으로
+            </div>
+          </button>
+        </motion.div>
+      )}
+
       <BackButton
         isZoomed={isZoomed}
         showIntro={showIntro}
@@ -809,8 +903,10 @@ export default function Home() {
           description={['집 안에서 이용하고 있는 산성 용액과 염기성 용액이 어떻게 이용되는지 알아봅시다.']}
           backgroundSvg='/img/cover/6-1-1.svg'
           descriptionSound='/sounds/6-1-1/narration/6-1-1-Goal.MP3'
+          onActivityGuide={handleShowActivityGuide}
         />
       )}
+      <ActivityGuideModal isOpen={showActivityGuide} onClose={handleCloseActivityGuide} />
     </div>
   )
 }

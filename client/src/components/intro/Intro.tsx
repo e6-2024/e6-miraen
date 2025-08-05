@@ -18,7 +18,8 @@ interface IntroProps<T = string> {
   showModeSelection?: boolean
   modeButtons?: ModeButton<T>[]
   onModeSelect?: (mode: T) => void
-  showModeButtonsDirectly?: boolean // 새로운 prop 추가
+  showModeButtonsDirectly?: boolean
+  onActivityGuide?: () => void
 }
 
 export default function Intro<T = string>({
@@ -30,13 +31,14 @@ export default function Intro<T = string>({
   showModeSelection = false,
   modeButtons = [],
   onModeSelect,
-  showModeButtonsDirectly = false, // 새로운 prop
+  showModeButtonsDirectly = false,
+  onActivityGuide,
 }: IntroProps<T>) {
   const backgroundRef = useRef<HTMLDivElement>(null)
   const [isVisible, setIsVisible] = useState(true)
   const [isAnimating, setIsAnimating] = useState(false)
   const [showGoalPopup, setShowGoalPopup] = useState(false)
-  const [showModeButtons, setShowModeButtons] = useState(false) // 초기값을 false로 변경
+  const [showModeButtons, setShowModeButtons] = useState(false)
 
   // showModeButtonsDirectly가 true면 바로 모드 버튼 표시 (뒤로가기 후)
   useEffect(() => {
@@ -90,6 +92,13 @@ export default function Intro<T = string>({
     setShowGoalPopup(false)
   }
 
+  // 활동하기 버튼 클릭 핸들러
+  const handleActivityGuideClick = () => {
+    if (onActivityGuide) {
+      onActivityGuide()
+    }
+  }
+
   if (!isVisible) return null
 
   return (
@@ -133,8 +142,8 @@ export default function Intro<T = string>({
             </button>
 
             <button
-              className='px-8 pt-5 pb-6 bg-[#52AE46] rounded-[30px] shadow-[inset_0px_-10px_10px_0px_rgba(65,87,51,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#6BC05D] hover:shadow-[inset_0px_-10px_10px_0px_rgba(65,87,51,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(65,87,51,0.50)] transition-all duration-300'
-              disabled>
+              onClick={handleActivityGuideClick}
+              className='px-8 pt-5 pb-6 bg-[#52AE46] rounded-[30px] shadow-[inset_0px_-10px_10px_0px_rgba(65,87,51,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#6BC05D] hover:shadow-[inset_0px_-10px_10px_0px_rgba(65,87,51,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(65,87,51,0.50)] transition-all duration-300'>
               <div className='text-center justify-center text-white text-2xl font-light [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
                 활동하기
               </div>
@@ -213,8 +222,8 @@ export default function Intro<T = string>({
             </button>
 
             <button
-              className='px-6 py-3 bg-[#52AE46] rounded-[20px] shadow-[inset_0px_-6px_8px_0px_rgba(65,87,51,0.50)] inline-flex justify-center items-center overflow-hidden opacity-50 cursor-not-allowed transition-all duration-300'
-              disabled>
+              onClick={handleActivityGuideClick}
+              className='px-6 py-3 bg-[#52AE46] rounded-[20px] shadow-[inset_0px_-6px_8px_0px_rgba(65,87,51,0.50)] inline-flex justify-center items-center overflow-hidden hover:bg-[#6BC05D] active:scale-95 transition-all duration-300'>
               <div className='text-center justify-center text-white text-xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
                 활동하기
               </div>
