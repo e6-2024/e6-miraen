@@ -79,7 +79,7 @@ function BackButton({
             className='px-6 pt-3 pb-4 bg-[#FF8026] rounded-[20px] shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#ff9b54] hover:shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(152,0,0,0.50)] transition-all duration-300'
             aria-label='모드 선택 화면으로 돌아가기'>
             <div className='text-center justify-center text-white text-2xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
-              뒤로가기
+              첫 화면으로
             </div>
           </button>
         </motion.div>
@@ -667,64 +667,6 @@ export default function Home() {
 
   return (
     <div className='w-screen h-screen bg-white flex flex-col'>
-      {!showIntro && !currentMission && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.5, ease: 'easeInOut' }}
-          className='absolute top-4 left-4 z-10 flex gap-4'>
-          {/* 뒤로가기 버튼 */}
-          <button
-            onClick={() => {
-              setShowIntro(true)
-              stopAllAudio()
-              setIsZoomed(false)
-              setCurrentMission(null)
-              setGamePhase('selection')
-              setSelectedSolution(null)
-              setSprayCount(0)
-              setCleaningProgress({
-                splash01: 0,
-                splash02: 0,
-                splash03: 0,
-                splash04: 0,
-              })
-              setWipingProgress({
-                splash01: 0,
-                splash02: 0,
-                splash03: 0,
-                splash04: 0,
-              })
-              setCompletedMissions({
-                splash01: false,
-                splash02: false,
-                splash03: false,
-                splash04: false,
-              })
-              setSprayEffects({
-                splash01: false,
-                splash02: false,
-                splash03: false,
-                splash04: false,
-              })
-              setMouseVelocity(0)
-              setLastMousePosition({ x: 0, y: 0 })
-              setIsBathroomLightOn(false)
-              setWrongMessageShown(false)
-              setShowMessage('')
-              setShowLiquidMessage('')
-              setClickMessage('')
-            }}
-            className='px-6 pt-3 pb-4 bg-[#FF8026] rounded-[20px] shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#ff9b54] hover:shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(152,0,0,0.50)] transition-all duration-300'
-            aria-label='모드 선택 화면으로 돌아가기'>
-            <div className='text-center justify-center text-white text-2xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
-              첫 화면으로
-            </div>
-          </button>
-        </motion.div>
-      )}
-
       <BackButton
         isZoomed={isZoomed}
         showIntro={showIntro}

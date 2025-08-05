@@ -28,7 +28,7 @@ export function ConstellationModel({
   isResetting = false,
 }: ConstellationModelProps) {
   const groupRef = useRef<THREE.Group>(null!)
-  const { scene } = useGLTF('/models/6-1-4/Fall.glb')
+  const { scene } = useGLTF('/models/6-1-4/Fall.gltf')
   const [opacity, setOpacity] = useState(0)
   const [shouldStartFade, setShouldStartFade] = useState(false)
   const fadeStartTime = useRef<number | null>(null)
