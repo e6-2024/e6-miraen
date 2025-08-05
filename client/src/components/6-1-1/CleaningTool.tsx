@@ -25,19 +25,68 @@ export const CleaningTool = ({
   const { camera, gl } = useThree()
   
   const mousePosition = useRef(new THREE.Vector2())
-  const [sprayPosition, setSprayPosition] = useState<[number, number, number]>([0, 0, 0])
-  const [sprayDirection, setSprayDirection] = useState<[number, number, number]>([0, 0, -1])
+  
+  const [sprayAnimations, setSprayAnimations] = useState<Array<{
+    id: number
+    startTime: number
+    duration: number
+  }>>([])
+  
+  const sprayTextureRef = useRef<THREE.Mesh[]>([])
 
   useEffect(() => {
     if (gltf.scene) {
+      sprayTextureRef.current = []
+      
       gltf.scene.traverse((child) => {
-        if (child instanceof THREE.Mesh && child.material) {
-          if (Array.isArray(child.material)) {
-            child.material.forEach(mat => {
-              mat.side = THREE.DoubleSide
+        if (child instanceof THREE.Mesh) {
+          child.castShadow = true
+          child.receiveShadow = true
+          
+          if (child.material) {
+            if (Array.isArray(child.material)) {
+              child.material.forEach(mat => {
+                mat.side = THREE.DoubleSide
+              })
+            } else {
+              child.material.side = THREE.DoubleSide
+            }
+          }
+        }
+        
+        if (child instanceof THREE.Mesh && (
+          child.name === 'Plane_1' || 
+          child.name === 'Plane_2' ||
+          child.name.includes('Plane') ||
+          child.name.toLowerCase().includes('plane')
+        )) {
+          sprayTextureRef.current.push(child)
+          
+          child.visible = true
+          child.castShadow = false
+          
+          if (child.material) {
+            const materials = Array.isArray(child.material) ? child.material : [child.material]
+            materials.forEach((mat, matIndex) => {
+              if (mat instanceof THREE.MeshStandardMaterial || mat instanceof THREE.MeshBasicMaterial) {
+                mat.transparent = true
+                mat.opacity = 0
+                
+                if (mat.map) {
+                  mat.map.wrapS = THREE.RepeatWrapping
+                  mat.map.wrapT = THREE.RepeatWrapping
+                  mat.map.repeat.x = 1.0
+                  mat.map.repeat.y = 1.0
+                  mat.map.offset.x = 0.0
+                  mat.map.offset.y = 0.0
+                  mat.map.needsUpdate = true
+                } else {
+                  mat.color = new THREE.Color(0xff0000)
+                }
+                
+                mat.needsUpdate = true
+              }
             })
-          } else {
-            child.material.side = THREE.DoubleSide
           }
         }
       })
@@ -53,23 +102,45 @@ export const CleaningTool = ({
     const handleClick = (event: MouseEvent) => {
       if (visible && onSpray) {
         onSpray()
+        const newAnimation = {
+          id: Date.now(),
+          startTime: Date.now(),
+          duration: 800
+        }
+        setSprayAnimations(prev => {
+          return [...prev, newAnimation]
+        })
+      }
+    }
+    
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (event.code === 'Space' && visible && onSpray) {
+        event.preventDefault()
+        const newAnimation = {
+          id: Date.now(),
+          startTime: Date.now(),
+          duration: 800
+        }
+        setSprayAnimations(prev => {
+          return [...prev, newAnimation]
+        })
       }
     }
     
     if (visible) {
       window.addEventListener('mousemove', handleMouseMove)
-      if (onSpray) {
-        window.addEventListener('click', handleClick)
-      }
+      window.addEventListener('click', handleClick)
+      window.addEventListener('keydown', handleKeyPress)
     }
     
     return () => {
       window.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('click', handleClick)
+      window.removeEventListener('keydown', handleKeyPress)
     }
   }, [visible, onSpray])
   
-  useFrame(() => {
+  useFrame((state) => {
     if (meshRef.current && visible) {
       const raycaster = new THREE.Raycaster()
       raycaster.setFromCamera(mousePosition.current, camera)
@@ -84,20 +155,46 @@ export const CleaningTool = ({
       meshRef.current.rotation.x += rotation[0]
       meshRef.current.rotation.y += rotation[1]
       meshRef.current.rotation.z += rotation[2]
-      
-      // 스프레이 노즐 위치와 방향 업데이트 (스프레이 도구인 경우)
-      if (modelPath.includes('Spray') || modelPath.includes('spray')) {
-        // 스프레이 노즐 위치 (모델의 앞쪽 끝)
-        const nozzleOffset = new THREE.Vector3(0, 0, -0.3) // 모델에 따라 조정 필요
-        nozzleOffset.applyQuaternion(meshRef.current.quaternion)
-        const nozzlePosition = meshRef.current.position.clone().add(nozzleOffset)
-        
-        setSprayPosition([nozzlePosition.x, nozzlePosition.y, nozzlePosition.z])
-        
-        // 스프레이 방향 (카메라에서 마우스 방향으로)
-        const sprayDir = raycaster.ray.direction.clone()
-        setSprayDirection([sprayDir.x, sprayDir.y, sprayDir.z])
-      }
+    }
+    
+    const currentTime = Date.now()
+    const activeAnimations = sprayAnimations.filter(anim => 
+      currentTime - anim.startTime < anim.duration
+    )
+    
+    if (activeAnimations.length !== sprayAnimations.length) {
+      setSprayAnimations(activeAnimations)
+    }
+    
+    if (sprayTextureRef.current.length > 0) {
+      sprayTextureRef.current.forEach((mesh, index) => {
+        if (activeAnimations.length > 0) {
+          const latestAnimation = activeAnimations[activeAnimations.length - 1]
+          const progress = Math.min(1, (currentTime - latestAnimation.startTime) / latestAnimation.duration)
+          
+          if (mesh.material) {
+            const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+            materials.forEach(material => {
+              if (material instanceof THREE.MeshStandardMaterial || 
+                  material instanceof THREE.MeshBasicMaterial) {
+                material.opacity = 1.0
+                material.needsUpdate = true
+              }
+            })
+          }
+        } else {
+          if (mesh.material) {
+            const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+            materials.forEach(material => {
+              if (material instanceof THREE.MeshStandardMaterial || 
+                  material instanceof THREE.MeshBasicMaterial) {
+                material.opacity = 0
+                material.needsUpdate = true
+              }
+            })
+          }
+        }
+      })
     }
   })
   
@@ -112,7 +209,6 @@ export const CleaningTool = ({
   )
 }
 
-// 스프레이 도구들 (onSpray prop 추가)
 export const SprayTool = ({ 
   visible, 
   onSpray,
@@ -123,7 +219,7 @@ export const SprayTool = ({
   isSprayActive?: boolean 
 }) => (
   <CleaningTool 
-    modelPath="/models/6-1-1/Window/Window_cleaner_Spray.glb" 
+    modelPath="/models/6-1-1/Window/Window_cleaner_Spray.gltf" 
     visible={visible} 
     scale={1.3} 
     rotation={[Math.PI/4, Math.PI/6, -Math.PI/8]}
@@ -145,7 +241,7 @@ export const VinegarTool = ({
     modelPath="/models/6-1-1/Vinegar_Spray/Vinegar.glb" 
     visible={visible} 
     scale={4} 
-    rotation={[Math.PI/2, 0, 0]}
+    rotation={[Math.PI, 0, Math.PI/4]}
     onSpray={onSpray}
     isSprayActive={isSprayActive}
   />
@@ -163,7 +259,7 @@ export const BleachTool = ({
   <CleaningTool 
     modelPath="/models/6-1-1/Bleach/Bleach.glb" 
     visible={visible} 
-    scale={0.2} 
+    scale={0.4} 
     rotation={[0, Math.PI/4, 0]}
     onSpray={onSpray}
     isSprayActive={isSprayActive}
@@ -189,7 +285,6 @@ export const ToiletCleanerTool = ({
   />
 )
 
-// 각 미션별 닦기 도구들 (기존과 동일)
 export const GlassRagTool = ({ visible }: { visible: boolean }) => (
   <CleaningTool 
     modelPath="/models/6-1-1/Rag/Rag.glb" 
@@ -217,8 +312,7 @@ export const BathroomScrubTool = ({ visible }: { visible: boolean }) => (
   />
 )
 
-// Preload
-useGLTF.preload('/models/6-1-1/Window/Window_cleaner_Spray.glb')
+useGLTF.preload('/models/6-1-1/Window/Window_cleaner_Spray.gltf')
 useGLTF.preload('/models/6-1-1/Vinegar_Spray/Vinegar.glb')
 useGLTF.preload('/models/6-1-1/Bleach/Bleach.glb')
 useGLTF.preload('/models/6-1-1/Toilet_bleach/Toilet_Spray.glb')

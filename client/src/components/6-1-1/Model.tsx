@@ -6,10 +6,22 @@ interface ModelProps {
   scale?: number
   position?: [number, number, number]
   splashOpacities?: {
-    splash01: number // 도마
-    splash02: number // 유리창  
-    splash03: number // 변기
-    splash04: number // 욕실
+    splash01: number
+    splash02: number
+    splash03: number
+    splash04: number
+  }
+  sprayEffects?: {
+    splash01: boolean
+    splash02: boolean
+    splash03: boolean
+    splash04: boolean
+  }
+  wipingProgress?: {
+    splash01: number
+    splash02: number
+    splash03: number
+    splash04: number
   }
   castShadow?: boolean
   receiveShadow?: boolean
@@ -18,6 +30,8 @@ interface ModelProps {
 
 export const Model = ({ 
   splashOpacities, 
+  sprayEffects,
+  wipingProgress,
   scale = 1, 
   position = [0, 0, 0],
   castShadow = true,
@@ -59,7 +73,6 @@ export const Model = ({
             if (material.name) {
               const matName = material.name.toLowerCase()
               
-              // splash02 - 유리창 얼룩 (WindowsGlass.001)
               if (matName.includes('windowsglass.001')) {
                 material.transparent = true
                 material.opacity = splashOpacities.splash02
@@ -76,7 +89,47 @@ export const Model = ({
                 }
               }
               
-              // splash04 - 욕실 바닥 얼룩 (Material.008)
+              else if (matName.includes('material.009') || 
+                       matName.includes('material.010') || 
+                       matName.includes('material.011') || 
+                       matName.includes('material.012') || 
+                       matName.includes('material.013') || 
+                       matName.includes('material.014') || 
+                       matName.includes('material.015') || 
+                       matName.includes('material.016')) {
+                material.transparent = true
+                
+                if (sprayEffects?.splash02 && splashOpacities.splash02 > 0.1) {
+                  const wipingProgressValue = wipingProgress?.splash02 || 0
+                  const fadeOpacity = Math.max(0, 1.0 - (wipingProgressValue / 100))
+                  material.opacity = fadeOpacity
+                  material.visible = fadeOpacity > 0.01
+                } else {
+                  material.opacity = 0.0
+                  material.visible = false
+                }
+                
+                material.needsUpdate = true
+                child.castShadow = false
+              }
+              
+              else if (matName.includes('material.006') || matName === 'material') {
+                material.transparent = true
+                
+                if (sprayEffects?.splash04 && splashOpacities.splash04 > 0.1) {
+                  const wipingProgressValue = wipingProgress?.splash04 || 0
+                  const fadeOpacity = Math.max(0, 1.0 - (wipingProgressValue / 100))
+                  material.opacity = fadeOpacity
+                  material.visible = fadeOpacity > 0.01
+                } else {
+                  material.opacity = 0.0
+                  material.visible = false
+                }
+                
+                material.needsUpdate = true
+                child.castShadow = false
+              }
+              
               else if (matName.includes('material.008')) {
                 material.transparent = true
                 material.opacity = splashOpacities.splash04
@@ -98,10 +151,44 @@ export const Model = ({
               if (textureMap?.name) {
                 const texName = textureMap.name.toLowerCase()
                 
-                // 텍스처 이름으로 추가 확인 (필요시)
                 if (texName.includes('windowsglass') && texName.includes('001')) {
                   material.transparent = true
                   material.opacity = splashOpacities.splash02
+                  material.needsUpdate = true
+                }
+                else if (texName.includes('material') && 
+                        (texName.includes('009') || 
+                         texName.includes('010') || 
+                         texName.includes('011') || 
+                         texName.includes('012') || 
+                         texName.includes('013') || 
+                         texName.includes('014') || 
+                         texName.includes('015') || 
+                         texName.includes('016'))) {
+                  material.transparent = true
+                  if (sprayEffects?.splash02 && splashOpacities.splash02 > 0.1) {
+                    const wipingProgressValue = wipingProgress?.splash02 || 0
+                    const fadeOpacity = Math.max(0, 1.0 - (wipingProgressValue / 100))
+                    material.opacity = fadeOpacity
+                    material.visible = fadeOpacity > 0.01
+                  } else {
+                    material.opacity = 0.0
+                    material.visible = false
+                  }
+                  material.needsUpdate = true
+                }
+                else if (texName.includes('material') && 
+                        (texName.includes('006') || texName === 'material')) {
+                  material.transparent = true
+                  if (sprayEffects?.splash04 && splashOpacities.splash04 > 0.1) {
+                    const wipingProgressValue = wipingProgress?.splash04 || 0
+                    const fadeOpacity = Math.max(0, 1.0 - (wipingProgressValue / 100))
+                    material.opacity = fadeOpacity
+                    material.visible = fadeOpacity > 0.01
+                  } else {
+                    material.opacity = 0.0
+                    material.visible = false
+                  }
                   material.needsUpdate = true
                 }
                 else if (texName.includes('material') && texName.includes('008')) {
@@ -115,7 +202,7 @@ export const Model = ({
         }
       })
     }
-  }, [splashOpacities, castShadow, receiveShadow, doubleSide])
+  }, [splashOpacities, sprayEffects, wipingProgress, castShadow, receiveShadow, doubleSide])
 
   useEffect(() => {
     if (modelRef.current && gltf.scene) {

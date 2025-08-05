@@ -7,6 +7,8 @@ interface CuttingBoardProps {
   position: [number, number, number]
   wipingProgress: number
   isInteractive: boolean
+  sprayEffect: boolean
+  isCompleted?: boolean
   onWiping?: (intensity: number) => void
   scale?: number
   rotation?: [number, number, number]
@@ -16,20 +18,21 @@ export const CuttingBoard: React.FC<CuttingBoardProps> = ({
   position,
   wipingProgress,
   isInteractive,
+  sprayEffect,
+  isCompleted = false,
   onWiping,
   scale = 1.2,
   rotation = [0, Math.PI/2, 0]
 }) => {
-  const gltf = useGLTF('/models/6-1-1/Cutting_Board/Cutting_Board.glb')
+  const gltf = useGLTF('/models/6-1-1/Cutting_Board/Cutting_Board.gltf')
   const groupRef = useRef<THREE.Group>(null)
   const ragMeshRef = useRef<THREE.Mesh>(null)
   const bloodMeshRef = useRef<THREE.Mesh>(null)
+  const sprayMeshRef = useRef<THREE.Mesh>(null)
   
-  // 마우스 추적
   const lastMousePosition = useRef(new THREE.Vector2())
   const mouseVelocity = useRef(0)
   
-  // 래그 위치
   const initialRagX = useRef<number>(0)
   const currentRagX = useRef<number>(0)
 
@@ -49,22 +52,23 @@ export const CuttingBoard: React.FC<CuttingBoardProps> = ({
   useEffect(() => {
     if (gltf.scene) {
       gltf.scene.traverse((child) => {
-        // 래그 메쉬 찾기
         if (child.name === 'Tower_Material001_0' && child instanceof THREE.Mesh) {
           ragMeshRef.current = child
           initialRagX.current = child.position.x
           currentRagX.current = child.position.x
         }
         
-        // 혈흔/얼룩 메쉬 찾기
         if (child.name === 'Plane__10_001' && child instanceof THREE.Mesh) {
           bloodMeshRef.current = child
+        }
+        
+        if (child.name === 'Plane__10_002' && child instanceof THREE.Mesh) {
+          sprayMeshRef.current = child
         }
       })
     }
   }, [gltf.scene])
 
-  // 마우스 이벤트 처리
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
       if (!isInteractive) return
@@ -74,7 +78,6 @@ export const CuttingBoard: React.FC<CuttingBoardProps> = ({
         -(event.clientY / window.innerHeight) * 2 + 1
       )
       
-      // 마우스 속도 계산
       const deltaX = newMousePos.x - lastMousePosition.current.x
       const deltaY = newMousePos.y - lastMousePosition.current.y
       const velocity = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
@@ -82,7 +85,6 @@ export const CuttingBoard: React.FC<CuttingBoardProps> = ({
       mouseVelocity.current = velocity
       lastMousePosition.current.copy(newMousePos)
       
-      // 닦기 콜백 호출
       if (onWiping && velocity > 0.005) {
         onWiping(velocity * 20)
       }
@@ -98,25 +100,20 @@ export const CuttingBoard: React.FC<CuttingBoardProps> = ({
   }, [isInteractive, onWiping])
 
   useFrame((state, delta) => {
-    if (!ragMeshRef.current || !bloodMeshRef.current) return
+    if (!ragMeshRef.current || !bloodMeshRef.current || !sprayMeshRef.current) return
     
     if (isInteractive) {
-      // X축 이동 (마우스 속도에 따라 양옆으로)
-      const targetX = initialRagX.current + mouseVelocity.current * 2
+      const targetX = initialRagX.current + mouseVelocity.current * 8
       currentRagX.current = THREE.MathUtils.lerp(currentRagX.current, targetX, delta * 10)
       ragMeshRef.current.position.x = currentRagX.current
       
-      // 원래 위치로 복귀
       currentRagX.current = THREE.MathUtils.lerp(currentRagX.current, initialRagX.current, delta * 3)
       
-      // 마우스 속도 감소
       mouseVelocity.current *= 0.9
     } else {
-      // 상호작용 불가능할 때는 원래 위치
       ragMeshRef.current.position.x = initialRagX.current
     }
     
-    // 혈흔/얼룩 투명도 조절
     const opacity = Math.max(0, (100 - wipingProgress) / 100)
     
     if (bloodMeshRef.current.material) {
@@ -131,6 +128,24 @@ export const CuttingBoard: React.FC<CuttingBoardProps> = ({
         bloodMeshRef.current.scale.setScalar(0.0003)
       }
     }
+    
+    if (sprayMeshRef.current.material) {
+      const material = sprayMeshRef.current.material as THREE.MeshStandardMaterial
+      material.transparent = true
+      
+      if (sprayEffect && opacity > 0.01 && !isCompleted) {
+        const sprayOpacity = Math.max(0, 1.0 - (wipingProgress / 100))
+        material.opacity = sprayOpacity
+        sprayMeshRef.current.scale.setScalar(sprayOpacity > 0.01 ? 0.0003 : 0)
+        sprayMeshRef.current.visible = sprayOpacity > 0.01
+      } else {
+        material.opacity = 0.0
+        sprayMeshRef.current.scale.setScalar(0)
+        sprayMeshRef.current.visible = false
+      }
+      
+      material.needsUpdate = true
+    }
   })
   
   return (
@@ -140,4 +155,4 @@ export const CuttingBoard: React.FC<CuttingBoardProps> = ({
   )
 }
 
-useGLTF.preload('/models/6-1-1/Cutting_Board/Cutting_Board.glb')
+useGLTF.preload('/models/6-1-1/Cutting_Board/Cutting_Board.gltf')
