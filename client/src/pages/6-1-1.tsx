@@ -31,6 +31,7 @@ import { CuttingBoard } from '@/components/6-1-1/CuttingBoardTool'
 import { CleaningToolType, SplashType, GamePhase, missions, wipingEfficiency, initialCamera } from '../types/6-1-1'
 import { AnimatePresence, motion } from 'framer-motion'
 import ActivityGuideModal from '@/components/6-1-1/ActivityGuideModal'
+import CameraLogger from '@/hook/CameraLogger'
 
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
   const { progress, active } = useProgress()
@@ -128,6 +129,7 @@ export default function Home() {
 
   const currentAudioRef = useRef<HTMLAudioElement | null>(null)
   const wipingAudioRef = useRef<HTMLAudioElement | null>(null)
+  const lastWipingSoundTime = useRef<number>(0)
 
   const [sprayEffects, setSprayEffects] = useState<Record<SplashType, boolean>>({
     splash01: false,
@@ -457,20 +459,6 @@ export default function Home() {
 
       setTimeout(() => {
         setGamePhase('wiping')
-
-        const wipingAudioFiles = {
-          splash01: '/sounds/6-1-1/6-1-1-9-1.MP3',
-          splash02: '/sounds/6-1-1/6-1-1-4_Glass.MP3',
-          splash03: '/sounds/6-1-1/6-1-1-8_Scrubbing.MP3',
-          splash04: '/sounds/6-1-1/6-1-1-9-1.MP3',
-        }
-
-        try {
-          const audio = new Audio(wipingAudioFiles[currentMission])
-          audio.volume = 0.6
-          audio.play().catch(() => {})
-          wipingAudioRef.current = audio
-        } catch (error) {}
       }, 1500)
     }
   }
@@ -492,6 +480,47 @@ export default function Home() {
 
       setMouseVelocity(velocity)
       setLastMousePosition(currentMousePos)
+
+      if (velocity > 8) {
+        const currentTime = Date.now()
+        const timeSinceLastSound = currentTime - lastWipingSoundTime.current
+
+        if (timeSinceLastSound > 100) {
+          const wipingAudioFiles = {
+            splash01: '/sounds/6-1-1/6-1-1-9-1.MP3',
+            splash02: '/sounds/6-1-1/6-1-1-4_Glass.MP3',
+            splash03: '/sounds/6-1-1/6-1-1-8_Scrubbing.MP3',
+            splash04: '/sounds/6-1-1/6-1-1-9-1.MP3',
+          }
+
+          if (
+            !wipingAudioRef.current ||
+            wipingAudioRef.current.paused ||
+            wipingAudioRef.current.currentTime > wipingAudioRef.current.duration * 0.8
+          ) {
+            try {
+              const audio = new Audio(wipingAudioFiles[currentMission])
+              audio.volume = Math.min(0.3 + velocity * 0.01, 0.6)
+              audio.playbackRate = Math.min(0.8 + velocity * 0.02, 1.5)
+              audio.play().catch(() => {})
+
+              if (wipingAudioRef.current && !wipingAudioRef.current.paused) {
+                wipingAudioRef.current.pause()
+              }
+
+              wipingAudioRef.current = audio
+              lastWipingSoundTime.current = currentTime
+            } catch (error) {}
+          }
+        }
+      } else {
+        if (wipingAudioRef.current && !wipingAudioRef.current.paused) {
+          wipingAudioRef.current.volume = Math.max(wipingAudioRef.current.volume - 0.05, 0)
+          if (wipingAudioRef.current.volume <= 0) {
+            wipingAudioRef.current.pause()
+          }
+        }
+      }
 
       if (velocity < 8) return
     }
@@ -701,18 +730,32 @@ export default function Home() {
         onReset={resetMission}
       />
 
-      <Scene shadows camera={{ position: initialCamera.position, fov: 50 }}>
+      <Scene
+        shadows
+        camera={{ position: initialCamera.position, fov: 50 }}
+        gl={{
+          shadowMap: {
+            enabled: true,
+            type: THREE.PCFSoftShadowMap,
+          },
+        }}>
         <LoadingTracker onLoadingComplete={() => setIsLoaded(true)} />
         <IntroMouseCameraController enabled={showIntro} />
 
         <directionalLight
           castShadow
-          intensity={1}
+          intensity={1.5}
           position={[-6, 3, -10]}
-          shadow-mapSize={[2048, 2048]}
-          shadow-radius={4}
+          shadow-mapSize={[4096, 4096]}
+          shadow-camera-near={0.1}
+          shadow-camera-far={20}
+          shadow-camera-top={30}
+          shadow-camera-right={30}
+          shadow-camera-left={-30}
           shadow-bias={-0.0001}
+          shadow-normalBias={0.1}
         />
+        <spotLight castShadow intensity={0.4} position={[-2.5, 3.52, 7.6]} color='#fff' decay={1}/>
 
         <PerformanceMonitor onDecline={() => degrade(true)} />
         <ContactShadows position={[0, 0, 0]} opacity={0.9} scale={30} blur={2.5} far={10} color='black' frames={2} />
@@ -735,7 +778,7 @@ export default function Home() {
         </group>
 
         {isBathroomLightOn && (
-          <pointLight intensity={7} position={[7.0, 2, -2]} color='#c0ce6f' distance={7} decay={1} />
+          <spotLight castShadow intensity={5} position={[11.4, 2.5, -2.5]} color='#c0ce6f' distance={10} />
         )}
 
         {gamePhase === 'spraying' && selectedSolution && (
@@ -833,6 +876,8 @@ export default function Home() {
           backgroundIntensity={0.7}
           environmentIntensity={0.8}
         />
+
+        <CameraLogger />
       </Scene>
 
       {isLoaded && showIntro && (

@@ -197,7 +197,7 @@ export const Toilet = ({
 
   return (
     <group ref={modelRef} scale={scale} position={position} dispose={null}>
-      <primitive object={gltf.scene} scale={1.0} position={[0, -5, 0]} rotation={[0, Math.PI/2, 0]} />
+      <primitive object={gltf.scene} scale={1.0} position={[0, -5, 0]} rotation={[0, Math.PI/2, 0]} castShadow receiveShadow/>
     </group>
   )
 }

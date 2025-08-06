@@ -34,26 +34,53 @@ export const CleaningTool = ({
   
   const sprayTextureRef = useRef<THREE.Mesh[]>([])
 
-  useEffect(() => {
-    if (gltf.scene) {
-      sprayTextureRef.current = []
-      
-      gltf.scene.traverse((child) => {
-        if (child instanceof THREE.Mesh) {
-          child.castShadow = true
-          child.receiveShadow = true
-          
-          if (child.material) {
-            if (Array.isArray(child.material)) {
-              child.material.forEach(mat => {
+  // 그림자 설정을 위한 별도 함수
+  const configureShadows = (scene: THREE.Object3D) => {
+    scene.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        // 그림자 설정
+        child.castShadow = true
+        child.receiveShadow = true
+        
+        // 재질 설정
+        if (child.material) {
+          if (Array.isArray(child.material)) {
+            child.material.forEach(mat => {
+              // DoubleSide는 그림자 캐스팅에 문제를 일으킬 수 있으므로 조건부 적용
+              if (mat.transparent && mat.opacity < 0.9) {
                 mat.side = THREE.DoubleSide
-              })
-            } else {
+                child.castShadow = false // 투명한 재질은 그림자 캐스팅 비활성화
+              } else {
+                mat.side = THREE.FrontSide // 불투명한 재질은 FrontSide 사용
+              }
+              mat.needsUpdate = true
+            })
+          } else {
+            if (child.material.transparent && child.material.opacity < 0.9) {
               child.material.side = THREE.DoubleSide
+              child.castShadow = false
+            } else {
+              child.material.side = THREE.FrontSide
             }
+            child.material.needsUpdate = true
           }
         }
-        
+      }
+    })
+  }
+
+  useEffect(() => {
+    if (gltf.scene) {
+      // 깊은 복사를 통해 독립적인 인스턴스 생성
+      const clonedScene = gltf.scene.clone()
+      
+      // 그림자 설정 적용
+      configureShadows(clonedScene)
+      
+      // 스프레이 텍스처 찾기
+      sprayTextureRef.current = []
+      
+      clonedScene.traverse((child) => {
         if (child instanceof THREE.Mesh && (
           child.name === 'Plane_1' || 
           child.name === 'Plane_2' ||
@@ -63,14 +90,15 @@ export const CleaningTool = ({
           sprayTextureRef.current.push(child)
           
           child.visible = true
-          child.castShadow = false
+          child.castShadow = false // 스프레이 이펙트는 그림자 캐스팅 비활성화
           
           if (child.material) {
             const materials = Array.isArray(child.material) ? child.material : [child.material]
-            materials.forEach((mat, matIndex) => {
+            materials.forEach((mat) => {
               if (mat instanceof THREE.MeshStandardMaterial || mat instanceof THREE.MeshBasicMaterial) {
                 mat.transparent = true
                 mat.opacity = 0
+                mat.side = THREE.DoubleSide
                 
                 if (mat.map) {
                   mat.map.wrapS = THREE.RepeatWrapping
@@ -90,6 +118,12 @@ export const CleaningTool = ({
           }
         }
       })
+
+      // 기존 씬을 새로운 씬으로 교체
+      if (meshRef.current) {
+        meshRef.current.clear()
+        meshRef.current.add(clonedScene)
+      }
     }
   }, [gltf])
   
@@ -167,7 +201,7 @@ export const CleaningTool = ({
     }
     
     if (sprayTextureRef.current.length > 0) {
-      sprayTextureRef.current.forEach((mesh, index) => {
+      sprayTextureRef.current.forEach((mesh) => {
         if (activeAnimations.length > 0) {
           const latestAnimation = activeAnimations[activeAnimations.length - 1]
           const progress = Math.min(1, (currentTime - latestAnimation.startTime) / latestAnimation.duration)
@@ -201,11 +235,7 @@ export const CleaningTool = ({
   if (!visible) return null
   
   return (
-    <group>
-      <group ref={meshRef} scale={scale}>
-        <primitive object={gltf.scene.clone()} />
-      </group>
-    </group>
+    <group ref={meshRef} scale={scale} />
   )
 }
 
@@ -316,7 +346,6 @@ useGLTF.preload('/models/6-1-1/Window/Window_cleaner_Spray.gltf')
 useGLTF.preload('/models/6-1-1/Vinegar_Spray/Vinegar.glb')
 useGLTF.preload('/models/6-1-1/Bleach/Bleach.glb')
 useGLTF.preload('/models/6-1-1/Toilet_bleach/Toilet_Bleach.glb')
-
 useGLTF.preload('/models/6-1-1/Rag/Rag.glb')
 useGLTF.preload('/models/6-1-1/Toilet_Brush/Toilet_Brush.glb')
 useGLTF.preload('/models/6-1-1/Bathroom_Scrub/Bathroom_Scrub.glb')

@@ -105,6 +105,7 @@ export default function Intro<T = string>({
     <div
       className={`
       absolute inset-0 z-50 transition-opacity duration-1000 ease-in-out overflow-hidden
+      z-500
       ${isAnimating ? 'opacity-0' : 'opacity-100'}
     `}>
       <div className='hidden md:block w-full h-full'>

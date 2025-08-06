@@ -11,6 +11,7 @@ export const BathroomLight: React.FC<BathroomLightProps> = ({ isOn }) => {
     <>
       <pointLight
         intensity={2}
+        castShadow
         position={[11, 6, 1]}
         color="#ffffff"
         distance={15}
@@ -19,6 +20,7 @@ export const BathroomLight: React.FC<BathroomLightProps> = ({ isOn }) => {
       
       <pointLight
         intensity={1.5}
+        castShadow
         position={[9, 5, 1]}
         color="#f0f0f0"
         distance={12}
@@ -27,6 +29,7 @@ export const BathroomLight: React.FC<BathroomLightProps> = ({ isOn }) => {
       
       <spotLight
         intensity={2}
+        castShadow
         position={[11, 7, 2]}
         target-position={[11, 4, 0]}
         angle={0.4}

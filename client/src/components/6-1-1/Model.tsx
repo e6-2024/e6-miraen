@@ -50,7 +50,7 @@ export const Model = ({
         if (child.material) {
           const materials = Array.isArray(child.material) ? child.material : [child.material]
           materials.forEach((material) => {
-            if (material.transparent && material.opacity < 0.5) {
+            if (material.transparent && material.opacity < 0.3) {
               child.castShadow = false
             }
           })
@@ -215,7 +215,7 @@ export const Model = ({
   
   return (
     <group ref={modelRef} scale={scale} position={position} dispose={null}>
-      <primitive object={gltf.scene} scale={1.0} position={[0,-5,0]} rotation={[0, 0, 0]} />
+      <primitive object={gltf.scene} scale={1.0} position={[0,-5,0]} rotation={[0, 0, 0]} castShadow receiveShadow />
     </group>
   )
 }

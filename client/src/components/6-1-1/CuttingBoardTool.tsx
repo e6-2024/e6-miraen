@@ -35,10 +35,49 @@ export const CuttingBoard: React.FC<CuttingBoardProps> = ({
   
   const initialRagX = useRef<number>(0)
   const currentRagX = useRef<number>(0)
+  const clonedSceneRef = useRef<THREE.Group | null>(null)
+
+  // 그림자 설정을 위한 함수
+  const configureShadows = (scene: THREE.Object3D) => {
+    scene.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        // 기본적으로 모든 메시에 그림자 설정
+        child.castShadow = true
+        child.receiveShadow = true
+        
+        if (child.material) {
+          const materials = Array.isArray(child.material) ? child.material : [child.material]
+          materials.forEach(mat => {
+            // 투명도가 높은 재질 처리
+            if (mat.transparent && mat.opacity < 0.5) {
+              mat.side = THREE.DoubleSide
+              child.castShadow = false // 투명한 재질은 그림자 캐스팅 비활성화
+            } else {
+              mat.side = THREE.DoubleSide // 도마는 DoubleSide 유지
+            }
+            mat.needsUpdate = true
+          })
+        }
+        
+        // 특정 메시 이름에 따른 그림자 설정
+        if (child.name.includes('Plane__10') || child.name.includes('blood') || child.name.includes('spray')) {
+          child.castShadow = false // 얼룩이나 스프레이 효과는 그림자 캐스팅 안 함
+        }
+      }
+    })
+  }
 
   useEffect(() => {
-    if (gltf.scene) {
-      gltf.scene.traverse((child) => {
+    if (gltf.scene && !clonedSceneRef.current) {
+      // 깊은 복사를 통해 독립적인 인스턴스 생성
+      const clonedScene = gltf.scene.clone()
+      clonedSceneRef.current = clonedScene
+      
+      // 그림자 설정 적용
+      configureShadows(clonedScene)
+      
+      // 기존 재질 설정 유지
+      clonedScene.traverse((child) => {
         if (child instanceof THREE.Mesh && child.material) {
           const materials = Array.isArray(child.material) ? child.material : [child.material]
           materials.forEach(mat => {
@@ -46,28 +85,44 @@ export const CuttingBoard: React.FC<CuttingBoardProps> = ({
           })
         }
       })
+
+      // 그룹에 클론된 씬 추가
+      if (groupRef.current) {
+        groupRef.current.clear()
+        groupRef.current.add(clonedScene)
+      }
     }
   }, [gltf])
 
   useEffect(() => {
-    if (gltf.scene) {
-      gltf.scene.traverse((child) => {
+    if (clonedSceneRef.current) {
+      clonedSceneRef.current.traverse((child) => {
         if (child.name === 'Tower_Material001_0' && child instanceof THREE.Mesh) {
           ragMeshRef.current = child
           initialRagX.current = child.position.x
           currentRagX.current = child.position.x
+          
+          // 걸레(닦는 도구)는 그림자 캐스팅 활성화
+          child.castShadow = true
+          child.receiveShadow = true
         }
         
         if (child.name === 'Plane__10_001' && child instanceof THREE.Mesh) {
           bloodMeshRef.current = child
+          // 피/얼룩은 그림자 캐스팅 비활성화, 받기는 활성화
+          child.castShadow = false
+          child.receiveShadow = true
         }
         
         if (child.name === 'Plane__10_002' && child instanceof THREE.Mesh) {
           sprayMeshRef.current = child
+          // 스프레이 효과는 그림자 캐스팅 비활성화, 받기는 활성화
+          child.castShadow = false
+          child.receiveShadow = true
         }
       })
     }
-  }, [gltf.scene])
+  }, [clonedSceneRef.current])
 
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
@@ -124,8 +179,10 @@ export const CuttingBoard: React.FC<CuttingBoardProps> = ({
       
       if (opacity <= 0.01) {
         bloodMeshRef.current.scale.setScalar(0)
+        bloodMeshRef.current.visible = false
       } else {
         bloodMeshRef.current.scale.setScalar(0.0003)
+        bloodMeshRef.current.visible = true
       }
     }
     
@@ -149,9 +206,7 @@ export const CuttingBoard: React.FC<CuttingBoardProps> = ({
   })
   
   return (
-    <group ref={groupRef} scale={scale} position={position} rotation={rotation}>
-      <primitive object={gltf.scene.clone()} />
-    </group>
+    <group ref={groupRef} scale={scale} position={position} rotation={rotation} />
   )
 }
 

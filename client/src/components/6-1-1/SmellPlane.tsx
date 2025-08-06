@@ -15,7 +15,7 @@ export const CuttingBoardSmell: React.FC<{
     return Array.from({ length: 4 }, (_, i) => ({
       position: [
         position[0] + (Math.random() - 0.5) * 0.5,
-        position[1] + i * 0.2 + Math.random() * 0.1,
+        position[1] + i * 0.2 + Math.random() * 0.4,
         position[2] + (Math.random() - 0.5) * 0.5
       ] as [number, number, number],
       rotation: [0, Math.PI/2, 0] as [number, number, number],

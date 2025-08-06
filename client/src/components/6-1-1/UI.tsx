@@ -218,7 +218,7 @@ export function GameMessages({
   return (
     <>
       {showMessage && (
-        <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none'>
+        <div className='absolute bottom-3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none'>
           <div className='bg-black bg-opacity-70 text-white px-6 py-4 rounded-xl text-center'>
             <div className='text-xl font-bold'>{showMessage}</div>
           </div>

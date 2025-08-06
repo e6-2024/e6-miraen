@@ -43,7 +43,7 @@
 				0
 			],
 			"scale":[
-				0.0003248902503401041,
+				0.00032489027944393456,
 				0.0003248903376515955,
 				0.00032489036675542593
 			],
@@ -71,15 +71,15 @@
 			"mesh":3,
 			"name":"Plane__10_.002",
 			"rotation":[
-				0.218252032995224,
-				0.6713697910308838,
-				-0.6740742921829224,
-				0.21737632155418396
+				0.20847630500793457,
+				0.6744694113731384,
+				-0.6708454489707947,
+				0.22714540362358093
 			],
 			"scale":[
-				0.00018868214101530612,
+				0.0001886821264633909,
 				0.00018868221377488226,
-				0.00018868222832679749
+				0.00018868221377488226
 			],
 			"translation":[
 				-0.003558933734893799,
@@ -91,7 +91,7 @@
 	"materials":[
 		{
 			"doubleSided":true,
-			"name":"Material.002",
+			"name":"Material.001",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
 					"index":0
@@ -103,7 +103,7 @@
 		{
 			"alphaMode":"BLEND",
 			"doubleSided":true,
-			"name":"M_BloodMaterialExample4.003",
+			"name":"M_BloodMaterialExample4.001",
 			"normalTexture":{
 				"extensions":{
 					"KHR_texture_transform":{
@@ -142,12 +142,13 @@
 					},
 					"index":2
 				},
-				"metallicFactor":0.18127985298633575
+				"metallicFactor":0.25855258107185364,
+				"roughnessFactor":0.09090906381607056
 			}
 		},
 		{
 			"doubleSided":true,
-			"name":"Material.012",
+			"name":"Material.003",
 			"normalTexture":{
 				"extensions":{
 					"KHR_texture_transform":{
@@ -172,7 +173,7 @@
 		{
 			"alphaMode":"BLEND",
 			"doubleSided":true,
-			"name":"Material.007",
+			"name":"Material.004",
 			"normalTexture":{
 				"extensions":{
 					"KHR_texture_transform":{
@@ -210,14 +211,14 @@
 					},
 					"index":5
 				},
-				"metallicFactor":0.6727272868156433,
-				"roughnessFactor":0.31090909242630005
+				"metallicFactor":0,
+				"roughnessFactor":0
 			}
 		}
 	],
 	"meshes":[
 		{
-			"name":"Circle.004",
+			"name":"Circle.001",
 			"primitives":[
 				{
 					"attributes":{
@@ -242,7 +243,7 @@
 			]
 		},
 		{
-			"name":"Scene.692",
+			"name":"Scene.002",
 			"primitives":[
 				{
 					"attributes":{
@@ -267,7 +268,7 @@
 			]
 		},
 		{
-			"name":"Tower_Material.001_0",
+			"name":"Tower_Material.001_0.001",
 			"primitives":[
 				{
 					"attributes":{
@@ -294,7 +295,7 @@
 			]
 		},
 		{
-			"name":"Scene.001",
+			"name":"Scene.003",
 			"primitives":[
 				{
 					"attributes":{
@@ -368,7 +369,7 @@
 		},
 		{
 			"mimeType":"image/png",
-			"name":"T_SmallSplashes11Opacity",
+			"name":"T_SmallSplashes11Opacity-1",
 			"uri":"T_SmallSplashes11Opacity-1.png"
 		}
 	],
@@ -435,7 +436,7 @@
 		},
 		{
 			"componentType":5126,
-			"count":20636,
+			"count":20640,
 			"max":[
 				52.213199615478516,
 				2.349188804626465,
@@ -450,17 +451,17 @@
 		},
 		{
 			"componentType":5126,
-			"count":20636,
+			"count":20640,
 			"type":"VEC3"
 		},
 		{
 			"componentType":5126,
-			"count":20636,
+			"count":20640,
 			"type":"VEC2"
 		},
 		{
 			"componentType":5126,
-			"count":20636,
+			"count":20640,
 			"type":"VEC2"
 		},
 		{
@@ -497,23 +498,23 @@
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":12257,
+			"byteLength":11604,
 			"byteOffset":0
 		},
 		{
 			"buffer":0,
-			"byteLength":376,
-			"byteOffset":12260
+			"byteLength":375,
+			"byteOffset":11604
 		},
 		{
 			"buffer":0,
-			"byteLength":82140,
-			"byteOffset":12636
+			"byteLength":99660,
+			"byteOffset":11980
 		},
 		{
 			"buffer":0,
-			"byteLength":376,
-			"byteOffset":94776
+			"byteLength":375,
+			"byteOffset":111640
 		}
 	],
 	"samplers":[
@@ -524,7 +525,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":95152,
+			"byteLength":112016,
 			"uri":"Cutting_Board.bin"
 		}
 	]

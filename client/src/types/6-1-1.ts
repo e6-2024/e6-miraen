@@ -20,7 +20,7 @@ export const missions: Record<SplashType, MissionData> = {
     name: '도마',
     correctSolution: 'vinegar',
     position: [-2.5, 1.52, 6.6],
-    cameraPosition: [-1, 3.0, 7.1],
+    cameraPosition: [-1.05, 2.78, 5.6],
     selectMessage: '도마에서 나는 생선 비린내를 제거하기 위해 이용해야 할 용액을 고르세요.',
     completionMessage: '염기성 물질인 비린내는 산성 용액인 식초와 만나면 성질이 변하여 제거됩니다.',
     showLiquidMessage: '클릭하여 식초를 도마에 뿌려주세요.',
@@ -53,7 +53,7 @@ export const missions: Record<SplashType, MissionData> = {
     name: '욕실',
     correctSolution: 'bleach',
     position: [9.22, 0.5, -2.33],
-    cameraPosition: [8.22, 2.5, -2.33],
+    cameraPosition: [6.4, 1.0, -2.3],
     selectMessage: '욕실을 청소하기 위해 이용해야 할 용액을 고르세요.',
     completionMessage: '염기성 용액인 표백제로 곰팡이가 깨끗하게 제거되었습니다.',
     showLiquidMessage: '클릭하여 욕실 바닥에 표백제를 뿌려주세요.',
@@ -76,6 +76,6 @@ export const wipingEfficiency = {
 }
 
 export const initialCamera = {
-  position: [-0.34, 15, -20] as [number, number, number],
+  position: [-5.4, 19.04, -15.91] as [number, number, number],
   target: [0, 0, 0] as [number, number, number],
 }
