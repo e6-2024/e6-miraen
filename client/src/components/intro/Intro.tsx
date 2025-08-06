@@ -146,7 +146,7 @@ export default function Intro<T = string>({
               onClick={handleActivityGuideClick}
               className='px-8 pt-5 pb-6 bg-[#52AE46] rounded-[30px] shadow-[inset_0px_-10px_10px_0px_rgba(65,87,51,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#6BC05D] hover:shadow-[inset_0px_-10px_10px_0px_rgba(65,87,51,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(65,87,51,0.50)] transition-all duration-300'>
               <div className='text-center justify-center text-white text-2xl font-light [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
-                활동하기
+                활동 방법
               </div>
             </button>
           </div>

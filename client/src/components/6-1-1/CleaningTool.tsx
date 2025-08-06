@@ -320,7 +320,7 @@ export const GlassRagTool = ({ visible }: { visible: boolean }) => (
     modelPath="/models/6-1-1/Rag/Rag.glb" 
     visible={visible} 
     scale={0.05} 
-    rotation={[Math.PI, Math.PI/2, Math.PI]}
+    rotation={[0,0, 0]}
   />
 )
 
@@ -335,10 +335,10 @@ export const ToiletBrushTool = ({ visible }: { visible: boolean }) => (
 
 export const BathroomScrubTool = ({ visible }: { visible: boolean }) => (
   <CleaningTool 
-    modelPath="/models/6-1-1/Bathroom_Scrub/Bathroom_Scrub.glb" 
+    modelPath="/models/6-1-1/Bathroom_Scrub/scrub.glb" 
     visible={visible} 
-    scale={0.001} 
-    rotation={[Math.PI/2, 0, Math.PI/2]}
+    scale={0.02} 
+    rotation={[0, -Math.PI/3, 0]}
   />
 )
 
@@ -348,4 +348,4 @@ useGLTF.preload('/models/6-1-1/Bleach/Bleach.glb')
 useGLTF.preload('/models/6-1-1/Toilet_bleach/Toilet_Bleach.glb')
 useGLTF.preload('/models/6-1-1/Rag/Rag.glb')
 useGLTF.preload('/models/6-1-1/Toilet_Brush/Toilet_Brush.glb')
-useGLTF.preload('/models/6-1-1/Bathroom_Scrub/Bathroom_Scrub.glb')
+useGLTF.preload('/models/6-1-1/Bathroom_Scrub/scrub.glb')

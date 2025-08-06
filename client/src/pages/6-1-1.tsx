@@ -193,10 +193,10 @@ export default function Home() {
   }
 
   const liquidMessageNarrations = {
-    splash01: '/sounds/6-1-1/narration/6-1-1-A-2.MP3',
-    splash02: '/sounds/6-1-1/narration/6-1-1-C-2.MP3',
-    splash03: '/sounds/6-1-1/narration/6-1-1-E-2.MP3',
-    splash04: '/sounds/6-1-1/narration/6-1-1-G-2.MP3',
+    splash01: '/sounds/6-1-1/narration/6-1-1-J.MP3',
+    splash02: '/sounds/6-1-1/narration/6-1-1-J.MP3',
+    splash03: '/sounds/6-1-1/narration/6-1-1-J.MP3',
+    splash04: '/sounds/6-1-1/narration/6-1-1-J.MP3',
   }
 
   const clickMessageNarrations = {
@@ -755,7 +755,7 @@ export default function Home() {
           shadow-bias={-0.0001}
           shadow-normalBias={0.1}
         />
-        <spotLight castShadow intensity={0.4} position={[-2.5, 3.52, 7.6]} color='#fff' decay={1}/>
+        <spotLight castShadow intensity={2} position={[-2.5, 3.52, 7.6]} color='#fff' decay={1}/>
 
         <PerformanceMonitor onDecline={() => degrade(true)} />
         <ContactShadows position={[0, 0, 0]} opacity={0.9} scale={30} blur={2.5} far={10} color='black' frames={2} />
@@ -778,7 +778,7 @@ export default function Home() {
         </group>
 
         {isBathroomLightOn && (
-          <spotLight castShadow intensity={5} position={[11.4, 2.5, -2.5]} color='#c0ce6f' distance={10} />
+          <spotLight castShadow intensity={9} position={[11.4, 2.5, -2.5]} color='#c0ce6f' distance={10} />
         )}
 
         {gamePhase === 'spraying' && selectedSolution && (
@@ -859,8 +859,6 @@ export default function Home() {
           ref={controlsRef}
           maxPolarAngle={Math.PI / 2 - Math.PI / 30}
           minPolarAngle={0}
-          minAzimuthAngle={Math.PI / 2}
-          maxAzimuthAngle={-Math.PI / 2}
           enablePan={false}
           enableZoom={!showIntro}
           enableRotate={!showIntro}
