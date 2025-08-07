@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { Environment, OrbitControls, useProgress, PerformanceMonitor, useGLTF, ContactShadows } from '@react-three/drei'
 import AnimatedModel from '../components/AnimatedModel'
@@ -50,8 +50,8 @@ function IntroModels() {
         <AnimatedModel
           url='/models/Anatomy/Boy_Pose.gltf'
           animIndex={0}
-          scale={0.4}
-          position={[-0.3, -0.3, 0.1]}
+          scale={0.42}
+          position={[-0.32, -0.3, 0.1]}
           loop={true}
           removeMuscleLayer={false}
         />
@@ -62,7 +62,7 @@ function IntroModels() {
           url='/models/Anatomy/Muscle_Pose.gltf'
           animIndex={0}
           scale={0.004}
-          position={[0.2, -0.3, 0]}
+          position={[0.23, -0.27, 0.2]}
           loop={true}
           removeMuscleLayer={false}
         />
@@ -72,11 +72,15 @@ function IntroModels() {
         <AnimatedModel
           url='/models/Anatomy/Bone_Pose.gltf'
           animIndex={0}
-          scale={0.0043}
-          position={[0, -0.3, 0.1]}
+          scale={0.0052}
+          position={[-0.05, -0.34, 0.2]}
           loop={true}
           removeMuscleLayer={false}
         />
+      </group>
+
+      <group rotation={[0, -Math.PI / 4, 0]}>
+        <AnimatedModel url='models/Anatomy/Plane.glb' animIndex={0} scale={3} position={[0, -0.9, 0]} />
       </group>
     </MouseInteractiveGroup>
   )
@@ -108,6 +112,9 @@ export default function IntegratedPage() {
   const [introModelsLoaded, setIntroModelsLoaded] = useState(false)
   const [isBackFromMode, setIsBackFromMode] = useState(false)
   const [showActivityGuide, setShowActivityGuide] = useState(false)
+
+  // 카메라 컨트롤 ref 추가
+  const orbitControlsRef = useRef<any>(null)
 
   // 인트로용 모델들 사전 로딩
   useEffect(() => {
@@ -161,6 +168,17 @@ export default function IntegratedPage() {
     // 더 이상 사용하지 않음 - 모드 선택이 바로 인트로에서 이루어짐
   }, [playClickSound])
 
+  const resetCamera = useCallback(() => {
+    if (orbitControlsRef.current) {
+      const initialPosition = new THREE.Vector3(-0.15, 0, 0.55)
+      const initialTarget = new THREE.Vector3(0, 0.0, 0)
+
+      orbitControlsRef.current.object.position.copy(initialPosition)
+      orbitControlsRef.current.target.copy(initialTarget)
+      orbitControlsRef.current.update()
+    }
+  }, [])
+
   // 모드 선택 핸들러 (인트로에서 바로 실험 환경으로)
   const handleModeSelect = useCallback(
     (selectedMode: PageMode) => {
@@ -192,12 +210,15 @@ export default function IntegratedPage() {
     setShowNarrationText(false)
     setNarrationText([])
 
+    // 카메라 초기화
+    resetCamera()
+
     setTimeout(() => {
       setMode(null)
       setShowIntro(true)
       setIsBackFromMode(true)
     }, 100)
-  }, [playClickSound, currentNarration])
+  }, [playClickSound, currentNarration, resetCamera])
 
   // 모델 사전 로딩
   const loadModels = async () => {
@@ -551,17 +572,17 @@ export default function IntegratedPage() {
             transition={{ duration: 0.5, ease: 'easeInOut' }}
             className='absolute top-4 right-4 z-10 flex flex-col gap-2'>
             <button
-              onClick={handleFold}
-              className='px-6 pt-3 pb-4 bg-[#4CAF50] rounded-[20px] shadow-[inset_0px_-10px_10px_0px_rgba(0,152,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#66BB6A] hover:shadow-[inset_0px_-10px_10px_0px_rgba(0,152,0,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(0,152,0,0.50)] transition-all duration-300'>
-              <div className='text-center justify-center text-white text-lg font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
-                팔을 펼 때
-              </div>
-            </button>
-            <button
               onClick={handleExtend}
               className='px-6 pt-3 pb-4 bg-[#2196F3] rounded-[20px] shadow-[inset_0px_-10px_10px_0px_rgba(0,50,152,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#42A5F5] hover:shadow-[inset_0px_-10px_10px_0px_rgba(0,50,152,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(0,50,152,0.50)] transition-all duration-300'>
               <div className='text-center justify-center text-white text-lg font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
                 팔을 구부릴 때
+              </div>
+            </button>
+            <button
+              onClick={handleFold}
+              className='px-6 pt-3 pb-4 bg-[#4CAF50] rounded-[20px] shadow-[inset_0px_-10px_10px_0px_rgba(0,152,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#66BB6A] hover:shadow-[inset_0px_-10px_10px_0px_rgba(0,152,0,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(0,152,0,0.50)] transition-all duration-300'>
+              <div className='text-center justify-center text-white text-lg font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
+                팔을 펼 때
               </div>
             </button>
           </motion.div>
@@ -574,8 +595,8 @@ export default function IntegratedPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.3 }}
-            className='fixed bottom-8 left-8 z-50 w-80'>
-            <div className='bg-white p-6 rounded-3xl shadow-2xl border border-gray-100'>
+            className='fixed bottom-8 left-8 z-50'>
+            <div className='bg-white p-6 rounded-3xl shadow-2xl border border-gray-100 whitespace-nowrap'>
               <div className='text-black text-lg leading-relaxed font-medium'>
                 {narrationText.map((line, index) => (
                   <p key={index} className='mb-1'>
@@ -608,14 +629,13 @@ export default function IntegratedPage() {
           }}>
           <LoadingTracker onLoadingComplete={handleLoadingComplete} />
 
-          {showIntro && <fog attach='fog' args={['#f0f0f0', 0, 10]} />}
           {showIntro && (
-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.3, 0]} scale={2.0} receiveShadow>
-              <planeGeometry args={[10, 10]} />
-              <shadowMaterial opacity={0.3} />
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.3, 0]} scale={10.0} receiveShadow>
+              <planeGeometry args={[30, 30]} />
+              <shadowMaterial opacity={0} />
             </mesh>
           )}
-          {mode === 'bones' && <fog attach='fog' args={['#f0f0f0', 0.3, 0.9]} />}
+          {mode === 'bones' && <fog attach='fog' args={['#f0f0f0', 0.3, 2]} />}
 
           <ambientLight intensity={mode === 'arm' ? 1.0 * Math.PI : 2.0} />
 
@@ -638,6 +658,8 @@ export default function IntegratedPage() {
             shadow-camera-right={showIntro ? 5 : mode === 'bones' ? 1 : 3}
             shadow-camera-top={showIntro ? 5 : mode === 'bones' ? 1 : 3}
             shadow-camera-bottom={showIntro ? -5 : mode === 'bones' ? -1 : -3}
+            shadow-bias={mode === 'bones' ? -0.0001 : -0.0005}
+            shadow-radius={mode === 'bones' ? 0.01 : 0.02}
           />
 
           <AnimatePresence mode='wait'>
@@ -645,6 +667,7 @@ export default function IntegratedPage() {
           </AnimatePresence>
 
           <OrbitControls
+            ref={orbitControlsRef}
             enabled={!showIntro}
             enableRotate={true}
             autoRotate={showIntro}
@@ -673,10 +696,11 @@ export default function IntegratedPage() {
       {isLoaded && showIntro && (
         <Intro
           onEnter={handleEnterExperience}
-          title='뼈와 근육을 관찰하고, 우리 몸이 움직이는 원리 알아보기'
+          title={'뼈와 근육을 관찰하고, \n우리 몸이 움직이는 원리 알아보기'}
           description={[
             '우리 몸의 뼈와 근육의 생김새를 관찰하고,',
-            '팔이 움직이는 원리를 통해 우리 몸이 움직이는 원리를 알아봅시다.',
+            '팔이 움직이는 원리를 통해',
+            '우리 몸이 움직이는 원리를 알아봅시다.',
           ]}
           backgroundSvg='/img/cover/5-1-4.svg'
           descriptionSound='/sounds/5-1-4/5-1-4-Goal-1.MP3'
@@ -699,25 +723,14 @@ export default function IntegratedPage() {
             exit={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.3 }}
             className='fixed bottom-8 left-8 z-50'>
-            <div
-              className='bg-white p-6 rounded-2xl shadow-2xl border border-gray-200 w-fit max-w-2xl relative'
-              style={{
-                background: `
-           radial-gradient(circle at 3px 3px, rgba(0,0,0,0.03) 1px, transparent 0),
-           white
-         `,
-                backgroundSize: '8px 8px',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(0,0,0,0.05)',
-              }}>
-              <div className='text-black text-lg leading-relaxed font-medium'>
-                <ol className='text-black text-lg leading-relaxed'>
-                  {narrationText.map((line, index) => (
-                    <p key={index} className='mb-1'>
-                      {line}
-                    </p>
-                  ))}
-                </ol>
-              </div>
+            <div className='bg-white py-4 px-6 rounded-[20px] shadow-[inset_0px_-10px_10px_0px_rgba(200,200,230,0.9)] inline-flex justify-center items-center gap-2.5'>
+              <ol className='tex-black text-lg leading-relaxed'>
+                {narrationText.map((line, index) => (
+                  <p key={index} className='mb-1'>
+                    {line}
+                  </p>
+                ))}
+              </ol>
             </div>
           </motion.div>
         )}
