@@ -28,7 +28,7 @@ export function ConstellationModel({
   isResetting = false,
 }: ConstellationModelProps) {
   const groupRef = useRef<THREE.Group>(null!)
-  const { scene } = useGLTF('/models/6-1-4/Fall.gltf')
+  const { scene } = useGLTF('/models/6-1-4/Spring.gltf')
   const [opacity, setOpacity] = useState(0)
   const [shouldStartFade, setShouldStartFade] = useState(false)
   const fadeStartTime = useRef<number | null>(null)
@@ -39,13 +39,13 @@ export function ConstellationModel({
   const initialRotationY = useMemo(() => {
     switch (season) {
       case 'summer':
-        return Math.PI /2
+        return -Math.PI /2
       case 'spring':
-        return Math.PI/2
+        return -Math.PI / 2
       case 'fall':
-        return Math.PI/2
+        return -Math.PI/2
       case 'winter':
-        return Math.PI/2
+        return -Math.PI/2
       default:
         return 0
     }
@@ -144,7 +144,7 @@ export function ConstellationModel({
     <group ref={groupRef} position={position} visible={opacity > 0}>
       <group scale={0.5} position={[0, -12.5, 0]} rotation={[0, initialRotationY, 0]}>
         <primitive object={clonedScene} />
-        <Text
+        {/* <Text
           position={[-28, 40, -20]}
           rotation={[0, Math.PI / 2, 0]}
           fontSize={1}
@@ -263,7 +263,7 @@ export function ConstellationModel({
           anchorY='middle'
           font='/fonts/Maplestory Bold.ttf'>
           큰개자리
-        </Text>
+        </Text> */}
       </group>
       <group scale={1} rotation={[0, initialRotationY2, 0]}>
         <Text
