@@ -9,6 +9,7 @@ import * as THREE from 'three'
 import { AnimatePresence, motion } from 'framer-motion'
 import MouseInteractiveGroup from '@/components/MouseInteractiveGroup'
 import ActivityGuideModal from '@/components/5-1-4/ActivityGuideModal'
+import { CrayonTextBox } from '@/components/CrayonTextBox'
 
 type ModelType = 'boy' | 'muscle' | 'bone'
 type AnimationState = 'walk' | 'pose'
@@ -106,7 +107,7 @@ export default function IntegratedPage() {
   // 나레이션 관련 상태
   const [currentNarration, setCurrentNarration] = useState<HTMLAudioElement | null>(null)
   const [showNarrationText, setShowNarrationText] = useState(false)
-  const [narrationText, setNarrationText] = useState<string[] | string>([])
+  const [narrationText, setNarrationText] = useState<string>('')
 
   // 인트로 모델 로딩 상태
   const [introModelsLoaded, setIntroModelsLoaded] = useState(false)
@@ -208,7 +209,7 @@ export default function IntegratedPage() {
       setCurrentNarration(null)
     }
     setShowNarrationText(false)
-    setNarrationText([])
+    setNarrationText('')
 
     // 카메라 초기화
     resetCamera()
@@ -243,8 +244,7 @@ export default function IntegratedPage() {
     }
   }
 
-  // 나레이션 재생 함수
-  const playNarration = (audioPath: string, text: string[] | string) => {
+  const playNarration = (audioPath: string, text: string) => {
     if (currentNarration) {
       currentNarration.pause()
       currentNarration.currentTime = 0
@@ -265,7 +265,7 @@ export default function IntegratedPage() {
 
       audio.addEventListener('ended', () => {
         setShowNarrationText(false)
-        setNarrationText([])
+        setNarrationText('')
         setCurrentNarration(null)
       })
     } catch (error) {
@@ -282,26 +282,21 @@ export default function IntegratedPage() {
 
     if (newAnimState === 'walk') {
       let audioPath = ''
-      let text: string[] = []
+      let text: string
 
       switch (modelType) {
         case 'boy':
           audioPath = '/sounds/5-1-4/5-1-4-A.MP3'
-          text = ['• 우리 몸은 뼈와 근육의 작용으로 움직입니다.']
+          text = '• 우리 몸은 뼈와 근육의 작용으로 움직입니다.'
           break
         case 'bone':
           audioPath = '/sounds/5-1-4/5-1-4-B.MP3'
-          text = [
-            '• 우리 몸속의 뼈는 모양과 크기가 다양합니다.',
-            '• 뼈는 우리 몸의 형태를 만들고 몸을 지탱하며, 몸속에 있는 여러 기관을 보호합니다.',
-          ]
+          text =
+            '• 우리 몸속의 뼈는 모양과 크기가 다양합니다. \n• 뼈는 우리 몸의 형태를 만들고 몸을 지탱하며, 몸속에 있는 여러 기관을 보호합니다.'
           break
         case 'muscle':
           audioPath = '/sounds/5-1-4/5-1-4-C.MP3'
-          text = [
-            '• 우리 몸속의 근육은 모양과 크기가 다양합니다.',
-            '• 근육은 뼈에 연결되어 있으며 뼈를 움직이게 합니다.',
-          ]
+          text = '• 우리 몸속의 근육은 모양과 크기가 다양합니다. \n• 근육은 뼈에 연결되어 있으며 뼈를 움직이게 합니다.'
           break
       }
 
@@ -315,7 +310,7 @@ export default function IntegratedPage() {
         setCurrentNarration(null)
       }
       setShowNarrationText(false)
-      setNarrationText([])
+      setNarrationText('')
     }
   }
 
@@ -331,30 +326,25 @@ export default function IntegratedPage() {
       setCurrentNarration(null)
     }
     setShowNarrationText(false)
-    setNarrationText([])
+    setNarrationText('')
 
     if (animState === 'walk') {
       let audioPath = ''
-      let text: string[] = []
+      let text: string
 
       switch (type) {
         case 'boy':
           audioPath = '/sounds/5-1-4/5-1-4-A.MP3'
-          text = ['• 우리 몸은 뼈와 근육의 작용으로 움직입니다.']
+          text = '• 우리 몸은 뼈와 근육의 작용으로 움직입니다.'
           break
         case 'bone':
           audioPath = '/sounds/5-1-4/5-1-4-B.MP3'
-          text = [
-            '• 우리 몸속의 뼈는 모양과 크기가 다양합니다.',
-            '• 뼈는 우리 몸의 형태를 만들고 몸을 지탱하며, 몸속에 있는 여러 기관을 보호합니다.',
-          ]
+          text =
+            '• 우리 몸속의 뼈는 모양과 크기가 다양합니다.\n• 뼈는 우리 몸의 형태를 만들고 몸을 지탱하며, 몸속에 있는 여러 기관을 보호합니다.'
           break
         case 'muscle':
           audioPath = '/sounds/5-1-4/5-1-4-C.MP3'
-          text = [
-            '• 우리 몸속의 근육은 모양과 크기가 다양합니다.',
-            '• 근육은 뼈에 연결되어 있으며 뼈를 움직이게 합니다.',
-          ]
+          text = '• 우리 몸속의 근육은 모양과 크기가 다양합니다. \n• 근육은 뼈에 연결되어 있으며 뼈를 움직이게 합니다.'
           break
       }
 
@@ -370,10 +360,10 @@ export default function IntegratedPage() {
     setAction('extend')
     setHasExtended(true)
 
-    playNarration('/sounds/5-1-4/5-1-4-E-1.MP3', [
-      '• 팔을 구부릴 때 팔 바깥쪽 근육이 늘어나고 팔 안쪽 근육이 줄어듭니다.',
-      '• 이렇게 근육의 길이가 줄어들거나 늘어나면서 뼈가 움직이고 우리 몸도 움직입니다.',
-    ])
+    playNarration(
+      '/sounds/5-1-4/5-1-4-E-1.MP3',
+      '팔을 구부릴 때 팔 바깥쪽 근육이 늘어나고 팔 안쪽 근육이 줄어듭니다. \n 이렇게 근육의 길이가 줄어들거나 늘어나면서 뼈가 움직이고 우리 몸도 움직입니다.',
+    )
   }
 
   const handleFold = () => {
@@ -381,10 +371,10 @@ export default function IntegratedPage() {
     setAction('fold')
     setHasExtended(false)
 
-    playNarration('/sounds/5-1-4/5-1-4-D-1.MP3', [
-      '• 팔을 펼 때 팔 바깥쪽 근육이 줄어들고 팔 안쪽 근육이 늘어납니다.',
-      '• 이렇게 근육의 길이가 줄어들거나 늘어나면서 뼈가 움직이고 우리 몸도 움직입니다.',
-    ])
+    playNarration(
+      '/sounds/5-1-4/5-1-4-D-1.MP3',
+      '팔을 펼 때 팔 바깥쪽 근육이 줄어들고 팔 안쪽 근육이 늘어납니다.\n 이렇게 근육의 길이가 줄어들거나 늘어나면서 뼈가 움직이고 우리 몸도 움직입니다.',
+    )
   }
 
   const getModelKey = () => {
@@ -714,40 +704,49 @@ export default function IntegratedPage() {
 
       <ActivityGuideModal isOpen={showActivityGuide} onClose={handleCloseActivityGuide} />
 
-      {/* 나레이션 텍스트 */}
       <AnimatePresence>
-        {showNarrationText && mode === 'bones' && animState === 'walk' && Array.isArray(narrationText) && (
+        {showNarrationText && mode === 'bones' && animState === 'walk' && narrationText && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.3 }}
-            className='fixed bottom-8 left-8 z-50'>
-            <div className='bg-white py-4 px-6 rounded-[20px] shadow-[inset_0px_-10px_10px_0px_rgba(200,200,230,0.9)] inline-flex justify-center items-center gap-2.5'>
-              <ol className='tex-black text-lg leading-relaxed'>
-                {narrationText.map((line, index) => (
-                  <p key={index} className='mb-1'>
-                    {line}
-                  </p>
-                ))}
-              </ol>
-            </div>
+            className='fixed bottom-2 p-2 left-4 z-50'>
+            <CrayonTextBox
+              text={narrationText}
+              color='#333'
+              bg='#fff'
+              textcolor='#333'
+              fontSize='16px'
+              fontWeight='500'
+              textAlign='left'
+              padding={20}
+              animated={true}
+            />
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* 팔 움직임 나레이션 텍스트 */}
       <AnimatePresence>
-        {showNarrationText && mode === 'arm' && typeof narrationText === 'string' && (
+        {showNarrationText && mode === 'arm' && narrationText && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.3 }}
-            className='fixed bottom-8 left-8 z-50 max-w-lg'>
-            <div className='bg-white p-4 rounded-lg shadow-lg'>
-              <div className='text-black text-lg leading-relaxed'>{narrationText}</div>
-            </div>
+            className='fixed bottom-8 left-8 z-50'>
+            <CrayonTextBox
+              text={narrationText}
+              color='#333'
+              bg='#fff'
+              textcolor='#333'
+              fontSize='16px'
+              fontWeight='500'
+              textAlign='left'
+              padding={20}
+              animated={true}
+            />
           </motion.div>
         )}
       </AnimatePresence>

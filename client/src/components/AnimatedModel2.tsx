@@ -3,6 +3,7 @@ import { useGLTF, useAnimations, Billboard, Html } from '@react-three/drei'
 import { Group, Object3D, Vector3, Mesh, Material, MeshStandardMaterial, LineSegments, Box3 } from 'three'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
+import { CrayonTextBox } from '@/components/CrayonTextBox'
 
 type Props = {
   url: string
@@ -193,8 +194,12 @@ export default function AnimatedModel2({
     }
   }
 
-  const getTextColor = (isA: boolean) => {
-    return '#000000' // 모든 포인트를 검정색으로 통일
+  const getPointColor = (isA: boolean) => {
+    return '#333'
+  }
+
+  const getBubbleBgColor = (isA: boolean) => {
+    return '#fff'
   }
 
   const handleToggleBubbleA = () => {
@@ -227,44 +232,83 @@ export default function AnimatedModel2({
                     msUserSelect: 'none',
                   }}
                   onClick={handleToggleBubbleA}>
-                  {/* 말풍선 */}
+                  {/* CrayonTextBox 말풍선 */}
                   {showBubbleA && (
                     <div
                       style={{
                         position: 'absolute',
-                        bottom: '25px',
-                        right: '25px', // 동그라미 왼쪽에 말풍선 배치
-                        backgroundColor: 'white',
-                        padding: '12px 16px',
-                        borderRadius: '12px',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-                        border: `2px solid ${getTextColor(true)}`,
-                        whiteSpace: 'nowrap',
-                        fontSize: '14px',
-                        color: '#333',
+                        bottom: '35px',
+                        right: '10px',
                         zIndex: 1000,
-                        fontFamily: 'MapleStoryOTFLight',
+                        width:'400px',
+                        transform: 'scale(0.8)',
+                        transformOrigin: 'bottom right',
                       }}>
-                      {getBalloonText(true)}
+                      <CrayonTextBox
+                        text={getBalloonText(true)}
+                        color={getPointColor(true)}
+                        bg={getBubbleBgColor(true)}
+                        textcolor='#333'
+                        fontSize='20px'
+                        fontWeight='500'
+                        textAlign='right'
+                        padding={12}
+                        animated={true}
+                      />
                     </div>
                   )}
 
-                  {/* 클릭 포인트 (동그라미) */}
+                  {/* 클릭 포인트 - CrayonTextBox 스타일 */}
                   <div
                     style={{
-                      width: '30px',
-                      height: '30px',
-                      borderRadius: '50%',
-                      backgroundColor: getTextColor(true),
-                      border: '3px solid white',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '12px',
-                      color: 'white',
-                      fontWeight: 'bold',
-                    }}></div>
+                      position: 'relative',
+                      width: '40px',
+                      height: '40px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'scale(1.1)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)'
+                    }}
+                  >
+                    {/* SVG 필터 정의 */}
+                    <svg width="0" height="0" style={{ position: 'absolute' }}>
+                      <defs>
+                        <filter id="crayonPointA" x="-15%" y="-15%" width="130%" height="130%">
+                          <feTurbulence 
+                            baseFrequency="0.4" 
+                            numOctaves="2" 
+                            result="crayonNoise"
+                            seed="5"
+                          />
+                          <feDisplacementMap 
+                            in="SourceGraphic" 
+                            in2="crayonNoise" 
+                            scale="1.2"
+                          />
+                        </filter>
+                      </defs>
+                    </svg>
+                    
+                    {/* 배경 원 */}
+                    <div
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        borderRadius: '50%',
+                        backgroundColor: getBubbleBgColor(true),
+                        border: `3px solid ${getPointColor(true)}`,
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                        filter: 'url(#crayonPointA)',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                      }}
+                    />
+                  </div>
                 </div>
               </Html>
             </Billboard>
@@ -284,44 +328,83 @@ export default function AnimatedModel2({
                     msUserSelect: 'none',
                   }}
                   onClick={handleToggleBubbleB}>
-                  {/* 말풍선 */}
+                  {/* CrayonTextBox 말풍선 */}
                   {showBubbleB && (
                     <div
                       style={{
                         position: 'absolute',
-                        bottom: '25px',
-                        left: '25px', // 동그라미 오른쪽에 말풍선 배치
-                        backgroundColor: 'white',
-                        padding: '12px 16px',
-                        borderRadius: '12px',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-                        border: `2px solid ${getTextColor(false)}`,
-                        whiteSpace: 'nowrap',
-                        fontSize: '14px',
-                        color: '#333',
+                        bottom: '35px',
+                        left: '35px',
                         zIndex: 1000,
-                        fontFamily: 'MapleStoryOTFLight',
+                        width:'400px',
+                        transform: 'scale(0.8)',
+                        transformOrigin: 'bottom left',
                       }}>
-                      {getBalloonText(false)}
+                      <CrayonTextBox
+                        text={getBalloonText(false)}
+                        color={getPointColor(false)}
+                        bg={getBubbleBgColor(false)}
+                        textcolor='#333'
+                        fontSize='20px'
+                        fontWeight='500'
+                        textAlign='right'
+                        padding={12}
+                        animated={true}
+                      />
                     </div>
                   )}
 
-                  {/* 클릭 포인트 (동그라미) */}
+                  {/* 클릭 포인트 - CrayonTextBox 스타일 */}
                   <div
                     style={{
-                      width: '30px',
-                      height: '30px',
-                      borderRadius: '50%',
-                      backgroundColor: getTextColor(false),
-                      border: '3px solid white',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '12px',
-                      color: 'white',
-                      fontWeight: 'bold',
-                    }}></div>
+                      position: 'relative',
+                      width: '40px',
+                      height: '40px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'scale(1.1)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)'
+                    }}
+                  >
+                    {/* SVG 필터 정의 */}
+                    <svg width="0" height="0" style={{ position: 'absolute' }}>
+                      <defs>
+                        <filter id="crayonPointB" x="-15%" y="-15%" width="130%" height="130%">
+                          <feTurbulence 
+                            baseFrequency="0.4" 
+                            numOctaves="2" 
+                            result="crayonNoise"
+                            seed="8"
+                          />
+                          <feDisplacementMap 
+                            in="SourceGraphic" 
+                            in2="crayonNoise" 
+                            scale="1.2"
+                          />
+                        </filter>
+                      </defs>
+                    </svg>
+                    
+                    {/* 배경 원 */}
+                    <div
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        borderRadius: '50%',
+                        backgroundColor: getBubbleBgColor(false),
+                        border: `3px solid ${getPointColor(false)}`,
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                        filter: 'url(#crayonPointB)',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                      }}
+                    />
+                  </div>
                 </div>
               </Html>
             </Billboard>
