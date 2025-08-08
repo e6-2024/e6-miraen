@@ -168,7 +168,7 @@ export default function SpaceScene({
         {pendingEarthClick && earthRotationComplete && !isInteracting && (
           <CameraAnimator
             target={cameraTarget}
-            angleOffset={(-3 * Math.PI) / 7 - Math.PI / 35}
+            angleOffset={(-3 * Math.PI) / 7 - Math.PI / 15}
             lookAtOffsetY={13}
             onFinish={onMoveFinished}
           />
@@ -182,7 +182,7 @@ export default function SpaceScene({
           minPolarAngle={0}
           maxPolarAngle={Math.PI}
           minDistance={0}
-          maxDistance={isLockedToSurface ? 20 : 120}
+          maxDistance={isLockedToSurface ? 15 : 120}
         />
       </Scene>
       <UI isLockedToSurface={isLockedToSurface} activeSeason={activeSeason} onReset={handleResetClick} />

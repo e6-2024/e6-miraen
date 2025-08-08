@@ -28,7 +28,13 @@ export function ConstellationModel({
   isResetting = false,
 }: ConstellationModelProps) {
   const groupRef = useRef<THREE.Group>(null!)
-  const { scene } = useGLTF('/models/6-1-4/Spring.gltf')
+  
+  // 각 사계절별 GLTF 파일 로드
+  const springGltf = useGLTF('/models/6-1-4/Spring_Whole/Spring.gltf')
+  const winterGltf = useGLTF('/models/6-1-4/Summer_Whole/Summer.gltf')
+  const fallGltf = useGLTF('/models/6-1-4/Fall_Whole/Fall.gltf')
+  const summerGltf = useGLTF('/models/6-1-4/Winter_Whole/Winter.gltf')
+  
   const [opacity, setOpacity] = useState(0)
   const [shouldStartFade, setShouldStartFade] = useState(false)
   const fadeStartTime = useRef<number | null>(null)
@@ -36,16 +42,32 @@ export function ConstellationModel({
 
   console.log(season)
 
+  // 현재 시즌에 맞는 GLTF 선택
+  const currentScene = useMemo(() => {
+    switch (season) {
+      case 'spring':
+        return springGltf.scene
+      case 'summer':
+        return summerGltf.scene
+      case 'fall':
+        return fallGltf.scene
+      case 'winter':
+        return winterGltf.scene
+      default:
+        return springGltf.scene
+    }
+  }, [season, springGltf.scene, summerGltf.scene, fallGltf.scene, winterGltf.scene])
+
   const initialRotationY = useMemo(() => {
     switch (season) {
       case 'summer':
-        return -Math.PI /2
+        return Math.PI /2
       case 'spring':
-        return -Math.PI / 2
+        return 0-Math.PI/6
       case 'fall':
-        return -Math.PI/2
+        return 0
       case 'winter':
-        return -Math.PI/2
+        return -Math.PI/2 +Math.PI/10
       default:
         return 0
     }
@@ -66,9 +88,8 @@ export function ConstellationModel({
     }
   }, [season])
 
-
   const clonedScene = useMemo(() => {
-    const cloned = scene.clone()
+    const cloned = currentScene.clone()
     const materials: THREE.Material[] = []
 
     cloned.traverse((child) => {
@@ -90,7 +111,7 @@ export function ConstellationModel({
 
     materialsRef.current = materials
     return cloned
-  }, [scene])
+  }, [currentScene])
 
   // 시작 or reset 트리거에 맞춰 fade 시작
   useEffect(() => {
