@@ -300,8 +300,8 @@ function SceneContent({
             shadow-bias={-0.0001}
             shadow-normalBias={0.2}
           />
-          <EffectComposer multisampling={8}>
-            <N8AO aoRadius={10} distanceFalloff={0.9} intensity={3} screenSpaceRadius halfRes />
+          <EffectComposer multisampling={2}>
+            <N8AO aoRadius={15} distanceFalloff={1} intensity={3} screenSpaceRadius halfRes />
             <TiltShift2 />
           </EffectComposer>
         </>
