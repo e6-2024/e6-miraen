@@ -140,9 +140,23 @@ export default function AnimatedModel2({
     scene.traverse((obj) => {
       if (obj.name === 'Tricep_Here') {
         muscle001Ref.current = obj as Mesh
+        if (muscle001Ref.current.material) {
+          const mat = muscle001Ref.current.material as THREE.Material
+          if ('transparent' in mat) {
+            mat.transparent = true
+            mat.opacity = 0 // 원하는 투명도 값
+          }
+        }
       }
       if (obj.name === 'Bicep_Here') {
         muscle002Ref.current = obj as Mesh
+        if (muscle002Ref.current.material) {
+          const mat = muscle002Ref.current.material as THREE.Material
+          if ('transparent' in mat) {
+            mat.transparent = true
+            mat.opacity = 0
+          }
+        }
       }
     })
 
@@ -188,9 +202,9 @@ export default function AnimatedModel2({
 
   const getBalloonText = (isA: boolean) => {
     if (actionName === 'extend') {
-      return isA ? '팔을 구부릴 때 팔 바깥쪽 근육이 늘어납니다' : '팔을 구부릴 때 팔 안쪽 근육이 줄어듭니다'
+      return isA ? '팔을 구부릴 때 팔 바깥쪽 근육이 늘어납니다.' : '팔을 구부릴 때 팔 안쪽 근육이 줄어듭니다.'
     } else {
-      return isA ? '팔을 펼 때 팔 바깥쪽 근육이 줄어듭니다' : '팔을 펼 때 팔 안쪽 근육이 늘어납니다'
+      return isA ? '팔을 펼 때 팔 바깥쪽 근육이 줄어듭니다.' : '팔을 펼 때 팔 안쪽 근육이 늘어납니다.'
     }
   }
 
@@ -240,7 +254,7 @@ export default function AnimatedModel2({
                         bottom: '35px',
                         right: '10px',
                         zIndex: 1000,
-                        width:'400px',
+                        width: '400px',
                         transform: 'scale(0.8)',
                         transformOrigin: 'bottom right',
                       }}>
@@ -272,32 +286,23 @@ export default function AnimatedModel2({
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.transform = 'scale(1)'
-                    }}
-                  >
+                    }}>
                     {/* SVG 필터 정의 */}
-                    <svg width="0" height="0" style={{ position: 'absolute' }}>
+                    <svg width='0' height='0' style={{ position: 'absolute' }}>
                       <defs>
-                        <filter id="crayonPointA" x="-15%" y="-15%" width="130%" height="130%">
-                          <feTurbulence 
-                            baseFrequency="0.4" 
-                            numOctaves="2" 
-                            result="crayonNoise"
-                            seed="5"
-                          />
-                          <feDisplacementMap 
-                            in="SourceGraphic" 
-                            in2="crayonNoise" 
-                            scale="1.2"
-                          />
+                        <filter id='crayonPointA' x='-15%' y='-15%' width='130%' height='130%'>
+                          <feTurbulence baseFrequency='0.4' numOctaves='2' result='crayonNoise' seed='5' />
+                          <feDisplacementMap in='SourceGraphic' in2='crayonNoise' scale='1.2' />
                         </filter>
                       </defs>
                     </svg>
-                    
+
                     {/* 배경 원 */}
                     <div
                       style={{
-                        width: '100%',
-                        height: '100%',
+                        width: '70%',
+                        height: '70%',
+                        opacity: '75%',
                         borderRadius: '50%',
                         backgroundColor: getBubbleBgColor(true),
                         border: `3px solid ${getPointColor(true)}`,
@@ -336,7 +341,7 @@ export default function AnimatedModel2({
                         bottom: '35px',
                         left: '35px',
                         zIndex: 1000,
-                        width:'400px',
+                        width: '400px',
                         transform: 'scale(0.8)',
                         transformOrigin: 'bottom left',
                       }}>
@@ -368,33 +373,24 @@ export default function AnimatedModel2({
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.transform = 'scale(1)'
-                    }}
-                  >
+                    }}>
                     {/* SVG 필터 정의 */}
-                    <svg width="0" height="0" style={{ position: 'absolute' }}>
+                    <svg width='0' height='0' style={{ position: 'absolute' }}>
                       <defs>
-                        <filter id="crayonPointB" x="-15%" y="-15%" width="130%" height="130%">
-                          <feTurbulence 
-                            baseFrequency="0.4" 
-                            numOctaves="2" 
-                            result="crayonNoise"
-                            seed="8"
-                          />
-                          <feDisplacementMap 
-                            in="SourceGraphic" 
-                            in2="crayonNoise" 
-                            scale="1.2"
-                          />
+                        <filter id='crayonPointB' x='-15%' y='-15%' width='130%' height='130%'>
+                          <feTurbulence baseFrequency='0.4' numOctaves='2' result='crayonNoise' seed='8' />
+                          <feDisplacementMap in='SourceGraphic' in2='crayonNoise' scale='1.2' />
                         </filter>
                       </defs>
                     </svg>
-                    
+
                     {/* 배경 원 */}
                     <div
                       style={{
-                        width: '100%',
-                        height: '100%',
+                        width: '70%',
+                        height: '70%',
                         borderRadius: '50%',
+                        opacity: '75%',
                         backgroundColor: getBubbleBgColor(false),
                         border: `3px solid ${getPointColor(false)}`,
                         boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
