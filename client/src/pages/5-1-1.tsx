@@ -102,38 +102,49 @@ function IntroMouseCameraController({ enabled }: { enabled: boolean }) {
 function WaterBox({
   position = [0, 1, 0],
   waterLevel = -1.0,
+  sceneIndex,
 }: {
   position?: [number, number, number]
   waterLevel?: number
+  sceneIndex: number
 }) {
-  const width = 25.42
-  const height = 4.4
-  const depth = 25.42
+  const width = sceneIndex === 1 ? 25.42 : 25.2
+  const height = sceneIndex === 1 ? 4.4 : 5.0
+  const depth = width
 
-  const adjustedPosition: [number, number, number] = [position[0], waterLevel - height / 2, position[2]]
+  const adjustedPosition: [number, number, number] = [
+    position[0],
+    waterLevel - height / 2,
+    position[2]
+  ]
 
   return (
     <group position={adjustedPosition}>
+      {/* 앞 */}
       <mesh position={[0, 0, -depth / 2]}>
         <planeGeometry args={[width, height]} />
         <meshStandardMaterial color='#0084FF' transparent opacity={0.65} side={THREE.DoubleSide} />
       </mesh>
 
+      {/* 바닥 */}
       <mesh position={[0, -height / 2, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[width, depth]} />
         <meshStandardMaterial color='#0084FF' transparent opacity={0.65} side={THREE.DoubleSide} />
       </mesh>
 
+      {/* 뒤 */}
       <mesh position={[0, 0, depth / 2]}>
         <planeGeometry args={[width, height]} />
         <meshStandardMaterial color='#0084FF' transparent opacity={0.65} side={THREE.DoubleSide} />
       </mesh>
 
+      {/* 왼쪽 */}
       <mesh position={[-width / 2, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
         <planeGeometry args={[depth, height]} />
         <meshStandardMaterial color='#0084FF' transparent opacity={0.65} side={THREE.DoubleSide} />
       </mesh>
 
+      {/* 오른쪽 */}
       <mesh position={[width / 2, 0, 0]} rotation={[0, -Math.PI / 2, 0]}>
         <planeGeometry args={[depth, height]} />
         <meshStandardMaterial color='#0084FF' transparent opacity={0.65} side={THREE.DoubleSide} />
@@ -141,6 +152,7 @@ function WaterBox({
     </group>
   )
 }
+
 
 function SceneCameraController({ sceneIndex }: { sceneIndex: number }) {
   const { camera } = useThree()
@@ -163,17 +175,17 @@ function useWaterAnimation(sceneIndex: number, shouldAnimate: boolean, animation
   useEffect(() => {
     let initialLevel = -2.0
     let initialScale = 1.0
-    
+
     if (sceneIndex === 1) {
       initialLevel = 1
     } else if (sceneIndex === 2) {
       initialLevel = 1.0
       initialScale = 0.9
     }
-    
+
     setWaterLevel(initialLevel)
     setWaterScale(initialScale)
-    
+
     if (animationRef.current) {
       clearInterval(animationRef.current)
       animationRef.current = null
@@ -195,7 +207,7 @@ function useWaterAnimation(sceneIndex: number, shouldAnimate: boolean, animation
       const startTime = Date.now()
 
       console.log(`Water Animation Scene ${sceneIndex}: Starting water rise animation`)
-      
+
       animationRef.current = setInterval(() => {
         const elapsed = Date.now() - startTime
         const progress = Math.min(elapsed / duration, 1.0)
@@ -210,15 +222,14 @@ function useWaterAnimation(sceneIndex: number, shouldAnimate: boolean, animation
           console.log(`Water Animation Scene ${sceneIndex}: Water rise completed`)
         }
       }, 50)
-    }
-    else if (sceneIndex === 2) {
+    } else if (sceneIndex === 2) {
       const startScale = 1.0
       const targetScale = 0.0
       const duration = 8000
       const startTime = Date.now()
 
       console.log(`Water Animation Scene ${sceneIndex}: Starting water scale down animation`)
-      
+
       animationRef.current = setInterval(() => {
         const elapsed = Date.now() - startTime
         const progress = Math.min(elapsed / duration, 1.0)
@@ -258,7 +269,11 @@ function SceneContent({
   showIntro: boolean
 }) {
   const showWater = sceneIndex === 1 || sceneIndex === 2
-  const { waterLevel, waterScale } = useWaterAnimation(sceneIndex, animationState.isPlaying, animationState.animationKey)
+  const { waterLevel, waterScale } = useWaterAnimation(
+    sceneIndex,
+    animationState.isPlaying,
+    animationState.animationKey,
+  )
 
   const handleModelAnimationComplete = () => {
     console.log(`Model animation completed for scene ${sceneIndex}`)
@@ -295,7 +310,13 @@ function SceneContent({
       <Model
         path={modelPaths[sceneIndex]}
         scale={3.7}
-        position={sceneIndex === 1 || sceneIndex === 2 ? [-2.44, -7, -1.31] : [1.5, -7, -2.0]}
+        position={
+          sceneIndex === 1
+            ? [-2.44, -7.5, -1.31]
+            : sceneIndex === 2
+            ? [-2.7, -7, -1.1]
+            : [1.5, -7, -2.0]
+        }
         sceneIndex={sceneIndex}
         shouldAnimate={animationState.isPlaying}
         animationSpeed={animationSpeeds[sceneIndex as keyof typeof animationSpeeds]}
@@ -306,8 +327,8 @@ function SceneContent({
 
       {showWater && waterScale > 0.01 && (
         <group scale={[1, waterScale, 1]}>
-          <Ocean textureScale={1.0} textureOpacity={0.7} timeSpeed={0.9} flowSpeed={0.9} waterLevel={waterLevel} />
-          <WaterBox waterLevel={waterLevel} />
+          <Ocean sceneIndex={sceneIndex} textureScale={1.0} textureOpacity={0.7} timeSpeed={0.9} flowSpeed={0.9} waterLevel={waterLevel} />
+          <WaterBox waterLevel={waterLevel} sceneIndex={sceneIndex}/>
           <UnderwaterEnvironment sceneIndex={sceneIndex} />
         </group>
       )}
@@ -392,7 +413,7 @@ export default function Home() {
     setSceneIndex(newSceneIndex)
     setIsLoaded(false)
     setShowDescription(false)
-    
+
     const newKey = Date.now()
     setAnimationState({
       isPlaying: false,
@@ -447,10 +468,10 @@ export default function Home() {
 
     if (animationState.isPlaying || animationState.isComplete) {
       console.log(`Restarting animation for scene ${sceneIndex}`)
-      
+
       const newKey = Date.now()
       console.log(`Using new animation key: ${newKey}`)
-      
+
       setAnimationState({
         isPlaying: true,
         isComplete: false,
@@ -460,7 +481,7 @@ export default function Home() {
       setShowDescription(true)
     } else {
       console.log(`Starting animation for scene ${sceneIndex}`)
-      setAnimationState(prev => ({
+      setAnimationState((prev) => ({
         ...prev,
         isPlaying: true,
         isComplete: false,
@@ -499,7 +520,7 @@ export default function Home() {
             className='px-6 pt-3 pb-4 bg-[#FF8026] rounded-[20px] shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#ff9b54] hover:shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(152,0,0,0.50)] transition-all duration-300'
             aria-label='모드 선택 화면으로 돌아가기'>
             <div className='text-center justify-center text-white text-2xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
-            첫 화면으로
+              첫 화면으로
             </div>
           </button>
         </motion.div>
@@ -545,10 +566,7 @@ export default function Home() {
       )}
 
       {/* 활동 방법 모달 */}
-      <ActivityGuideModal
-        isOpen={showActivityGuide}
-        onClose={handleCloseActivityGuide}
-      />
+      <ActivityGuideModal isOpen={showActivityGuide} onClose={handleCloseActivityGuide} />
     </div>
   )
 }

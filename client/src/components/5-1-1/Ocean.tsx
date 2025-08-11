@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
 export default function Ocean({ 
+  sceneIndex,
   timeSpeed = 0.5,        // 전체 애니메이션 속도 (기본값: 1.0)
   flowSpeed = 0.5,        // 물 흐름 속도 (기본값: 1.0) 
   waveSpeed = 0.5,        // 파도 생성 속도 (기본값: 1.0)
@@ -17,7 +18,13 @@ export default function Ocean({
   // 텍스처 상태 관리
   const [texture, setTexture] = useState<THREE.Texture | null>(null)
   const [normalMap, setNormalMap] = useState<THREE.Texture | null>(null)
-  
+
+  const planeSize = useMemo<[number, number]>(() => {
+    if (sceneIndex === 1) return [25.42, 25.42]
+    if (sceneIndex === 2) return [25.2, 25.2]
+    return [25.42, 25.42]
+  }, [sceneIndex])
+
   // 텍스처 로딩
   useEffect(() => {
     if (textureUrl) {
@@ -416,7 +423,7 @@ export default function Ocean({
       castShadow
       receiveShadow
     >
-      <planeGeometry args={[25.42,25.42, 3, 3]} />
+    <planeGeometry args={[planeSize[0], planeSize[1], 3, 3]} />
     </mesh>
   )
 }

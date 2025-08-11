@@ -143,7 +143,7 @@ const ActivityGuideModal: React.FC<{
                 {!isFirstSlide && (
                   <button
                     onClick={handlePrevious}
-                    className="absolute left-6 top-1/2 transform -translate-y-1/2 z-10 w-16 h-16 bg-[#9E9E9E] rounded-[20px] shadow-[inset_0px_-8px_8px_0px_rgba(50,50,50,0.50)] inline-flex justify-center items-center text-white hover:bg-[#BDBDBD] hover:shadow-[inset_0px_-8px_8px_0px_rgba(50,50,50,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(50,50,50,0.50)] transition-all duration-300"
+                    className="absolute left-6 top-1/2 transform -translate-y-1/2 z-10 w-16 h-16 bg-[#9E9E9E] rounded-[20px] shadow-[inset_0px_-8px_8px_0px_rgba(50,50,50,0.50)] inline-flex justify-center items-center text-white hover:bg-[#BDBDBD] hover:shadow-[inset_0px_-8px_8px_0px_rgba(50,50,50,0.70)] active:scale-90 active:shadow-[inset_0px_-2px_2px_0px_rgba(50,50,50,0.50)] transition-all duration-300"
                     aria-label="이전 슬라이드"
                   >
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" style={{ filter: 'drop-shadow(0px 0px 4px rgba(0,0,0,0.25))' }}>
@@ -156,7 +156,7 @@ const ActivityGuideModal: React.FC<{
                 {!isLastSlide && (
                   <button
                     onClick={handleNext}
-                    className="absolute right-6 top-1/2 transform -translate-y-1/2 z-10 w-16 h-16 bg-[#9E9E9E] rounded-[20px] shadow-[inset_0px_-8px_8px_0px_rgba(50,50,50,0.50)] inline-flex justify-center items-center text-white hover:bg-[#BDBDBD] hover:shadow-[inset_0px_-8px_8px_0px_rgba(50,50,50,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(50,50,50,0.50)] transition-all duration-300"
+                    className="absolute right-6 top-1/2 transform -translate-y-1/2 z-10 w-16 h-16 bg-[#9E9E9E] rounded-[20px] shadow-[inset_0px_-8px_8px_0px_rgba(50,50,50,0.50)] inline-flex justify-center items-center text-white hover:bg-[#BDBDBD] hover:shadow-[inset_0px_-8px_8px_0px_rgba(50,50,50,0.70)] active:scale-90 active:shadow-[inset_0px_-2px_2px_0px_rgba(50,50,50,0.50)] transition-all duration-300"
                     aria-label="다음 슬라이드"
                   >
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" style={{ filter: 'drop-shadow(0px 0px 4px rgba(0,0,0,0.25))' }}>
@@ -183,7 +183,7 @@ const ActivityGuideModal: React.FC<{
                 <div className="flex justify-center">
                   <button
                     onClick={handleNext}
-                    className="px-12 pt-4 pb-5 bg-[#4CAF50] rounded-[25px] shadow-[inset_0px_-10px_10px_0px_rgba(0,152,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#66BB6A] hover:shadow-[inset_0px_-10px_10px_0px_rgba(0,152,0,0.70)] active:scale-95 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(0,152,0,0.50)] transition-all duration-300 hover:scale-105 min-w-[120px] max-h-[80px]"
+                    className="px-12 pt-4 pb-5 bg-[#4CAF50] rounded-[25px] shadow-[inset_0px_-10px_10px_0px_rgba(0,152,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#66BB6A] hover:shadow-[inset_0px_-10px_10px_0px_rgba(0,152,0,0.70)] active:scale-95 active:shadow-[inset_0px_-2px_2px_0px_rgba(0,152,0,0.50)] transition-all duration-300 hover:scale-105 min-w-[120px] max-h-[80px]"
                   >
                     <div className="text-center justify-center text-white text-2xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]">
                       {isLastSlide ? '확인' : '다음'}
