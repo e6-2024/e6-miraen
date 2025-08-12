@@ -1,7 +1,20 @@
 import { useRef, useState, useImperativeHandle, forwardRef } from 'react'
+import { CrayonTextButton } from '@/components/CrayonUIButton'
+import { CrayonTextBox } from '../CrayonTextBox'
 
 export interface NavigationUIRef {
   stopAllAudios: () => void
+}
+
+const stepColors = {
+  active: { bg: '#52AE46', border: '#FFF', text: '#FFFFFF' },
+  done: { bg: '#52AE46', border: '#FFF', text: '#FFFFFF' },
+  inactive: { bg: '#6B7280', border: '#4B5563', text: '#FFFFFF' },
+}
+
+const playColors = {
+  play: { bg: '#F59E0B', border: '#B45309', text: '#FFFFFF' },
+  replay: { bg: '#8B5CF6', border: '#6D28D9', text: '#FFFFFF' },
 }
 
 const NavigationUI = forwardRef<
@@ -97,93 +110,94 @@ const NavigationUI = forwardRef<
   }
 
   return (
-    <div className='absolute flex flex-row left-1/2 top-4 transform -translate-x-1/2 z-10 justify-center items-center'>
-      <div className='flex items-center justify-center p-4 text-white z-10'>
-        <div className='flex items-center justify-center bg-gray-800/50 rounded-full px-8 py-4 backdrop-blur-sm'>
-          {[1, 2, 3, 4].map((num) => (
-            <>
-              <div className='flex flex-col justify-center items-center'>
-                <button
-                  key={num - 1}
-                  onClick={() => handleSceneChange(num - 1)}
-                  className={`w-20 h-20 rounded-full flex items-center justify-center transition-all relative ${
-                    sceneIndex === num - 1
-                      ? 'bg-blue-500 shadow-lg scale-110'
-                      : sceneIndex > num - 1
-                      ? 'bg-green-500/80 hover:bg-green-500'
-                      : 'bg-gray-700/80 hover:bg-gray-600'
-                  }`}>
-                  <img src={`/img/icon/icon${num}.png`} alt={`Step ${num}`} className='w-16 h-16 object-contain' />
-                  {sceneIndex > num - 1 && (
-                    <div className='absolute inset-0 flex items-center justify-center'>
-                      <svg className='w-8 h-8 text-white' fill='currentColor' viewBox='0 0 20 20'>
+    <div className='absolute top-4 left-1/2 -translate-x-1/2 w-[65vw] h-[10%] z-[1000]'>
+      <CrayonTextBox color='#52AE46' bg='white' padding={0} className='flex items-center justify-center background-blur'>
+        <div className='flex items-center justify-center rounded-full px-6 py-4'>
+          {/* 단계 버튼들 */}
+          {[1, 2, 3, 4].map((num) => {
+            const stepIdx = num - 1
+            const isActive = sceneIndex === stepIdx
+            const isDone = sceneIndex > stepIdx
+
+            const scheme = isActive ? stepColors.active : isDone ? stepColors.done : stepColors.inactive
+
+            return (
+              <div key={num} className='flex items-center'>
+                <div className='flex flex-col justify-center items-center'>
+                  <div className='relative'>
+                    <CrayonTextButton
+                      ariaLabel={`단계 ${num}`}
+                      width={100}
+                      height={100}
+                      bg={scheme.bg}
+                      color={scheme.border}
+                      textcolor={scheme.text}
+                      className={`rounded-full transition-all duration-200 ${
+                        !isActive && !isDone ? 'opacity-60' : 'opacity-100'
+                      }`}
+                      onClick={() => handleSceneChange(stepIdx)}
+                      innerCircleVisible={false}
+                    />
+
+                    {!isDone ? (
+                      <img
+                        src={`/img/icon/icon${num}.png`}
+                        alt={`Step ${num}`}
+                        className='pointer-events-none w-14 h-14 object-contain absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'
+                      />
+                    ) : (
+                      <svg
+                        className='absolute pointer-events-none left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 drop-shadow'
+                        width='48'
+                        height='48'
+                        viewBox='2 2 16 16'
+                        fill='currentColor'>
                         <path
                           fillRule='evenodd'
                           d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
                           clipRule='evenodd'
                         />
                       </svg>
-                    </div>
-                  )}
-                </button>
-                <div className='pt-2 text-center font-light text-sm break-keep'>
-                  <p>{description[num - 1]}</p>
+                    )}
+                  </div>
+
+                  {/* 설명 */}
+                  <div className='pt-2 text-center font-light text-[16px] break-keep w-42 sm:w-42'>
+                    <p>{description[stepIdx]}</p>
+                  </div>
                 </div>
+
+                {/* 화살표 */}
+                {num < 4 && (
+                  <div className='flex items-center pb-11 mx-2 sm:mx-3'>
+                    <svg width='48' height='32' viewBox='0 0 32 16' className='transition-all'>
+                      <path
+                        d='M0 4 L20 4 L20 1 L32 8 L20 15 L20 12 L0 12 Z'
+                        fill={sceneIndex >= num ? '#000' : '#888'}
+                        className='transition-colors'
+                      />
+                    </svg>
+                  </div>
+                )}
               </div>
-              {num < 4 && (
-                <div className='flex items-center pb-11 mx-3'>
-                  <svg width='48' height='32' viewBox='0 0 32 16' className='transition-all'>
-                    <path
-                      d='M0 4 L20 4 L20 1 L32 8 L20 15 L20 12 L0 12 Z'
-                      fill={sceneIndex >= num ? '#fff' : '#4b5563'}
-                      className='transition-colors'
-                    />
-                  </svg>
-                </div>
-              )}
-            </>
-          ))}
-        </div>
-      </div>
+            )
+          })}
 
-      {/* 플레이 버튼 (재생/초기화 기능 통합) */}
-      <button
-        onClick={handlePlayClick}
-        disabled={isPlayButtonPressed}
-        className='w-20 h-20 relative ml-6 z-10 cursor-pointer transition-all duration-150 hover:scale-105 disabled:cursor-not-allowed'>
-        <div
-          className={`w-full h-full left-0 absolute bg-amber-700 rounded-full transition-all duration-150 ${
-            isPlayButtonPressed ? 'top-0' : 'top-[8px]'
-          }`}></div>
-
-        <div
-          className={`w-full h-full left-0 absolute bg-gradient-to-b from-amber-400 to-amber-600 rounded-full transition-all duration-150 ${
-            isPlayButtonPressed ? 'top-[5px] scale-95' : 'top-0'
-          }`}></div>
-
-        {/* 플레이/리플레이 버튼 */}
-        {isAnimationComplete || animationState?.isPlaying ? (
-          // 리플레이 버튼 (애니메이션 재생 중이거나 완료된 경우)
-          <svg
-            className={`w-8 h-8 absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-150 ${
-              isPlayButtonPressed ? 'scale-90' : 'scale-100'
-            }`}
-            fill='white'
-            viewBox='0 0 24 24'>
-            <path d='M12 4V2.21c0-.45-.54-.67-.85-.35L9.35 3.64c-.2.2-.2.51 0 .71l1.79 1.79c.32.31.86.09.86-.36V4c3.31 0 6 2.69 6 6 0 .79-.15 1.56-.44 2.25-.15.36-.04.77.23 1.04.51.51 1.37.33 1.64-.34.37-.91.57-1.91.57-2.95 0-4.42-3.58-8-8-8z' />
-            <path d='M12 20v1.79c0 .45.54.67.85.35l1.79-1.79c.2-.2.2-.51 0-.71l-1.79-1.79c-.32-.31-.86-.09-.86.36V20c-3.31 0-6-2.69-6-6 0-.79.15-1.56.44-2.25.15-.36.04-.77-.23-1.04-.51-.51-1.37-.33-1.64.34C4.4 12.05 4.2 13.05 4.2 14.1c0 4.42 3.58 8 8 8z' />
-          </svg>
-        ) : (
-          // 플레이 버튼 (초기 상태)
-          <img
-            src='/img/icon/Polygon 1.svg'
-            alt='재생 아이콘'
-            className={`w-10 h-10 absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-150 ${
-              isPlayButtonPressed ? 'scale-90' : 'scale-100'
-            }`}
+          <CrayonTextButton
+            ariaLabel={isAnimationComplete || animationState?.isPlaying ? '다시 듣기' : '재생'}
+            icon={isAnimationComplete || animationState?.isPlaying ? 'refresh-ccw' : 'play'}
+            position='relative'
+            iconSize={34}
+            width={120}
+            color='#8B5CF6'
+            bg='#6D28D9'
+            height={120}
+            textcolor='#fff'
+            onClick={handlePlayClick}
+            className='ml-8'
           />
-        )}
-      </button>
+        </div>
+      </CrayonTextBox>
     </div>
   )
 })

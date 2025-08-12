@@ -24,7 +24,6 @@ interface SpaceSceneProps {
 
 const INITIAL_CAMERA_POSITION = new THREE.Vector3(-102, 34, 0)
 const INITIAL_CAMERA_TARGET = new THREE.Vector3(0, 0, 0)
-// 스냅 각도(위에서 내려다보기). 60°(PI/3) 기본. 더 수평에 가깝게 보려면 수치 ↑, 더 탑다운이면 ↓.
 const SNAP_POLAR = Math.PI / 3
 const EPS = 1e-3
 

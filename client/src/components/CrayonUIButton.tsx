@@ -21,6 +21,7 @@ import {
   ChevronLeft,
   Volume2,
   VolumeX,
+  RefreshCcw,
 } from 'lucide-react'
 
 interface CrayonTextButtonProps {
@@ -68,7 +69,7 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
   iconSize = 50,
   ariaLabel,
   innerCircleVisible,
-  textSize = 18
+  textSize = 18,
 }) => {
   // 포지셔닝 스타일
   const positionStyle: React.CSSProperties = {
@@ -125,6 +126,11 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
         volumeoff: VolumeX,
         volumex: VolumeX,
         mute: VolumeX,
+        RefreshCcw: RefreshCcw,
+        'refresh-ccw': RefreshCcw,
+        refreshccw: RefreshCcw,
+        refresh: RefreshCcw,
+        replay: RefreshCcw,
       }
 
       const foundIcon = iconMap[key]

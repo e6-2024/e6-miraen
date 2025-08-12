@@ -35,43 +35,22 @@ const LABELS: Record<Season, Label[]> = {
     {
       id: 'leo',
       name: '처녀자리',
-      position: [-10, 50, 70],
+      position: [70, 100, 70],
       rotation: [0, Math.PI / 2 + Math.PI / 3, 0],
       fontSize: 3,
     },
     {
       id: 'leo',
       name: '사자자리',
-      position: [-50, 90, 48],
+      position: [0, 110, 48],
       rotation: [0, Math.PI / 2 + Math.PI / 4, 0],
       fontSize: 3,
     },
     {
       id: 'leo',
       name: '목동자리',
-      position: [60, 90, 38],
-      rotation: [0, Math.PI / 4 + Math.PI, 0],
-      fontSize: 3,
-    },
-    {
-      id: 'leo',
-      name: '거문고자리',
       position: [100, 60, -20],
-      rotation: [0, -Math.PI / 2 + Math.PI / 4, 0],
-      fontSize: 3,
-    },
-    {
-      id: 'leo',
-      name: '백조자리',
-      position: [100, 20, -30],
-      rotation: [0, -Math.PI / 2, 0],
-      fontSize: 3,
-    },
-    {
-      id: 'leo',
-      name: '독수리자리',
-      position: [100, 30, 20],
-      rotation: [0, -Math.PI / 2, 0],
+      rotation: [0, Math.PI / 4 + Math.PI, 0],
       fontSize: 3,
     },
     {
@@ -124,17 +103,17 @@ const LABELS: Record<Season, Label[]> = {
     {
       id: 'leo',
       name: '큰개자리',
-      position: [90, 60, -40],
+      position: [90, 60, -20],
       rotation: [0, -Math.PI / 2 + Math.PI / 4, 0],
       fontSize: 3,
     },
-    {
-      id: 'leo',
-      name: '독수리자리',
-      position: [100, 50, 20],
-      rotation: [0, -Math.PI / 2, 0],
-      fontSize: 3,
-    },
+    // {
+    //   id: 'leo',
+    //   name: '독수리자리',
+    //   position: [100, 50, 20],
+    //   rotation: [0, -Math.PI / 2, 0],
+    //   fontSize: 3,
+    // },
     {
       id: 'leo',
       name: '사자자리',
@@ -149,17 +128,24 @@ const LABELS: Record<Season, Label[]> = {
       rotation: [0, -Math.PI / 6, 0],
       fontSize: 3,
     },
+    {
+      id: 'leo',
+      name: '목동자리',
+      position: [-50, 20, -80],
+      rotation: [0, -Math.PI / 6, 0],
+      fontSize: 3,
+    },
   ],
   fall: [
-    { id: 'peg', name: '페가수스자리', position: [75, 190, 10], rotation: [0, -Math.PI / 2, 0], fontSize: 3 },
-    { id: 'and', name: '안드로메다자리', position: [75, 190, -60], rotation: [0, -Math.PI / 4, 0], fontSize: 3 },
-    { id: 'psc', name: '물고기자리', position: [75, 120, 10], rotation: [0, -Math.PI / 2, 0], fontSize: 3 },
+    { id: 'peg', name: '페가수스자리', position: [25, 200, 10], rotation: [0, -Math.PI / 2, 0], fontSize: 3 },
+    { id: 'and', name: '안드로메다자리', position: [-35, 190, -70], rotation: [0, -Math.PI / 4, 0], fontSize: 3 },
+    { id: 'psc', name: '물고기자리', position: [65, 120, 10], rotation: [0, -Math.PI / 2, 0], fontSize: 3 },
 
     { id: 'cyg', name: '백조자리', position: [-50, 90, 48], rotation:[0, Math.PI / 2 + Math.PI / 4, 0], fontSize: 3 },
     {
       id: 'lyr',
       name: '거문고자리',
-      position: [-50, 80, 100],
+      position: [-70, 80, 100],
       rotation: [0, -Math.PI / 2 + Math.PI / 4, 0],
       fontSize: 3,
     },
@@ -176,7 +162,7 @@ const LABELS: Record<Season, Label[]> = {
     { id: 'and', name: '안드로메다자리', position: [-30, 70, -120], rotation: [0, 0, 0], fontSize: 3 },
     { id: 'peg', name: '페가수스자리', position: [40, 40, -90], rotation: [0, -Math.PI / 4, 0], fontSize: 3 },
     { id: 'lyr', name: '거문고자리', position: [40, 180, -80], rotation: [0, -Math.PI / 4, 0], fontSize: 3 },
-    { id: 'psc', name: '물고기자리', position: [10, 10, -110], rotation: [0, -Math.PI / 6, 0], fontSize: 3 },
+    { id: 'psc', name: '물고기자리', position: [-30, 20, -110], rotation: [0, -Math.PI / 6, 0], fontSize: 3 },
     { id: 'leo', name: '사자자리', position: [-80, 40, 88], rotation: [0, Math.PI / 2 + Math.PI / 4, 0], fontSize: 3 },
   ],
 }
@@ -224,7 +210,7 @@ export function ConstellationModel({
       case 'summer':
         return Math.PI/2
       case 'spring':
-        return 0 - Math.PI / 6
+        return 0 - Math.PI / 2
       case 'fall':
         return 0
       case 'winter':

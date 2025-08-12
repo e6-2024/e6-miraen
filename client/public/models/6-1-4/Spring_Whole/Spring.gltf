@@ -45,15 +45,15 @@
 			"mesh":1,
 			"name":"Sphere.002",
 			"rotation":[
-				-0.17761452496051788,
-				0.4952623248100281,
-				-0.27320146560668945,
-				0.8053131699562073
+				-0.28917020559310913,
+				0.6733301877975464,
+				-0.46815556287765503,
+				0.49379897117614746
 			],
 			"scale":[
-				115.35004425048828,
-				115.35001373291016,
-				115.34999084472656
+				207.33262634277344,
+				207.33253479003906,
+				207.3325653076172
 			],
 			"translation":[
 				0,
@@ -79,7 +79,7 @@
 					"emissiveStrength":1.0999999046325684
 				}
 			},
-			"name":"Material.004",
+			"name":"Material.013",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
 					"index":1
@@ -100,7 +100,7 @@
 					"emissiveStrength":1.1999993324279785
 				}
 			},
-			"name":"Material.007",
+			"name":"Material.014",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
 					"index":2
@@ -124,7 +124,7 @@
 					"emissiveStrength":1.7999999523162842
 				}
 			},
-			"name":"Material.006",
+			"name":"Material.015",
 			"pbrMetallicRoughness":{
 				"baseColorFactor":[
 					0,
@@ -137,7 +137,7 @@
 	],
 	"meshes":[
 		{
-			"name":"Sphere",
+			"name":"Sphere.008",
 			"primitives":[
 				{
 					"attributes":{
@@ -162,7 +162,7 @@
 			]
 		},
 		{
-			"name":"Sphere.002",
+			"name":"Sphere.009",
 			"primitives":[
 				{
 					"attributes":{
@@ -200,7 +200,7 @@
 							}
 						}
 					},
-					"indices":11,
+					"indices":7,
 					"material":2,
 					"mode":4
 				}
@@ -233,7 +233,7 @@
 		},
 		{
 			"mimeType":"image/png",
-			"name":"constellation_figures.png",
+			"name":"constellation_figures_png",
 			"uri":"constellation_figures_png.png"
 		},
 		{
@@ -247,9 +247,9 @@
 			"componentType":5126,
 			"count":559,
 			"max":[
-				0.9999997019767761,
+				1.0000009536743164,
 				1,
-				0.9999993443489075
+				1
 			],
 			"min":[
 				-0.9999990463256836,
@@ -277,9 +277,9 @@
 			"componentType":5126,
 			"count":559,
 			"max":[
-				0.9999997019767761,
+				1.0000009536743164,
 				1,
-				0.9999993443489075
+				1
 			],
 			"min":[
 				-0.9999990463256836,
@@ -307,9 +307,9 @@
 			"componentType":5126,
 			"count":559,
 			"max":[
-				1.0141676664352417,
+				1.0141689777374268,
 				1.0141680240631104,
-				1.014167308807373
+				1.0141680240631104
 			],
 			"min":[
 				-1.014167070388794,
@@ -327,28 +327,23 @@
 			"componentType":5126,
 			"count":559,
 			"type":"VEC2"
-		},
-		{
-			"componentType":5123,
-			"count":2880,
-			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":3386,
+			"byteLength":3780,
 			"byteOffset":0
 		},
 		{
 			"buffer":0,
-			"byteLength":3633,
-			"byteOffset":3388
+			"byteLength":3838,
+			"byteOffset":3780
 		},
 		{
 			"buffer":0,
-			"byteLength":3640,
-			"byteOffset":7024
+			"byteLength":3838,
+			"byteOffset":7620
 		}
 	],
 	"samplers":[
@@ -359,7 +354,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":10664,
+			"byteLength":11460,
 			"uri":"Spring.bin"
 		}
 	]

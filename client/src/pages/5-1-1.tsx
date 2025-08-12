@@ -8,12 +8,26 @@ import * as THREE from 'three'
 import Scene from '@/components/canvas/Scene'
 import Intro from '@/components/intro/Intro'
 import { EffectComposer, TiltShift2, N8AO } from '@react-three/postprocessing'
-import { SpeechBubble } from '../components/6-1-1/SpeechBubble'
-import CameraLogger from '@/hook/CameraLogger'
 import NavigationUI, { NavigationUIRef } from '@/components/5-1-1/NavigationUI'
-import { AnimatePresence, motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import AudioManager from '@/components/5-1-1/AudioManager'
 import ActivityGuideModal from '@/components/5-1-1/ActivityGuideModal'
+import { CrayonTextBox } from '@/components/CrayonTextBox'
+import { CrayonTextButton } from '@/components/CrayonUIButton'
+
+type ButtonStyle = { bg: string; border: string; text: string }
+
+type DinosaurTheme = {
+  goal: ButtonStyle
+  guide: ButtonStyle
+  start: ButtonStyle
+}
+
+const DinosaurTheme: DinosaurTheme = {
+  goal: { bg: '#52AE46', border: '#A1CC90', text: '#FFFFFF' },
+  guide: { bg: '#52AE46', border: '#A1CC90', text: '#FFFFFF' },
+  start: { bg: '#F77F42', border: '#BF4E1D', text: '#FFFFFF' },
+}
 
 const modelPaths = [
   'models/5-1-1/1/Dino.gltf',
@@ -36,12 +50,7 @@ const cameraPositions = [
   new THREE.Vector3(40, 30, 40),
 ]
 
-const animationSpeeds = {
-  0: 2.0,
-  1: 0.3,
-  2: 0.4,
-  3: 0.2,
-}
+const animationSpeeds = { 0: 2.0, 1: 0.3, 2: 0.4, 3: 0.2 } as const
 
 interface AnimationState {
   isPlaying: boolean
@@ -52,13 +61,9 @@ interface AnimationState {
 
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
   const { progress, active } = useProgress()
-
   useEffect(() => {
-    if (!active && progress === 100) {
-      onLoadingComplete()
-    }
+    if (!active && progress === 100) onLoadingComplete()
   }, [active, progress, onLoadingComplete])
-
   return null
 }
 
@@ -69,33 +74,27 @@ function IntroMouseCameraController({ enabled }: { enabled: boolean }) {
   const basePositionRef = useRef(new THREE.Vector3())
 
   useEffect(() => {
-    if (enabled) {
-      basePositionRef.current.copy(camera.position)
-    }
+    if (enabled) basePositionRef.current.copy(camera.position)
   }, [enabled, camera])
 
   useEffect(() => {
     if (!enabled) return
-
     const handleMouseMove = (event: MouseEvent) => {
       mouseRef.current.x = (event.clientX / window.innerWidth) * 2 - 1
       mouseRef.current.y = -(event.clientY / window.innerHeight) * 2 + 1
     }
-
     window.addEventListener('mousemove', handleMouseMove)
     return () => window.removeEventListener('mousemove', handleMouseMove)
   }, [enabled])
 
   useFrame(() => {
     if (!enabled) return
-
     targetRef.current.x += (mouseRef.current.x - targetRef.current.x) * 0.05
     targetRef.current.y += (mouseRef.current.y - targetRef.current.y) * 0.05
     const lookAtX = -targetRef.current.x * 3
     const lookAtY = -targetRef.current.y * 3
     camera.lookAt(lookAtX, lookAtY, 0)
   })
-
   return null
 }
 
@@ -111,40 +110,26 @@ function WaterBox({
   const width = sceneIndex === 1 ? 25.42 : 25.2
   const height = sceneIndex === 1 ? 4.4 : 5.0
   const depth = width
-
-  const adjustedPosition: [number, number, number] = [
-    position[0],
-    waterLevel - height / 2,
-    position[2]
-  ]
+  const adjustedPosition: [number, number, number] = [position[0], waterLevel - height / 2, position[2]]
 
   return (
     <group position={adjustedPosition}>
-      {/* 앞 */}
       <mesh position={[0, 0, -depth / 2]}>
         <planeGeometry args={[width, height]} />
         <meshStandardMaterial color='#0084FF' transparent opacity={0.65} side={THREE.DoubleSide} />
       </mesh>
-
-      {/* 바닥 */}
       <mesh position={[0, -height / 2, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[width, depth]} />
         <meshStandardMaterial color='#0084FF' transparent opacity={0.65} side={THREE.DoubleSide} />
       </mesh>
-
-      {/* 뒤 */}
       <mesh position={[0, 0, depth / 2]}>
         <planeGeometry args={[width, height]} />
         <meshStandardMaterial color='#0084FF' transparent opacity={0.65} side={THREE.DoubleSide} />
       </mesh>
-
-      {/* 왼쪽 */}
       <mesh position={[-width / 2, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
         <planeGeometry args={[depth, height]} />
         <meshStandardMaterial color='#0084FF' transparent opacity={0.65} side={THREE.DoubleSide} />
       </mesh>
-
-      {/* 오른쪽 */}
       <mesh position={[width / 2, 0, 0]} rotation={[0, -Math.PI / 2, 0]}>
         <planeGeometry args={[depth, height]} />
         <meshStandardMaterial color='#0084FF' transparent opacity={0.65} side={THREE.DoubleSide} />
@@ -153,17 +138,14 @@ function WaterBox({
   )
 }
 
-
 function SceneCameraController({ sceneIndex }: { sceneIndex: number }) {
   const { camera } = useThree()
-
   useEffect(() => {
     const pos = cameraPositions[sceneIndex]
     camera.position.copy(pos)
     camera.lookAt(0, 0, 0)
     camera.updateProjectionMatrix()
   }, [sceneIndex, camera])
-
   return null
 }
 
@@ -175,17 +157,13 @@ function useWaterAnimation(sceneIndex: number, shouldAnimate: boolean, animation
   useEffect(() => {
     let initialLevel = -2.0
     let initialScale = 1.0
-
-    if (sceneIndex === 1) {
-      initialLevel = 1
-    } else if (sceneIndex === 2) {
+    if (sceneIndex === 1) initialLevel = 1
+    else if (sceneIndex === 2) {
       initialLevel = 1.0
       initialScale = 0.9
     }
-
     setWaterLevel(initialLevel)
     setWaterScale(initialScale)
-
     if (animationRef.current) {
       clearInterval(animationRef.current)
       animationRef.current = null
@@ -194,32 +172,24 @@ function useWaterAnimation(sceneIndex: number, shouldAnimate: boolean, animation
 
   useEffect(() => {
     if (!shouldAnimate) return
-
     if (animationRef.current) {
       clearInterval(animationRef.current)
       animationRef.current = null
     }
-
     if (sceneIndex === 1) {
       const startLevel = 1
       const targetLevel = 2.5
       const duration = 6000
       const startTime = Date.now()
-
-      console.log(`Water Animation Scene ${sceneIndex}: Starting water rise animation`)
-
       animationRef.current = setInterval(() => {
         const elapsed = Date.now() - startTime
         const progress = Math.min(elapsed / duration, 1.0)
         const eased = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2
         const currentLevel = startLevel + (targetLevel - startLevel) * eased
-
         setWaterLevel(currentLevel)
-
         if (progress >= 1.0) {
           clearInterval(animationRef.current!)
           animationRef.current = null
-          console.log(`Water Animation Scene ${sceneIndex}: Water rise completed`)
         }
       }, 50)
     } else if (sceneIndex === 2) {
@@ -227,25 +197,18 @@ function useWaterAnimation(sceneIndex: number, shouldAnimate: boolean, animation
       const targetScale = 0.0
       const duration = 8000
       const startTime = Date.now()
-
-      console.log(`Water Animation Scene ${sceneIndex}: Starting water scale down animation`)
-
       animationRef.current = setInterval(() => {
         const elapsed = Date.now() - startTime
         const progress = Math.min(elapsed / duration, 1.0)
         const eased = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2
         const currentScale = startScale + (targetScale - startScale) * eased
-
         setWaterScale(currentScale)
-
         if (progress >= 1.0) {
           clearInterval(animationRef.current!)
           animationRef.current = null
-          console.log(`Water Animation Scene ${sceneIndex}: Water scale down completed`)
         }
       }, 50)
     }
-
     return () => {
       if (animationRef.current) {
         clearInterval(animationRef.current)
@@ -275,10 +238,7 @@ function SceneContent({
     animationState.animationKey,
   )
 
-  const handleModelAnimationComplete = () => {
-    console.log(`Model animation completed for scene ${sceneIndex}`)
-    onAnimationComplete()
-  }
+  const handleModelAnimationComplete = () => onAnimationComplete()
 
   return (
     <>
@@ -301,7 +261,7 @@ function SceneContent({
             shadow-normalBias={0.2}
           />
           <EffectComposer multisampling={2}>
-            <N8AO aoRadius={15} distanceFalloff={1} intensity={3} screenSpaceRadius halfRes />
+            <N8AO aoRadius={25} distanceFalloff={1} intensity={3} screenSpaceRadius halfRes />
             <TiltShift2 />
           </EffectComposer>
         </>
@@ -311,11 +271,10 @@ function SceneContent({
         path={modelPaths[sceneIndex]}
         scale={3.7}
         position={
-          sceneIndex === 1
-            ? [-2.44, -7.5, -1.31]
-            : sceneIndex === 2
-            ? [-2.7, -7, -1.1]
-            : [1.5, -7, -2.0]
+          sceneIndex === 1 ? [-2.44, -7.5, -1.31]
+          : sceneIndex === 2 ? [-2.7, -7, -1.1]
+          : sceneIndex === 3 ? [-2, -7, 0]
+          : [1.5, -7, -2.0]
         }
         sceneIndex={sceneIndex}
         shouldAnimate={animationState.isPlaying}
@@ -327,8 +286,15 @@ function SceneContent({
 
       {showWater && waterScale > 0.01 && (
         <group scale={[1, waterScale, 1]}>
-          <Ocean sceneIndex={sceneIndex} textureScale={1.0} textureOpacity={0.7} timeSpeed={0.9} flowSpeed={0.9} waterLevel={waterLevel} />
-          <WaterBox waterLevel={waterLevel} sceneIndex={sceneIndex}/>
+          <Ocean
+            sceneIndex={sceneIndex}
+            textureScale={1.0}
+            textureOpacity={0.7}
+            timeSpeed={0.9}
+            flowSpeed={0.9}
+            waterLevel={waterLevel}
+          />
+          <WaterBox waterLevel={waterLevel} sceneIndex={sceneIndex} />
           <UnderwaterEnvironment sceneIndex={sceneIndex} />
         </group>
       )}
@@ -366,74 +332,129 @@ export default function Home() {
   const audioManager = AudioManager.getInstance()
   const navigationUIRef = useRef<NavigationUIRef>(null)
 
-  const handleLoadingComplete = () => {
-    setIsLoaded(true)
+  // --- BGM 상태 ---
+  const bgmRef = useRef<HTMLAudioElement | null>(null)
+  const [bgmEnabled, setBgmEnabled] = useState<boolean>(true) // 초기 고정값
+  const [bgmReady, setBgmReady] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => setMounted(true), [])
+
+  // localStorage -> 상태 동기화 (마운트 후)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('bgmEnabled')
+      if (saved !== null) setBgmEnabled(JSON.parse(saved))
+    } catch {}
+  }, [])
+
+  // 인스턴스 준비
+  useEffect(() => {
+    const el = new Audio('/sounds/5-1-1/5-1-1-BGM_romantic-background-128046.mp3') // ★ 프로젝트에 맞는 BGM 경로로 변경
+    el.loop = true
+    el.volume = 0.3
+    bgmRef.current = el
+    return () => {
+      el.pause()
+      bgmRef.current = null
+    }
+  }, [])
+
+  // 탭 가시성에 따른 일시정지/재개
+  useEffect(() => {
+    const handleVisibility = () => {
+      const el = bgmRef.current
+      if (!el) return
+      if (document.visibilityState === 'hidden') el.pause()
+      else if (bgmEnabled && bgmReady) el.play().catch(() => {})
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
+  }, [bgmEnabled, bgmReady])
+
+  // 최초 사용자 제스처로 언락 (모바일 대비)
+  useEffect(() => {
+    const unlock = () => setBgmReady(true)
+    window.addEventListener('pointerdown', unlock, { once: true })
+    return () => window.removeEventListener('pointerdown', unlock)
+  }, [])
+
+  // 페이드 함수
+  const fadeTo = useCallback(async (targetVol: number, ms = 400) => {
+    const el = bgmRef.current
+    if (!el) return
+    const start = el.volume
+    const startTime = performance.now()
+    return new Promise<void>((resolve) => {
+      const tick = (t: number) => {
+        const k = Math.min(1, (t - startTime) / ms)
+        el.volume = start + (targetVol - start) * k
+        if (k < 1) requestAnimationFrame(tick)
+        else resolve()
+      }
+      requestAnimationFrame(tick)
+    })
+  }, [])
+
+  // 상태 반영(저장/재생/일시정지)
+  useEffect(() => {
+    const el = bgmRef.current
+    if (!el) return
+    try { localStorage.setItem('bgmEnabled', JSON.stringify(bgmEnabled)) } catch {}
+    const run = async () => {
+      if (bgmEnabled && bgmReady) {
+        await el.play().catch(() => {})
+        await fadeTo(0.3, 300)
+      } else {
+        await fadeTo(0.0, 200)
+        el.pause()
+      }
+    }
+    run()
+  }, [bgmEnabled, bgmReady, fadeTo])
+
+  const toggleBgm = () => {
+    setBgmEnabled((v) => {
+      const next = !v
+      if (next) setBgmReady(true) // 토글로 켜도 바로 준비
+      return next
+    })
   }
 
+  const handleLoadingComplete = () => setIsLoaded(true)
+
   const handleBackToModeSelection = useCallback(() => {
-    console.log('뒤로가기 버튼 클릭 - 모든 오디오 정리 시작')
-
     audioManager.stopAll()
-
-    if (navigationUIRef.current) {
-      navigationUIRef.current.stopAllAudios()
-    }
-
+    navigationUIRef.current?.stopAllAudios()
     audioManager.playGeneralButton()
 
     setSceneIndex(0)
     setIsLoaded(false)
     setShowDescription(false)
     setShowActivityGuide(false)
-    setAnimationState({
-      isPlaying: false,
-      isComplete: false,
-      waterLevel: -2.0,
-      animationKey: 0,
-    })
+    setAnimationState({ isPlaying: false, isComplete: false, waterLevel: -2.0, animationKey: 0 })
 
-    setTimeout(() => {
-      setShowIntro(true)
-    }, 100)
+    setTimeout(() => setShowIntro(true), 100)
   }, [audioManager])
 
   useEffect(() => {
     return () => {
-      console.log('컴포넌트 언마운트 - 모든 오디오 정리')
       audioManager.stopAll()
-      if (navigationUIRef.current) {
-        navigationUIRef.current.stopAllAudios()
-      }
+      navigationUIRef.current?.stopAllAudios()
     }
   }, [audioManager])
 
   const handleSceneChange = (newSceneIndex: number) => {
-    console.log(`Scene changing from ${sceneIndex} to ${newSceneIndex}`)
-
     setSceneIndex(newSceneIndex)
     setIsLoaded(false)
     setShowDescription(false)
-
     const newKey = Date.now()
-    setAnimationState({
-      isPlaying: false,
-      isComplete: false,
-      waterLevel: -2.0,
-      animationKey: newKey,
-    })
-
-    setTimeout(() => {
-      setIsLoaded(true)
-    }, 100)
+    setAnimationState({ isPlaying: false, isComplete: false, waterLevel: -2.0, animationKey: newKey })
+    setTimeout(() => setIsLoaded(true), 100)
   }
 
   const handleAnimationComplete = () => {
-    console.log(`Animation completed for scene ${sceneIndex}`)
-    setAnimationState((prev) => ({
-      ...prev,
-      isPlaying: false,
-      isComplete: true,
-    }))
+    setAnimationState((prev) => ({ ...prev, isPlaying: false, isComplete: true }))
   }
 
   const playClickSound = (audioPath: string = '/sounds/Enter_Cute.mp3') => {
@@ -444,12 +465,11 @@ export default function Home() {
     audioManager.playEffect(audioPath, 0.5)
   }
 
-  // 인트로에서 "시작하기" 버튼을 눌렀을 때 - 바로 3D 화면으로 이동
+  // 인트로에서 "시작하기" → 3D로 전환 + BGM 준비
   const handleEnterExperience = () => {
     playClickSound()
-    setTimeout(() => {
-      setShowIntro(false)
-    }, 300)
+    setBgmReady(true) // ★ 입장 시 자동 준비
+    setTimeout(() => setShowIntro(false), 300)
   }
 
   const handleShowActivityGuide = () => {
@@ -457,41 +477,43 @@ export default function Home() {
     setShowActivityGuide(true)
   }
 
-  const handleCloseActivityGuide = () => {
-    setShowActivityGuide(false)
-  }
+  const handleCloseActivityGuide = () => setShowActivityGuide(false)
 
   const handlePlayButtonClick = () => {
     playClickButtonSound()
-
-    console.log(`Play button clicked - Scene: ${sceneIndex}, Current state:`, animationState)
-
     if (animationState.isPlaying || animationState.isComplete) {
-      console.log(`Restarting animation for scene ${sceneIndex}`)
-
       const newKey = Date.now()
-      console.log(`Using new animation key: ${newKey}`)
-
-      setAnimationState({
-        isPlaying: true,
-        isComplete: false,
-        waterLevel: -2.0,
-        animationKey: newKey,
-      })
+      setAnimationState({ isPlaying: true, isComplete: false, waterLevel: -2.0, animationKey: newKey })
       setShowDescription(true)
     } else {
-      console.log(`Starting animation for scene ${sceneIndex}`)
-      setAnimationState((prev) => ({
-        ...prev,
-        isPlaying: true,
-        isComplete: false,
-      }))
+      setAnimationState((prev) => ({ ...prev, isPlaying: true, isComplete: false }))
       setShowDescription(true)
     }
   }
 
   return (
     <div className='w-screen h-screen flex flex-col overflow-hidden'>
+      {/* BGM 토글 버튼 */}
+      {mounted && (
+        <CrayonTextButton
+          ariaLabel={bgmEnabled ? '배경음악 끄기' : '배경음악 켜기'}
+          icon={(bgmEnabled ? 'volume2' : 'volumeX').toLowerCase()}
+          position='absolute'
+          iconPosition='left'
+          onClick={toggleBgm}
+          width={108}
+          height={108}
+          color='#ffffff'
+          textcolor='#ffffff'
+          bg='rgba(255,255,255,0.10)'
+          className='background-blur border-white/20 z-[1300]'
+          right={16}
+          top={16}
+          iconSize={40}
+          innerCircleVisible
+        />
+      )}
+
       {!showIntro && (
         <NavigationUI
           ref={navigationUIRef}
@@ -503,41 +525,13 @@ export default function Home() {
         />
       )}
 
-      {/* 상단 버튼들 */}
-      {!showIntro && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.5, ease: 'easeInOut' }}
-          className='absolute top-4 left-4 z-10 flex gap-4'>
-          {/* 뒤로가기 버튼 */}
-          <button
-            onClick={() => {
-              audioManager.playGeneralButton()
-              handleBackToModeSelection()
-            }}
-            className='px-6 pt-3 pb-4 bg-[#FF8026] rounded-[20px] shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#ff9b54] hover:shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(152,0,0,0.50)] transition-all duration-300'
-            aria-label='모드 선택 화면으로 돌아가기'>
-            <div className='text-center justify-center text-white text-2xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
-              첫 화면으로
-            </div>
-          </button>
-        </motion.div>
-      )}
-
       <div className='flex-1'>
         <Scene
           shadows
           camera={{ position: [0, 10, 10], fov: 50, near: 0.1, far: 5000 }}
-          gl={{
-            shadowMap: {
-              enabled: true,
-              type: THREE.PCFSoftShadowMap,
-            },
-          }}>
+          gl={{ shadowMap: { enabled: true, type: THREE.PCFSoftShadowMap } }}
+        >
           <LoadingTracker onLoadingComplete={handleLoadingComplete} />
-
           <SceneContent
             sceneIndex={sceneIndex}
             animationState={animationState}
@@ -548,12 +542,22 @@ export default function Home() {
       </div>
 
       {!showIntro && isLoaded && showDescription && (
-        <div className='absolute bottom-0 left-[50%] text-center p-4 bg-black text-white translate-x-[-50%]'>
-          <p className='text-lg font-light'>{sceneDescriptions[sceneIndex]}</p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          transition={{ duration: 0.5, ease: 'easeInOut' }}
+          className='absolute bottom-5 left-1/2 -translate-x-1/2 z-10 font-bold'
+        >
+          <CrayonTextBox
+            bg='#FFFFFF'
+            color='#52AE46'
+            textcolor='#333'
+            padding={14}
+            text={sceneDescriptions[sceneIndex]}
+            animated
+          />
+        </motion.div>
       )}
 
-      {/* 인트로 화면 */}
       {isLoaded && showIntro && (
         <Intro
           onEnter={handleEnterExperience}
@@ -562,10 +566,10 @@ export default function Home() {
           backgroundSvg='/img/cover/5-1-1.svg'
           descriptionSound='/sounds/5-1-1/5-1-1-Goal.MP3'
           onActivityGuide={handleShowActivityGuide}
+          buttonTheme={DinosaurTheme}
         />
       )}
 
-      {/* 활동 방법 모달 */}
       <ActivityGuideModal isOpen={showActivityGuide} onClose={handleCloseActivityGuide} />
     </div>
   )

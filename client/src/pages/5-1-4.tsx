@@ -8,7 +8,6 @@ import { AnimatePresence, motion } from 'framer-motion'
 
 import AnimatedModel from '../components/AnimatedModel'
 import AnimatedModel2 from '../components/AnimatedModel2'
-// ✅ Scene은 클라이언트 전용으로 (Canvas 포함)
 const Scene = dynamic(() => import('@/components/canvas/Scene'), { ssr: false })
 
 import Intro from '@/components/intro/Intro'
