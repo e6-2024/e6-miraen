@@ -136,7 +136,7 @@ export default function HomePage() {
           onEnter={handleEnterExperience}
           title='계절별 대표적인 별자리 관찰하기'
           description={[
-            '지구의 공전으로 나타나는 계절별 지구의 위치 변화와 이에 따라 달라지는 계절별 대표적인 별자리를 확인해 봅시다.',
+            '지구의 공전으로 나타나는 계절별 지구의 위치 변화와','이에 따라 달라지는 계절별 대표적인 별자리를 확인해 봅시다.',
           ]}
           onActivityGuide={handleShowActivityGuide}
           backgroundSvg='/img/cover/6-1-4.svg'

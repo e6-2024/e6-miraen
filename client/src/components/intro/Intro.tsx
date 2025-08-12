@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from 'react'
-
+import { CrayonTextBox } from '../CrayonTextBox'
+import { CrayonTextButton } from '../CrayonUIButton'
 interface ModeButton<T = string> {
   mode: T
   label: string
@@ -274,16 +275,24 @@ export default function Intro<T = string>({
       </div>
 
       {showGoalPopup && (
-        <div className='absolute inset-0 bg-black/50 flex items-center justify-center z-60 p-4'>
-          <div className='bg-white rounded-2xl p-8 max-w-lg mx-4 shadow-2xl transform animate-in fade-in zoom-in duration-300'>
+        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-[1100] p-4'>
+          <CrayonTextBox
+            bg='#FFFFFF'
+            color='#52AE46' // 테두리(그린)
+            textcolor='#333333'
+            padding={24}
+            animated={true}
+            className='w-[min(92vw,640px)] mx-4 shadow-2xl rounded-2xl'>
+            {/* 제목 */}
             <div className='flex flex-row justify-center items-center gap-3 mb-6'>
               <h3 className='text-2xl font-bold text-gray-800'>활동 목표</h3>
             </div>
 
+            {/* 내용 */}
             <div className='text-gray-700 text-lg font-light leading-relaxed mb-8 text-center break-keep'>
               {Array.isArray(description) ? (
                 description.map((line, index) => (
-                  <p key={index} className={index > 0 ? 'm0-2' : ''}>
+                  <p key={index}>
                     {line}
                   </p>
                 ))
@@ -292,12 +301,22 @@ export default function Intro<T = string>({
               )}
             </div>
 
-            <button
-              onClick={handleClosePopup}
-              className='w-full px-6 py-3 bg-[#52AE46] text-white font-light rounded-xl hover:bg-[#6BC05D] transition-colors duration-200'>
-              확인
-            </button>
-          </div>
+            {/* 확인 버튼 */}
+            <div className='flex justify-center'>
+              <CrayonTextButton
+                ariaLabel='확인'
+                text='확인'
+                width={160}
+                height={56}
+                bg='#52AE46'
+                color='#2E7D32'
+                textcolor='#FFFFFF'
+                className='w-full max-w-[320px] hover:brightness-110 active:scale-95 transition-all duration-300'
+                onClick={handleClosePopup}
+                innerCircleVisible={false}
+              />
+            </div>
+          </CrayonTextBox>
         </div>
       )}
     </div>
