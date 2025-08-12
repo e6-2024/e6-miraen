@@ -133,7 +133,7 @@ export function UI({ isLockedToSurface, activeSeason, onReset }: UIProps) {
               onClick={handleReset}
               icon={'Arrowleft'}
               iconSize={30}
-              text='돌아가기'
+              text='첫 화면으로'
               color='#ffffff'
               textcolor='#ffffff'
               bg='rgba(255,255,255,0.10)'
