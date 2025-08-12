@@ -29,7 +29,7 @@ export const CrayonTextBox: React.FC<CrayonTextBoxProps> = ({
   fontWeight = 'bold',
   padding = 16,
   animated = false,
-  children, // ✅ 추가
+  children,
 }) => {
   const textLines = (text ?? '').split('\n').filter((line) => line.trim());
 

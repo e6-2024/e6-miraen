@@ -102,10 +102,15 @@ export function UI({ isLockedToSurface, activeSeason, onReset }: UIProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 1, ease: 'easeInOut' }}
-            className='absolute top-4 right-4 z-10 w-fit h-fit'>
-            <div className='text-center justify-center text-white text-lg font-light [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
-              ※이 모델은 태양, 지구, 별자리의 상대적인 크기와 거리를 고려하지 않은 것입니다.
-            </div>
+            className='absolute left-4 top-4 z-10 w-fit h-fit'>
+              <CrayonTextBox
+              textcolor='#333333'
+              color='#fff'
+              bg='#fff'
+              padding={4}
+              animated={true}
+              text='※이 모델은 태양, 지구, 별자리의 상대적인 크기와 거리를 고려하지 않은 것입니다.'
+              />
           </motion.div>
         </AnimatePresence>
       )}
@@ -149,8 +154,8 @@ export function UI({ isLockedToSurface, activeSeason, onReset }: UIProps) {
           <CrayonTextButton
             position='absolute'
             iconPosition='left'
-            x='87.5vw'
-            y='20px'
+            x='50vw'
+            y='87dvh'
             width={170}
             height={75}
             iconSize={30}
@@ -158,7 +163,7 @@ export function UI({ isLockedToSurface, activeSeason, onReset }: UIProps) {
             color='#ffffff'
             textcolor='#ffffff'
             bg='rgba(255,255,255,0.10)'
-            className='background-blur border-white/20 z-[1000]'
+            className='background-blur border-white/20 -translate-x-1/2 z-[1000]'
             innerCircleVisible={false}
             onClick={() => {
               handleShowExplain()
