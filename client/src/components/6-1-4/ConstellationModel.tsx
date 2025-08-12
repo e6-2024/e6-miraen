@@ -28,9 +28,9 @@ type Label = {
 
 const LABELS: Record<Season, Label[]> = {
   spring: [
-    { id: 'boo', name: '큰개자리', position: [-60, 14, -0], rotation: [0, Math.PI / 2, 0], fontSize: 3 },
-    { id: 'vir', name: '쌍둥이자리', position: [-70, 60, -68], rotation: [0, Math.PI / 4, 0], fontSize: 3 },
-    { id: 'vir', name: '오리온자리', position: [-60, 30, -68], rotation: [0, Math.PI / 4, 0], fontSize: 3 },
+    { id: 'boo', name: '큰개자리', position: [-60, 20, 40], rotation: [0, Math.PI / 2, 0], fontSize: 2 },
+    { id: 'vir', name: '쌍둥이자리', position: [-70, 70, -48], rotation: [0, Math.PI / 4, 0], fontSize: 2 },
+    { id: 'vir', name: '오리온자리', position: [-60, 30, -28], rotation: [0, Math.PI / 4, 0], fontSize: 2 },
 
     {
       id: 'leo',
@@ -42,7 +42,7 @@ const LABELS: Record<Season, Label[]> = {
     {
       id: 'leo',
       name: '사자자리',
-      position: [0, 110, 48],
+      position: [0, 150, 28],
       rotation: [0, Math.PI / 2 + Math.PI / 4, 0],
       fontSize: 3,
     },
@@ -63,7 +63,7 @@ const LABELS: Record<Season, Label[]> = {
     {
       id: 'leo',
       name: '안드로메다자리',
-      position: [40, 40, -90],
+      position: [40, 20, -90],
       rotation: [0, -Math.PI / 4, 0],
       fontSize: 3,
     },
