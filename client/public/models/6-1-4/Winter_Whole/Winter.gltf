@@ -45,15 +45,15 @@
 			"mesh":1,
 			"name":"Sphere.002",
 			"rotation":[
-				0.23392203450202942,
-				-0.6802648305892944,
-				0.30262067914009094,
-				0.6252527236938477
+				0.3135150671005249,
+				-0.6164427399635315,
+				0.35875385999679565,
+				0.626899003982544
 			],
 			"scale":[
-				207.33262634277344,
-				207.3325958251953,
-				207.33258056640625
+				113.94685363769531,
+				113.94683074951172,
+				113.94683074951172
 			],
 			"translation":[
 				0,
@@ -332,18 +332,18 @@
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":3778,
+			"byteLength":3865,
 			"byteOffset":0
 		},
 		{
 			"buffer":0,
-			"byteLength":3835,
-			"byteOffset":3780
+			"byteLength":3803,
+			"byteOffset":3868
 		},
 		{
 			"buffer":0,
-			"byteLength":3828,
-			"byteOffset":7616
+			"byteLength":3788,
+			"byteOffset":7672
 		}
 	],
 	"samplers":[
@@ -354,7 +354,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":11444,
+			"byteLength":11460,
 			"uri":"Winter.bin"
 		}
 	]

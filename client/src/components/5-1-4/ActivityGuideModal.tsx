@@ -104,7 +104,7 @@ const ActivityGuideModal: React.FC<{
             <div className='shrink-0 w-full flex justify-end p-3'>
               <button
                 onClick={handleClose}
-                className='w-14 h-14 bg-[#FF6B6B] rounded-[20px] shadow-[inset_0_-5px_5px_rgba(152,0,0,0.50)] inline-flex justify-center items-center text-white font-bold text-3xl hover:bg-[#FF8A8A] hover:shadow-[inset_0_-5px_5px_rgba(152,0,0,0.70)] active:scale-90 active:translate-y-1 active:shadow-[inset_0_-2px_2px_rgba(152,0,0,0.50)] transition-all duration-300 [text-shadow:_0_0_4px_rgb(0_0_0_/_0.25)]'
+                className='w-14 h-14 bg-[#FF6B6B] rounded-[20px] shadow-[inset_0_-5px_5px_rgba(152,0,0,0.50)] inline-flex justify-center items-center text-white font-bold text-3xl hover:bg-[#FF8A8A] hover:shadow-[inset_0_-5px_5px_rgba(152,0,0,0.70)] active:scale-90 active:shadow-[inset_0_-2px_2px_rgba(152,0,0,0.50)] transition-all duration-300 [text-shadow:_0_0_4px_rgb(0_0_0_/_0.25)]'
                 aria-label='닫기'
               >
                 ×

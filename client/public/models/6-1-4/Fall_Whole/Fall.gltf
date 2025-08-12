@@ -45,13 +45,13 @@
 			"mesh":1,
 			"name":"Sphere.002",
 			"rotation":[
-				-0.06247682496905327,
-				0.09969159960746765,
-				0.3433801829814911,
-				0.93179851770401
+				-0.08388698101043701,
+				-0.06032212823629379,
+				0.45808106660842896,
+				0.8828850388526917
 			],
 			"scale":[
-				207.33262634277344,
+				207.33261108398438,
 				207.33258056640625,
 				207.3325653076172
 			],
@@ -200,7 +200,7 @@
 							}
 						}
 					},
-					"indices":11,
+					"indices":7,
 					"material":2,
 					"mode":4
 				}
@@ -233,7 +233,7 @@
 		},
 		{
 			"mimeType":"image/png",
-			"name":"constellation_figures.png",
+			"name":"constellation_figures_png",
 			"uri":"constellation_figures_png.png"
 		},
 		{
@@ -247,9 +247,9 @@
 			"componentType":5126,
 			"count":559,
 			"max":[
-				0.9999997019767761,
+				1.0000009536743164,
 				1,
-				0.9999993443489075
+				1
 			],
 			"min":[
 				-0.9999990463256836,
@@ -277,9 +277,9 @@
 			"componentType":5126,
 			"count":559,
 			"max":[
-				0.9999997019767761,
+				1.0000009536743164,
 				1,
-				0.9999993443489075
+				1
 			],
 			"min":[
 				-0.9999990463256836,
@@ -307,9 +307,9 @@
 			"componentType":5126,
 			"count":559,
 			"max":[
-				1.0141676664352417,
+				1.0141689777374268,
 				1.0141680240631104,
-				1.014167308807373
+				1.0141680240631104
 			],
 			"min":[
 				-1.014167070388794,
@@ -327,28 +327,23 @@
 			"componentType":5126,
 			"count":559,
 			"type":"VEC2"
-		},
-		{
-			"componentType":5123,
-			"count":2880,
-			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":3386,
+			"byteLength":3778,
 			"byteOffset":0
 		},
 		{
 			"buffer":0,
-			"byteLength":3633,
-			"byteOffset":3388
+			"byteLength":3835,
+			"byteOffset":3780
 		},
 		{
 			"buffer":0,
-			"byteLength":3640,
-			"byteOffset":7024
+			"byteLength":3828,
+			"byteOffset":7616
 		}
 	],
 	"samplers":[
@@ -359,7 +354,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":10664,
+			"byteLength":11444,
 			"uri":"Fall.bin"
 		}
 	]

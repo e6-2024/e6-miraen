@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { BoxLineGeometry } from 'three-stdlib'
 import { AnimatePresence, motion } from 'framer-motion'
+import { CrayonTextBox } from '../CrayonTextBox'
+import { CrayonTextButton } from '../CrayonUIButton'
 
 type Season = 'spring' | 'summer' | 'fall' | 'winter'
 
@@ -12,36 +14,21 @@ interface UIProps {
 
 const seasonExplain = {
   summer: {
-    text: '겨울철(동지경) 자정(밤12시경)에 남쪽 하늘을 바라보면 겨울철 대표적인 별자리인 쌍둥이자리, 오리온자리, 큰개자리를 관찰할 수 있습니다. 또한 동쪽에서는 봄철 대표적인 별자리를, 서쪽에서는 가을철 대표적인 별자리를 관찰할 수 있습니다.',
+    text: '겨울철(동지경), 자정(밤 12시 경)에 남쪽 하늘을 바라보면 겨울철 대표적인 별자리인 쌍둥이자리, 오리온자리, 큰개자리를 관찰할 수 있습니다. 또한 동쪽에서는 봄철 대표적인 별자리를, 서쪽에서는 가을철 대표적인 별자리를 관찰할 수 있습니다.',
     audio: '/sounds/6-1-4/narration/6-1-4-D.MP3',
   },
   fall: {
-    text: '가을철(추분경) 자정(밤12시경)에 남쪽 하늘을 바라보면 가을철 대표적인 별자리인 안드로메다자리, 페가수스자리, 물고기자리를 관찰할 수 있습니다. 또한 동쪽에서는 겨울철 대표적인 별자리를, 서쪽에서는 여름철 대표적인 별자리를 관찰할 수 있습니다.',
+    text: '가을철(추분경), 자정(밤 12시 경)에 남쪽 하늘을 바라보면 가을철 대표적인 별자리인 안드로메다자리, 페가수스자리, 물고기자리를 관찰할 수 있습니다. 또한 동쪽에서는 겨울철 대표적인 별자리를, 서쪽에서는 여름철 대표적인 별자리를 관찰할 수 있습니다.',
     audio: '/sounds/6-1-4/narration/6-1-4-C.MP3',
   },
   winter: {
-    text: '여름철(하지경) 자정(밤12시경)에 남쪽 하늘을 바라보면 여름철 대표적인 별자리인 백조자리, 거문고자리, 독수리자리를 관찰할 수 있습니다. 또한 동쪽에서는 가을철 대표적인 별자리를, 서쪽에서는 봄철 대표적인 별자리를 관찰할 수 있습니다.',
+    text: '여름철(하지경), 자정(밤 12시 경)에 남쪽 하늘을 바라보면 여름철 대표적인 별자리인 백조자리, 거문고자리, 독수리자리를 관찰할 수 있습니다. 또한 동쪽에서는 가을철 대표적인 별자리를, 서쪽에서는 봄철 대표적인 별자리를 관찰할 수 있습니다.',
     audio: '/sounds/6-1-4/narration/6-1-4-B.MP3',
   },
   spring: {
-    text: '봄철(춘분경) 자정(밤12시경)에 남쪽 하늘을 바라보면 봄철 대표적인 별자리인 목동자리, 처녀자리, 사자자리를 관찰할 수 있습니다. 또한 동쪽에서는 여름철 대표적인 별자리를, 서쪽에서는 겨울철 대표적인 별자리를 관찰할 수 있습니다.',
+    text: '봄철(춘분경), 자정(밤 12시 경)에 남쪽 하늘을 바라보면 봄철 대표적인 별자리인 목동자리, 처녀자리, 사자자리를 관찰할 수 있습니다.\n또한 동쪽에서는 여름철 대표적인 별자리를, 서쪽에서는 겨울철 대표적인 별자리를 관찰할 수 있습니다.',
     audio: '/sounds/6-1-4/narration/6-1-4-A.MP3',
   },
-}
-
-const seasonTitle = {
-  summer : {
-    title : '12/21 자정 남쪽 하늘'
-  },
-  fall : {
-    title : '9/21 자정 남쪽 하늘'
-  },
-  winter : {
-    title : '6/21 자정 남쪽 하늘'
-  },
-  spring : {
-    title : '3/21 자정 남쪽 하늘'
-  }
 }
 
 export function UI({ isLockedToSurface, activeSeason, onReset }: UIProps) {
@@ -130,56 +117,57 @@ export function UI({ isLockedToSurface, activeSeason, onReset }: UIProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 1, ease: 'easeInOut' }}
-            className='absolute top-4 left-4 z-10 w-fit h-fit'>
-            <button
+            className='top-4 left-4 z-10'>
+            <CrayonTextButton
+              position='absolute'
+              iconPosition='left'
+              x='10px'
+              y='20px'
+              width={170}
+              height={75}
               onClick={handleReset}
-              className='px-6 pt-3 pb-4 bg-[#4CAF50] rounded-[20px] shadow-[inset_0px_-10px_10px_0px_rgba(0,152,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#66BB6A] hover:shadow-[inset_0px_-10px_10px_0px_rgba(0,152,0,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(0,152,0,0.50)] transition-all duration-300'
-              aria-label='돌아가기'>
-              <div className='text-center justify-center text-white text-2xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
-                돌아가기
-              </div>
-            </button>
-          </motion.div>
-        </AnimatePresence>
-      )}
-
-      {isLockedToSurface && (
-        <AnimatePresence>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 3, ease: 'easeInOut' }}
-            className='absolute bottom-4 left-1/2 z-10 w-fit h-fit transform -translate-x-1/2'>
-              <div className='text-center justify-center text-white text-xl font-light [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
-                {seasonTitle[activeSeason].title}
-              </div>
+              icon={'Arrowleft'}
+              iconSize={30}
+              text='돌아가기'
+              color='#ffffff'
+              textcolor='#ffffff'
+              bg='rgba(255,255,255,0.10)'
+              className='background-blur border-white/20 z-[1000]'
+              innerCircleVisible={false}
+            />
           </motion.div>
         </AnimatePresence>
       )}
 
       {isLockedToSurface && !showExplainPopup && (
-        <AnimatePresence>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1, ease: 'easeInOut' }}
-            className='absolute top-4 right-4 z-10 w-fit h-fit'>
-            <button
-              onClick={() => {
-                handleShowExplain()
-                playAudio()
-              }}
-              className='px-6 pt-3 pb-4 bg-[#4CAF50] rounded-[20px] shadow-[inset_0px_-10px_10px_0px_rgba(0,152,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#66BB6A] hover:shadow-[inset_0px_-10px_10px_0px_rgba(0,152,0,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(0,152,0,0.50)] transition-all duration-300'
-              aria-label='정리하기'>
-              <div className='text-center justify-center text-white text-2xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
-                추가 설명 읽기
-              </div>
-            </button>
-          </motion.div>
-        </AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1, ease: 'easeInOut' }}
+          className=''>
+          <CrayonTextButton
+            position='absolute'
+            iconPosition='left'
+            x='87.5vw'
+            y='20px'
+            width={170}
+            height={75}
+            iconSize={30}
+            text='추가 설명 읽기'
+            color='#ffffff'
+            textcolor='#ffffff'
+            bg='rgba(255,255,255,0.10)'
+            className='background-blur border-white/20 z-[1000]'
+            innerCircleVisible={false}
+            onClick={() => {
+              handleShowExplain()
+              playAudio()
+            }}
+          />
+        </motion.div>
       )}
+
       {showExplainPopup && activeSeason && (
         <AnimatePresence>
           <motion.div
@@ -187,19 +175,30 @@ export function UI({ isLockedToSurface, activeSeason, onReset }: UIProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 1, ease: 'easeInOut' }}
-            className='absolute flex flex-col justify-center items-center gap-5 bg-white p-4 rounded top-1/2 left-1/2 transform -translate-x-1/2 transform -translate-y-1/2 z-10 w-[40vw]'>
-            <div className='text-center justify-center text-black text-xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
-              {seasonExplain[activeSeason].text}
-            </div>
+            className='absolute flex flex-col justify-center items-center font-bold gap-5 bg-white/85 px-4 pt-4 pb-24 rounded-xl top-1/2 left-1/2 transform -translate-x-1/2 transform -translate-y-1/2 z-10 w-[40vw]'>
+            <CrayonTextBox
+              text={seasonExplain[activeSeason].text}
+              color='#333'
+              bg='#fff'
+              textcolor='#333'
+              fontSize='18px'
+              fontWeight='500'
+              textAlign='left'
+              padding={20}
+              animated={true}></CrayonTextBox>
 
-            <button
+            <CrayonTextButton
               onClick={() => {
                 handleCloseExplain()
                 stopAll()
               }}
-              className='rounded py-2 px-4 bg-[#4CAF50] font-light'>
-              확인
-            </button>
+              position='absolute'
+              className='top-32 rounded font-light'
+              text='확인'
+              textcolor='#333'
+              color='#333'
+              bg='#FFF'
+            />
           </motion.div>
         </AnimatePresence>
       )}

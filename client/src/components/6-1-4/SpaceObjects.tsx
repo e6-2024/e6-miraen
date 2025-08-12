@@ -10,20 +10,15 @@ import { Line, Text, Billboard } from '@react-three/drei'
 export function Sun() {
   const sunRef = useRef<THREE.Mesh>(null!)
   const sunTexture = useTexture('/models/6-1-4/sun_texture.jpeg')
-  
+
   useFrame((_, delta) => {
     sunRef.current.rotation.y += 0.05 * delta
   })
-  
+
   return (
     <mesh ref={sunRef} position={[0, 0, 0]}>
       <sphereGeometry args={[10, 32, 32]} />
-      <meshStandardMaterial
-        map={sunTexture}
-        emissive='orange'
-        emissiveIntensity={0.8}
-        emissiveMap={sunTexture}
-      />
+      <meshStandardMaterial map={sunTexture} emissive='orange' emissiveIntensity={0.8} emissiveMap={sunTexture} />
     </mesh>
   )
 }
@@ -34,16 +29,12 @@ export function Stars() {
     const g = new THREE.BufferGeometry()
     const pos = new Float32Array(6000)
     for (let i = 0; i < 2000; i++) {
-      pos.set([
-        (Math.random() - 0.5) * 200, 
-        (Math.random() - 0.5) * 200, 
-        (Math.random() - 0.5) * 200
-      ], i * 3)
+      pos.set([(Math.random() - 0.5) * 200, (Math.random() - 0.5) * 200, (Math.random() - 0.5) * 200], i * 3)
     }
     g.setAttribute('position', new THREE.BufferAttribute(pos, 3))
     return g
   }, [])
-  
+
   return (
     <points geometry={geom}>
       <pointsMaterial color='white' size={0.05} />
@@ -72,7 +63,7 @@ export function EarthModel({
   isSelected,
   rotationX = 0,
   rotationY = 0,
-  hideAxisAndLabel = false
+  hideAxisAndLabel = false,
 }: {
   position: [number, number, number]
   season: 'spring' | 'summer' | 'fall' | 'winter'
@@ -100,23 +91,23 @@ export function EarthModel({
   }
 
   const { scene: earthScene } = useGLTF('/models/6-1-4/Earth.glb')
-  
+
   const groupRef = useRef<THREE.Group>(null!)
   const earthRef = useRef<THREE.Group>(null!)
   const panoRef = useRef<THREE.Mesh>(null!)
-  
+
   const [targetAngle, setTargetAngle] = useState(seasonAngles[season] || 0)
   const [isRotationAligned, setIsRotationAligned] = useState(false)
-  
+
   // 회전 속도와 정렬 상태
   const rotationSpeed = useRef(0.2)
   const rotationAlignedRef = useRef(false)
   const earthOpacityRef = useRef(1)
-  
+
   // Clone the earth scene and set up materials properly
   const clonedEarthScene = useMemo(() => {
     const cloned = earthScene.clone()
-    
+
     cloned.traverse((child) => {
       if (child instanceof THREE.Mesh && child.material) {
         if (Array.isArray(child.material)) {
@@ -130,35 +121,26 @@ export function EarthModel({
         }
       }
     })
-    
+
     return cloned
   }, [earthScene])
-  
-  // 선택된 지구 회전 처리
+
   useEffect(() => {
     if (isSelected && groupRef.current) {
       setIsRotationAligned(false)
       rotationAlignedRef.current = false
-      
-      const currentAngle = groupRef.current.rotation.y
-      const idealAngle = seasonAngles[season] || 0
-      
-      let normalizedCurrent = currentAngle % (Math.PI * 2)
-      if (normalizedCurrent < 0) normalizedCurrent += Math.PI * 2
-      
-      const normalizedIdeal = idealAngle % (Math.PI * 2)
-      
-      let fullRotations
-      if (currentAngle >= 0) {
-        fullRotations = Math.floor(currentAngle / (Math.PI * 2)) * (Math.PI * 2)
-      } else {
-        fullRotations = Math.ceil(currentAngle / (Math.PI * 2)) * (Math.PI * 2)
-      }
-      
-      setTargetAngle(fullRotations + normalizedIdeal)
+
+      const current = groupRef.current.rotation.y
+      const ideal = seasonAngles[season] || 0
+
+      // delta를 [-π, π] 범위의 최단각으로 정규화
+      const TWO_PI = Math.PI * 2
+      const delta = THREE.MathUtils.euclideanModulo(ideal - current + Math.PI, TWO_PI) - Math.PI
+
+      setTargetAngle(current + delta)
     }
-  }, [isSelected, season, seasonAngles])
-  
+  }, [isSelected, season])
+
   // 자전 상태 관리
   useEffect(() => {
     if (isSelected && !isResetting) {
@@ -194,35 +176,30 @@ export function EarthModel({
 
   useFrame((_, delta) => {
     if (!groupRef.current) return
-    
-    // 회전 애니메이션
+
+    const g = groupRef.current
+
     if (isSelected && !rotationAlignedRef.current && !fadeReady) {
-      const diff = targetAngle - groupRef.current.rotation.y
-      const absDiff = Math.abs(diff)
-      const damping = Math.max(1, Math.min(5, 1 + absDiff))
-      
-      groupRef.current.rotation.y = THREE.MathUtils.damp(
-        groupRef.current.rotation.y,
-        targetAngle,
-        damping,
-        delta
-      )
-      
-      const isAligned = Math.abs(groupRef.current.rotation.y - targetAngle) < 0.15
-      if (isAligned && !rotationAlignedRef.current) {
-        rotationAlignedRef.current = true
-        setIsRotationAligned(true)
-        groupRef.current.rotation.y = targetAngle
-        onRotationComplete?.()
+      // 부드러운 감쇠 보간
+      g.rotation.y = THREE.MathUtils.damp(g.rotation.y, targetAngle, 6, delta)
+
+      const epsilon = 0.01 // 더 타이트하게
+      if (Math.abs(g.rotation.y - targetAngle) < epsilon) {
+        g.rotation.y = targetAngle // 스냅
+        if (!rotationAlignedRef.current) {
+          rotationAlignedRef.current = true
+          setIsRotationAligned(true)
+          onRotationComplete?.()
+        }
       }
     } else if (!fadeReady && !isResetting && !isSelected) {
-      groupRef.current.rotation.y += rotationSpeed.current * delta
+      g.rotation.y += rotationSpeed.current * delta
     }
-    
+
     // 지구 투명도 처리
     if (earthRef.current) {
       let targetOpacity = 1
-      
+
       if (isResetting) {
         targetOpacity = 1
       } else if (fadeReady) {
@@ -230,14 +207,9 @@ export function EarthModel({
       } else {
         targetOpacity = 1
       }
-      
-      earthOpacityRef.current = THREE.MathUtils.damp(
-        earthOpacityRef.current,
-        targetOpacity,
-        10,
-        delta
-      )
-      
+
+      earthOpacityRef.current = THREE.MathUtils.damp(earthOpacityRef.current, targetOpacity, 10, delta)
+
       // 지구 모델 투명도 적용
       earthRef.current.traverse((child) => {
         if (child instanceof THREE.Mesh && child.material) {
@@ -252,43 +224,34 @@ export function EarthModel({
           }
         }
       })
-      
+
       earthRef.current.visible = earthOpacityRef.current > 0.01
     }
   })
 
   return (
     <group onClick={onClick}>
-      <group position={position} ref={groupRef} rotation={[Math.PI * 23.5 / 180, 0, 0]}>
+      <group position={position} ref={groupRef} rotation={[(Math.PI * 23.5) / 180, 0, 0]}>
         <group ref={earthRef}>
-          <primitive 
-            object={clonedEarthScene} 
-            scale={[1.5, 1.5, 1.5]} 
-          />
+          <primitive object={clonedEarthScene} scale={[1.5, 1.5, 1.5]} />
         </group>
-        
+
         {!hideAxisAndLabel && (
           <Line
             points={[
               [0, -10.0, 0],
-              [0, 10.0, 0]
+              [0, 10.0, 0],
             ]}
-            color="white"
+            color='white'
             lineWidth={2}
           />
         )}
       </group>
 
       {!hideAxisAndLabel && (
-        <group scale={3} position={[position[0], position[1]+10, position[2]]}>
+        <group scale={3} position={[position[0], position[1] + 10, position[2]]}>
           <Billboard>
-            <Text
-              fontSize={0.6}
-              color="white"
-              anchorX="center"
-              anchorY="bottom"
-              font='/fonts/Maplestory Bold.ttf'
-            >
+            <Text fontSize={0.6} color='white' anchorX='center' anchorY='bottom' font='/fonts/Maplestory Bold.ttf'>
               {seasonLabels[season]}
             </Text>
           </Billboard>

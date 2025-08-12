@@ -24,6 +24,9 @@ interface SpaceSceneProps {
 
 const INITIAL_CAMERA_POSITION = new THREE.Vector3(-102, 34, 0)
 const INITIAL_CAMERA_TARGET = new THREE.Vector3(0, 0, 0)
+// 스냅 각도(위에서 내려다보기). 60°(PI/3) 기본. 더 수평에 가깝게 보려면 수치 ↑, 더 탑다운이면 ↓.
+const SNAP_POLAR = Math.PI / 3
+const EPS = 1e-3
 
 export default function SpaceScene({
   onEarthClick,
@@ -75,6 +78,13 @@ export default function SpaceScene({
     setEarthRotationComplete(false)
     setIsInteracting(false)
     onReset()
+
+    // 부모 상태 반영 직후 프레임에 '위에서 아래' 스냅
+    requestAnimationFrame(() => {
+      if (controlsRef.current) {
+        snapCameraTopDown(controlsRef.current, INITIAL_CAMERA_TARGET, SNAP_POLAR)
+      }
+    })
   }
 
   const onMoveFinished = () => {
@@ -93,7 +103,6 @@ export default function SpaceScene({
         const audio = new Audio(audioPath)
         audio.volume = 0.5
         audio.loop = false
-
         audio.play().catch((error) => {
           console.log('효과음 재생 실패:', error.name)
         })
@@ -179,7 +188,7 @@ export default function SpaceScene({
           enablePan={false}
           enableZoom
           enableRotate
-          minPolarAngle={0}
+          minPolarAngle={isLockedToSurface ? Math.PI/2 : 0}
           maxPolarAngle={Math.PI}
           minDistance={0}
           maxDistance={isLockedToSurface ? 15 : 120}
@@ -214,24 +223,20 @@ function CameraAnimator({
     finished.current = false
     progress.current = 0
 
-    // FOV 저장
     const persp = camera as THREE.PerspectiveCamera
     if (persp.fov !== undefined) originalFov.current = persp.fov
 
     const earthCenter = new THREE.Vector3(...target)
     const constellationCenter = earthCenter.clone().add(new THREE.Vector3(0, 5, 0))
 
-    // 시작 벡터
     startRef.current = camera.position.clone().sub(constellationCenter)
 
-    // angleOffset 로테이션
     const toSun = new THREE.Vector3().subVectors(new THREE.Vector3(0, 0, 0), earthCenter).normalize()
     let nightDir = toSun.clone().negate()
     nightDir.y = Math.abs(nightDir.y) || 0.1
     const rotAxis = new THREE.Vector3().crossVectors(nightDir, new THREE.Vector3(0, 1, 0)).normalize()
     nightDir.applyAxisAngle(rotAxis, angleOffset)
 
-    // 거리 조정
     const offset = nightDir.multiplyScalar(6)
     const endVec = constellationCenter.clone().add(offset)
     endRef.current = endVec.sub(constellationCenter)
@@ -240,31 +245,26 @@ function CameraAnimator({
   useFrame((_, delta) => {
     if (!startRef.current || !endRef.current || !target) return
 
-    // 진행률 업데이트
     progress.current = Math.min(progress.current + delta * 0.5, 1)
     const t = progress.current
     const eased = t * t * (3 - 2 * t)
 
     const earthCenter = new THREE.Vector3(...target)
-    const constellationCenter = earthCenter.clone() // y-offset은 lookAt 시에만 사용
+    const constellationCenter = earthCenter.clone()
 
-    // 위치 보간
     const curVec = startRef.current.clone().lerp(endRef.current, eased)
     const newPos = constellationCenter.clone().add(curVec)
     camera.position.copy(newPos)
 
-    // FOV 보간 (광각 효과)
     const persp = camera as THREE.PerspectiveCamera
     if (persp.fov !== undefined) {
       persp.fov = THREE.MathUtils.lerp(originalFov.current, 70, eased)
       persp.updateProjectionMatrix()
     }
 
-    // lookAt 시 Y 오프셋 추가
     const lookTarget = constellationCenter.clone().add(new THREE.Vector3(0, lookAtOffsetY, 0))
     camera.lookAt(lookTarget)
 
-    // 완료 체크
     if (t === 1 && !finished.current) {
       finished.current = true
       onFinish?.()
@@ -295,7 +295,6 @@ function ResetAnimator({
 
   useEffect(() => {
     progress.current = 0
-    // PerspectiveCamera로 타입 단언하고 FOV 저장
     const perspectiveCamera = camera as THREE.PerspectiveCamera
     if (perspectiveCamera.fov !== undefined) {
       startFov.current = perspectiveCamera.fov
@@ -310,14 +309,17 @@ function ResetAnimator({
     camera.position.lerpVectors(fromPos, toPos, eased)
     controlsRef.current.target.lerpVectors(fromTarget, toTarget, eased)
 
-    // PerspectiveCamera로 타입 단언하고 FOV를 원래 값(40)으로 되돌리기
     const perspectiveCamera = camera as THREE.PerspectiveCamera
     if (perspectiveCamera.fov !== undefined) {
       perspectiveCamera.fov = THREE.MathUtils.lerp(startFov.current, 40, eased)
       perspectiveCamera.updateProjectionMatrix()
     }
 
-    // OrbitControls 설정을 원래대로 되돌리기
+    // 롤 방지
+    camera.up.set(0, 1, 0)
+    camera.lookAt(controlsRef.current.target)
+
+    // 컨트롤 필수 값만 자연 복구(필요 시)
     if (controlsRef.current) {
       controlsRef.current.zoomSpeed = THREE.MathUtils.lerp(2.0, 1.0, eased)
       controlsRef.current.panSpeed = THREE.MathUtils.lerp(1.5, 1.0, eased)
@@ -333,4 +335,29 @@ function ResetAnimator({
   })
 
   return null
+}
+
+/** 위에서 내려다보는 각도로 스냅(azimuth/거리 유지, polar만 덮어쓰기) */
+function snapCameraTopDown(
+  controls: any,
+  target: THREE.Vector3,
+  polarRad: number = Math.PI / 3
+) {
+  const cam = controls.object as THREE.PerspectiveCamera
+  const t = target ?? controls.target
+  // 오프셋을 구면좌표로
+  const offset = cam.position.clone().sub(t)
+  const s = new THREE.Spherical().setFromVector3(offset)
+
+  // polar(φ)만 위에서 내려다보도록 클램프 후 강제
+  s.phi = THREE.MathUtils.clamp(polarRad, EPS, Math.PI / 2 - EPS)
+
+  // 복원
+  offset.setFromSpherical(s)
+  cam.position.copy(t).add(offset)
+
+  cam.up.set(0, 1, 0)
+  cam.lookAt(t)
+  controls.target.copy(t)
+  controls.update()
 }
