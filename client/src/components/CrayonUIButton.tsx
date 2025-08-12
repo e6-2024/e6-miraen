@@ -44,6 +44,7 @@ interface CrayonTextButtonProps {
   iconSize?: number
   ariaLabel?: string
   innerCircleVisible?: boolean
+  textSize?: number
 }
 
 export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
@@ -67,6 +68,7 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
   iconSize = 50,
   ariaLabel,
   innerCircleVisible,
+  textSize = 18
 }) => {
   // 포지셔닝 스타일
   const positionStyle: React.CSSProperties = {
@@ -259,7 +261,7 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
               <IconComponent size={iconSize} style={{ color: textcolor }} className='transition-all duration-300' />
             )}
             {text && (
-              <span className='font-bold text-lg transition-all duration-300' style={{ color: textcolor }}>
+              <span className='font-bold transition-all duration-300' style={{ color: textcolor, fontSize: textSize }}>
                 {text}
               </span>
             )}

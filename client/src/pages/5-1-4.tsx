@@ -10,6 +10,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import MouseInteractiveGroup from '@/components/MouseInteractiveGroup'
 import ActivityGuideModal from '@/components/5-1-4/ActivityGuideModal'
 import { CrayonTextBox } from '@/components/CrayonTextBox'
+import { CrayonTextButton } from '@/components/CrayonUIButton'
 
 type ModelType = 'boy' | 'muscle' | 'bone'
 type AnimationState = 'walk' | 'pose'
@@ -483,16 +484,20 @@ export default function IntegratedPage() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5, ease: 'easeInOut' }}
             className='absolute top-4 left-4 z-10 w-fit h-fit'>
-            <button
-              onClick={() => {
-                handleBackToModeSelection()
-              }}
-              className='px-6 pt-3 pb-4 bg-[#FF8026] rounded-[20px] shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#ff9b54] hover:shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(152,0,0,0.50)] transition-all duration-300'
-              aria-label='모드 선택 화면으로 돌아가기'>
-              <div className='text-center justify-center text-white text-xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
-                첫 화면으로
-              </div>
-            </button>
+            <CrayonTextButton
+              ariaLabel='모드 선택 화면으로 돌아가기'
+              text='첫 화면으로'
+              icon='arrow-left'
+              iconPosition='left'
+              width={170}
+              height={75}
+              iconSize={30}
+              bg='#D54D50'
+              color='#E8AAAB'
+              textcolor='#FFFFFF'
+              onClick={handleBackToModeSelection}
+              innerCircleVisible={false}
+            />
           </motion.div>
         )}
       </AnimatePresence>
@@ -505,49 +510,64 @@ export default function IntegratedPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5, ease: 'easeInOut' }}
-            className='absolute bottom-5 right-5 flex flex-col gap-3 bg-white p-4 rounded-3xl z-10 shadow-2xl border border-gray-100'
-            style={{ backdropFilter: 'blur(10px)' }}>
-            {/* 애니메이션 버튼 */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-              {['pose', 'walk'].map((state) => (
-                <button
-                  key={state}
-                  onClick={() => handleAnimationChange(state as AnimationState)}
-                  className={`px-5 pt-3 pb-4 rounded-[20px] font-bold text-lg transition-all duration-300 ${
-                    animState === state
-                      ? 'bg-[#4CAF50] text-white shadow-[inset_0px_-8px_8px_0px_rgba(0,152,0,0.50)] hover:bg-[#66BB6A] hover:shadow-[inset_0px_-8px_8px_0px_rgba(0,152,0,0.70)] [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'
-                      : 'bg-[#9E9E9E] text-white shadow-[inset_0px_-8px_8px_0px_rgba(50,50,50,0.50)] hover:bg-[#BDBDBD] hover:shadow-[inset_0px_-8px_8px_0px_rgba(50,50,50,0.70)] [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'
-                  } ${
-                    isModelsLoading
-                      ? 'opacity-50 cursor-not-allowed'
-                      : 'active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(50,50,50,0.50)] hover:scale-105'
-                  }`}
-                  disabled={isModelsLoading}>
-                  {state === 'walk' ? '걷기' : '정지'}
-                </button>
-              ))}
-            </div>
+            className='absolute bottom-5 right-5 z-10'>
+            <CrayonTextBox
+              bg='#FFFFFF'
+              color='#D54D50'
+              textcolor='#333'
+              padding={14}
+              animated={true}
+              className='rounded-3xl shadow-2xl border border-gray-100'>
+              {/* 애니메이션 토글 */}
+              <div className='flex justify-center gap-3 mb-3'>
+                {(['pose', 'walk'] as AnimationState[]).map((state) => {
+                  const active = animState === state
+                  return (
+                    <CrayonTextButton
+                      key={state}
+                      text={state === 'walk' ? '걷기' : '정지'}
+                      ariaLabel={state === 'walk' ? '걷기' : '정지'}
+                      width={120}
+                      height={64}
+                      bg={active ? '#D54D50' : '#9E9E9E'}
+                      color={active ? '#E8AAAB' : '#666666'}
+                      textcolor='#FFFFFF'
+                      className={`transition-all duration-300 ${
+                        isModelsLoading ? 'opacity-50 cursor-not-allowed' : 'hover:brightness-110 active:scale-90'
+                      }`}
+                      onClick={() => !isModelsLoading && handleAnimationChange(state)}
+                      innerCircleVisible={false}
+                    />
+                  )
+                })}
+              </div>
 
-            {/* 모델 타입 버튼 */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-              {(['boy', 'bone', 'muscle'] as ModelType[]).map((type) => (
-                <button
-                  key={type}
-                  onClick={() => handleModelTypeChange(type)}
-                  className={`w-16 h-16 rounded-[20px] font-bold text-lg transition-all duration-300 ${
-                    modelType === type
-                      ? 'bg-[#2196F3] text-white shadow-[inset_0px_-8px_8px_0px_rgba(0,50,152,0.50)] hover:bg-[#42A5F5] hover:shadow-[inset_0px_-8px_8px_0px_rgba(0,50,152,0.70)] [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'
-                      : 'bg-[#9E9E9E] text-white shadow-[inset_0px_-8px_8px_0px_rgba(50,50,50,0.50)] hover:bg-[#BDBDBD] hover:shadow-[inset_0px_-8px_8px_0px_rgba(50,50,50,0.70)] [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'
-                  } ${
-                    isModelsLoading
-                      ? 'opacity-50 cursor-not-allowed'
-                      : 'active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(50,50,50,0.50)] hover:scale-105'
-                  }`}
-                  disabled={isModelsLoading}>
-                  {type === 'boy' ? '겉모습' : type === 'muscle' ? '근육' : '뼈'}
-                </button>
-              ))}
-            </div>
+              {/* 모델 타입 선택 */}
+              <div className='flex justify-center gap-3'>
+                {(['boy', 'bone', 'muscle'] as ModelType[]).map((type) => {
+                  const active = modelType === type
+                  return (
+                    <CrayonTextButton
+                      key={type}
+                      text={type === 'boy' ? '겉모습' : type === 'muscle' ? '근육' : '뼈'}
+                      ariaLabel={type}
+                      width={96}
+                      height={64}
+                      bg={active ? '#4CAF50' : '#9E9E9E'}
+                      color={active ? '#096A2E' : '#666666'}
+                      textcolor='#FFFFFF'
+                      className={`transition-all duration-300 ${
+                        isModelsLoading
+                          ? 'opacity-50 cursor-not-allowed'
+                          : 'hover:brightness-110 active:scale-90 hover:scale-105'
+                      }`}
+                      onClick={() => !isModelsLoading && handleModelTypeChange(type)}
+                      innerCircleVisible={false}
+                    />
+                  )
+                })}
+              </div>
+            </CrayonTextBox>
           </motion.div>
         )}
       </AnimatePresence>
@@ -560,24 +580,45 @@ export default function IntegratedPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5, ease: 'easeInOut' }}
-            className='absolute top-4 right-4 z-10 flex flex-col gap-2'>
-            <button
-              onClick={handleExtend}
-              className='px-6 pt-3 pb-4 bg-[#2196F3] rounded-[20px] shadow-[inset_0px_-10px_10px_0px_rgba(0,50,152,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#42A5F5] hover:shadow-[inset_0px_-10px_10px_0px_rgba(0,50,152,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(0,50,152,0.50)] transition-all duration-300'>
-              <div className='text-center justify-center text-white text-lg font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
-                팔을 구부릴 때
+            className='absolute top-4 right-4 z-10'>
+            <CrayonTextBox
+              bg='#FFFFFF'
+              color='#D54D50'
+              textcolor='#333'
+              padding={12}
+              animated={true}
+              className='rounded-2xl shadow-2xl'>
+              <div className='flex flex-col gap-2'>
+                <CrayonTextButton
+                  text='팔을 구부릴 때'
+                  ariaLabel='팔을 구부릴 때'
+                  width={180}
+                  height={72}
+                  bg='#D54D50'
+                  color='#E8AAAB'
+                  textcolor='#FFFFFF'
+                  className='hover:brightness-110 active:scale-90 transition-all duration-300'
+                  onClick={handleExtend}
+                  innerCircleVisible={false}
+                />
+                <CrayonTextButton
+                  text='팔을 펼 때'
+                  ariaLabel='팔을 펼 때'
+                  width={180}
+                  height={72}
+                  bg='#E8AAAB'
+                  color='#D54D50'
+                  textcolor='#FFFFFF'
+                  className='hover:brightness-110 active:scale-90 transition-all duration-300'
+                  onClick={handleFold}
+                  innerCircleVisible={false}
+                />
               </div>
-            </button>
-            <button
-              onClick={handleFold}
-              className='px-6 pt-3 pb-4 bg-[#4CAF50] rounded-[20px] shadow-[inset_0px_-10px_10px_0px_rgba(0,152,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#66BB6A] hover:shadow-[inset_0px_-10px_10px_0px_rgba(0,152,0,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(0,152,0,0.50)] transition-all duration-300'>
-              <div className='text-center justify-center text-white text-lg font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
-                팔을 펼 때
-              </div>
-            </button>
+            </CrayonTextBox>
           </motion.div>
         )}
       </AnimatePresence>
+
       <AnimatePresence>
         {showNarrationText && mode === 'arm' && Array.isArray(narrationText) && (
           <motion.div
@@ -714,7 +755,7 @@ export default function IntegratedPage() {
             className='fixed bottom-2 p-2 left-4 z-50'>
             <CrayonTextBox
               text={narrationText}
-              color='#333'
+              color='#E8AAAB'
               bg='#fff'
               textcolor='#333'
               fontSize='16px'
@@ -738,7 +779,7 @@ export default function IntegratedPage() {
             className='fixed bottom-8 left-8 z-50'>
             <CrayonTextBox
               text={narrationText}
-              color='#333'
+              color='#E8AAAB'
               bg='#fff'
               textcolor='#333'
               fontSize='16px'

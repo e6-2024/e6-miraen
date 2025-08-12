@@ -256,7 +256,7 @@ export default function AnimatedModel2({
                         zIndex: 1000,
                         width: '400px',
                         transform: 'scale(0.8)',
-                        transformOrigin: 'bottom right',
+                        transformOrigin: 'bottom center',
                       }}>
                       <CrayonTextBox
                         text={getBalloonText(true)}
@@ -265,7 +265,7 @@ export default function AnimatedModel2({
                         textcolor='#333'
                         fontSize='20px'
                         fontWeight='500'
-                        textAlign='right'
+                        textAlign='center'
                         padding={12}
                         animated={true}
                       />
@@ -352,7 +352,7 @@ export default function AnimatedModel2({
                         textcolor='#333'
                         fontSize='20px'
                         fontWeight='500'
-                        textAlign='right'
+                        textAlign='center'
                         padding={12}
                         animated={true}
                       />

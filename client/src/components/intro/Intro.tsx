@@ -132,56 +132,81 @@ export default function Intro<T = string>({
           </div>
 
           <div className='flex items-center gap-8'>
-            <button
-              onClick={() => {
-                handleGoalClick()
-                playDescriptionSound()
-              }}
-              className='px-8 pt-5 pb-6 bg-[#52AE46] rounded-[30px] shadow-[inset_0px_-10px_10px_0px_rgba(65,87,51,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#6BC05D] hover:shadow-[inset_0px_-10px_10px_0px_rgba(65,87,51,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(65,87,51,0.50)] transition-all duration-300'>
-              <div className='text-center justify-center text-white text-2xl font-light [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
-                활동 목표
-              </div>
-            </button>
-
-            <button
-              onClick={handleActivityGuideClick}
-              className='px-8 pt-5 pb-6 bg-[#52AE46] rounded-[30px] shadow-[inset_0px_-10px_10px_0px_rgba(65,87,51,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#6BC05D] hover:shadow-[inset_0px_-10px_10px_0px_rgba(65,87,51,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(65,87,51,0.50)] transition-all duration-300'>
-              <div className='text-center justify-center text-white text-2xl font-light [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
-                활동 방법
-              </div>
-            </button>
+            <div className='flex items-center gap-8'>
+              <CrayonTextButton
+                ariaLabel='활동 목표'
+                text='활동 목표'
+                iconPosition='left'
+                width={180}
+                height={72}
+                bg='#D54D50'
+                color='#E8AAAB'
+                textSize={22}
+                textcolor='#FFFFFF'
+                className='transition-all duration-300'
+                onClick={() => {
+                  handleGoalClick()
+                  playDescriptionSound()
+                }}
+                innerCircleVisible={false}
+              />
+              <CrayonTextButton
+                ariaLabel='활동 방법'
+                text='활동 방법'
+                iconPosition='left'
+                width={180}
+                height={72}
+                textSize={22}
+                bg='#D54D50'
+                color='#E8AAAB'
+                textcolor='#FFFFFF'
+                className='transition-all duration-300'
+                onClick={handleActivityGuideClick}
+                innerCircleVisible={false}
+              />
+            </div>
           </div>
 
           {!showModeButtons ? (
-            <button
+            <CrayonTextButton
+              text='시작하기'
+              width={260}
+              height={86}
+              textSize={32}
+              bg='#F77F42'
+              color='#BF4E1D'
+              textcolor='#FFFFFF'
               onClick={handleEnter}
-              className='px-9 pt-6 pb-8 bg-[#FF8026] rounded-[40px] shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#ff9b54] hover:shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(152,0,0,0.50)] transition-all duration-300'>
-              <div className='text-center justify-center text-white text-4xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
-                시작하기
-              </div>
-            </button>
+            />
           ) : (
-            <div className='flex flex-row gap-4 items-center animate-in fade-in slide-in-from-bottom-4 duration-500'>
-              {modeButtons.map(({ mode, label, color, hoverColor }, index) => (
-                <button
-                  key={String(mode)}
-                  onClick={() => handleModeButtonClick(mode)}
-                  className='pt-4 pb-5 rounded-[30px] shadow-[inset_0px_-8px_8px_0px_rgba(50,0,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:shadow-[inset_0px_-8px_8px_0px_rgba(50,0,0,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(50,0,0,0.50)] transition-all duration-300 hover:scale-105 min-w-[300px]'
-                  style={{
-                    backgroundColor: color,
-                    animationDelay: `${index * 100}ms`,
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = hoverColor
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = color
-                  }}>
-                  <div className='text-center justify-center text-white text-2xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
-                    {label}
+            <div className='flex flex-row gap-4 items-center'>
+              {modeButtons.map(({ mode, label }, index) => {
+                const scheme =
+                  String(mode) === 'bones'
+                    ? { bg: '#4E9F3D', border: '#3E7F30' } // Green (Primary)
+                    : { bg: '#6C63FF', border: '#5A54D6' } // Purple-Blue (Accent)
+
+                return (
+                  <div
+                    key={String(mode)}
+                    className='animate-in fade-in slide-in-from-bottom-4 duration-500'
+                    style={{ animationDelay: `${index * 100}ms` }}>
+                    <CrayonTextButton
+                      ariaLabel={label}
+                      text={label}
+                      width={320}
+                      height={96}
+                      textSize={24}
+                      bg={scheme.bg}
+                      color={scheme.border}
+                      textcolor='#FFFFFF'
+                      className='font-bold hover:brightness-110 active:scale-90 transition-all duration-300'
+                      onClick={() => handleModeButtonClick(mode)}
+                      innerCircleVisible={false}
+                    />
                   </div>
-                </button>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
@@ -291,11 +316,7 @@ export default function Intro<T = string>({
             {/* 내용 */}
             <div className='text-gray-700 text-lg font-light leading-relaxed mb-8 text-center break-keep'>
               {Array.isArray(description) ? (
-                description.map((line, index) => (
-                  <p key={index}>
-                    {line}
-                  </p>
-                ))
+                description.map((line, index) => <p key={index}>{line}</p>)
               ) : (
                 <p>{description}</p>
               )}
