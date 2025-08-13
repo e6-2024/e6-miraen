@@ -199,7 +199,7 @@ export default function IntegratedPage() {
   const playClickSound = useCallback((audioPath: string = '/sounds/Enter_Cute.mp3') => {
     try {
       const audio = new Audio(audioPath)
-      audio.volume = 0.3
+      audio.volume = 0.5
       audio.play().catch(() => {})
     } catch {}
   }, [])
@@ -286,7 +286,7 @@ export default function IntegratedPage() {
     }
     try {
       const audio = new Audio(audioPath)
-      audio.volume = 0.7
+      audio.volume = 1
       setNarrationText(text)
       setShowNarrationText(true)
       audio.play().catch(() => {})

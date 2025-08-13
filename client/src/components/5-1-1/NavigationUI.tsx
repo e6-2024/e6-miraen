@@ -7,8 +7,8 @@ export interface NavigationUIRef {
 }
 
 const VOLUME = {
-  narration: 0.8, // 나레이션
-  sfx: 0.1, // 효과음
+  narration: 1, // 나레이션
+  sfx: 0.5, // 효과음
 }
 const stepColors = {
   active: { bg: '#52AE46', border: '#FFF', text: '#FFFFFF' },

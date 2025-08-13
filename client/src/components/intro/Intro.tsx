@@ -71,7 +71,7 @@ export default function Intro<T = string>({
   const playDescriptionSound = (audioPath: string = descriptionSound) => {
     try {
       const audio = new Audio(audioPath)
-      audio.volume = 0.8
+      audio.volume = 1
       audio.play().catch(() => {})
     } catch {}
   }
