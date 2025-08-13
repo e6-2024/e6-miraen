@@ -404,7 +404,7 @@ export default function Home() {
     const run = async () => {
       if (bgmEnabled && bgmReady) {
         await el.play().catch(() => {})
-        await fadeTo(0.15, 300)
+        await fadeTo(0.2, 300)
       } else {
         await fadeTo(0.0, 200)
         el.pause()

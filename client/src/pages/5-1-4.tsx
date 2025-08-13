@@ -146,7 +146,7 @@ export default function IntegratedPage() {
     if (!mounted) return
     const el = new Audio('/sounds/5-1-4/5-1-4-BGM_little-steps-246641.mp3')
     el.loop = true
-    el.volume = 0.15
+    el.volume = 0.2
     bgmRef.current = el
     return () => {
       el.pause()
