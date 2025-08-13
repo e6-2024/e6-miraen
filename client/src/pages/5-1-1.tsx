@@ -37,7 +37,7 @@ const modelPaths = [
 ]
 
 const sceneDescriptions = [
-  '활발하게 살아가던 공룡은 수명이 다하면 죽습니다',
+  '활발하게 살아가던 공룡은 수명이 다하면 죽습니다.',
   '죽은 공룡의 몸체가 호수나 바다 밑에 가라 앉습니다.',
   '시간이 지나면서 죽은 생물의 몸체 위로 퇴적물이 쌓이며 지층이 만들어집니다.',
   '시간이 지나 지층이 깎여서 사라지면 지층 속에 있던 화석이 지표에 드러나 발견됩니다.',
@@ -357,7 +357,7 @@ export default function Home() {
   useEffect(() => {
     const el = new Audio('/sounds/5-1-1/5-1-1-BGM_romantic-background-128046.mp3') // ★ 프로젝트에 맞는 BGM 경로로 변경
     el.loop = true
-    el.volume = 0.3
+    el.volume = 0.05
     bgmRef.current = el
     return () => {
       el.pause()
@@ -404,7 +404,7 @@ export default function Home() {
     const run = async () => {
       if (bgmEnabled && bgmReady) {
         await el.play().catch(() => {})
-        await fadeTo(0.3, 300)
+        await fadeTo(0.15, 300)
       } else {
         await fadeTo(0.0, 200)
         el.pause()

@@ -6,6 +6,10 @@ export interface NavigationUIRef {
   stopAllAudios: () => void
 }
 
+const VOLUME = {
+  narration: 0.8, // 나레이션
+  sfx: 0.1, // 효과음
+}
 const stepColors = {
   active: { bg: '#52AE46', border: '#FFF', text: '#FFFFFF' },
   done: { bg: '#52AE46', border: '#FFF', text: '#FFFFFF' },
@@ -58,32 +62,32 @@ const NavigationUI = forwardRef<
     stopAllAudios()
 
     const audioPaths = stepAudioFiles[sceneIndex as keyof typeof stepAudioFiles]
+    const clamp01 = (v: number) => Math.min(1, Math.max(0, v))
 
     audioPaths.forEach((audioPath, index) => {
       try {
         const audio = new Audio(audioPath)
-        audio.volume = 0.5
+
+        let isNarration = index === 0
+        const narrationLike = /\/5-1-1-[A-Z]\.MP3$/i.test(audioPath)
+        if (narrationLike) isNarration = true
+        audio.volume = clamp01(isNarration ? VOLUME.narration : VOLUME.sfx)
 
         const handleEnded = () => {
           const audioIndex = currentAudiosRef.current.indexOf(audio)
-          if (audioIndex > -1) {
-            currentAudiosRef.current.splice(audioIndex, 1)
-          }
+          if (audioIndex > -1) currentAudiosRef.current.splice(audioIndex, 1)
         }
 
         const handleError = (error: any) => {
           console.log(`오디오 ${index + 1} 재생 실패:`, error)
           const audioIndex = currentAudiosRef.current.indexOf(audio)
-          if (audioIndex > -1) {
-            currentAudiosRef.current.splice(audioIndex, 1)
-          }
+          if (audioIndex > -1) currentAudiosRef.current.splice(audioIndex, 1)
         }
 
         audio.addEventListener('ended', handleEnded)
         audio.addEventListener('error', handleError)
 
         currentAudiosRef.current.push(audio)
-
         setTimeout(() => {
           audio.play().catch(handleError)
         }, index * 100)

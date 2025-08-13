@@ -26,7 +26,7 @@ class AudioManager {
   }
 
   // 효과음 재생 (다른 효과음과 중첩 가능하지만 나레이션/컴포넌트 사운드는 중지)
-  playEffect(audioPath: string, volume: number = 0.7): Promise<void> {
+  playEffect(audioPath: string, volume: number = 0.2): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
         // 나레이션이나 컴포넌트 사운드가 재생 중이면 중지하지 않음 (효과음은 짧으므로)
