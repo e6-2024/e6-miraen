@@ -260,10 +260,12 @@ function SceneContent({
             shadow-bias={-0.0001}
             shadow-normalBias={0.2}
           />
-          <EffectComposer multisampling={2}>
-            <N8AO aoRadius={25} distanceFalloff={1} intensity={3} screenSpaceRadius halfRes />
-            <TiltShift2 />
-          </EffectComposer>
+          {sceneIndex === 0 && (
+            <EffectComposer multisampling={2}>
+              <N8AO aoRadius={25} distanceFalloff={1} intensity={3} screenSpaceRadius halfRes />
+              <TiltShift2 />
+            </EffectComposer>
+          )}
         </>
       )}
 
@@ -271,10 +273,13 @@ function SceneContent({
         path={modelPaths[sceneIndex]}
         scale={3.7}
         position={
-          sceneIndex === 1 ? [-2.44, -7.5, -1.31]
-          : sceneIndex === 2 ? [-2.7, -7, -1.1]
-          : sceneIndex === 3 ? [-2, -7, 0]
-          : [1.5, -7, -2.0]
+          sceneIndex === 1
+            ? [-2.44, -7.5, -1.31]
+            : sceneIndex === 2
+            ? [-2.7, -7, -1.1]
+            : sceneIndex === 3
+            ? [-2, -7, 0]
+            : [1.5, -10, -2.0]
         }
         sceneIndex={sceneIndex}
         shouldAnimate={animationState.isPlaying}
@@ -372,13 +377,6 @@ export default function Home() {
     return () => document.removeEventListener('visibilitychange', handleVisibility)
   }, [bgmEnabled, bgmReady])
 
-  // 최초 사용자 제스처로 언락 (모바일 대비)
-  useEffect(() => {
-    const unlock = () => setBgmReady(true)
-    window.addEventListener('pointerdown', unlock, { once: true })
-    return () => window.removeEventListener('pointerdown', unlock)
-  }, [])
-
   // 페이드 함수
   const fadeTo = useCallback(async (targetVol: number, ms = 400) => {
     const el = bgmRef.current
@@ -400,7 +398,9 @@ export default function Home() {
   useEffect(() => {
     const el = bgmRef.current
     if (!el) return
-    try { localStorage.setItem('bgmEnabled', JSON.stringify(bgmEnabled)) } catch {}
+    try {
+      localStorage.setItem('bgmEnabled', JSON.stringify(bgmEnabled))
+    } catch {}
     const run = async () => {
       if (bgmEnabled && bgmReady) {
         await el.play().catch(() => {})
@@ -465,10 +465,9 @@ export default function Home() {
     audioManager.playEffect(audioPath, 0.5)
   }
 
-  // 인트로에서 "시작하기" → 3D로 전환 + BGM 준비
   const handleEnterExperience = () => {
     playClickSound()
-    setBgmReady(true) // ★ 입장 시 자동 준비
+    setBgmReady(true)
     setTimeout(() => setShowIntro(false), 300)
   }
 
@@ -493,44 +492,62 @@ export default function Home() {
 
   return (
     <div className='w-screen h-screen flex flex-col overflow-hidden'>
-      {/* BGM 토글 버튼 */}
       {mounted && (
-        <CrayonTextButton
-          ariaLabel={bgmEnabled ? '배경음악 끄기' : '배경음악 켜기'}
-          icon={(bgmEnabled ? 'volume2' : 'volumeX').toLowerCase()}
-          position='absolute'
-          iconPosition='left'
-          onClick={toggleBgm}
-          width={108}
-          height={108}
-          color='#ffffff'
-          textcolor='#ffffff'
-          bg='rgba(255,255,255,0.10)'
-          className='background-blur border-white/20 z-[1300]'
-          right={16}
-          top={16}
-          iconSize={40}
-          innerCircleVisible
-        />
+        <>
+          <CrayonTextButton
+            ariaLabel={bgmEnabled ? '배경음악 끄기' : '배경음악 켜기'}
+            icon={(bgmEnabled ? 'volume2' : 'volumeX').toLowerCase()}
+            position='absolute'
+            iconPosition='left'
+            onClick={toggleBgm}
+            width={108}
+            height={108}
+            color='#ffffff'
+            textcolor='#ffffff'
+            bg='rgba(255,255,255,0.10)'
+            className='background-blur border-white/20 z-[1300]'
+            right={16}
+            top={16}
+            iconSize={40}
+          />
+        </>
       )}
 
       {!showIntro && (
-        <NavigationUI
-          ref={navigationUIRef}
-          sceneIndex={sceneIndex}
-          onSceneChange={handleSceneChange}
-          onPlayClick={handlePlayButtonClick}
-          isAnimationComplete={animationState.isComplete}
-          animationState={animationState}
-        />
+        <>
+          <CrayonTextButton
+            ariaLabel='모드 선택 화면으로 돌아가기'
+            text='첫 화면으로'
+            position='absolute'
+            icon='arrow-left'
+            iconPosition='left'
+            width={170}
+            height={75}
+            iconSize={30}
+            left={10}
+            top={10}
+            bg='#52AE46'
+            color='#A1CC90'
+            textcolor='#FFFFFF'
+            className='background-blur border-white/20 z-[1300]'
+            onClick={handleBackToModeSelection}
+          />
+          <NavigationUI
+            ref={navigationUIRef}
+            sceneIndex={sceneIndex}
+            onSceneChange={handleSceneChange}
+            onPlayClick={handlePlayButtonClick}
+            isAnimationComplete={animationState.isComplete}
+            animationState={animationState}
+          />
+        </>
       )}
 
       <div className='flex-1'>
         <Scene
           shadows
           camera={{ position: [0, 10, 10], fov: 50, near: 0.1, far: 5000 }}
-          gl={{ shadowMap: { enabled: true, type: THREE.PCFSoftShadowMap } }}
-        >
+          gl={{ shadowMap: { enabled: true, type: THREE.PCFSoftShadowMap } }}>
           <LoadingTracker onLoadingComplete={handleLoadingComplete} />
           <SceneContent
             sceneIndex={sceneIndex}
@@ -543,10 +560,11 @@ export default function Home() {
 
       {!showIntro && isLoaded && showDescription && (
         <motion.div
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
           transition={{ duration: 0.5, ease: 'easeInOut' }}
-          className='absolute bottom-5 left-1/2 -translate-x-1/2 z-10 font-bold'
-        >
+          className='absolute bottom-5 left-1/2 -translate-x-1/2 z-10 font-bold'>
           <CrayonTextBox
             bg='#FFFFFF'
             color='#52AE46'

@@ -448,7 +448,6 @@ export default function IntegratedPage() {
 
   return (
     <div className='w-screen h-screen bg-white flex font-bold flex-col'>
-      {/* 뒤로가기 버튼 */}
       <AnimatePresence>
         {mounted && mode !== null && (
           <motion.div

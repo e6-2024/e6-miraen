@@ -110,8 +110,12 @@ const NavigationUI = forwardRef<
   }
 
   return (
-    <div className='absolute top-4 left-1/2 -translate-x-1/2 w-[65vw] h-[10%] z-[1000]'>
-      <CrayonTextBox color='#52AE46' bg='white' padding={0} className='flex items-center justify-center background-blur'>
+    <div className='absolute flex w-full justify-center left-1/2 -translate-x-1/2 items-center top-4  z-[1000]'>
+      <CrayonTextBox
+        color='#52AE46'
+        bg='white'
+        padding={0}
+        className='flex items-center justify-center background-blur'>
         <div className='flex items-center justify-center rounded-full px-6 py-4'>
           {/* 단계 버튼들 */}
           {[1, 2, 3, 4].map((num) => {
@@ -127,8 +131,8 @@ const NavigationUI = forwardRef<
                   <div className='relative'>
                     <CrayonTextButton
                       ariaLabel={`단계 ${num}`}
-                      width={100}
-                      height={100}
+                      width={90}
+                      height={90}
                       bg={scheme.bg}
                       color={scheme.border}
                       textcolor={scheme.text}
@@ -162,7 +166,7 @@ const NavigationUI = forwardRef<
                   </div>
 
                   {/* 설명 */}
-                  <div className='pt-2 text-center font-light text-[16px] break-keep w-42 sm:w-42'>
+                  <div className='text-center font-light text-[16px] whitespace-nowrap'>
                     <p>{description[stepIdx]}</p>
                   </div>
                 </div>
@@ -182,22 +186,21 @@ const NavigationUI = forwardRef<
               </div>
             )
           })}
-
-          <CrayonTextButton
-            ariaLabel={isAnimationComplete || animationState?.isPlaying ? '다시 듣기' : '재생'}
-            icon={isAnimationComplete || animationState?.isPlaying ? 'refresh-ccw' : 'play'}
-            position='relative'
-            iconSize={34}
-            width={120}
-            color='#8B5CF6'
-            bg='#6D28D9'
-            height={120}
-            textcolor='#fff'
-            onClick={handlePlayClick}
-            className='ml-8'
-          />
         </div>
       </CrayonTextBox>
+      <CrayonTextButton
+        ariaLabel={isAnimationComplete || animationState?.isPlaying ? '다시 듣기' : '재생'}
+        icon={isAnimationComplete || animationState?.isPlaying ? 'refresh-ccw' : 'play'}
+        position='relative'
+        iconSize={34}
+        width={120}
+        color='#8B5CF6'
+        bg='#6D28D9'
+        height={120}
+        textcolor='#fff'
+        onClick={handlePlayClick}
+        className='ml-8'
+      />
     </div>
   )
 })

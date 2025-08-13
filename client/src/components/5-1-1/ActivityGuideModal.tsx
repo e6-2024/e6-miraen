@@ -41,11 +41,11 @@ const activityGuideSlides: ActivityGuideSlide[] = [
     image: '/img/guide/5-1-1/guide6.jpeg',
     audioPath: '/sounds/5-1-1/intro/5-1-1-Intro-6.MP3',
   },
-  // {
-  //   id: 'slide7',
-  //   image: '/img/guide/5-1-1/guide7.jpeg',
-  //   audioPath: '/sounds/5-1-1/intro/5-1-1-Intro-7.MP3',
-  // },
+  {
+    id: 'slide7',
+    image: '/img/guide/5-1-1/guide7.jpeg',
+    audioPath: '/sounds/5-1-1/intro/5-1-1-Intro-7.MP3',
+  },
 ]
 
 const ActivityGuideModal: React.FC<{
@@ -182,7 +182,7 @@ const ActivityGuideModal: React.FC<{
                     key={index}
                     className={`w-2 h-2 rounded-full mx-2 transition-all duration-300 ${
                       index === currentSlide
-                        ? 'bg-[#D54D50] shadow-[0_0_8px_rgba(213,77,88,0.6)] scale-125'
+                        ? 'bg-[#52AE46] shadow-[0_0_8px_rgba(82,174,170,0.6)] scale-125'
                         : 'bg-gray-300 hover:bg-gray-400'
                     }`}
                   />
