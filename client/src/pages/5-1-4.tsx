@@ -146,7 +146,7 @@ export default function IntegratedPage() {
     if (!mounted) return
     const el = new Audio('/sounds/5-1-4/5-1-4-BGM_little-steps-246641.mp3')
     el.loop = true
-    el.volume = 0.3
+    el.volume = 0.15
     bgmRef.current = el
     return () => {
       el.pause()
@@ -199,7 +199,7 @@ export default function IntegratedPage() {
   const playClickSound = useCallback((audioPath: string = '/sounds/Enter_Cute.mp3') => {
     try {
       const audio = new Audio(audioPath)
-      audio.volume = 0.7
+      audio.volume = 0.3
       audio.play().catch(() => {})
     } catch {}
   }, [])

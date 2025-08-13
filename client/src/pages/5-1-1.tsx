@@ -458,11 +458,11 @@ export default function Home() {
   }
 
   const playClickSound = (audioPath: string = '/sounds/Enter_Cute.mp3') => {
-    audioManager.playEffect(audioPath, 0.5)
+    audioManager.playEffect(audioPath, 0.3)
   }
 
   const playClickButtonSound = (audioPath: string = '/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3') => {
-    audioManager.playEffect(audioPath, 0.5)
+    audioManager.playEffect(audioPath, 0.3)
   }
 
   const handleEnterExperience = () => {
