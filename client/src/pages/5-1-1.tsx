@@ -211,7 +211,7 @@ function useWaterAnimation(sceneIndex: number, shouldAnimate: boolean, animation
 
           // 🔽 waterLevel 증가 후 scale 줄이기
           const scaleStart = 1.0
-          const scaleEnd = 0.5
+          const scaleEnd = 0.0
           const scaleDuration = 2000
           const scaleStartTime = Date.now()
 
