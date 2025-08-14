@@ -193,16 +193,16 @@ function useWaterAnimation(sceneIndex: number, shouldAnimate: boolean, animation
         }
       }, 50)
     } else if (sceneIndex === 2) {
-      const startScale = 1.0
-      const targetScale = 0.0
-      const duration = 8000
+      const startLevel = 1
+      const targetLevel = 2.8
+      const duration = 6000
       const startTime = Date.now()
       animationRef.current = setInterval(() => {
         const elapsed = Date.now() - startTime
         const progress = Math.min(elapsed / duration, 1.0)
         const eased = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2
-        const currentScale = startScale + (targetScale - startScale) * eased
-        setWaterScale(currentScale)
+        const currentLevel = startLevel + (targetLevel - startLevel) * eased
+        setWaterLevel(currentLevel)
         if (progress >= 1.0) {
           clearInterval(animationRef.current!)
           animationRef.current = null

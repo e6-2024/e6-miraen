@@ -742,20 +742,20 @@ export default function Home() {
         <LoadingTracker onLoadingComplete={() => setIsLoaded(true)} />
         <IntroMouseCameraController enabled={showIntro} />
 
-        <directionalLight
+        {/* <directionalLight
           castShadow
           intensity={1.5}
-          position={[-6, 3, -10]}
+          position={[6, 10, -10]}
           shadow-mapSize={[4096, 4096]}
           shadow-camera-near={0.1}
           shadow-camera-far={20}
-          shadow-camera-top={30}
+          shadow-camera-top={10}
           shadow-camera-right={30}
           shadow-camera-left={-30}
-          shadow-bias={-0.0001}
-          shadow-normalBias={0.1}
-        />
-        <spotLight castShadow intensity={2} position={[-2.5, 3.52, 7.6]} color='#fff' decay={1}/>
+          shadow-bias={-0.001}
+          shadow-normalBias={0.5}
+        /> */}
+        {/* <spotLight castShadow intensity={2} position={[-2.5, 3.52, 7.6]} color='#fff' decay={1}/> */}
 
         <PerformanceMonitor onDecline={() => degrade(true)} />
         <ContactShadows position={[0, 0, 0]} opacity={0.9} scale={30} blur={2.5} far={10} color='black' frames={2} />
@@ -859,7 +859,7 @@ export default function Home() {
           ref={controlsRef}
           maxPolarAngle={Math.PI / 2 - Math.PI / 30}
           minPolarAngle={0}
-          enablePan={false}
+          enablePan={true}
           enableZoom={!showIntro}
           enableRotate={!showIntro}
           minDistance={0}

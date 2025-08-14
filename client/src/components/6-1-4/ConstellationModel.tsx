@@ -56,7 +56,7 @@ const LABELS: Record<Season, Label[]> = {
     {
       id: 'leo',
       name: '거문고자리',
-      position: [100, 20, -25],
+      position: [100, 20, -45],
       rotation: [0, -Math.PI / 4, 0],
       fontSize: 3,
     },
