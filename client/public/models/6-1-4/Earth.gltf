@@ -155,12 +155,6 @@
 			},
 			"name":"standardSurface1.002",
 			"pbrMetallicRoughness":{
-				"baseColorFactor":[
-					0.800000011920929,
-					0.800000011920929,
-					0.800000011920929,
-					1
-				],
 				"baseColorTexture":{
 					"index":1
 				},
@@ -352,13 +346,13 @@
 	"images":[
 		{
 			"mimeType":"image/png",
-			"name":"\uc81c\ubaa9 \uc5c6\uc74c-1",
-			"uri":"%EC%A0%9C%EB%AA%A9%20%EC%97%86%EC%9D%8C-1.png"
+			"name":"Donghae2",
+			"uri":"Donghae2.png"
 		},
 		{
 			"mimeType":"image/png",
-			"name":"\uc81c\ubaa9 \uc5c6\uc74c-2",
-			"uri":"%EC%A0%9C%EB%AA%A9%20%EC%97%86%EC%9D%8C-2.png"
+			"name":"Donghae",
+			"uri":"Donghae.png"
 		},
 		{
 			"mimeType":"image/png",
