@@ -201,14 +201,38 @@ function useWaterAnimation(sceneIndex: number, shouldAnimate: boolean, animation
         const elapsed = Date.now() - startTime
         const progress = Math.min(elapsed / duration, 1.0)
         const eased = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2
+
         const currentLevel = startLevel + (targetLevel - startLevel) * eased
         setWaterLevel(currentLevel)
+
         if (progress >= 1.0) {
           clearInterval(animationRef.current!)
           animationRef.current = null
+
+          // 🔽 waterLevel 증가 후 scale 줄이기
+          const scaleStart = 1.0
+          const scaleEnd = 0.5
+          const scaleDuration = 2000
+          const scaleStartTime = Date.now()
+
+          animationRef.current = setInterval(() => {
+            const scaleElapsed = Date.now() - scaleStartTime
+            const scaleProgress = Math.min(scaleElapsed / scaleDuration, 1.0)
+            const scaleEased =
+              scaleProgress < 0.5 ? 2 * scaleProgress * scaleProgress : 1 - Math.pow(-2 * scaleProgress + 2, 2) / 2
+
+            const currentScale = scaleStart + (scaleEnd - scaleStart) * scaleEased
+            setWaterScale(currentScale)
+
+            if (scaleProgress >= 1.0) {
+              clearInterval(animationRef.current!)
+              animationRef.current = null
+            }
+          }, 100)
         }
       }, 50)
     }
+
     return () => {
       if (animationRef.current) {
         clearInterval(animationRef.current)

@@ -90,7 +90,7 @@ export function EarthModel({
     winter: '여름',
   }
 
-  const { scene: earthScene } = useGLTF('/models/6-1-4/Earth.glb')
+  const { scene: earthScene } = useGLTF('/models/6-1-4/Earth.gltf')
 
   const groupRef = useRef<THREE.Group>(null!)
   const earthRef = useRef<THREE.Group>(null!)
