@@ -123,7 +123,7 @@ export const GameScene: React.FC<GameSceneProps> = ({
         <>
           <CollisionPlane
             position={missions.splash01.position}
-            rotation={[Math.PI/2, 0, 0]}
+            rotation={[-Math.PI/2, 0, 0]}
             size={[1.0, 1.0]}
             missionId='splash01'
             visible={false}
