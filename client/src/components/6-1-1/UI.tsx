@@ -155,7 +155,7 @@ export function SolutionSelector({
   ]
 
   return (
-    <div className='absolute bottom-4 right-4 z-10'>
+    <div className='absolute bottom-4 left-4 z-10'>
       <div className='bg-white bg-opacity-95 p-4 rounded-xl shadow-lg border-2 border-gray-200'>
         <div className='text-lg font-bold mb-3 text-center text-gray-800'>용액 선택</div>
         <div className='grid grid-cols-2 gap-3'>
