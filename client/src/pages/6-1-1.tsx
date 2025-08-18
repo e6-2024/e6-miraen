@@ -111,18 +111,18 @@ export default function Home() {
     cameraPosition: [number, number, number],
   ) => {
     moveToTarget(position, cameraPosition, missionId as SplashType)
+    if (!gameState.completedMissions[missionId as SplashType]) {
+      const narrationFiles = {
+        splash01: '/sounds/6-1-1/narration/6-1-1-A-1.MP3',
+        splash02: '/sounds/6-1-1/narration/6-1-1-C-1.MP3',
+        splash03: '/sounds/6-1-1/narration/6-1-1-E-1.MP3',
+        splash04: '/sounds/6-1-1/narration/6-1-1-G-1.MP3',
+      }
 
-    // 나레이션 재생
-    const narrationFiles = {
-      splash01: '/sounds/6-1-1/narration/6-1-1-A-1.MP3',
-      splash02: '/sounds/6-1-1/narration/6-1-1-C-1.MP3',
-      splash03: '/sounds/6-1-1/narration/6-1-1-E-1.MP3',
-      splash04: '/sounds/6-1-1/narration/6-1-1-G-1.MP3',
+      setTimeout(() => {
+        audio.playNarration(narrationFiles[missionId as SplashType])
+      }, 1000)
     }
-
-    setTimeout(() => {
-      audio.playNarration(narrationFiles[missionId as SplashType])
-    }, 1000)
   }
 
   // 마우스 이벤트 리스너들

@@ -15,7 +15,11 @@ export const useCameraController = (gameState: GameState, gameActions: GameActio
       gameActions.setIsAnimating(true)
       gameActions.setIsZoomed(true)
       gameActions.setCurrentMission(missionId)
-      gameActions.setGamePhase('solution_choice')
+      if (gameState.completedMissions[missionId]) {
+        gameActions.setGamePhase('completed')
+      } else {
+        gameActions.setGamePhase('solution_choice')
+      }
 
       const startTarget = controlsRef.current.target.clone()
       const startPosition = controlsRef.current.object.position.clone()
@@ -39,9 +43,25 @@ export const useCameraController = (gameState: GameState, gameActions: GameActio
           requestAnimationFrame(animate)
         } else {
           gameActions.setIsAnimating(false)
-          gameActions.setShowMessage(missions[missionId].selectMessage)
-          gameActions.setShowLiquidMessage(missions[missionId].showLiquidMessage)
-          gameActions.setClickMessage(missions[missionId].showClickMessage)
+
+          if (gameState.completedMissions[missionId]) {
+            const completedMessages = {
+              splash01:
+                '도마 청소가 완료되었습니다.',
+              splash02:
+                '유리창 청소가 완료되었습니다.',
+              splash03:
+                '변기 청소가 완료되었습니다.',
+              splash04:
+                '욕실 청소가 완료되었습니다.',
+            }
+            gameActions.setShowMessage(completedMessages[missionId])
+          } else {
+            gameActions.setShowMessage(missions[missionId].selectMessage)
+            gameActions.setShowLiquidMessage(missions[missionId].showLiquidMessage)
+            gameActions.setClickMessage(missions[missionId].showClickMessage)
+          }
+
           if (missionId === 'splash03' || missionId === 'splash04') {
             gameActions.setIsBathroomLightOn(true)
           }

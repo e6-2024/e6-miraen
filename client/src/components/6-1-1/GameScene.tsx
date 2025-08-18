@@ -106,7 +106,7 @@ export const GameScene: React.FC<GameSceneProps> = ({
         />
       </group>
 
-      {gameState.isBathroomLightOn &&  (
+      {gameState.isBathroomLightOn && (
         <rectAreaLight
           width={4}
           height={0.5}
@@ -142,7 +142,7 @@ export const GameScene: React.FC<GameSceneProps> = ({
               missions.splash03.position[2],
             ]}
             rotation={[Math.PI / 2, 0, 0]}
-            size={[1.2, 1.2]}
+            size={[2.0, 2.0]}
             missionId='splash03'
             visible={true}
           />
@@ -153,7 +153,7 @@ export const GameScene: React.FC<GameSceneProps> = ({
               missions.splash04.position[2],
             ]}
             rotation={[-Math.PI / 2, 0, 0]}
-            size={[2.0, 2.0]}
+            size={[4.0, 4.0]}
             missionId='splash04'
             visible={true}
           />
@@ -204,17 +204,16 @@ export const GameScene: React.FC<GameSceneProps> = ({
         <>
           <SpeechBubble
             position={missions.splash01.position}
-            html='도마에서 나는 생선 비린내 제거하기'
+            html='도마 청소하기'
             onBubbleClick={() => {
               onMissionClick('splash01', missions.splash01.position, missions.splash01.cameraPosition)
               playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3', 0.5)
             }}
-            
           />
 
           <SpeechBubble
             position={missions.splash02.position}
-            html='유리창의 얼룩 제거하기'
+            html='유리창 청소하기'
             onBubbleClick={() => {
               onMissionClick('splash02', missions.splash02.position, missions.splash02.cameraPosition)
               playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3', 0.5)
@@ -243,15 +242,17 @@ export const GameScene: React.FC<GameSceneProps> = ({
 
       <OrbitControls
         ref={controlsRef}
-        enabled={gameState.gamePhase === 'selection'}
-        maxPolarAngle={Math.PI / 2 - Math.PI / 30}
-        minPolarAngle={0}
+        minPolarAngle={gameState.gamePhase === 'selection' ? -Math.PI / 12 : 0}
+        maxPolarAngle={gameState.gamePhase === 'selection' ? Math.PI / 12 : Math.PI}
+        minAzimuthAngle={gameState.gamePhase === 'selection' ? Math.PI - Math.PI / 12 : -Infinity}
+        maxAzimuthAngle={gameState.gamePhase === 'selection' ? Math.PI + Math.PI / 12 : Infinity}
         enablePan={true}
-        enableZoom={!gameState.showIntro}
-        enableRotate={!gameState.showIntro}
+        enableZoom={true}
+        enableRotate={gameState.gamePhase === 'selection'}
         minDistance={0}
         maxDistance={30}
       />
+
       <directionalLight
         position={[5, 10, -5]}
         intensity={1.5}

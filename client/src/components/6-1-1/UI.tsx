@@ -6,11 +6,11 @@ interface BackButtonProps {
   onBack: () => void
   onButtonClick: () => void
   isAnimating: boolean
-  gamePhase :GamePhase
+  gamePhase: GamePhase
 }
 
-export function BackButton({ isZoomed, showIntro, onBack, onButtonClick, isAnimating, gamePhase}: BackButtonProps) {
-  if (!isZoomed || showIntro || gamePhase==='wiping') return null
+export function BackButton({ isZoomed, showIntro, onBack, onButtonClick, isAnimating, gamePhase }: BackButtonProps) {
+  if (!isZoomed || showIntro || gamePhase === 'wiping') return null
 
   return (
     <div className='absolute top-4 left-4 z-10'>
@@ -163,7 +163,7 @@ export function SolutionSelector({
             <button
               key={solution.id}
               onClick={() => {
-                if (!isDisabled) { 
+                if (!isDisabled) {
                   onSolutionSelect(solution.id as CleaningToolType)
                   onButtonClick?.()
                 }
@@ -173,10 +173,7 @@ export function SolutionSelector({
                 px-4 py-3 rounded-lg font-bold text-white shadow-lg 
                 transition-all text-black
                 ${selectedSolution === solution.id ? 'ring-4 ring-yellow-400' : ''}
-                ${isDisabled 
-                  ? 'opacity-50 cursor-not-allowed' 
-                  : 'hover:scale-105 active:scale-95 cursor-pointer'
-                }
+                ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 active:scale-95 cursor-pointer'}
               `}
               style={{ backgroundColor: solution.color }}>
               {solution.img && <img src={solution.img} alt={solution.name} className='w-24 h-24 object-contain' />}
@@ -184,12 +181,10 @@ export function SolutionSelector({
             </button>
           ))}
         </div>
-        
       </div>
     </div>
   )
 }
-
 
 interface GameMessagesProps {
   showMessage: string
@@ -204,21 +199,21 @@ export function GameMessages({
   gamePhase,
   wipingProgress,
   showLiquidMessage,
-  material
+  material,
 }: {
   showMessage: string
   showIntro: boolean
   gamePhase: GamePhase
   wipingProgress: number
   showLiquidMessage: string
-  material : string
+  material: string
 }) {
   if (showIntro) return null
 
   return (
     <>
       {showMessage && (
-        <div className='absolute bottom-3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none'>
+        <div className='absolute bottom-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none'>
           <div className='bg-black bg-opacity-70 text-white px-6 py-4 rounded-xl text-center'>
             <div className='text-xl font-bold'>{showMessage}</div>
           </div>
@@ -236,7 +231,9 @@ export function GameMessages({
       {gamePhase === 'wiping' && (
         <div className='absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none'>
           <div className='bg-green-600 bg-opacity-90 text-white px-6 py-4 rounded-xl text-center'>
-            <div className='text-lg font-bold'>{material} ({Math.round(wipingProgress)} %)</div>
+            <div className='text-lg font-bold'>
+              {material} ({Math.round(wipingProgress)} %)
+            </div>
           </div>
         </div>
       )}
