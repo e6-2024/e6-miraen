@@ -27,7 +27,7 @@ export const missions: Record<SplashType, MissionData> = {
     name: '도마',
     correctSolution: 'vinegar',
     position: [-2.5, 1.52, 6.6],
-    cameraPosition: [-1.05, 2.78, 5.6],
+    cameraPosition: [-2.05, 2.8, 6.6],
     selectMessage: '도마에서 나는 생선 비린내를 제거하기 위해 이용해야 할 용액을 고르세요.',
     completionMessage: '염기성 물질인 비린내는 산성 용액인 식초와 만나면 성질이 변하여 제거됩니다.',
     showLiquidMessage: '마우스를 클릭하여 용액을 뿌려주세요.',

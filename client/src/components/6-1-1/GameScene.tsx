@@ -124,7 +124,7 @@ export const GameScene: React.FC<GameSceneProps> = ({
           <CollisionPlane
             position={missions.splash01.position}
             rotation={[-Math.PI/2, 0, 0]}
-            size={[1.0, 1.0]}
+            size={[4.0, 4.0]}
             missionId='splash01'
             visible={false}
           />
@@ -132,7 +132,7 @@ export const GameScene: React.FC<GameSceneProps> = ({
           <CollisionPlane
             position={[missions.splash01.position[0]-0.5,missions.splash01.position[1]+0.2,missions.splash01.position[2]]}
             rotation={[Math.PI/2, Math.PI/2, 0]}
-            size={[1.0, 1.0]}
+            size={[4.0, 4.0]}
             missionId='splash01'
             visible={false}
           />
@@ -256,7 +256,7 @@ export const GameScene: React.FC<GameSceneProps> = ({
         minAzimuthAngle={gameState.gamePhase === 'selection' ? Math.PI - Math.PI / 12 : -Infinity}
         maxAzimuthAngle={gameState.gamePhase === 'selection' ? Math.PI + Math.PI / 12 : Infinity}
         enablePan={true}
-        enableZoom={true}
+        enableZoom={gameState.gamePhase === 'selection'}
         enableRotate={gameState.gamePhase === 'selection'}
         minDistance={0}
         maxDistance={30}

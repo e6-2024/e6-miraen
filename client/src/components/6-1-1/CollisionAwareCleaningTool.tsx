@@ -283,7 +283,7 @@ export const CollisionVinegarTool = ({
     rotation={[Math.PI, 0, Math.PI / 4]}
     onSpray={onSpray}
     isSprayActive={isSprayActive}
-    collisionOffset={[0, 0.1, 0]}
+    collisionOffset={[0, 0.02, 0]}
     collisionType='proximity'
     debugCollision={false}
   />
