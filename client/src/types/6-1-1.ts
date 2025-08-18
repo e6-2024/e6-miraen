@@ -52,7 +52,7 @@ export const missions: Record<SplashType, MissionData> = {
     cameraPosition: [10, 3.2, -0.33],
     selectMessage: '변기의 때를 제거하기 위해 이용해야 할 용액을 고르세요.',
     completionMessage: '염기성 용액인 변기용 세제로 오염이 깨끗하게 제거되었습니다.',
-    showLiquidMessage: '클릭하여 용액을 뿌려주세요.',
+    showLiquidMessage: '마우스를 클릭하여 용액을 뿌려주세요.',
     showClickMessage: '마우스를 움직여서 변기를 닦아주세요!',
   },
   splash04: {
