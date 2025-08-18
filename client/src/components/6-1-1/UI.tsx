@@ -155,7 +155,7 @@ export function SolutionSelector({
   ]
 
   return (
-    <div className='absolute top-4 right-4 z-10'>
+    <div className='absolute bottom-4 right-4 z-10'>
       <div className='bg-white bg-opacity-95 p-4 rounded-xl shadow-lg border-2 border-gray-200'>
         <div className='text-lg font-bold mb-3 text-center text-gray-800'>용액 선택</div>
         <div className='grid grid-cols-2 gap-3'>
@@ -214,7 +214,7 @@ export function GameMessages({
     <>
       {showMessage && (
         <div className='absolute bottom-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none'>
-          <div className='bg-black bg-opacity-70 text-white px-6 py-4 rounded-xl text-center'>
+          <div className='bg-black whitespace-nowrap bg-opacity-70 text-white px-6 py-4 rounded-xl text-center'>
             <div className='text-xl font-bold'>{showMessage}</div>
           </div>
         </div>

@@ -2,7 +2,7 @@ import { Canvas } from '@react-three/fiber'
 import { CleaningProgressUI, GameMessages, SolutionSelector } from '@/components/6-1-1/UI'
 import Scene from '@/components/canvas/Scene'
 import Intro from '@/components/intro/Intro'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import * as THREE from 'three'
 import IntroMouseCameraController from '@/components/IntroMouseCameraController'
 import { SplashType, initialCamera, solutionColors } from '../types/6-1-1'
@@ -13,6 +13,7 @@ import { useCameraController } from '@/components/6-1-1/useCameraController'
 import { useGameHandlers } from '@/components/6-1-1/useGameHandlers'
 import { useAudioManager } from '@/components/6-1-1/useAudioManager'
 import { GameScene } from '@/components/6-1-1/GameScene'
+import { CrayonTextButton } from '@/components/CrayonUIButton'
 
 function BackButton({
   isZoomed,
@@ -80,6 +81,90 @@ export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false)
   const [perfSucks, degrade] = useState(false)
 
+  // --- BGM 상태 ---
+  const bgmRef = useRef<HTMLAudioElement | null>(null)
+  const [bgmEnabled, setBgmEnabled] = useState<boolean>(true) // 초기 고정값
+  const [bgmReady, setBgmReady] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => setMounted(true), [])
+
+  // localStorage -> 상태 동기화 (마운트 후)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('bgmEnabled')
+      if (saved !== null) setBgmEnabled(JSON.parse(saved))
+    } catch {}
+  }, [])
+
+  // 인스턴스 준비
+  useEffect(() => {
+    const el = new Audio('/sounds/6-1-1/6-1-1-BGM.mp3') // ★ 6-1-1 프로젝트에 맞는 BGM 경로로 변경
+    el.loop = true
+    el.volume = 0.05
+    bgmRef.current = el
+    return () => {
+      el.pause()
+      bgmRef.current = null
+    }
+  }, [])
+
+  // 탭 가시성에 따른 일시정지/재개
+  useEffect(() => {
+    const handleVisibility = () => {
+      const el = bgmRef.current
+      if (!el) return
+      if (document.visibilityState === 'hidden') el.pause()
+      else if (bgmEnabled && bgmReady) el.play().catch(() => {})
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
+  }, [bgmEnabled, bgmReady])
+
+  // 페이드 함수
+  const fadeTo = useCallback(async (targetVol: number, ms = 400) => {
+    const el = bgmRef.current
+    if (!el) return
+    const start = el.volume
+    const startTime = performance.now()
+    return new Promise<void>((resolve) => {
+      const tick = (t: number) => {
+        const k = Math.min(1, (t - startTime) / ms)
+        el.volume = start + (targetVol - start) * k
+        if (k < 1) requestAnimationFrame(tick)
+        else resolve()
+      }
+      requestAnimationFrame(tick)
+    })
+  }, [])
+
+  // 상태 반영(저장/재생/일시정지)
+  useEffect(() => {
+    const el = bgmRef.current
+    if (!el) return
+    try {
+      localStorage.setItem('bgmEnabled', JSON.stringify(bgmEnabled))
+    } catch {}
+    const run = async () => {
+      if (bgmEnabled && bgmReady) {
+        await el.play().catch(() => {})
+        await fadeTo(0.2, 300)
+      } else {
+        await fadeTo(0.0, 200)
+        el.pause()
+      }
+    }
+    run()
+  }, [bgmEnabled, bgmReady, fadeTo])
+
+  const toggleBgm = () => {
+    setBgmEnabled((v) => {
+      const next = !v
+      if (next) setBgmReady(true) // 토글로 켜도 바로 준비
+      return next
+    })
+  }
+
   // 커스텀 훅들
   const audio = useAudioManager()
   const { controlsRef, moveToTarget, resetCamera } = useCameraController(gameState, gameActions)
@@ -123,6 +208,12 @@ export default function Home() {
         audio.playNarration(narrationFiles[missionId as SplashType])
       }, 1000)
     }
+  }
+
+  const handleEnterExperience = () => {
+    audio.playSound('/sounds/Enter_Cute.mp3')
+    setBgmReady(true)
+    setTimeout(() => gameActions.setShowIntro(false), 300)
   }
 
   // 마우스 이벤트 리스너들
@@ -173,6 +264,27 @@ export default function Home() {
 
   return (
     <div className='w-screen h-screen bg-white flex flex-col'>
+      {mounted && (
+        <>
+          <CrayonTextButton
+            ariaLabel={bgmEnabled ? '배경음악 끄기' : '배경음악 켜기'}
+            icon={(bgmEnabled ? 'volume2' : 'volumeX').toLowerCase()}
+            position='absolute'
+            iconPosition='left'
+            onClick={toggleBgm}
+            width={108}
+            height={108}
+            color='#ffffff'
+            textcolor='#ffffff'
+            bg='rgba(255,255,255,0.10)'
+            className='background-blur border-white/20 z-[1300]'
+            right={16}
+            top={16}
+            iconSize={40}
+          />
+        </>
+      )}
+
       <BackButton
         isZoomed={gameState.isZoomed}
         showIntro={gameState.showIntro}
@@ -231,10 +343,7 @@ export default function Home() {
 
       {isLoaded && gameState.showIntro && (
         <Intro
-          onEnter={() => {
-            audio.playSound('/sounds/Enter_Cute.mp3')
-            setTimeout(() => gameActions.setShowIntro(false), 300)
-          }}
+          onEnter={handleEnterExperience}
           title='산성 용액과 염기성 용액을 이용하는 예 알아보기'
           description={['산성 용액과 염기성 용액이 집 안에서 어떻게 이용되는지 알아봅시다.']}
           backgroundSvg='/img/cover/6-1-1.svg'
