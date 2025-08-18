@@ -30,8 +30,8 @@ export function CollisionPlane({
       <planeGeometry args={[size[0], size[1]]} />
       <meshBasicMaterial
         transparent
-        opacity={visible ? 0.3 : 0}
-        color={visible ? '#ff0000' : '#ffffff'}
+        opacity={visible ? 0.3 : 0.3}
+        // color={'#ff0000'}
         side={THREE.DoubleSide}
       />
     </mesh>
