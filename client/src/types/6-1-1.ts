@@ -14,6 +14,13 @@ export interface MissionData {
   showClickMessage: string
 }
 
+export const solutionColors: Record<CleaningToolType, string> = {
+  vinegar: '#F4D03F',         // 식초 = 노랑
+  bleach: '#072772',          // 표백제 = 파랑
+  toilet_cleaner: '#8E44AD',  // 변기용 세제 = 보라
+  spray: '#3498DB',           // 유리 세정제 = 파랑
+}
+
 export const missions: Record<SplashType, MissionData> = {
   splash01: {
     id: 'splash01',
@@ -23,7 +30,7 @@ export const missions: Record<SplashType, MissionData> = {
     cameraPosition: [-1.05, 2.78, 5.6],
     selectMessage: '도마에서 나는 생선 비린내를 제거하기 위해 이용해야 할 용액을 고르세요.',
     completionMessage: '염기성 물질인 비린내는 산성 용액인 식초와 만나면 성질이 변하여 제거됩니다.',
-    showLiquidMessage: '클릭하여 용액을 뿌려주세요.',
+    showLiquidMessage: '마우스를 클릭하여 용액을 뿌려주세요.',
     showClickMessage: '마우스를 움직여서 도마를 닦아주세요!',
   },
   splash02: {
@@ -34,7 +41,7 @@ export const missions: Record<SplashType, MissionData> = {
     cameraPosition: [0, -1, -1.2],
     selectMessage: '유리창의 얼룩을 제거하기 위해 이용해야 할 용액을 고르세요.',
     completionMessage: '산성 용액인 유리 세정제로 얼룩이 깨끗하게 제거되었습니다.',
-    showLiquidMessage: '클릭하여 용액을 뿌려주세요.',
+    showLiquidMessage: '마우스를 클릭하여 용액을 뿌려주세요.',
     showClickMessage: '마우스를 움직여서 유리창을 닦아주세요!',
   },
   splash03: {
@@ -56,7 +63,7 @@ export const missions: Record<SplashType, MissionData> = {
     cameraPosition: [7.4, 1.0, -0.8],
     selectMessage: '욕실을 청소하기 위해 이용해야 할 용액을 고르세요.',
     completionMessage: '염기성 용액인 표백제로 곰팡이가 깨끗하게 제거되었습니다.',
-    showLiquidMessage: '클릭하여 용액을 뿌려주세요.',
+    showLiquidMessage: '마우스를 클릭하여 용액을 뿌려주세요.',
     showClickMessage: '마우스를 움직여서 욕실 바닥을 닦아주세요!',
   },
 }
@@ -76,6 +83,6 @@ export const wipingEfficiency = {
 }
 
 export const initialCamera = {
-  position: [-5.4, 19.04, -15.91] as [number, number, number],
+  position: [-1.29, 21,-4.41] as [number, number, number],
   target: [0, 0, 0] as [number, number, number],
 }

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import AudioManager from '../5-1-1/AudioManager'
+import AudioManager from './AudioManager'
+import { CrayonTextButton } from '../CrayonUIButton'
+import { CrayonTextBox } from '../CrayonTextBox'
 
 interface ActivityGuideSlide {
   id: string
@@ -55,9 +57,7 @@ const ActivityGuideModal: React.FC<{
   const audioManager = AudioManager.getInstance()
 
   useEffect(() => {
-    if (isOpen) {
-      setCurrentSlide(0)
-    }
+    if (isOpen) setCurrentSlide(0)
   }, [isOpen])
 
   useEffect(() => {
@@ -67,9 +67,7 @@ const ActivityGuideModal: React.FC<{
   }, [currentSlide, isOpen, slides, audioManager])
 
   useEffect(() => {
-    if (!isOpen) {
-      audioManager.stopCurrentAudio()
-    }
+    if (!isOpen) audioManager.stopCurrentAudio()
   }, [isOpen, audioManager])
 
   const handleClose = () => {
@@ -80,18 +78,13 @@ const ActivityGuideModal: React.FC<{
 
   const handleNext = () => {
     audioManager.playGeneralButton()
-    if (currentSlide < slides.length - 1) {
-      setCurrentSlide(prev => prev + 1)
-    } else {
-      handleClose()
-    }
+    if (currentSlide < slides.length - 1) setCurrentSlide((p) => p + 1)
+    else handleClose()
   }
 
   const handlePrevious = () => {
     audioManager.playGeneralButton()
-    if (currentSlide > 0) {
-      setCurrentSlide(prev => prev - 1)
-    }
+    if (currentSlide > 0) setCurrentSlide((p) => p - 1)
   }
 
   if (!isOpen || slides.length === 0) return null
@@ -104,95 +97,117 @@ const ActivityGuideModal: React.FC<{
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-          onClick={handleClose}
-        >
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.8, opacity: 0 }}
-            transition={{ duration: 0.3, type: "spring", damping: 20 }}
-            className="relative bg-white rounded-3xl shadow-2xl max-w-6xl w-[95vw] max-h-[95vh] overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* 닫기 버튼 */}
-            <button
-              onClick={handleClose}
-              className="absolute top-6 right-6 z-10 w-14 h-14 bg-[#FF6B6B] rounded-[20px] shadow-[inset_0px_-5px_5px_0px_rgba(152,0,0,0.50)] inline-flex justify-center items-center text-white font-bold text-3xl hover:bg-[#FF8A8A] hover:shadow-[inset_0px_-5px_5px_0px_rgba(152,0,0,0.70)] active:scale-90 active:translate-y-1 active:shadow-[inset_0px_-2px_2px_0px_rgba(152,0,0,0.50)] transition-all duration-300 [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]"
-              aria-label="닫기"
-            >
-              ×
-            </button>
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.95, opacity: 0 }}
+          transition={{ duration: 0.25, type: 'spring', damping: 20 }}
+          className='fixed inset-0 z-[1100] flex items-center justify-center bg-black/50'
+          onClick={(e) => e.stopPropagation()}>
+          <CrayonTextBox
+            bg='#FFFFFF'
+            color='#52AE46'
+            textcolor='#A1CC90'
+            padding={16}
+            animated={true}
+            className='w-[80vw] flex flex-col'>
+            {/* 상단 닫기 버튼 */}
+            <div className='shrink-0 w-full flex justify-end z-20'>
+              <CrayonTextButton
+                ariaLabel='닫기'
+                icon='x'
+                iconPosition='left'
+                width={56}
+                height={56}
+                bg='#FF6B6B'
+                color='#B63A3A'
+                textcolor='#FFFFFF'
+                className='active:scale-90 transition-all duration-300'
+                onClick={handleClose}
+                innerCircleVisible={false}
+              />
+            </div>
 
-            {/* 메인 콘텐츠 */}
-            <div className="flex flex-col h-full">
-              <div className="flex-1 flex items-center justify-center p-4 relative">
-                <div className="max-w-full max-h-full flex-1">
-                  <img
-                    src={currentSlideData.image}
-                    alt={`활동 방법 ${currentSlide + 1}`}
-                    className="w-full h-full object-contain rounded-2xl shadow-lg"
-                  />
-                </div>
+            {/* 메인 영역 */}
+            <div className='relative flex-1 px-2 pb-2'>
+              <div className='relative flex items-center justify-center p-2'>
+                <img
+                  src={currentSlideData.image}
+                  alt={`활동 방법 ${currentSlide + 1}`}
+                  className='w-[90%] object-contain rounded-2xl'
+                />
 
-                {/* 이전 버튼 - 이미지 중심에 위치 */}
                 {!isFirstSlide && (
-                  <button
-                    onClick={handlePrevious}
-                    className="absolute left-6 top-1/2 transform -translate-y-1/2 z-10 w-16 h-16 bg-[#9E9E9E] rounded-[20px] shadow-[inset_0px_-8px_8px_0px_rgba(50,50,50,0.50)] inline-flex justify-center items-center text-white hover:bg-[#BDBDBD] hover:shadow-[inset_0px_-8px_8px_0px_rgba(50,50,50,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(50,50,50,0.50)] transition-all duration-300"
-                    aria-label="이전 슬라이드"
-                  >
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" style={{ filter: 'drop-shadow(0px 0px 4px rgba(0,0,0,0.25))' }}>
-                      <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
-                    </svg>
-                  </button>
-                )}
-
-                {/* 다음 버튼 - 이미지 중심에 위치 */}
-                {!isLastSlide && (
-                  <button
-                    onClick={handleNext}
-                    className="absolute right-6 top-1/2 transform -translate-y-1/2 z-10 w-16 h-16 bg-[#9E9E9E] rounded-[20px] shadow-[inset_0px_-8px_8px_0px_rgba(50,50,50,0.50)] inline-flex justify-center items-center text-white hover:bg-[#BDBDBD] hover:shadow-[inset_0px_-8px_8px_0px_rgba(50,50,50,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(50,50,50,0.50)] transition-all duration-300"
-                    aria-label="다음 슬라이드"
-                  >
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" style={{ filter: 'drop-shadow(0px 0px 4px rgba(0,0,0,0.25))' }}>
-                      <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
-                    </svg>
-                  </button>
-                )}
-              </div>
-
-              <div className="p-4 border-t border-gray-200">
-                <div className="flex justify-center mb-6">
-                  {slides.map((_, index) => (
-                    <div
-                      key={index}
-                      className={`w-2 h-2 rounded-full mx-2 transition-all duration-300 ${
-                        index === currentSlide 
-                          ? 'bg-[#4CAF50] shadow-[0px_0px_8px_rgba(76,175,80,0.6)] scale-125' 
-                          : 'bg-gray-300 hover:bg-gray-400'
-                      }`}
+                  <div className='absolute left-0 top-1/2 -translate-y-1/2 z-10'>
+                    <CrayonTextButton
+                      ariaLabel='이전 슬라이드'
+                      icon='chevron-left'
+                      iconPosition='left'
+                      width={56}
+                      height={56}
+                      bg='#9E9E9E'
+                      color='#666666'
+                      textcolor='#FFFFFF'
+                      className='hover:brightness-110 active:scale-90 transition-all duration-300'
+                      onClick={handlePrevious}
+                      innerCircleVisible={false}
                     />
-                  ))}
-                </div>
+                  </div>
+                )}
 
-                <div className="flex justify-center">
-                  <button
-                    onClick={handleNext}
-                    className="px-12 pt-4 pb-5 bg-[#4CAF50] rounded-[25px] shadow-[inset_0px_-10px_10px_0px_rgba(0,152,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#66BB6A] hover:shadow-[inset_0px_-10px_10px_0px_rgba(0,152,0,0.70)] active:scale-95 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(0,152,0,0.50)] transition-all duration-300 hover:scale-105 min-w-[120px] max-h-[80px]"
-                  >
-                    <div className="text-center justify-center text-white text-2xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]">
-                      {isLastSlide ? '확인' : '다음'}
-                    </div>
-                  </button>
-                </div>
+                {!isLastSlide && (
+                  <div className='absolute right-0 top-1/2 -translate-y-1/2 z-10'>
+                    <CrayonTextButton
+                      ariaLabel='다음 슬라이드'
+                      icon='chevron-right'
+                      iconPosition='left'
+                      width={56}
+                      height={56}
+                      bg='#9E9E9E'
+                      color='#666666'
+                      textcolor='#FFFFFF'
+                      className='hover:brightness-110 active:scale-90 transition-all duration-300'
+                      onClick={handleNext}
+                      innerCircleVisible={false}
+                    />
+                  </div>
+                )}
               </div>
             </div>
-          </motion.div>
+
+            {/* 하단 풋터 */}
+            <div className='flex-1 pt-2'>
+              <div className='flex justify-center mb-3'>
+                {slides.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`w-2 h-2 rounded-full mx-2 transition-all duration-300 ${
+                      index === currentSlide
+                        ? 'bg-[#52AE46] shadow-[0_0_8px_rgba(82,174,170,0.6)] scale-125'
+                        : 'bg-gray-300 hover:bg-gray-400'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              <div className='flex justify-center'>
+                <CrayonTextButton
+                  ariaLabel={isLastSlide ? '확인' : '다음'}
+                  text={isLastSlide ? '확인' : '다음'}
+                  icon={isLastSlide ? 'check' : 'chevron-right'}
+                  iconPosition='right'
+                  width={160}
+                  height={60}
+                  iconSize={30}
+                  color='#A1CC90'
+                  bg='#52AE46'
+                  textcolor='#FFFFFF'
+                  className='relative hover:brightness-110 active:scale-95 transition-all duration-300'
+                  onClick={handleNext}
+                  innerCircleVisible={false}
+                />
+              </div>
+            </div>
+          </CrayonTextBox>
         </motion.div>
       )}
     </AnimatePresence>

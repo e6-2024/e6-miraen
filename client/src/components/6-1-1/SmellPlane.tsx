@@ -12,11 +12,11 @@ export const CuttingBoardSmell: React.FC<{
   const texture = useTexture('/img/Smell.png')
   
   const planes = useMemo(() => {
-    return Array.from({ length: 4 }, (_, i) => ({
+    return Array.from({ length: 1 }, (_, i) => ({
       position: [
-        position[0] + (Math.random() - 0.5) * 0.5,
-        position[1] + i * 0.2 + Math.random() * 0.4,
-        position[2] + (Math.random() - 0.5) * 0.5
+        position[0],
+        position[1] + Math.random() * 0.2,
+        position[2]
       ] as [number, number, number],
       rotation: [0, Math.PI/2, 0] as [number, number, number],
       scale: 0.3 + Math.random() * 0.2,
