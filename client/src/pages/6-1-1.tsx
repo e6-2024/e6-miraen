@@ -236,7 +236,7 @@ export default function Home() {
             setTimeout(() => gameActions.setShowIntro(false), 300)
           }}
           title='산성 용액과 염기성 용액을 이용하는 예 알아보기'
-          description={['집 안에서 이용하고 있는 산성 용액과 염기성 용액이 어떻게 이용되는지 알아봅시다.']}
+          description={['산성 용액과 염기성 용액이 집 안에서 어떻게 이용되는지 알아봅시다.']}
           backgroundSvg='/img/cover/6-1-1.svg'
           descriptionSound='/sounds/6-1-1/narration/6-1-1-Goal.MP3'
           onActivityGuide={handleShowActivityGuide}
