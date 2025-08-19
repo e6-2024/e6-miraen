@@ -1,34 +1,40 @@
 'use client'
 
-import React, { useRef, useEffect, useState } from 'react'
+import React, { useRef, useEffect, useState, useMemo } from 'react'
 import { useGLTF } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 
 const COLLISION_LAYER = 2
 
+type OrientationMode = 'face' | 'yaw' | 'fixed'
+
 interface CollisionAwareCleaningToolProps {
   modelPath: string
   visible: boolean
   scale?: number
-  rotation?: [number, number, number]
+  rotationOffset?: [number, number, number]
   onSpray?: () => void
   isSprayActive?: boolean
   collisionOffset?: [number, number, number]
   collisionType?: 'surface' | 'proximity' | 'strict'
   debugCollision?: boolean
+  orientationMode?: OrientationMode
+  rotationSlerp?: number
 }
 
 export const CollisionAwareCleaningTool = ({
   modelPath,
   visible,
   scale = 1,
-  rotation = [0, 0, 0],
+  rotationOffset = [0, 0, 0],
   onSpray,
   isSprayActive = false,
   collisionOffset = [0, 0, 0],
   collisionType = 'surface',
   debugCollision = false,
+  orientationMode = 'yaw',
+  rotationSlerp = 0.2,
 }: CollisionAwareCleaningToolProps) => {
   const gltf = useGLTF(modelPath)
   const meshRef = useRef<THREE.Group>(null)
@@ -39,8 +45,16 @@ export const CollisionAwareCleaningTool = ({
   const [targetPosition, setTargetPosition] = useState(() => new THREE.Vector3())
 
   const [sprayAnimations, setSprayAnimations] = useState<Array<{ id: number; startTime: number; duration: number }>>([])
-
   const sprayTextureRef = useRef<THREE.Mesh[]>([])
+
+  const tmpVec = useRef(new THREE.Vector3())
+  const up = useRef(new THREE.Vector3(0, 1, 0))
+  const qBase = useRef(new THREE.Quaternion())
+  const qTarget = useRef(new THREE.Quaternion())
+  const qOffset = useMemo(
+    () => new THREE.Quaternion().setFromEuler(new THREE.Euler(...rotationOffset, 'XYZ')),
+    [rotationOffset]
+  )
 
   const configureShadows = (root: THREE.Object3D) => {
     root.traverse((child) => {
@@ -204,12 +218,34 @@ export const CollisionAwareCleaningTool = ({
         return next
       })
 
-      const lookAtPosition = camera.position.clone()
-      meshRef.current.lookAt(lookAtPosition)
-      meshRef.current.rotation.x += rotation[0]
-      meshRef.current.rotation.y += rotation[1]
-      meshRef.current.rotation.z += rotation[2]
-      meshRef.current.scale.setScalar(scale)
+      const obj = meshRef.current
+      obj.scale.setScalar(scale)
+
+      if (orientationMode === 'fixed') {
+        qTarget.current.copy(qOffset)
+      } else if (orientationMode === 'face') {
+        obj.lookAt(camera.position)
+        qBase.current.copy(obj.quaternion)
+        qTarget.current.copy(qBase.current).multiply(qOffset)
+      } else {
+        const v = tmpVec.current
+        v.copy(camera.position).sub(obj.position)
+        v.y = 0
+        if (v.lengthSq() < 1e-6) {
+          qTarget.current.copy(obj.quaternion)
+        } else {
+          v.normalize()
+          const m = new THREE.Matrix4().lookAt(new THREE.Vector3(0, 0, 0), v, up.current)
+          qBase.current.setFromRotationMatrix(m).invert()
+          qTarget.current.copy(qBase.current).multiply(qOffset)
+        }
+      }
+
+      if (rotationSlerp > 0) {
+        obj.quaternion.slerp(qTarget.current, rotationSlerp)
+      } else {
+        obj.quaternion.copy(qTarget.current)
+      }
     }
 
     const now = Date.now()
@@ -243,7 +279,7 @@ export const CollisionAwareCleaningTool = ({
   return <group ref={meshRef} />
 }
 
-/* ---- Tool wrappers (same API as before) ---- */
+/* ---- Tool wrappers ---- */
 
 export const CollisionSprayTool = ({
   visible,
@@ -257,8 +293,9 @@ export const CollisionSprayTool = ({
   <CollisionAwareCleaningTool
     modelPath='/models/6-1-1/Window/Window_cleaner_Spray.glb'
     visible={visible}
-    scale={1.3}
-    rotation={[0, 0, Math.PI / 4]}
+    scale={1.2}
+    rotationOffset={[Math.PI/3, Math.PI-Math.PI/6, 0]}
+    orientationMode='fixed'
     onSpray={onSpray}
     isSprayActive={isSprayActive}
     collisionOffset={[0, 0.15, 0]}
@@ -279,11 +316,12 @@ export const CollisionVinegarTool = ({
   <CollisionAwareCleaningTool
     modelPath='/models/6-1-1/Vinegar_Spray/Vinegar.glb'
     visible={visible}
-    scale={2}
-    rotation={[Math.PI, 0, Math.PI / 4]}
+    scale={4}
+    rotationOffset={[-Math.PI/4, Math.PI, 0]}
+    orientationMode='yaw'
     onSpray={onSpray}
     isSprayActive={isSprayActive}
-    collisionOffset={[0, 0.02, 0]}
+    collisionOffset={[0, 0.2, 0]}
     collisionType='proximity'
     debugCollision={false}
   />
@@ -302,7 +340,8 @@ export const CollisionBleachTool = ({
     modelPath='/models/6-1-1/Bleach/Bleach.glb'
     visible={visible}
     scale={4}
-    rotation={[Math.PI, 0, Math.PI / 4]}
+    rotationOffset={[-Math.PI/4, Math.PI, 0]}
+    orientationMode='yaw'
     onSpray={onSpray}
     isSprayActive={isSprayActive}
     collisionOffset={[0, 0.2, 0]}
@@ -321,10 +360,11 @@ export const CollisionToiletCleanerTool = ({
   isSprayActive?: boolean
 }) => (
   <CollisionAwareCleaningTool
-    modelPath='/models/6-1-1/Toilet_bleach/Toilet_Bleach.glb'
+    modelPath='/models/6-1-1/Toilet_bleach/Toilet_Bleach.gltf'
     visible={visible}
-    scale={0.02}
-    rotation={[0, 0, 0]}
+    scale={2}
+    rotationOffset={[-Math.PI/2, Math.PI-Math.PI/6, 0]}
+    orientationMode='fixed'
     onSpray={onSpray}
     isSprayActive={isSprayActive}
     collisionOffset={[0, 0.1, 0]}
@@ -338,7 +378,8 @@ export const CollisionGlassRagTool = ({ visible }: { visible: boolean }) => (
     modelPath='/models/6-1-1/Rag/Rag.glb'
     visible={visible}
     scale={0.05}
-    rotation={[0, 0, 0]}
+    rotationOffset={[0, Math.PI/2, 0]}
+    orientationMode='fixed'
     collisionOffset={[0, 0.1, 0]}
     collisionType='strict'
     debugCollision={false}
@@ -350,7 +391,8 @@ export const CollisionToiletBrushTool = ({ visible }: { visible: boolean }) => (
     modelPath='/models/6-1-1/Toilet_Brush/Toilet_Brush.glb'
     visible={visible}
     scale={0.7}
-    rotation={[-Math.PI / 2, -Math.PI, 0]}
+    rotationOffset={[-Math.PI /4, -Math.PI/2, 0]}
+    orientationMode='fixed'
     collisionOffset={[0, 0.3, 0]}
     collisionType='strict'
     debugCollision={false}
@@ -361,8 +403,9 @@ export const CollisionBathroomScrubTool = ({ visible }: { visible: boolean }) =>
   <CollisionAwareCleaningTool
     modelPath='/models/6-1-1/Bathroom_Scrub/scrub.glb'
     visible={visible}
-    scale={0.02}
-    rotation={[0, -Math.PI / 10, 0]}
+    scale={0.01}
+    rotationOffset={[0, -Math.PI / 10, 0]}
+    orientationMode='fixed'
     collisionOffset={[0, 0.17, 0]}
     collisionType='strict'
     debugCollision={false}
@@ -373,7 +416,7 @@ export const CollisionBathroomScrubTool = ({ visible }: { visible: boolean }) =>
 useGLTF.preload('/models/6-1-1/Window/Window_cleaner_Spray.glb')
 useGLTF.preload('/models/6-1-1/Vinegar_Spray/Vinegar.glb')
 useGLTF.preload('/models/6-1-1/Bleach/Bleach.glb')
-useGLTF.preload('/models/6-1-1/Toilet_bleach/Toilet_Bleach.glb')
+useGLTF.preload('/models/6-1-1/Toilet_bleach/Toilet_Bleach.gltf')
 useGLTF.preload('/models/6-1-1/Rag/Rag.glb')
 useGLTF.preload('/models/6-1-1/Toilet_Brush/Toilet_Brush.glb')
 useGLTF.preload('/models/6-1-1/Bathroom_Scrub/scrub.glb')

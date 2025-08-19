@@ -16,8 +16,8 @@ export interface MissionData {
 
 export const solutionColors: Record<CleaningToolType, string> = {
   vinegar: '#F4D03F',         // 식초 = 노랑
-  bleach: '#072772',          // 표백제 = 파랑
-  toilet_cleaner: '#8E44AD',  // 변기용 세제 = 보라
+  bleach: '#65bef9',          // 표백제 = 파랑
+  toilet_cleaner: '#FFF',  // 변기용 세제 = 보라
   spray: '#3498DB',           // 유리 세정제 = 파랑
 }
 
@@ -49,7 +49,7 @@ export const missions: Record<SplashType, MissionData> = {
     name: '변기',
     correctSolution: 'toilet_cleaner',
     position: [10.22, 2, 0.33],
-    cameraPosition: [10, 3.2, -0.33],
+    cameraPosition: [10, 4.0, -0.33],
     selectMessage: '변기의 때를 제거하기 위해 이용해야 할 용액을 고르세요.',
     completionMessage: '염기성 용액인 변기용 세제로 오염이 깨끗하게 제거되었습니다.',
     showLiquidMessage: '마우스를 클릭하여 용액을 뿌려주세요.',

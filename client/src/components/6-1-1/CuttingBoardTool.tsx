@@ -161,13 +161,13 @@ export const CuttingBoard: React.FC<CuttingBoardProps> = ({
     if (!ragMeshRef.current || !bloodMeshRef.current || !sprayMeshRef.current) return
 
     if (isInteractive) {
-      const targetX = initialRagX.current + mouseVelocity.current * 8
-      currentRagX.current = THREE.MathUtils.lerp(currentRagX.current, targetX, delta * 10)
+      const targetX = initialRagX.current + mouseVelocity.current * 2.5
+      currentRagX.current = THREE.MathUtils.lerp(currentRagX.current, targetX, delta * 8)
       ragMeshRef.current.position.x = currentRagX.current
 
-      currentRagX.current = THREE.MathUtils.lerp(currentRagX.current, initialRagX.current, delta * 3)
+      currentRagX.current = THREE.MathUtils.lerp(currentRagX.current, initialRagX.current, delta * 1.5)
 
-      mouseVelocity.current *= 0.9
+      mouseVelocity.current *= 0.3
     } else {
       ragMeshRef.current.position.x = initialRagX.current
     }

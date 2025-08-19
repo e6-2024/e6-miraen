@@ -23,15 +23,21 @@
 		{
 			"mesh":0,
 			"name":"SprayCleaner_Material #41_0.003",
+			"rotation":[
+				0,
+				-0.0026277173310518265,
+				0,
+				0.999996542930603
+			],
 			"scale":[
+				1.1432658433914185,
 				1.14326810836792,
-				1.1432684659957886,
-				1.0517657995224
+				1.051768183708191
 			],
 			"translation":[
-				-4.738675117492676,
-				0.015847131609916687,
-				10.15178108215332
+				-4.716376304626465,
+				0.01584712229669094,
+				10.1573486328125
 			]
 		},
 		{
@@ -41,15 +47,20 @@
 			"mesh":1,
 			"name":"SprayCleaner_Material #41_0.002",
 			"rotation":[
-				-0.70710688829422,
-				0,
-				0,
-				0.7071066498756409
+				-0.5000002384185791,
+				0.49999985098838806,
+				0.5000001192092896,
+				0.4999999403953552
 			],
 			"scale":[
-				0.009526296518743038,
-				0.009526293724775314,
-				0.010355072095990181
+				0.0027013281360268593,
+				0.0027013260405510664,
+				0.0029363392386585474
+			],
+			"translation":[
+				9.683286771178246e-05,
+				0.04179176688194275,
+				0.002853959798812866
 			]
 		},
 		{
@@ -57,64 +68,19 @@
 			"name":"Plane",
 			"rotation":[
 				0,
-				1,
+				-0.7071068286895752,
 				0,
-				7.549789415861596e-08
+				0.7071067094802856
 			],
 			"scale":[
-				0.17918917536735535,
-				0.07878874242305756,
-				0.04293149709701538
+				0.05081183463335037,
+				0.022341756150126457,
+				0.012173883616924286
 			],
 			"translation":[
-				-0.22534944117069244,
-				0.14048682153224945,
-				0
-			]
-		}
-	],
-	"animations":[
-		{
-			"channels":[
-				{
-					"sampler":0,
-					"target":{
-						"node":0,
-						"path":"translation"
-					}
-				},
-				{
-					"sampler":1,
-					"target":{
-						"node":0,
-						"path":"rotation"
-					}
-				},
-				{
-					"sampler":2,
-					"target":{
-						"node":0,
-						"path":"scale"
-					}
-				}
-			],
-			"name":"SprayCleaner_Material #41_0.003",
-			"samplers":[
-				{
-					"input":25,
-					"interpolation":"LINEAR",
-					"output":26
-				},
-				{
-					"input":25,
-					"interpolation":"LINEAR",
-					"output":27
-				},
-				{
-					"input":25,
-					"interpolation":"LINEAR",
-					"output":28
-				}
+				9.682169184088707e-05,
+				0.0816289633512497,
+				0.0667552500963211
 			]
 		}
 	],
@@ -122,7 +88,7 @@
 		{
 			"alphaMode":"BLEND",
 			"doubleSided":true,
-			"name":"Material_41",
+			"name":"Material_41.001",
 			"normalTexture":{
 				"index":0
 			},
@@ -142,7 +108,7 @@
 		{
 			"alphaMode":"BLEND",
 			"doubleSided":true,
-			"name":"Material.009",
+			"name":"Material.017",
 			"pbrMetallicRoughness":{
 				"baseColorFactor":[
 					0.03538132831454277,
@@ -165,7 +131,7 @@
 			"emissiveTexture":{
 				"index":3
 			},
-			"name":"Material.001",
+			"name":"Material.018",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
 					"index":4
@@ -185,7 +151,7 @@
 			"emissiveTexture":{
 				"index":5
 			},
-			"name":"Material.002",
+			"name":"Material.019",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
 					"index":6
@@ -197,7 +163,7 @@
 	],
 	"meshes":[
 		{
-			"name":"SprayCleaner_Material #41_0.003",
+			"name":"SprayCleaner_Material #41_0.002",
 			"primitives":[
 				{
 					"attributes":{
@@ -226,7 +192,7 @@
 			]
 		},
 		{
-			"name":"SprayCleaner_Material #41_0.002",
+			"name":"SprayCleaner_Material #41_0.001",
 			"primitives":[
 				{
 					"attributes":{
@@ -279,7 +245,7 @@
 			]
 		},
 		{
-			"name":"Plane",
+			"name":"Plane.002",
 			"primitives":[
 				{
 					"attributes":{
@@ -532,8 +498,8 @@
 			"count":4,
 			"max":[
 				0.9999998807907104,
-				0.5448943376541138,
-				7.05730030858831e-07
+				0.5448938608169556,
+				-7.05730030858831e-07
 			],
 			"min":[
 				-1.0000001192092896,
@@ -551,83 +517,33 @@
 			"componentType":5126,
 			"count":4,
 			"type":"VEC2"
-		},
-		{
-			"bufferView":5,
-			"componentType":5126,
-			"count":20,
-			"max":[
-				0.8333333333333334
-			],
-			"min":[
-				0.041666666666666664
-			],
-			"type":"SCALAR"
-		},
-		{
-			"bufferView":6,
-			"componentType":5126,
-			"count":20,
-			"type":"VEC3"
-		},
-		{
-			"bufferView":7,
-			"componentType":5126,
-			"count":20,
-			"type":"VEC4"
-		},
-		{
-			"bufferView":8,
-			"componentType":5126,
-			"count":20,
-			"type":"VEC3"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":2121,
+			"byteLength":2177,
 			"byteOffset":0
 		},
 		{
 			"buffer":0,
-			"byteLength":2366,
-			"byteOffset":2124
+			"byteLength":2718,
+			"byteOffset":2180
 		},
 		{
 			"buffer":0,
-			"byteLength":9133,
-			"byteOffset":4492
+			"byteLength":10210,
+			"byteOffset":4900
 		},
 		{
 			"buffer":0,
-			"byteLength":169,
-			"byteOffset":13628
+			"byteLength":165,
+			"byteOffset":15112
 		},
 		{
 			"buffer":0,
-			"byteLength":189,
-			"byteOffset":13800
-		},
-		{
-			"buffer":0,
-			"byteLength":80,
-			"byteOffset":13992
-		},
-		{
-			"buffer":0,
-			"byteLength":240,
-			"byteOffset":14072
-		},
-		{
-			"buffer":0,
-			"byteLength":320,
-			"byteOffset":14312
-		},
-		{
-			"buffer":0,
-			"byteLength":240,
-			"byteOffset":14632
+			"byteLength":172,
+			"byteOffset":15280
 		}
 	],
 	"samplers":[
@@ -638,7 +554,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":14872,
+			"byteLength":15452,
 			"uri":"Window_cleaner_Spray.bin"
 		}
 	]

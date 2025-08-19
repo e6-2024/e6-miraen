@@ -147,7 +147,7 @@ export const GameScene: React.FC<GameSceneProps> = ({
           <CollisionPlane
             position={[
               missions.splash03.position[0],
-              missions.splash03.position[1] - 0.5,
+              missions.splash03.position[1] + 0.5,
               missions.splash03.position[2],
             ]}
             rotation={[Math.PI / 2, 0, 0]}

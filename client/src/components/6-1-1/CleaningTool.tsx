@@ -306,7 +306,7 @@ export const ToiletCleanerTool = ({
   isSprayActive?: boolean 
 }) => (
   <CleaningTool 
-    modelPath="/models/6-1-1/Toilet_bleach/Toilet_Bleach.glb" 
+    modelPath="/models/6-1-1/Toilet_bleach/Toilet_Bleach.gltf" 
     visible={visible} 
     scale={0.002} 
     rotation={[Math.PI, -Math.PI/4, Math.PI/2]}
@@ -345,7 +345,7 @@ export const BathroomScrubTool = ({ visible }: { visible: boolean }) => (
 useGLTF.preload('/models/6-1-1/Window/Window_cleaner_Spray.gltf')
 useGLTF.preload('/models/6-1-1/Vinegar_Spray/Vinegar.glb')
 useGLTF.preload('/models/6-1-1/Bleach/Bleach.glb')
-useGLTF.preload('/models/6-1-1/Toilet_bleach/Toilet_Bleach.glb')
+useGLTF.preload('/models/6-1-1/Toilet_bleach/Toilet_Bleach.gltf')
 useGLTF.preload('/models/6-1-1/Rag/Rag.glb')
 useGLTF.preload('/models/6-1-1/Toilet_Brush/Toilet_Brush.glb')
 useGLTF.preload('/models/6-1-1/Bathroom_Scrub/scrub.glb')

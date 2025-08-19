@@ -1,4 +1,5 @@
 import { CleaningToolType, SplashType, GamePhase, missions, solutions } from '../../types/6-1-1'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface BackButtonProps {
   isZoomed: boolean
@@ -155,34 +156,41 @@ export function SolutionSelector({
   ]
 
   return (
-    <div className='absolute bottom-4 left-4 z-10'>
-      <div className='bg-white bg-opacity-95 p-4 rounded-xl shadow-lg border-2 border-gray-200'>
-        <div className='text-lg font-bold mb-3 text-center text-gray-800'>용액 선택</div>
-        <div className='grid grid-cols-2 gap-3'>
-          {solutions.map((solution) => (
-            <button
-              key={solution.id}
-              onClick={() => {
-                if (!isDisabled) {
-                  onSolutionSelect(solution.id as CleaningToolType)
-                  onButtonClick?.()
-                }
-              }}
-              disabled={isDisabled}
-              className={`
+    <motion.div
+      className='absolute bottom-4 left-4 z-10'
+      initial={{ opacity: 0, y: 0 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 0 }}
+      transition={{ duration: 1, ease: 'easeOut' }}>
+      <div className='absolute w-[300px] bottom-4 left-4 z-10'>
+        <div className='bg-white bg-opacity-95 p-4 rounded-xl shadow-lg border-2 border-gray-200'>
+          <div className='text-lg font-bold mb-3 text-center text-gray-800'>용액 선택</div>
+          <div className='grid grid-cols-2 gap-3'>
+            {solutions.map((solution) => (
+              <button
+                key={solution.id}
+                onClick={() => {
+                  if (!isDisabled) {
+                    onSolutionSelect(solution.id as CleaningToolType)
+                    onButtonClick?.()
+                  }
+                }}
+                disabled={isDisabled}
+                className={`
                 px-4 py-3 rounded-lg font-bold text-white shadow-lg 
                 transition-all text-black
                 ${selectedSolution === solution.id ? 'ring-4 ring-yellow-400' : ''}
                 ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 active:scale-95 cursor-pointer'}
               `}
-              style={{ backgroundColor: solution.color }}>
-              {solution.img && <img src={solution.img} alt={solution.name} className='w-24 h-24 object-contain' />}
-              {solution.name}
-            </button>
-          ))}
+                style={{ backgroundColor: solution.color }}>
+                {solution.img && <img src={solution.img} alt={solution.name} className='w-24 h-24 object-contain' />}
+                {solution.name}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }
 
