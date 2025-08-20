@@ -156,7 +156,7 @@ export const useGameHandlers = (gameState: GameState, gameActions: GameActions) 
 
         setTimeout(() => {
           gameActions.setShowMessage('용액을 다시 고르세요.')
-          audio.playNarration('/sounds/6-1-1/narration/6-1-1-i-2.MP3')
+          audio.playNarration('/sounds/6-1-1/narration/6-1-1-I.MP3')
 
           setTimeout(() => {
             audio.stopWipingAudio()
