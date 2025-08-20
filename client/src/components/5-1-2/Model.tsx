@@ -13,13 +13,13 @@ interface ModelProps extends GroupProps {
   onAngleChange?: (angle: number) => void
 }
 
-export default function Model({ 
-  onToggle, 
-  mode, 
-  rayStates = [false, false, false], 
+export default function Model({
+  onToggle,
+  mode,
+  rayStates = [false, false, false],
   laserAngle = 45,
   onAngleChange,
-  ...props 
+  ...props
 }: ModelProps) {
   const { scene } = useGLTF('models/5-1-2/Other_equipment.glb')
   const [hoveredButton, setHoveredButton] = useState<number | null>(null)
@@ -30,7 +30,7 @@ export default function Model({
   useEffect(() => {
     const table = scene.getObjectByName('Table')
     const paper = scene.getObjectByName('Plane')
-    const frame = scene.getObjectByName("Object_10")
+    const frame = scene.getObjectByName('Object_10')
 
     if (mode === 'reflection') {
       if (frame) {
@@ -45,7 +45,7 @@ export default function Model({
     if (frame) {
       frame.position.set(-1.0, -0.0, 0)
     }
-    
+
     if (table) {
       table.position.set(-1.0, -0.3, 0)
     }
@@ -53,12 +53,11 @@ export default function Model({
     if (paper) {
       paper.position.set(0, -0.7, 0)
     }
-
   }, [scene, mode])
 
   const handleLaserPointerDown = (e: ThreeEvent<PointerEvent>) => {
     if (mode !== 'reflection') return
-    
+
     e.stopPropagation()
     setIsDragging(true)
     setDragStart({ x: e.clientX, y: e.clientY })
@@ -70,20 +69,20 @@ export default function Model({
       case 'reflection':
         return [-9, 1.2, -4.2]
       case 'refraction':
-        return [-9,5.0,-0.6]
+        return [-9, 5.0, -0.6]
       case 'direct':
-        return [-9,1.2,-0.6]
+        return [-9, 1.2, -0.6]
     }
   }
 
   const getLaserPointerRotation = (): [number, number, number] => {
     switch (mode) {
       case 'reflection':
-        return [0, 0, 0] 
+        return [0, 0, 0]
       case 'refraction':
-        return [0,Math.PI/2, 3*Math.PI/2]
+        return [0, Math.PI / 2, (3 * Math.PI) / 2]
       case 'direct':
-        return [0,Math.PI/2, 3*Math.PI/2]
+        return [0, Math.PI / 2, (3 * Math.PI) / 2]
     }
   }
 
@@ -92,37 +91,40 @@ export default function Model({
     scene.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         const mesh = child as THREE.Mesh
-        
         // 모든 오브젝트가 그림자를 만들고 받도록 설정
         mesh.castShadow = true
         mesh.receiveShadow = true
-        
         // 바닥면이나 테이블 같은 큰 평면은 그림자를 더 잘 받도록 설정
-        if (child.name?.toLowerCase().includes('table') || 
-            child.name?.toLowerCase().includes('plane') ||
-            child.name?.toLowerCase().includes('floor') ||
-            child.name?.toLowerCase().includes('ground')) {
+        if (
+          child.name?.toLowerCase().includes('table') ||
+          child.name?.toLowerCase().includes('plane') ||
+          child.name?.toLowerCase().includes('floor') ||
+          child.name?.toLowerCase().includes('ground')
+        ) {
           mesh.receiveShadow = true
           // 바닥면은 그림자를 만들지 않도록 설정 (선택사항)
-          mesh.castShadow = false
+          mesh.castShadow = true
         }
-        
         // 재질 설정 개선
         if (mesh.material) {
           if (Array.isArray(mesh.material)) {
-            mesh.material.forEach(mat => {
-              if (mat instanceof THREE.MeshStandardMaterial || 
-                  mat instanceof THREE.MeshPhysicalMaterial ||
-                  mat instanceof THREE.MeshLambertMaterial) {
+            mesh.material.forEach((mat) => {
+              if (
+                mat instanceof THREE.MeshStandardMaterial ||
+                mat instanceof THREE.MeshPhysicalMaterial ||
+                mat instanceof THREE.MeshLambertMaterial
+              ) {
                 // 그림자가 더 잘 보이도록 재질 설정
                 mat.shadowSide = THREE.DoubleSide
               }
             })
           } else {
             const material = mesh.material as THREE.Material
-            if (material instanceof THREE.MeshStandardMaterial || 
-                material instanceof THREE.MeshPhysicalMaterial ||
-                material instanceof THREE.MeshLambertMaterial) {
+            if (
+              material instanceof THREE.MeshStandardMaterial ||
+              material instanceof THREE.MeshPhysicalMaterial ||
+              material instanceof THREE.MeshLambertMaterial
+            ) {
               // 그림자가 더 잘 보이도록 재질 설정
               material.shadowSide = THREE.DoubleSide
             }
@@ -134,13 +136,7 @@ export default function Model({
 
   return (
     <>
-      <primitive 
-        object={scene} 
-        position={[0, 0, 0]}          
-        rotation={[0, Math.PI / 2, 0]} 
-        scale={[1, 1, 1]}   
-        {...props} 
-      />
+      <primitive object={scene} position={[0, 0, 0]} rotation={[0, Math.PI / 2, 0]} scale={[1, 1, 1]} {...props} />
 
       <LaserPointer
         position={getLaserPointerPosition()}

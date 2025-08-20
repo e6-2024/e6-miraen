@@ -49,9 +49,10 @@ function ModeBasedControls({ mode }: { mode: 'direct' | 'reflection' | 'refracti
       target: [0, 0, 0] as [number, number, number],
       minDistance: 5,
       maxDistance: 25,
-      maxPolarAngle: Math.PI / 2,
-      minAzimuthAngle: 0,
-      maxAzimuthAngle: Math.PI / 4,
+      // direct 모드: 각도 제한 없음
+      maxPolarAngle: Math.PI,
+      minAzimuthAngle: -Infinity,
+      maxAzimuthAngle: Infinity,
       enablePan: false,
       enableZoom: true,
       enableRotate: true,
@@ -61,9 +62,10 @@ function ModeBasedControls({ mode }: { mode: 'direct' | 'reflection' | 'refracti
       target: [0, 0, 0] as [number, number, number],
       minDistance: 5,
       maxDistance: 25,
-      maxPolarAngle: Math.PI / 2.2,
-      minAzimuthAngle: -Math.PI / 2,
-      maxAzimuthAngle: Math.PI / 4,
+      // reflection 모드: 각도 제한 없음
+      maxPolarAngle: Math.PI,
+      minAzimuthAngle: -Infinity,
+      maxAzimuthAngle: Infinity,
       enablePan: false,
       enableZoom: true,
       enableRotate: true,
@@ -73,6 +75,7 @@ function ModeBasedControls({ mode }: { mode: 'direct' | 'reflection' | 'refracti
       target: [0, 0, 0] as [number, number, number],
       minDistance: 5,
       maxDistance: 25,
+      // refraction 모드: 각도 제한 적용
       maxPolarAngle: Math.PI / 2,
       minAzimuthAngle: 0,
       maxAzimuthAngle: Math.PI / 4,
@@ -99,6 +102,7 @@ function ModeBasedControls({ mode }: { mode: 'direct' | 'reflection' | 'refracti
       enableRotate={currentConfig.enableRotate}
       minDistance={currentConfig.minDistance}
       maxDistance={currentConfig.maxDistance}
+      // 각도 제한 적용
       maxPolarAngle={currentConfig.maxPolarAngle}
       minAzimuthAngle={currentConfig.minAzimuthAngle}
       maxAzimuthAngle={currentConfig.maxAzimuthAngle}
@@ -124,7 +128,7 @@ function ExplanationToggleButton({
       case 'reflection':
         return '빛의 반사'
       case 'refraction':
-        return lensType === 'convex' ? '빛의 굴절 (볼록렌즈)' : '빛의 굴절 (오목렌즈)'
+        return lensType === 'convex' ? '빛의 굴절' : '빛의 굴절'
       default:
         return ''
     }
@@ -307,8 +311,8 @@ export default function Home() {
         return '빛은 곧게 나아가다가 거울에 부딪치면 방향이 바뀌어 나아갑니다.'
       case 'refraction':
         return lens === 'convex'
-          ? '빛은 볼록렌즈를 통과할 때 렌즈의 가운데 쪽으로 굴절하여 나아갑니다.'
-          : '빛은 오목렌즈를 통과할 때 렌즈의 바깥쪽으로 굴절하여 나아갑니다.'
+          ? '빛은 볼록 렌즈를 통과할 때 렌즈의 가운데 쪽으로 굴절하여 나아갑니다.'
+          : '빛은 오목 렌즈를 통과할 때 렌즈의 바깥쪽으로 굴절하여 나아갑니다.'
       default:
         return ''
     }
@@ -472,20 +476,31 @@ export default function Home() {
       <NarrationPopup isVisible={showNarration} text={narrationText} onHide={handleHideNarration} />
 
       <div className='flex-1'>
-        <Scene shadows camera={{ position: [0, 0, 20], fov: 50 }}>
+        <Scene
+          shadows
+          camera={{
+            position: [0, 0, 20],
+            fov: 50,
+          }}>
           <Environment preset='city' environmentIntensity={0.2}>
             <color attach='background' args={['#00b7ffff']} />
           </Environment>
 
           <directionalLight
             color='white'
-            intensity={1.5}
-            position={[15, 25, 15]}
+            intensity={1.2}
+            position={[25, 50, 25]}
             castShadow
-            shadow-mapSize={[1024, 1024]}
+            shadow-mapSize={[2048, 2048]} // 해상도 높임
+            shadow-camera-left={-50} // 그림자 카메라 범위 설정
+            shadow-camera-right={50}
+            shadow-camera-top={50}
+            shadow-camera-bottom={-50}
+            shadow-camera-near={0.1}
+            shadow-camera-far={200}
+            shadow-bias={-0.0001} // 그림자 아티팩트 방지
           />
-
-          <ambientLight color='white' intensity={0.4} />
+          <ambientLight color='white' intensity={1} />
 
           <OpticalLab mode={activeMode} lensType={lensType} rayStates={rayStates} laserAngle={laserAngle} />
 
@@ -571,7 +586,7 @@ export default function Home() {
 
           {activeMode === 'reflection' && (
             <>
-              <h4 style={{ margin: '10px 0 5px 0', fontSize: '16px' }}>광원의 각도를 조절해보세요.</h4>
+              <h4 style={{ margin: '10px 0 5px 0', fontSize: '16px' }}>레이저 빛의 각도를 조절해보세요.</h4>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <input
                   type='range'
@@ -580,11 +595,11 @@ export default function Home() {
                   value={laserAngle}
                   onChange={(e) => setLaserAngle(Number(e.target.value))}
                   style={{
-                    width: '150px',
+                    width: '200px',
                     accentColor: '#4CAF50',
                   }}
                 />
-                <span style={{ fontSize: '14px', minWidth: '40px' }}>{Math.round(laserAngle)}°</span>
+                {/* <span style={{ fontSize: '14px', minWidth: '40px' }}>{Math.round(laserAngle)}°</span> */}
               </div>
             </>
           )}
