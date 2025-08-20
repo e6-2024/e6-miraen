@@ -53,7 +53,7 @@ export const CollisionAwareCleaningTool = ({
   const qTarget = useRef(new THREE.Quaternion())
   const qOffset = useMemo(
     () => new THREE.Quaternion().setFromEuler(new THREE.Euler(...rotationOffset, 'XYZ')),
-    [rotationOffset]
+    [rotationOffset],
   )
 
   const configureShadows = (root: THREE.Object3D) => {
@@ -294,7 +294,7 @@ export const CollisionSprayTool = ({
     modelPath='/models/6-1-1/Window/Window_cleaner_Spray.glb'
     visible={visible}
     scale={1.2}
-    rotationOffset={[Math.PI/3, Math.PI-Math.PI/6, 0]}
+    rotationOffset={[Math.PI / 3, Math.PI - Math.PI / 6, 0]}
     orientationMode='fixed'
     onSpray={onSpray}
     isSprayActive={isSprayActive}
@@ -317,7 +317,7 @@ export const CollisionVinegarTool = ({
     modelPath='/models/6-1-1/Vinegar_Spray/Vinegar.glb'
     visible={visible}
     scale={4}
-    rotationOffset={[-Math.PI/4, Math.PI, 0]}
+    rotationOffset={[-Math.PI / 4, Math.PI, 0]}
     orientationMode='yaw'
     onSpray={onSpray}
     isSprayActive={isSprayActive}
@@ -340,7 +340,7 @@ export const CollisionBleachTool = ({
     modelPath='/models/6-1-1/Bleach/Bleach.glb'
     visible={visible}
     scale={4}
-    rotationOffset={[-Math.PI/4, Math.PI, 0]}
+    rotationOffset={[-Math.PI / 4, Math.PI, 0]}
     orientationMode='yaw'
     onSpray={onSpray}
     isSprayActive={isSprayActive}
@@ -363,7 +363,7 @@ export const CollisionToiletCleanerTool = ({
     modelPath='/models/6-1-1/Toilet_bleach/Toilet_Bleach.gltf'
     visible={visible}
     scale={2}
-    rotationOffset={[-Math.PI/2, Math.PI-Math.PI/6, 0]}
+    rotationOffset={[-Math.PI / 2, Math.PI - Math.PI / 6, 0]}
     orientationMode='fixed'
     onSpray={onSpray}
     isSprayActive={isSprayActive}
@@ -378,7 +378,7 @@ export const CollisionGlassRagTool = ({ visible }: { visible: boolean }) => (
     modelPath='/models/6-1-1/Rag/Rag.glb'
     visible={visible}
     scale={0.05}
-    rotationOffset={[0, Math.PI/2, 0]}
+    rotationOffset={[0, Math.PI / 2, 0]}
     orientationMode='fixed'
     collisionOffset={[0, 0.1, 0]}
     collisionType='strict'
@@ -391,7 +391,7 @@ export const CollisionToiletBrushTool = ({ visible }: { visible: boolean }) => (
     modelPath='/models/6-1-1/Toilet_Brush/Toilet_Brush.glb'
     visible={visible}
     scale={0.7}
-    rotationOffset={[-Math.PI /4, -Math.PI/2, 0]}
+    rotationOffset={[-Math.PI / 4, -Math.PI / 2, 0]}
     orientationMode='fixed'
     collisionOffset={[0, 0.3, 0]}
     collisionType='strict'

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useCallback, useEffect, useRef } from 'react'
 import { OrbitControls, Environment, ContactShadows, PerformanceMonitor, useProgress } from '@react-three/drei'
 import { Model } from './Model'
 import { SpeechBubble } from './SpeechBubble'
@@ -28,6 +28,7 @@ import { missions, solutionColors } from '../../types/6-1-1'
 import { GameState } from './GameStateManager'
 import * as THREE from 'three'
 import CameraLogger from '@/hook/CameraLogger'
+import AudioManager from './AudioManager'
 
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
   const { progress, active } = useProgress()
@@ -58,6 +59,7 @@ interface GameSceneProps {
     splash03: number
     splash04: number
   }
+  isAudioManagerStarted?: boolean
 }
 
 export const GameScene: React.FC<GameSceneProps> = ({
@@ -68,14 +70,60 @@ export const GameScene: React.FC<GameSceneProps> = ({
   onMissionClick,
   onSpray,
   splashOpacities,
+  isAudioManagerStarted,
 }) => {
-  const playSound = (path: string, volume = 0.5) => {
-    try {
-      const audio = new Audio(path)
-      audio.volume = volume
-      audio.play().catch(() => {})
-    } catch (error) {}
-  }
+  // 현재 재생중인 오디오들을 추적
+  const currentAudiosRef = useRef<HTMLAudioElement[]>([])
+
+  // isAudioManagerStarted 상태 변경시 모든 사운드 정지/재개
+  useEffect(() => {
+    if (isAudioManagerStarted) {
+      // 모든 현재 재생중인 사운드 정지
+      currentAudiosRef.current.forEach((audio) => {
+        audio.pause()
+      })
+    }
+  }, [isAudioManagerStarted])
+
+  const playSound = useCallback(
+    (path: string, volume = 0.5) => {
+      // isAudioManagerStarted가 true면 사운드 재생하지 않음
+      if (isAudioManagerStarted) {
+        return
+      }
+
+      try {
+        const audio = new Audio(path)
+        audio.volume = volume
+
+        // 현재 재생중인 오디오 목록에 추가
+        currentAudiosRef.current.push(audio)
+
+        // 재생 완료되면 목록에서 제거
+        audio.addEventListener('ended', () => {
+          const index = currentAudiosRef.current.indexOf(audio)
+          if (index > -1) {
+            currentAudiosRef.current.splice(index, 1)
+          }
+        })
+
+        audio.play().catch(() => {})
+      } catch (error) {}
+    },
+    [isAudioManagerStarted],
+  )
+
+  // 컴포넌트 언마운트시 모든 오디오 정리
+  useEffect(() => {
+    return () => {
+      currentAudiosRef.current.forEach((audio) => {
+        audio.pause()
+        audio.src = ''
+      })
+      currentAudiosRef.current = []
+    }
+  }, [])
+
   const activeColorHex = solutionColors[gameState.selectedSolution ?? null]
 
   return (
@@ -92,7 +140,18 @@ export const GameScene: React.FC<GameSceneProps> = ({
         splashOpacities={splashOpacities}
         sprayEffects={gameState.sprayEffects}
         wipingProgress={gameState.wipingProgress}
-        sprayColorHex={activeColorHex}
+        sprayColorHex={
+          //창문에서만 사용되는 색상
+          gameState.selectedSolution === 'vinegar'
+            ? '#ffa200'
+            : gameState.selectedSolution === 'spray'
+            ? '#006eff'
+            : gameState.selectedSolution === 'toilet_cleaner'
+            ? '#f1c3ff'
+            : gameState.selectedSolution === 'bleach'
+            ? '#65bef9'
+            : activeColorHex
+        }
       />
 
       <group renderOrder={-1}>
@@ -123,15 +182,19 @@ export const GameScene: React.FC<GameSceneProps> = ({
         <>
           <CollisionPlane
             position={missions.splash01.position}
-            rotation={[-Math.PI/2, 0, 0]}
+            rotation={[-Math.PI / 2, 0, 0]}
             size={[4.0, 4.0]}
             missionId='splash01'
             visible={false}
           />
 
           <CollisionPlane
-            position={[missions.splash01.position[0]-0.5,missions.splash01.position[1]+0.2,missions.splash01.position[2]]}
-            rotation={[Math.PI/2, Math.PI/2, 0]}
+            position={[
+              missions.splash01.position[0] - 0.5,
+              missions.splash01.position[1] + 0.2,
+              missions.splash01.position[2],
+            ]}
+            rotation={[Math.PI / 2, Math.PI / 2, 0]}
             size={[4.0, 4.0]}
             missionId='splash01'
             visible={false}
@@ -147,7 +210,7 @@ export const GameScene: React.FC<GameSceneProps> = ({
           <CollisionPlane
             position={[
               missions.splash03.position[0],
-              missions.splash03.position[1] + 0.5,
+              missions.splash03.position[1] - 0.5,
               missions.splash03.position[2],
             ]}
             rotation={[Math.PI / 2, 0, 0]}

@@ -81,6 +81,9 @@ export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false)
   const [perfSucks, degrade] = useState(false)
 
+  // 오디오 매니저 상태
+  const [isAudioManagerStarted, setIsAudioManagerStarted] = useState(false)
+
   // --- BGM 상태 ---
   const bgmRef = useRef<HTMLAudioElement | null>(null)
   const [bgmEnabled, setBgmEnabled] = useState<boolean>(true) // 초기 고정값
@@ -181,6 +184,10 @@ export default function Home() {
     splash04: (100 - gameState.cleaningProgress.splash04) / 100,
   } as const
 
+  const handleGoBack = () => {
+    resetCamera(), setIsAudioManagerStarted(false), audio.stopAllAudio()
+  }
+
   // 이벤트 핸들러들
   const handleShowActivityGuide = () => {
     gameActions.setShowActivityGuide(true)
@@ -262,6 +269,8 @@ export default function Home() {
     gameState.selectedSolution,
   ])
 
+  console.log('isAudioManagerStarted:', isAudioManagerStarted)
+
   return (
     <div className='w-screen h-screen bg-white flex flex-col'>
       {mounted && (
@@ -288,7 +297,7 @@ export default function Home() {
       <BackButton
         isZoomed={gameState.isZoomed}
         showIntro={gameState.showIntro}
-        onBack={resetCamera}
+        onBack={handleGoBack}
         onRestart={restartCurrentMission}
         isAnimating={gameState.isAnimating}
         gamePhase={gameState.gamePhase}
@@ -308,7 +317,10 @@ export default function Home() {
         gamePhase={gameState.gamePhase}
         showIntro={gameState.showIntro}
         selectedSolution={gameState.selectedSolution}
-        onSolutionSelect={handleSolutionSelect}
+        onSolutionSelect={(solution: any) => {
+          handleSolutionSelect(solution)
+          setIsAudioManagerStarted(true)
+        }}
       />
 
       <CleaningProgressUI
@@ -338,6 +350,7 @@ export default function Home() {
           onMissionClick={handleMissionClick}
           onSpray={handleSpray}
           splashOpacities={splashOpacities}
+          isAudioManagerStarted={isAudioManagerStarted}
         />
       </Scene>
 
