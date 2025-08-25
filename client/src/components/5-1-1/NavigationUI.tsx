@@ -99,6 +99,8 @@ const NavigationUI = forwardRef<
 
   const handleSceneChange = (index: number) => {
     stopAllAudios()
+    setIsPlayButtonPressed(false)
+
     onSceneChange(index)
   }
 
@@ -107,14 +109,13 @@ const NavigationUI = forwardRef<
 
     // 버튼 애니메이션을 위한 짧은 지연
     setTimeout(() => {
-      setIsPlayButtonPressed(false)
       playStepAudio()
       onPlayClick()
     }, 150)
   }
 
   return (
-    <div className='absolute flex w-full justify-center left-1/2 -translate-x-1/2 items-center top-4  z-[1000]'>
+    <div className='absolute flex w-full justify-center left-1/2 -translate-x-1/2 items-center top-4  z-[200]'>
       <CrayonTextBox
         color='#52AE46'
         bg='white'
@@ -193,17 +194,21 @@ const NavigationUI = forwardRef<
         </div>
       </CrayonTextBox>
       <CrayonTextButton
-        ariaLabel={isAnimationComplete || animationState?.isPlaying ? '다시 듣기' : '재생'}
-        icon={isAnimationComplete || animationState?.isPlaying ? 'refresh-ccw' : 'play'}
-        position='relative'
-        iconSize={34}
-        width={120}
-        color='#8B5CF6'
-        bg='#6D28D9'
-        height={120}
-        textcolor='#fff'
+        ariaLabel='모드 선택 화면으로 돌아가기'
+        text={isPlayButtonPressed ? '다시하기' : '재생하기'}
+        position='absolute'
+        icon={isPlayButtonPressed ? 'replay' : 'play'}
+        iconPosition='left'
+        width={170}
+        height={75}
+        iconSize={30}
+        left={10}
+        top={10}
+        bg='#52AE46'
+        color='#A1CC90'
+        textcolor='#FFFFFF'
+        className='background-blur border-white/20 z-[1300]'
         onClick={handlePlayClick}
-        className='ml-8'
       />
     </div>
   )
