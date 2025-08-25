@@ -224,20 +224,17 @@ export default function IntegratedPage() {
   }, [])
 
   // 모드 선택 (인트로 → 실험)
-  const handleModeSelect = useCallback(
-    (selectedMode: PageMode) => {
-      setMode(selectedMode)
-      setShowIntro(false)
-      setBgmReady(true)
+  const handleModeSelect = useCallback((selectedMode: PageMode) => {
+    setMode(selectedMode)
+    setShowIntro(false)
+    setBgmReady(true)
 
-      if (selectedMode === 'bones') loadModels()
-      if (selectedMode === 'arm') {
-        setAction('fold')
-        setHasExtended(false)
-      }
-    },
-    [],
-  )
+    if (selectedMode === 'bones') loadModels()
+    if (selectedMode === 'arm') {
+      setAction('fold')
+      setHasExtended(false)
+    }
+  }, [])
 
   // 뒤로가기 (실험 → 인트로)
   const handleBackToModeSelection = useCallback(() => {
@@ -253,11 +250,27 @@ export default function IntegratedPage() {
 
     resetCamera()
 
-    setTimeout(() => {
-      setMode(null)
-      setShowIntro(true)
-      setIsBackFromMode(true)
-    }, 100)
+    setMode(null)
+    setShowIntro(true)
+    setIsBackFromMode(true)
+  }, [playClickSound, currentNarration, resetCamera])
+
+  const handleBackToIntro = useCallback(() => {
+    playClickSound()
+
+    if (currentNarration) {
+      currentNarration.pause()
+      currentNarration.currentTime = 0
+      setCurrentNarration(null)
+    }
+    setShowNarrationText(false)
+    setNarrationText('')
+
+    resetCamera()
+
+    setMode(null)
+    setShowIntro(true)
+    setIsBackFromMode(false)
   }, [playClickSound, currentNarration, resetCamera])
 
   // 모델 사전 로딩
@@ -272,7 +285,7 @@ export default function IntegratedPage() {
           }),
       )
       await Promise.all(loadPromises)
-      setTimeout(() => setIsModelsLoading(false), 500)
+      setTimeout(() => setIsModelsLoading(false), 100)
     } catch (error) {
       console.error('Model preloading failed:', error)
       setIsModelsLoading(false)
@@ -430,7 +443,14 @@ export default function IntegratedPage() {
       )
     }
     if (mode === 'arm') {
-      return <AnimatedModel2 url='/models/Anatomy/Arm/Flexing.glb' actionName={action} scale={1.5} position={[0, -0.375, 0]} />
+      return (
+        <AnimatedModel2
+          url='/models/Anatomy/Arm/Flexing.glb'
+          actionName={action}
+          scale={1.5}
+          position={[0, -0.375, 0]}
+        />
+      )
     }
     return null
   }, [mode, showIntro, introModelsLoaded, modelUrl, modelType, animState, animIndex, action, isModelsLoading])
@@ -665,7 +685,11 @@ export default function IntegratedPage() {
 
             <Environment
               preset='warehouse'
-              files={mode === 'arm' ? 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/potsdamer_platz_1k.hdr' : undefined}
+              files={
+                mode === 'arm'
+                  ? 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/potsdamer_platz_1k.hdr'
+                  : undefined
+              }
               backgroundIntensity={0.09}
               backgroundBlurriness={0.5}
               environmentIntensity={0.2}
@@ -697,22 +721,40 @@ export default function IntegratedPage() {
 
       {/* BGM 토글 버튼 (mounted 이후) */}
       {mounted && (
-        <CrayonTextButton
-          icon={bgmEnabled ? 'volume2' : 'volumeX'}
-          position='absolute'
-          iconPosition='left'
-          onClick={toggleBgm}
-          width={108}
-          height={108}
-          color='#fff'
-          textcolor='#fff'
-          bg='rgba(255,255,255,0.10)'
-          className='backdrop-blur z-[1000] mix-blend-difference'
-          right={16}
-          top={16}
-          iconSize={40}
-          innerCircleVisible={true}
-        />
+        <>
+          <CrayonTextButton
+            ariaLabel={'첫 화면으로'}
+            icon={'home'}
+            position='absolute'
+            iconPosition='left'
+            onClick={handleBackToIntro}
+            width={108}
+            height={108}
+            color='#ffffff'
+            textcolor='#ffffff'
+            bg='rgba(255,255,255,0.10)'
+            className='background-blur z-[200] right-[108px] mix-blend-difference'
+            right={16}
+            top={16}
+            iconSize={40}
+          />
+          <CrayonTextButton
+            icon={bgmEnabled ? 'volume2' : 'volumeX'}
+            position='absolute'
+            iconPosition='left'
+            onClick={toggleBgm}
+            width={108}
+            height={108}
+            color='#fff'
+            textcolor='#fff'
+            bg='rgba(255,255,255,0.10)'
+            className='backdrop-blur z-[1000] mix-blend-difference'
+            right={16}
+            top={16}
+            iconSize={40}
+            innerCircleVisible={true}
+          />
+        </>
       )}
 
       {/* 모달 (mounted 이후) */}
