@@ -8,10 +8,12 @@ import { CrayonTextButton } from '@/components/CrayonUIButton'
 
 type ButtonStyle = { bg: string; border: string; text: string }
 type SpaceTheme = {
-  goal: ButtonStyle; guide: ButtonStyle; start: ButtonStyle;
+  goal: ButtonStyle
+  guide: ButtonStyle
+  start: ButtonStyle
 }
 const spaceTheme: SpaceTheme = {
-  goal:  { bg: '#05A8A4', border: '#7BCACA', text: '#FFFFFF' },
+  goal: { bg: '#05A8A4', border: '#7BCACA', text: '#FFFFFF' },
   guide: { bg: '#05A8A4', border: '#7BCACA', text: '#FFFFFF' },
   start: { bg: '#9B1CDF', border: '#DFB2FA', text: '#FFFFFF' },
 }
@@ -21,6 +23,7 @@ export default function HomePage() {
   const [cameraTarget, setCameraTarget] = useState<[number, number, number] | null>(null)
   const [activeSeason, setActiveSeason] = useState<Season | null>(null)
   const [isLockedToSurface, setIsLockedToSurface] = useState(false)
+  const [sceneKey, setSceneKey] = useState(0)
 
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
@@ -59,7 +62,9 @@ export default function HomePage() {
   // 상태 반영
   useEffect(() => {
     if (!bgmRef.current) return
-    try { localStorage.setItem('bgmEnabled', JSON.stringify(bgmEnabled)) } catch {}
+    try {
+      localStorage.setItem('bgmEnabled', JSON.stringify(bgmEnabled))
+    } catch {}
     if (bgmEnabled && bgmReady) {
       bgmRef.current.play().catch(() => {})
     } else {
@@ -67,7 +72,7 @@ export default function HomePage() {
     }
   }, [bgmEnabled, bgmReady])
 
-  const toggleBgm = () => setBgmEnabled(v => !v)
+  const toggleBgm = () => setBgmEnabled((v) => !v)
 
   // 로딩 딜레이
   useEffect(() => {
@@ -76,7 +81,11 @@ export default function HomePage() {
   }, [])
 
   const playClickSound = (p = '/sounds/Enter_Cute.mp3') => {
-    try { const a = new Audio(p); a.volume = 0.7; a.play().catch(() => {}) } catch {}
+    try {
+      const a = new Audio(p)
+      a.volume = 0.7
+      a.play().catch(() => {})
+    } catch {}
   }
 
   const handleEnterExperience = () => {
@@ -84,6 +93,19 @@ export default function HomePage() {
     setBgmReady(true)
     setTimeout(() => setShowIntro(false), 300)
   }
+  
+  
+
+  const resetToIntro = useCallback(() => {
+    playClickSound()
+    setCameraTarget(null)
+    setActiveSeason(null)
+    setIsLockedToSurface(false)
+
+    setShowActivityGuide(false)
+    setShowIntro(true)
+    setSceneKey((k) => k + 1)
+  }, [])
 
   const handleEarthClick = (pos: [number, number, number], season: Season) => {
     if (showIntro) return
@@ -109,6 +131,7 @@ export default function HomePage() {
   return (
     <div className='fixed inset-0 bg-black'>
       <SpaceScene
+        key={sceneKey}
         onEarthClick={handleEarthClick}
         cameraTarget={cameraTarget}
         activeSeason={activeSeason}
@@ -118,22 +141,40 @@ export default function HomePage() {
 
       {/* 마운트 이후에만 버튼 렌더 -> SSR/C SR DOM 일치 보장 */}
       {mounted && (
-        <CrayonTextButton
-          icon={bgmEnabled ? 'volume2' : 'volumeX'}
-          position='absolute'
-          iconPosition='left'
-          onClick={toggleBgm}
-          width={108}
-          height={108}
-          color='#ffffff'
-          textcolor='#ffffff'
-          bg='rgba(255,255,255,0.10)'
-          className='background-blur border-white/20 z-[1300]'
-          right={16}
-          top={16}
-          iconSize={40}
-          innerCircleVisible={true}
-        />
+        <>
+          <CrayonTextButton
+            ariaLabel={'첫 화면으로'}
+            icon={'home'}
+            position='absolute'
+            iconPosition='left'
+            onClick={resetToIntro}
+            width={108}
+            height={108}
+            color='#ffffff'
+            textcolor='#ffffff'
+            bg='rgba(255,255,255,0.10)'
+            className='background-blur z-[300] right-[108px] border-white/20 '
+            right={16}
+            top={16}
+            iconSize={40}
+          />
+          <CrayonTextButton
+            icon={bgmEnabled ? 'volume2' : 'volumeX'}
+            position='absolute'
+            iconPosition='left'
+            onClick={toggleBgm}
+            width={108}
+            height={108}
+            color='#ffffff'
+            textcolor='#ffffff'
+            bg='rgba(255,255,255,0.10)'
+            className='background-blur border-white/20 z-[1300]'
+            right={16}
+            top={16}
+            iconSize={40}
+            innerCircleVisible={true}
+          />
+        </>
       )}
 
       {isLoaded && showIntro && (
@@ -151,10 +192,7 @@ export default function HomePage() {
         />
       )}
 
-      <ActivityGuideModal
-        isOpen={showActivityGuide}
-        onClose={() => setShowActivityGuide(false)}
-      />
+      <ActivityGuideModal isOpen={showActivityGuide} onClose={() => setShowActivityGuide(false)} />
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { BoxLineGeometry } from 'three-stdlib'
 import { AnimatePresence, motion } from 'framer-motion'
 import { CrayonTextBox } from '../CrayonTextBox'
@@ -43,13 +43,13 @@ export function UI({ isLockedToSurface, activeSeason, onReset }: UIProps) {
   const [audioInstance, setAudioInstance] = useState<HTMLAudioElement | null>(null)
 
   // Stop and clean up audio
-  const stopAll = () => {
+  const stopAll = useCallback(() => {
     if (audioInstance) {
       audioInstance.pause()
       audioInstance.currentTime = 0
       setAudioInstance(null)
     }
-  }
+  }, [audioInstance])
 
   // Modified playClickSound to optionally set audio instance
   const playClickSound = (
@@ -70,8 +70,6 @@ export function UI({ isLockedToSurface, activeSeason, onReset }: UIProps) {
       console.log('효과음 생성 실패:', error)
     }
   }
-
-  // Play narration audio and store instance
   const playAudio = () => {
     if (activeSeason) {
       const audioPath = seasonExplain[activeSeason].audio
@@ -79,20 +77,24 @@ export function UI({ isLockedToSurface, activeSeason, onReset }: UIProps) {
     }
   }
 
-  // Stop audio when popup closes
   const handleCloseExplain = () => {
     playClickSound()
     stopAll()
     setShowExplainPopup(false)
   }
-
-  // Stop audio when reset
   const handleReset = () => {
     playClickSound()
     stopAll()
     setShowExplainPopup(false)
     onReset()
   }
+
+  useEffect(() => {
+    return () => {
+      stopAll()
+    }
+  }, [stopAll])
+  
   return (
     <>
       {!isLockedToSurface && (
@@ -103,14 +105,14 @@ export function UI({ isLockedToSurface, activeSeason, onReset }: UIProps) {
             exit={{ opacity: 0 }}
             transition={{ duration: 1, ease: 'easeInOut' }}
             className='absolute left-4 top-4 z-10 w-fit h-fit'>
-              <CrayonTextBox
+            <CrayonTextBox
               textcolor='#333333'
               color='#fff'
               bg='#fff'
               padding={4}
               animated={true}
               text='※이 모델은 태양, 지구, 별자리의 상대적인 크기와 거리를 고려하지 않은 것입니다.'
-              />
+            />
           </motion.div>
         </AnimatePresence>
       )}
