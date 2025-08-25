@@ -519,6 +519,22 @@ export default function Home() {
       {mounted && (
         <>
           <CrayonTextButton
+            ariaLabel={'첫 화면으로'}
+            icon={'home'}
+            position='absolute'
+            iconPosition='left'
+            onClick={handleBackToModeSelection}
+            width={108}
+            height={108}
+            color='#ffffff'
+            textcolor='#ffffff'
+            bg='rgba(255,255,255,0.10)'
+            className='background-blur z-[200] right-[108px] border-white/20 z-[1300]'
+            right={16}
+            top={16}
+            iconSize={40}
+          />
+          <CrayonTextButton
             ariaLabel={bgmEnabled ? '배경음악 끄기' : '배경음악 켜기'}
             icon={(bgmEnabled ? 'volume2' : 'volumeX').toLowerCase()}
             position='absolute'
@@ -529,7 +545,7 @@ export default function Home() {
             color='#ffffff'
             textcolor='#ffffff'
             bg='rgba(255,255,255,0.10)'
-            className='background-blur border-white/20 z-[1300]'
+            className='background-blur z-[200] border-white/20 z-[1300]'
             right={16}
             top={16}
             iconSize={40}
@@ -539,23 +555,6 @@ export default function Home() {
 
       {!showIntro && (
         <>
-          <CrayonTextButton
-            ariaLabel='모드 선택 화면으로 돌아가기'
-            text='첫 화면으로'
-            position='absolute'
-            icon='arrow-left'
-            iconPosition='left'
-            width={170}
-            height={75}
-            iconSize={30}
-            left={10}
-            top={10}
-            bg='#52AE46'
-            color='#A1CC90'
-            textcolor='#FFFFFF'
-            className='background-blur border-white/20 z-[1300]'
-            onClick={handleBackToModeSelection}
-          />
           <NavigationUI
             ref={navigationUIRef}
             sceneIndex={sceneIndex}

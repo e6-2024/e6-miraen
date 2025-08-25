@@ -101,7 +101,7 @@ const ActivityGuideModal: React.FC<{
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           transition={{ duration: 0.25, type: 'spring', damping: 20 }}
-          className='fixed inset-0 z-[1100] flex items-center justify-center bg-black/50'
+          className='fixed inset-0 z-[1000] flex items-center justify-center bg-black/50'
           onClick={(e) => e.stopPropagation()}>
           <CrayonTextBox
             bg='#FFFFFF'
@@ -109,7 +109,7 @@ const ActivityGuideModal: React.FC<{
             textcolor='#A1CC90'
             padding={16}
             animated={true}
-            className='w-[80vw] flex flex-col'>
+            className='w-[80vw] z-[900] flex flex-col'>
             {/* 상단 닫기 버튼 */}
             <div className='shrink-0 w-full flex justify-end z-20'>
               <CrayonTextButton
