@@ -1,5 +1,7 @@
 import { CleaningToolType, SplashType, GamePhase, missions, solutions } from '../../types/6-1-1'
 import { motion, AnimatePresence } from 'framer-motion'
+import { CrayonTextBox } from '../CrayonTextBox'
+import { CrayonTextButton } from '../CrayonUIButton'
 
 interface BackButtonProps {
   isZoomed: boolean
@@ -92,40 +94,57 @@ export function CleaningProgressUI({
   ]
 
   return (
-    <div className='absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg border border-gray-200 min-w-[200px] z-10'>
-      <h3 className='text-lg font-bold mb-3 text-gray-800'>청소 진행도</h3>
-      <div className='space-y-3 font-light'>
-        {missionList.map((mission) => {
-          const progress = cleaningProgress[mission.id]
-          const isCompleted = completedMissions[mission.id]
+    <CrayonTextBox
+      color='#01A7A2'
+      bg='#FFF'
+      className='w-[300px] z-[200] bottom-4 left-4'
+      position='absolute'>
+        <h3 className='text-lg font-bold mb-3 text-gray-800'>청소 진행도</h3>
+        <div className='space-y-3 font-light'>
+          {missionList.map((mission) => {
+            const progress = cleaningProgress[mission.id]
+            const isCompleted = completedMissions[mission.id]
 
-          return (
-            <div key={mission.id} className='space-y-2'>
-              <div className='flex justify-between items-center'>
-                <span className='text-sm text-gray-700'>{mission.name}</span>
-                <span className='text-xs text-gray-500'>{isCompleted ? '완료' : `${Math.round(progress)} %`}</span>
+            return (
+              <div key={mission.id}>
+                <div className='flex justify-between items-center'>
+                  <span className='text-sm text-gray-700'>{mission.name}</span>
+                  <span className='text-xs text-gray-500'>{isCompleted ? '완료' : `${Math.round(progress)} %`}</span>
+                </div>
+
+                {/* 프로그레스 바 */}
+                <div className='w-full bg-gray-200 rounded-full h-2 overflow-hidden'>
+                  <div
+                    className='h-2 rounded-full transition-all duration-300'
+                    style={{
+                      width: `${progress}%`,
+                      backgroundColor: mission.color,
+                    }}
+                  />
+                </div>
+
+                {/* 완료되면 CrayonTextButton으로 교체 */}
+                {isCompleted && (
+                  <CrayonTextButton
+                    ariaLabel='다시 하기'
+                    text='다시 하기'
+                    width={160}
+                    height={48}
+                    // @ts-ignore
+                    textSize={12}
+                    bg='#F3F4F6' // gray-100
+                    color='#D1D5DB' // gray-300 (border)
+                    textcolor='#374151' // gray-700
+                    className='w-full active:scale-95 transition-all duration-200'
+                    onClick={() => onReset(mission.id)}
+                    innerCircleVisible={false}
+                  />
+                )}
               </div>
-              <div className='w-full bg-gray-200 rounded-full h-2'>
-                <div
-                  className='h-2 rounded-full transition-all duration-300'
-                  style={{
-                    width: `${progress}%`,
-                    backgroundColor: mission.color,
-                  }}
-                />
-              </div>
-              {isCompleted && (
-                <button
-                  onClick={() => onReset(mission.id)}
-                  className='w-full text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded border border-gray-300 transition-colors duration-200'>
-                  다시 하기
-                </button>
-              )}
-            </div>
-          )
-        })}
-      </div>
-    </div>
+            )
+          })}
+        </div>
+    </CrayonTextBox>
   )
 }
 
@@ -157,15 +176,15 @@ export function SolutionSelector({
 
   return (
     <motion.div
-      className='absolute bottom-4 left-4 z-10'
+      className='absolute top-[380px] left-4 z-10'
       initial={{ opacity: 0, y: 0 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 0 }}
       transition={{ duration: 1, ease: 'easeOut' }}>
-      <div className='absolute w-[300px] bottom-4 left-4 z-10'>
-        <div className='bg-white bg-opacity-95 p-4 rounded-xl shadow-lg border-2 border-gray-200'>
+      <div className='absolute bottom-4 left-4 z-10'>
+        <CrayonTextBox textcolor='#333' textAlign='center' bg='#FFFFFF' color='#01A7A2' padding={20} animated={true}>
           <div className='text-lg font-bold mb-3 text-center text-gray-800'>용액 선택</div>
-          <div className='grid grid-cols-2 gap-3'>
+          <div className='flex w-[380px] gap-3 text-black whitespace-nowrap'>
             {solutions.map((solution) => (
               <button
                 key={solution.id}
@@ -175,20 +194,13 @@ export function SolutionSelector({
                     onButtonClick?.()
                   }
                 }}
-                disabled={isDisabled}
-                className={`
-                px-4 py-3 rounded-lg font-bold text-white shadow-lg 
-                transition-all text-black
-                ${selectedSolution === solution.id ? 'ring-4 ring-yellow-400' : ''}
-                ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 active:scale-95 cursor-pointer'}
-              `}
-                style={{ backgroundColor: solution.color }}>
-                {solution.img && <img src={solution.img} alt={solution.name} className='w-24 h-24 object-contain' />}
+                disabled={isDisabled}>
+                {solution.img && <img src={solution.img} alt={solution.name} />}
                 {solution.name}
               </button>
             ))}
           </div>
-        </div>
+        </CrayonTextBox>
       </div>
     </motion.div>
   )
@@ -222,27 +234,27 @@ export function GameMessages({
     <>
       {showMessage && (
         <div className='absolute bottom-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none'>
-          <div className='bg-black whitespace-nowrap bg-opacity-70 text-white px-6 py-4 rounded-xl text-center'>
+          <CrayonTextBox textcolor='#333' textAlign='center' bg='#FFFFFF' color='#01A7A2' padding={20} animated={true}>
             <div className='text-xl font-bold'>{showMessage}</div>
-          </div>
+          </CrayonTextBox>
         </div>
       )}
 
       {gamePhase === 'spraying' && (
         <div className='absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none'>
-          <div className='bg-blue-600 bg-opacity-90 text-white px-6 py-4 rounded-xl text-center'>
+          <CrayonTextBox textcolor='#333' textAlign='center' bg='#FFFFFF' color='#01A7A2' padding={20} animated={true}>
             <div className='text-lg font-bold'>{showLiquidMessage}</div>
-          </div>
+          </CrayonTextBox>
         </div>
       )}
 
       {gamePhase === 'wiping' && (
         <div className='absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none'>
-          <div className='bg-green-600 bg-opacity-90 text-white px-6 py-4 rounded-xl text-center'>
+          <CrayonTextBox textcolor='#333' textAlign='center' bg='#FFFFFF' color='#01A7A2' padding={20} animated={true}>
             <div className='text-lg font-bold'>
               {material} ({Math.round(wipingProgress)} %)
             </div>
-          </div>
+          </CrayonTextBox>
         </div>
       )}
     </>

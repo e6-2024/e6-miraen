@@ -14,6 +14,19 @@ import { useGameHandlers } from '@/components/6-1-1/useGameHandlers'
 import { useAudioManager } from '@/components/6-1-1/useAudioManager'
 import { GameScene } from '@/components/6-1-1/GameScene'
 import { CrayonTextButton } from '@/components/CrayonUIButton'
+type ButtonStyle = { bg: string; border: string; text: string }
+
+type RoomTheme = {
+  goal: ButtonStyle
+  guide: ButtonStyle
+  start: ButtonStyle
+}
+
+const roomTheme: RoomTheme = {
+  goal: { bg: '#05A8A4', border: '#7BCACA', text: '#FFFFFF' },
+  guide: { bg: '#05A8A4', border: '#7BCACA', text: '#FFFFFF' },
+  start: { bg: '#9B1CDF', border: '#DFB2FA', text: '#FFFFFF' },
+}
 
 function BackButton({
   isZoomed,
@@ -36,38 +49,47 @@ function BackButton({
 
   return (
     <>
-      <div className='absolute w-fit top-4 left-4 z-10 flex gap-4'>
+      <div className='absolute w-fit top-4 left-4 z-10 flex'>
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.5, ease: 'easeInOut' }}>
-          <button
+          <CrayonTextButton
+            ariaLabel='모드 선택 화면으로 돌아가기'
+            text='첫 화면으로'
+            icon='arrow-left'
+            iconPosition='left'
+            width={170}
+            height={75}
+            iconSize={30}
+            bg='#01A7A2'
+            color='#78C9C9'
+            textcolor='#FFFFFF'
             onClick={onBack}
-            disabled={isAnimating}
-            className='px-6 pt-3 pb-4 bg-[#FF8026] rounded-[20px] shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#ff9b54] hover:shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(152,0,0,0.50)] transition-all duration-300'
-            aria-label='모드 선택 화면으로 돌아가기'>
-            <div className='text-center justify-center text-white text-2xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
-              첫 화면으로
-            </div>
-          </button>
+            innerCircleVisible={false}
+          />
         </motion.div>
-
         {currentMission && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5, ease: 'easeInOut' }}>
-            <button
+            <CrayonTextButton
+              ariaLabel='모드 선택 화면으로 돌아가기'
+              text='다시하기'
+              icon='replay'
+              iconPosition='left'
+              width={170}
+              height={75}
+              iconSize={30}
+              bg='#01A7A2'
+              color='#78C9C9'
+              textcolor='#FFFFFF'
               onClick={onRestart}
-              disabled={isAnimating}
-              className='px-6 pt-3 pb-4 bg-[#52AE46] rounded-[20px] shadow-[inset_0px_-6px_8px_0px_rgba(65,87,51,0.50)] inline-flex justify-center items-center overflow-hidden hover:bg-[#6BC05D] inline-flex justify-center items-center gap-2.5 overflow-hidden active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(152,0,0,0.50)] transition-all duration-300'
-              aria-label='다시하기'>
-              <div className='text-center justify-center text-white text-2xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
-                다시하기
-              </div>
-            </button>
+              innerCircleVisible={false}
+            />
           </motion.div>
         )}
       </div>
@@ -188,6 +210,14 @@ export default function Home() {
     resetCamera(), setIsAudioManagerStarted(false), audio.stopAllAudio()
   }
 
+  const resetToIntro = () => {
+    resetCamera()
+    setIsAudioManagerStarted(false)
+    audio.stopAllAudio()
+    gameActions.setShowIntro(true)
+    gameActions.setCurrentMission(null)
+  }
+
   // 이벤트 핸들러들
   const handleShowActivityGuide = () => {
     gameActions.setShowActivityGuide(true)
@@ -269,12 +299,28 @@ export default function Home() {
     gameState.selectedSolution,
   ])
 
-  console.log('isAudioManagerStarted:', isAudioManagerStarted)
+  // console.log('isAudioManagerStarted:', isAudioManagerStarted)
 
   return (
     <div className='w-screen h-screen bg-white flex flex-col'>
       {mounted && (
         <>
+          <CrayonTextButton
+            ariaLabel={'첫 화면으로'}
+            icon={'home'}
+            position='absolute'
+            iconPosition='left'
+            onClick={resetToIntro}
+            width={108}
+            height={108}
+            color='#ffffff'
+            textcolor='#ffffff'
+            bg='rgba(255,255,255,0.10)'
+            className='background-blur z-[300] right-[108px] border-white/20 '
+            right={16}
+            top={16}
+            iconSize={40}
+          />
           <CrayonTextButton
             ariaLabel={bgmEnabled ? '배경음악 끄기' : '배경음악 켜기'}
             icon={(bgmEnabled ? 'volume2' : 'volumeX').toLowerCase()}
@@ -362,6 +408,7 @@ export default function Home() {
           backgroundSvg='/img/cover/6-1-1.svg'
           descriptionSound='/sounds/6-1-1/narration/6-1-1-Goal.MP3'
           onActivityGuide={handleShowActivityGuide}
+          buttonTheme={roomTheme}
         />
       )}
 

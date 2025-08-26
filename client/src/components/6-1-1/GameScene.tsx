@@ -154,7 +154,7 @@ export const GameScene: React.FC<GameSceneProps> = ({
         }
       />
 
-      <group renderOrder={-1}>
+      {/* <group renderOrder={-1}>
         <Toilet
           scale={1}
           position={[10.5, 5, 0.5]}
@@ -163,7 +163,7 @@ export const GameScene: React.FC<GameSceneProps> = ({
           wipingProgress={gameState.wipingProgress}
           sprayColorHex={activeColorHex}
         />
-      </group>
+      </group> */}
 
       {gameState.isBathroomLightOn && (
         <rectAreaLight
@@ -260,14 +260,14 @@ export const GameScene: React.FC<GameSceneProps> = ({
             opacity={1 - gameState.cleaningProgress.splash01 / 100}
             enabled={true}
           />
-          <CuttingBoard
+          {/* <CuttingBoard
             position={missions.splash01.position}
             wipingProgress={gameState.wipingProgress.splash01}
             isInteractive={gameState.currentMission === 'splash01' && gameState.gamePhase === 'wiping'}
             sprayEffect={gameState.sprayEffects.splash01}
             isCompleted={gameState.completedMissions.splash01}
             sprayColorHex={activeColorHex}
-          />
+          /> */}
         </>
       )}
 

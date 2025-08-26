@@ -13,6 +13,7 @@ interface CrayonTextBoxProps {
   fontWeight?: string;
   padding?: number;
   animated?: boolean;
+  position?: string;
   children?: React.ReactNode;
 }
 
@@ -30,12 +31,13 @@ export const CrayonTextBox: React.FC<CrayonTextBoxProps> = ({
   padding = 16,
   animated = false,
   children,
+  position='relative',
 }) => {
   const textLines = (text ?? '').split('\n').filter((line) => line.trim());
 
   return (
     <div
-      className={`relative ${className}`}     // ✅ w-fit 고정 제거
+      className={`${position} ${className}`}     // ✅ w-fit 고정 제거
       style={{
         width: width ?? undefined,            // ✅ 사이즈 적용
         height: height ?? undefined,

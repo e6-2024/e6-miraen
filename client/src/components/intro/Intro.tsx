@@ -16,9 +16,9 @@ type ButtonStyle = {
 }
 
 type IntroButtonTheme = {
-  goal: ButtonStyle      
-  guide: ButtonStyle      
-  start: ButtonStyle 
+  goal: ButtonStyle
+  guide: ButtonStyle
+  start: ButtonStyle
 }
 
 interface IntroProps<T = string> {
@@ -34,11 +34,11 @@ interface IntroProps<T = string> {
   onModeSelect?: (mode: T) => void
   showModeButtonsDirectly?: boolean
   onActivityGuide?: () => void
-  buttonTheme?: IntroButtonTheme 
+  buttonTheme?: IntroButtonTheme
 }
 
 const anatomyTheme: IntroButtonTheme = {
-  goal:  { bg: '#6C63FF', border: '#5A54D6', text: '#FFFFFF' },
+  goal: { bg: '#6C63FF', border: '#5A54D6', text: '#FFFFFF' },
   guide: { bg: '#00BFA6', border: '#00897B', text: '#FFFFFF' },
   start: { bg: '#FFB74D', border: '#F57C00', text: '#1A1A1A' }, // 웜 앰버(텍스트 딥그레이)
 }
@@ -61,6 +61,7 @@ export default function Intro<T = string>({
   const [isAnimating, setIsAnimating] = useState(false)
   const [showGoalPopup, setShowGoalPopup] = useState(false)
   const [showModeButtons, setShowModeButtons] = useState(false)
+  const [audio, setAudio] = useState<HTMLAudioElement | null>(null)
 
   useEffect(() => {
     if (showModeButtonsDirectly) {
@@ -70,12 +71,12 @@ export default function Intro<T = string>({
 
   const playDescriptionSound = (audioPath: string = descriptionSound) => {
     try {
-      const audio = new Audio(audioPath)
-      audio.volume = 1
-      audio.play().catch(() => {})
+      const newAudio = new Audio(audioPath)
+      newAudio.volume = 1
+      newAudio.play().catch(() => {})
+      setAudio(newAudio)
     } catch {}
   }
-
   const handleEnter = () => {
     if (showModeSelection && modeButtons.length > 0) {
       setShowModeButtons(true)
@@ -98,7 +99,14 @@ export default function Intro<T = string>({
   }
 
   const handleGoalClick = () => setShowGoalPopup(true)
-  const handleClosePopup = () => setShowGoalPopup(false)
+  const handleClosePopup = () => {
+    if (audio) {
+      audio.pause()
+      audio.currentTime = 0
+      setAudio(null)
+    }
+    setShowGoalPopup(false)
+  }
 
   // 활동 방법 클릭
   const handleActivityGuideClick = () => onActivityGuide?.()
@@ -110,8 +118,7 @@ export default function Intro<T = string>({
       className={`
         absolute inset-0 z-50 transition-opacity duration-1000 ease-in-out overflow-hidden
         ${isAnimating ? 'opacity-0' : 'opacity-100'}
-      `}
-    >
+      `}>
       {/* 데스크톱 */}
       <div className='hidden md:block w-full h-full'>
         <div
@@ -119,8 +126,7 @@ export default function Intro<T = string>({
           className={`
             absolute top-0 left-0 w-full h-full transition-all duration-1000 ease-in-out
             ${isAnimating ? 'scale-150 opacity-0' : 'scale-100 opacity-100'}
-          `}
-        >
+          `}>
           <img src={backgroundSvg} alt='Background' className='absolute inset-0 w-full h-full object-cover' />
         </div>
 
@@ -149,7 +155,10 @@ export default function Intro<T = string>({
               color={buttonTheme.goal.border}
               textcolor={buttonTheme.goal.text}
               className='transition-all duration-300 hover:brightness-110 active:scale-90'
-              onClick={() => { handleGoalClick(); playDescriptionSound() }}
+              onClick={() => {
+                handleGoalClick()
+                playDescriptionSound()
+              }}
               innerCircleVisible={false}
             />
             <CrayonTextButton
@@ -195,8 +204,7 @@ export default function Intro<T = string>({
                   <div
                     key={String(mode)}
                     className='animate-in fade-in slide-in-from-bottom-4 duration-500'
-                    style={{ animationDelay: `${index * 100}ms` }}
-                  >
+                    style={{ animationDelay: `${index * 100}ms` }}>
                     <CrayonTextButton
                       ariaLabel={label}
                       text={label}
@@ -225,8 +233,7 @@ export default function Intro<T = string>({
           className={`
             absolute top-0 left-0 w-full h-full transition-all duration-1000 ease-in-out
             ${isAnimating ? 'scale-150 opacity-0' : 'scale-100 opacity-100'}
-          `}
-        >
+          `}>
           <img src={backgroundSvg} alt='Background' className='absolute inset-0 w-full h-full object-cover' />
         </div>
 
@@ -235,8 +242,7 @@ export default function Intro<T = string>({
             absolute inset-0 w-full h-full flex flex-col items-center justify-center
             px-6 py-8 text-center transition-opacity duration-1000 ease-in-out
             ${isAnimating ? 'opacity-0' : 'opacity-100'}
-          `}
-        >
+          `}>
           <h1 className='text-4xl mb-8 text-white leading-tight font-bold [text-shadow:_0px_4px_10px_rgb(0_0_0_/_0.50)]'>
             {title.split('\n').map((line, i) => (
               <div key={i}>
@@ -316,8 +322,7 @@ export default function Intro<T = string>({
             textcolor='#333333'
             padding={24}
             animated={true}
-            className='w-[min(92vw,640px)] mx-4 shadow-2xl rounded-2xl'
-          >
+            className='w-[min(92vw,640px)] mx-4 shadow-2xl rounded-2xl'>
             {/* 제목 */}
             <div className='flex flex-row justify-center items-center gap-3 mb-6'>
               <h3 className='text-2xl font-bold text-gray-800'>활동 목표</h3>
