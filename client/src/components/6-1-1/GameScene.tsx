@@ -39,6 +39,9 @@ interface GameSceneProps {
     splash04: number
   }
   isAudioManagerStarted?: boolean
+  // 마우스 위치 정보를 받기 위한 props
+  mousePosition?: { x: number; y: number }
+  screenSize?: { width: number; height: number }
 }
 
 export const GameScene: React.FC<GameSceneProps> = ({
@@ -51,34 +54,10 @@ export const GameScene: React.FC<GameSceneProps> = ({
   onAnimationComplete,
   splashOpacities,
   isAudioManagerStarted,
+  mousePosition = { x: 0, y: 0 },
+  screenSize = { width: window.innerWidth, height: window.innerHeight }
 }) => {
   const currentAudiosRef = useRef<HTMLAudioElement[]>([])
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
-  const [screenSize, setScreenSize] = useState({ 
-    width: window.innerWidth, 
-    height: window.innerHeight 
-  })
-
-  useEffect(() => {
-    const handleMouseMove = (event: MouseEvent) => {
-      setMousePosition({ x: event.clientX, y: event.clientY })
-    }
-
-    const handleResize = () => {
-      setScreenSize({ width: window.innerWidth, height: window.innerHeight })
-    }
-
-    if (gameState.gamePhase === 'wiping') {
-      window.addEventListener('mousemove', handleMouseMove)
-    }
-    
-    window.addEventListener('resize', handleResize)
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove)
-      window.removeEventListener('resize', handleResize)
-    }
-  }, [gameState.gamePhase])
 
   useEffect(() => {
     if (isAudioManagerStarted) {
@@ -144,6 +123,8 @@ export const GameScene: React.FC<GameSceneProps> = ({
         gamePhase={gameState.gamePhase}
         triggerSpray={gameState.selectedSolution !== null && gameState.currentMission !== null}
         onAnimationComplete={onAnimationComplete}
+        mousePosition={mousePosition}
+        screenSize={screenSize}
         sprayColorHex={
           gameState.selectedSolution === 'vinegar'
             ? '#ffa200'

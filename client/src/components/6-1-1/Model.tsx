@@ -28,12 +28,40 @@ interface ModelProps {
   receiveShadow?: boolean
   doubleSide?: boolean
   sprayColorHex?: string
-  // 새로운 애니메이션 관련 props
   selectedSolution?: string | null
   currentMission?: string | null
   gamePhase?: string
   triggerSpray?: boolean
   onAnimationComplete?: () => void
+  mousePosition?: { x: number; y: number }
+  screenSize?: { width: number; height: number }
+}
+
+const WIPING_TOOL_CONFIG = {
+  splash01: {
+    toolNames: ['Tower_Cutting_board'],
+    basePosition: null as THREE.Vector3 | null,
+    moveRange: { x: 0.3, y: 0 },
+    baseOffset: { x: 0, y: 0, z: -0.1 },
+  },
+  splash02: {
+    toolNames: ['Tower_Window'],
+    basePosition: null as THREE.Vector3 | null,
+    moveRange: { x: 1, y: 1 },
+    baseOffset: { x: 0, y: 0, z: -0.5 },
+  },
+  splash03: {
+    toolNames: ['Toilet_Brush'],
+    basePosition: null as THREE.Vector3 | null,
+    moveRange: { x: 0.4, y: 0.4 },
+    baseOffset: { x: 0.5, y: 0, z: 0 },
+  },
+  splash04: {
+    toolNames: ['Bathroom_Scrub'],
+    basePosition: null as THREE.Vector3 | null,
+    moveRange: { x: 0.5, y: 0 },
+    baseOffset: { x: 0, y: 0, z: 0 },
+  }
 }
 
 const ANIMATION_INDEX_MAP: Record<string, number[]> = {
@@ -51,7 +79,7 @@ const ANIMATION_INDEX_MAP: Record<string, number[]> = {
   splash03_vinegar: [24,25,26],
   splash03_spray: [42,43,44],
   splash03_toilet_cleaner: [21,22,23],
-  splash03_bleach: [27,28,45,46,47],
+  splash03_bleach: [27,28,45,46],
   // splash04 (욕실)
   splash04_vinegar: [33,34,35],
   splash04_spray: [31,32],
@@ -74,6 +102,8 @@ export const Model = ({
   gamePhase,
   triggerSpray = false,
   onAnimationComplete,
+  mousePosition = { x: 0, y: 0 },
+  screenSize = { width: window.innerWidth, height: window.innerHeight }
 }: ModelProps) => {
   const gltf = useGLTF('/models/6-1-1/New_Clean_Room/New_Room.gltf')
   const { actions, names } = useAnimations(gltf.animations, gltf.scene)
@@ -83,11 +113,26 @@ export const Model = ({
   const currentAnimationRef = useRef<THREE.AnimationAction | null>(null)
   const lastTriggerRef = useRef(false)
   const runningActionsRef = useRef<THREE.AnimationAction[]>([])
+  
+  const wipingToolsRef = useRef<{
+    [key: string]: THREE.Object3D | null
+  }>({
+    splash01: null,
+    splash02: null,
+    splash03: null,
+    splash04: null
+  })
 
   const animationKey = useMemo(() => {
     if (!currentMission || !selectedSolution) return null
     return `${currentMission}_${selectedSolution}`
   }, [currentMission, selectedSolution])
+
+  const normalizedMousePos = useMemo(() => {
+    const x = (mousePosition.x / screenSize.width) * 2 - 1 
+    const y = -(mousePosition.y / screenSize.height) * 2 + 1
+    return { x, y }
+  }, [mousePosition, screenSize])
 
   const configureShadows = (object: THREE.Object3D) => {
     object.traverse((child) => {
@@ -107,18 +152,52 @@ export const Model = ({
     })
   }
 
-  // 애니메이션 재생 함수 (동시 재생)
+  const findWipingTools = useCallback(() => {
+    if (!gltf.scene) return
+
+    gltf.scene.traverse((child) => {
+      Object.entries(WIPING_TOOL_CONFIG).forEach(([mission, config]) => {
+        config.toolNames.forEach((toolName) => {
+          if (child.name === toolName || child.name.includes(toolName)) {
+            wipingToolsRef.current[mission] = child
+            
+            if (!config.basePosition) {
+              // 원래 위치에 baseOffset을 더한 값을 basePosition으로 설정
+              config.basePosition = new THREE.Vector3(
+                child.position.x + config.baseOffset.x,
+                child.position.y + config.baseOffset.y,
+                child.position.z + config.baseOffset.z
+              )
+              
+              // 도구를 즉시 새로운 basePosition으로 이동
+              child.position.copy(config.basePosition)
+            }
+            
+            console.log(`Found wiping tool for ${mission}: ${child.name}`, 
+                       `Original: (${child.position.x}, ${child.position.y}, ${child.position.z})`,
+                       `With offset: (${config.basePosition.x}, ${config.basePosition.y}, ${config.basePosition.z})`)
+          }
+        })
+      })
+    })
+  }, [gltf.scene])
+
+  useEffect(() => {
+    if (gltf.scene) {
+      findWipingTools()
+      configureShadows(gltf.scene)
+    }
+  }, [gltf.scene, findWipingTools])
+
   const playAnimationSequence = useCallback((animationIndices: number[]) => {
     if (!actions || animationIndices.length === 0) return
 
-    // 기존 애니메이션들 정지
     runningActionsRef.current.forEach(action => action.stop())
     runningActionsRef.current = []
 
     const runningActions: THREE.AnimationAction[] = []
     let completedCount = 0
 
-    // 모든 애니메이션을 동시에 시작
     animationIndices.forEach((currentIndex) => {
       const animationName = names[currentIndex]
       
@@ -131,12 +210,10 @@ export const Model = ({
         
         runningActions.push(action)
 
-        // 각 애니메이션의 완료 이벤트
         const onFinished = () => {
           action.getMixer().removeEventListener('finished', onFinished)
           completedCount += 1
           
-          // 모든 애니메이션이 완료되면 콜백 호출
           if (completedCount >= animationIndices.length) {
             runningActionsRef.current = []
             onAnimationComplete?.()
@@ -146,12 +223,10 @@ export const Model = ({
       }
     })
 
-    // 현재 실행 중인 액션들을 저장
     runningActionsRef.current = runningActions
-    currentAnimationRef.current = runningActions[0] // 첫 번째 액션을 대표로 저장
+    currentAnimationRef.current = runningActions[0] 
   }, [actions, names, onAnimationComplete])
 
-  // 스프레이 트리거 감지 및 애니메이션 재생
   useEffect(() => {
     if (triggerSpray && !lastTriggerRef.current && animationKey && actions) {
       const animationIndices = ANIMATION_INDEX_MAP[animationKey]
@@ -171,11 +246,26 @@ export const Model = ({
     }
   }, [gamePhase])
 
-  useEffect(() => {
-    if (modelRef.current && gltf.scene) {
-      configureShadows(gltf.scene)
-    }
-  }, [gltf.scene, castShadow, receiveShadow])
+  useFrame((state, delta) => {
+    if (!currentMission || gamePhase !== 'wiping') return
+
+    const wipingTool = wipingToolsRef.current[currentMission]
+    const config = WIPING_TOOL_CONFIG[currentMission]
+    
+    if (!wipingTool || !config || !config.basePosition) return
+    
+    const mouseOffsetX = normalizedMousePos.x * config.moveRange.x
+    const mouseOffsetY = normalizedMousePos.y * config.moveRange.y
+    
+    const targetPosition = new THREE.Vector3(
+      config.basePosition.x,
+      config.basePosition.y + mouseOffsetY,
+      config.basePosition.z - mouseOffsetX
+    )
+    
+    wipingTool.position.lerp(targetPosition, delta * 8)
+    
+  })
 
   return (
     <group ref={modelRef} scale={scale} position={position} dispose={null}>

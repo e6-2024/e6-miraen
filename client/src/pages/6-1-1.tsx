@@ -103,6 +103,13 @@ export default function Home() {
   const [gameState, gameActions] = useGameState()
   const [isLoaded, setIsLoaded] = useState(false)
   const [perfSucks, degrade] = useState(false)
+  
+  // 마우스 위치 및 화면 크기 추적
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+  const [screenSize, setScreenSize] = useState({ 
+    width: typeof window !== 'undefined' ? window.innerWidth : 1920, 
+    height: typeof window !== 'undefined' ? window.innerHeight : 1080 
+  })
 
   // 오디오 매니저 상태
   const [isAudioManagerStarted, setIsAudioManagerStarted] = useState(false)
@@ -185,6 +192,31 @@ export default function Home() {
     resetMission 
   } = useGameHandlers(gameState, gameActions)
 
+  // 마우스 위치 및 화면 크기 추적
+  useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      setMousePosition({ x: event.clientX, y: event.clientY })
+      
+      // wiping 단계에서의 기존 로직도 유지
+      if (gameState.gamePhase === 'wiping') {
+        handleWiping(event)
+      }
+    }
+
+    const handleResize = () => {
+      setScreenSize({ width: window.innerWidth, height: window.innerHeight })
+    }
+
+    // 항상 마우스 움직임을 추적 (wiping 도구 애니메이션용)
+    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('resize', handleResize)
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [gameState.gamePhase, gameState.currentMission, gameState.mouseVelocity, gameState.lastMousePosition])
+
   // 계산된 값들
   const splashOpacities = {
     splash01: (100 - gameState.cleaningProgress.splash01) / 100,
@@ -241,29 +273,6 @@ export default function Home() {
     setBgmReady(true)
     setTimeout(() => gameActions.setShowIntro(false), 300)
   }
-
-  // 마우스 이벤트 리스너들
-  useEffect(() => {
-    const handleMouseMove = (event: MouseEvent) => {
-      if (gameState.gamePhase === 'wiping') {
-        handleWiping(event)
-      }
-    }
-
-    // 닦기 단계에서만 마우스 무브 이벤트 등록
-    if (gameState.gamePhase === 'wiping') {
-      window.addEventListener('mousemove', handleMouseMove)
-    }
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove)
-    }
-  }, [
-    gameState.gamePhase,
-    gameState.currentMission,
-    gameState.mouseVelocity,
-    gameState.lastMousePosition,
-  ])
 
   return (
     <div className='w-screen h-screen bg-white flex flex-col'>
@@ -362,6 +371,8 @@ export default function Home() {
           onAnimationComplete={handleAnimationComplete}
           splashOpacities={splashOpacities}
           isAudioManagerStarted={isAudioManagerStarted}
+          mousePosition={mousePosition}
+          screenSize={screenSize}
         />
       </Scene>
 
