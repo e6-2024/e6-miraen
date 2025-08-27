@@ -87,6 +87,93 @@ const ANIMATION_INDEX_MAP: Record<string, number[]> = {
   splash04_bleach: [36,40,41,42,43,44,45],
 }
 
+const SOLUTION_BOTTLE_MAPPING = {
+  splash01: { // 도마
+    vinegar: [
+      'Vinegar.001',     // Mesh005 - 식초병 본체
+      'Bottle.003',      // Mesh005_1 - 병 재질
+      'blinn1.001',      // Mesh005_2, polySurface2005 - 뚜껑 등
+      'Material.048',    // Sphere003 - 관련 구체
+    ],
+    spray: [
+      'Material.045',    // SprayCleaner_Material_#41_0007 - 스프레이 본체
+      'Material_41.004', // SprayCleaner_Material_#41_0007_1 - 스프레이 재질
+      'Material.046',    // Plane020 - 스프레이 라벨?
+      'Material.047',    // Plane020_1 - 스프레이 라벨?
+      'Material_41.004', // SprayCleaner_Material_#41_0001 - 추가 스프레이 재질
+    ],
+    toilet_cleaner: [
+      'Material.042',    // Toilet_Bleach_Cutting_board - 변기세제 본체
+      'Material.043',    // Sphere001 - 관련 구체
+      'JOY_BELACH:cap_2.001', // Bleach_body_Cutting_board, Bleach_opener_Cutting_board - 뚜껑
+      'Material.044',    // Sphere002 - 관련 구체
+    ],
+    bleach: [
+      'JOY_BELACH:cap_2.001', // Bleach_body_Cutting_board, Bleach_opener_Cutting_board
+      'Material.044',    // Sphere002
+    ],
+  },
+  splash02: { // 유리창
+    vinegar: [
+      'Vinegar.003',     // Mesh008 - 식초병
+      'Bottle.003',      // Mesh008_1
+      'blinn1.003',  
+      'Material.039',    // Sphere
+    ],
+    spray: [
+      'Material.033',    // SprayCleaner_Material_#41_0004
+      'Material_41.003', // SprayCleaner_Material_#41_0003
+    ],
+    toilet_cleaner: [
+      'Material.040',    // Toilet_Bleach_window
+    ],
+    bleach: [
+      'JOY_BELACH:cap_2', // Bleach_body_window, Bleach_opener_window
+    ],
+  },
+  splash03: { // 변기
+    vinegar: [
+      'Vinegar.004',     // Mesh015
+      'Bottle.003',      // Mesh015_1  
+      'blinn1.004',      // Mesh015_2, polySurface2010
+      'Material.056',    // Sphere007
+    ],
+    spray: [
+      'Material.060',    // SprayCleaner_Material_#41_0012
+      'Material_41.007', // SprayCleaner_Material_#41_0012_1
+      'Material.061',    // Plane032
+      'Material.062',    // Plane032_1
+    ],
+    toilet_cleaner: [
+      'Material.054',    // Toilet_Bleach_Toilet
+      'Material.055',    // Sphere006
+    ],
+    bleach: [
+      'JOY_BELACH:cap_2.005', // Bleach_body_toilet, Bleach_opener_toilet
+    ],
+  },
+  splash04: { // 욕실 바닥
+    vinegar: [
+      'Vinegar.002',     // Mesh011
+      'Bottle.003',      // Mesh011_1
+      'blinn1.002',      // Mesh011_2, polySurface2006
+    ],
+    spray: [
+      'Material.049',    // SprayCleaner_Material_#41_0008
+      'Material_41.005', // SprayCleaner_Material_#41_0008_1
+      'Material_41.005', // SprayCleaner_Material_#41_0006
+    ],
+    toilet_cleaner: [
+      'Material.052',    // Toilet_Bleach_BathroomFloor
+      'Material.051',    // Sphere005
+    ],
+    bleach: [
+      'JOY_BELACH:cap_2.002', // polySurface2008, polySurface3002
+      'Material.050',    // Sphere004
+    ],
+  }
+}
+
 export const Model = ({
   splashOpacities,
   sprayEffects,
@@ -162,20 +249,15 @@ export const Model = ({
             wipingToolsRef.current[mission] = child
             
             if (!config.basePosition) {
-              // 원래 위치에 baseOffset을 더한 값을 basePosition으로 설정
               config.basePosition = new THREE.Vector3(
                 child.position.x + config.baseOffset.x,
                 child.position.y + config.baseOffset.y,
                 child.position.z + config.baseOffset.z
               )
               
-              // 도구를 즉시 새로운 basePosition으로 이동
               child.position.copy(config.basePosition)
             }
-            
-            console.log(`Found wiping tool for ${mission}: ${child.name}`, 
-                       `Original: (${child.position.x}, ${child.position.y}, ${child.position.z})`,
-                       `With offset: (${config.basePosition.x}, ${config.basePosition.y}, ${config.basePosition.z})`)
+          
           }
         })
       })
@@ -245,6 +327,47 @@ export const Model = ({
       currentAnimationRef.current = null
     }
   }, [gamePhase])
+
+  // 용액 병 가시성 제어 로직
+  useEffect(() => {
+    if (!modelRef.current || !gltf.scene) return
+
+    gltf.scene.traverse((child) => {
+      if (child instanceof THREE.Mesh && child.material) {
+        const material = child.material as THREE.MeshStandardMaterial
+
+        if (material.name) {
+          const matName = material.name
+
+          // 용액 병 가시성 제어
+          Object.entries(SOLUTION_BOTTLE_MAPPING).forEach(([mission, solutions]) => {
+            Object.entries(solutions).forEach(([solution, materialNames]) => {
+              materialNames.forEach(materialNamePattern => {
+                if (matName === materialNamePattern) {
+                  // 현재 미션이고 선택된 용액인 경우에만 보이게
+                  const isCurrentMissionAndSolution = currentMission === mission && selectedSolution === solution
+                  
+                  if (isCurrentMissionAndSolution) {
+                    // 선택된 용액 병만 보이게
+                    material.transparent = true
+                    material.opacity = 1.0
+                    material.visible = true
+                    child.visible = true
+                  } else {
+                    // 선택되지 않은 용액 병들은 숨기기
+                    material.visible = false
+                    child.visible = false
+                  }
+                  
+                  material.needsUpdate = true
+                }
+              })
+            })
+          })
+        }
+      }
+    })
+  }, [selectedSolution, currentMission, gltf.scene])
 
   useFrame((state, delta) => {
     if (!currentMission || gamePhase !== 'wiping') return
