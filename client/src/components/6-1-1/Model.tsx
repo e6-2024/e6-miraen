@@ -174,6 +174,43 @@ const SOLUTION_BOTTLE_MAPPING = {
   }
 }
 
+const SPRAY_PLANE_MATERIALS = {
+  splash01: [
+  ],
+  splash02: [
+  ],
+  splash03: [
+  ],
+  splash04: [
+  ]
+}
+
+// 더러운 부분 매핑 (정답 선택 시에만 사라져야 할 실제 더러운 부분)
+const DIRT_MATERIAL_MAPPING = {
+  splash01: {
+    objectName: 'Plane__10_001', // 도마의 더러운 부분
+    materialName: 'M_BloodMaterialExample4.001'
+  },
+  splash02: {
+    objectName: 'Int_Apt_01_Wall_01__14_1003', // 유리창의 더러운 부분
+    materialName: 'WindowsGlass.001'
+  },
+  splash03: [
+    {
+      objectName: 'Int_Apt_01_Wall_01__14_1.004', // 변기의 더러운 부분들
+      materialName: 'Material.018'
+    },
+    {
+      objectName: 'Int_Apt_01_Wall_01__14_1004',
+      materialName: 'Material.019'
+    }
+  ],
+  splash04: {
+    objectName: 'Int_Apt_01_Wall_01__14_1007', // 욕실의 더러운 부분
+    materialName: 'Material.008'
+  }
+}
+
 export const Model = ({
   splashOpacities,
   sprayEffects,
@@ -369,6 +406,79 @@ export const Model = ({
     })
   }, [selectedSolution, currentMission, gltf.scene])
 
+  // 용액 스프레이 효과 제어 (wiping 시 사라지는 용액 plane들)
+  useEffect(() => {
+    if (!modelRef.current || !gltf.scene || !currentMission) return
+
+    const currentSprayPlanes = SPRAY_PLANE_MATERIALS[currentMission as keyof typeof SPRAY_PLANE_MATERIALS]
+    
+    gltf.scene.traverse((child) => {
+      if (child instanceof THREE.Mesh && child.material) {
+        const material = child.material as THREE.MeshStandardMaterial
+
+        if (material.name && currentSprayPlanes.some(planeMat => 
+          material.name.toLowerCase().includes(planeMat.toLowerCase())
+        )) {
+          material.transparent = true
+          // wiping 단계에서 용액 효과는 진행도에 따라 사라짐
+          if (gamePhase === 'wiping' && wipingProgress && wipingProgress[currentMission as keyof typeof wipingProgress]) {
+            const progress = wipingProgress[currentMission as keyof typeof wipingProgress]
+            const fadeOpacity = Math.max(0, 1.0 - progress / 100)
+            material.opacity = fadeOpacity
+            material.visible = fadeOpacity > 0.01
+          } else if (sprayEffects && sprayEffects[currentMission as keyof typeof sprayEffects]) {
+            // spraying 단계에서는 스프레이 효과가 보임
+            material.opacity = 1.0
+            material.visible = true
+          } else {
+            material.opacity = 0.0
+            material.visible = false
+          }
+
+          material.needsUpdate = true
+          child.castShadow = false
+        }
+      }
+    })
+  }, [gamePhase, currentMission, sprayEffects, wipingProgress, sprayColorHex, gltf.scene])
+
+  // 더러운 부분 제어 (정답 선택했을 때만 사라지는 실제 더러운 부분들)
+  useEffect(() => {
+    if (!modelRef.current || !gltf.scene || !currentMission || !splashOpacities) return
+
+    const dirtConfig = DIRT_MATERIAL_MAPPING[currentMission as keyof typeof DIRT_MATERIAL_MAPPING]
+    if (!dirtConfig) return
+
+    const dirtConfigs = Array.isArray(dirtConfig) ? dirtConfig : [dirtConfig]
+    const currentOpacity = splashOpacities[currentMission as keyof typeof splashOpacities]
+
+    // opacity가 유효하지 않으면 초기값 1.0으로 설정
+    const opacity = typeof currentOpacity === 'number' ? currentOpacity : 1.0
+
+    dirtConfigs.forEach(({ objectName, materialName }) => {
+      gltf.scene.traverse((child) => {
+        if (child.name === objectName && child instanceof THREE.Mesh) {
+          const materials = Array.isArray(child.material) ? child.material : [child.material]
+          
+          materials.forEach((material: THREE.Material) => {
+            if (material.name === materialName) {
+              const stdMaterial = material as THREE.MeshStandardMaterial
+              stdMaterial.transparent = true
+              stdMaterial.opacity = opacity
+              stdMaterial.needsUpdate = true
+
+              if (opacity <= 0.01) {
+                child.castShadow = false
+              } else {
+                child.castShadow = castShadow
+              }
+            }
+          })
+        }
+      })
+    })
+  }, [splashOpacities?.[currentMission], currentMission, castShadow])
+
   useFrame((state, delta) => {
     if (!currentMission || gamePhase !== 'wiping') return
 
@@ -387,7 +497,6 @@ export const Model = ({
     )
     
     wipingTool.position.lerp(targetPosition, delta * 8)
-    
   })
 
   return (
