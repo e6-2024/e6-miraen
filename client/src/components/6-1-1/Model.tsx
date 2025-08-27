@@ -55,7 +55,7 @@ const WIPING_TOOL_CONFIG = {
     toolNames: ['Toilet_Brush'],
     basePosition: null as THREE.Vector3 | null,
     moveRange: { x: 0.4, y: 0.4 },
-    baseOffset: { x: 0.35, y: 0, z: 0 },
+    baseOffset: { x: 0.5, y: 0, z: 0 },
   },
   splash04: {
     toolNames: ['Bathroom_Scrub'],
