@@ -194,10 +194,8 @@ export default function Home() {
     resetMission 
   } = useGameHandlers(gameState, gameActions)
 
-  // 다시하기 함수 수정 - 리셋 트리거도 함께 업데이트
   const handleRestart = () => {
     restartCurrentMission()
-    setResetTrigger(prev => prev + 1) // 리셋 트리거 증가
   }
 
   // 마우스 위치 및 화면 크기 추적
@@ -325,7 +323,7 @@ export default function Home() {
         isZoomed={gameState.isZoomed}
         showIntro={gameState.showIntro}
         onBack={handleGoBack}
-        onRestart={handleRestart} // 수정된 핸들러 사용
+        onRestart={handleRestart} 
         isAnimating={gameState.isAnimating}
         gamePhase={gameState.gamePhase}
         currentMission={gameState.currentMission}
