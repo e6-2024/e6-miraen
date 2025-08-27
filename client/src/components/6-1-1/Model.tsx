@@ -48,7 +48,7 @@ const WIPING_TOOL_CONFIG = {
     toolNames: ['Tower_Window'],
     basePosition: null as THREE.Vector3 | null,
     moveRange: { x: 1, y: 1 },
-    baseOffset: { x: 0, y: 0, z: -0.5 },
+    baseOffset: { x: 0, y: 0, z: -0.55 },
   },
   splash03: {
     toolNames: ['Toilet_Brush'],
