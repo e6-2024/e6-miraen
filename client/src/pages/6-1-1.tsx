@@ -103,18 +103,17 @@ export default function Home() {
   const [gameState, gameActions] = useGameState()
   const [isLoaded, setIsLoaded] = useState(false)
   const [perfSucks, degrade] = useState(false)
-  
+
   // 마우스 위치 및 화면 크기 추적
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
-  const [screenSize, setScreenSize] = useState({ 
-    width: typeof window !== 'undefined' ? window.innerWidth : 1920, 
-    height: typeof window !== 'undefined' ? window.innerHeight : 1080 
+  const [screenSize, setScreenSize] = useState({
+    width: typeof window !== 'undefined' ? window.innerWidth : 1920,
+    height: typeof window !== 'undefined' ? window.innerHeight : 1080,
   })
 
   // 오디오 매니저 상태
   const [isAudioManagerStarted, setIsAudioManagerStarted] = useState(false)
 
-  // 추가: 리셋 트리거 상태
   const [resetTrigger, setResetTrigger] = useState(0)
 
   // --- BGM 상태 ---
@@ -185,16 +184,17 @@ export default function Home() {
   // 커스텀 훅들
   const audio = useAudioManager()
   const { controlsRef, moveToTarget, resetCamera } = useCameraController(gameState, gameActions)
-  const { 
-    handleSolutionSelect, 
-    handleSpray, 
-    handleAnimationComplete, 
-    handleWiping, 
-    restartCurrentMission, 
-    resetMission 
+  const {
+    handleSolutionSelect: handleSolutionSelectBase,
+    handleSpray,
+    handleAnimationComplete,
+    handleWiping,
+    restartCurrentMission,
+    resetMission,
   } = useGameHandlers(gameState, gameActions)
 
   const handleRestart = () => {
+    setResetTrigger((t) => t + 1)
     restartCurrentMission()
   }
 
@@ -202,7 +202,7 @@ export default function Home() {
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
       setMousePosition({ x: event.clientX, y: event.clientY })
-      
+
       // wiping 단계에서의 기존 로직도 유지
       if (gameState.gamePhase === 'wiping') {
         handleWiping(event)
@@ -241,8 +241,15 @@ export default function Home() {
     resetCamera()
     setIsAudioManagerStarted(false)
     audio.stopAllAudio()
+    setResetTrigger((t) => t + 1)
     gameActions.setShowIntro(true)
     gameActions.setCurrentMission(null)
+  }
+
+  const onSolutionSelect = (solution: any) => {
+    setResetTrigger((t) => t + 1) 
+    handleSolutionSelectBase(solution)
+    setIsAudioManagerStarted(true)
   }
 
   // 이벤트 핸들러들
@@ -323,7 +330,7 @@ export default function Home() {
         isZoomed={gameState.isZoomed}
         showIntro={gameState.showIntro}
         onBack={handleGoBack}
-        onRestart={handleRestart} 
+        onRestart={handleRestart}
         isAnimating={gameState.isAnimating}
         gamePhase={gameState.gamePhase}
         currentMission={gameState.currentMission}
@@ -342,10 +349,7 @@ export default function Home() {
         gamePhase={gameState.gamePhase}
         showIntro={gameState.showIntro}
         selectedSolution={gameState.selectedSolution}
-        onSolutionSelect={(solution: any) => {
-          handleSolutionSelect(solution)
-          setIsAudioManagerStarted(true)
-        }}
+        onSolutionSelect={onSolutionSelect}
       />
 
       <CleaningProgressUI

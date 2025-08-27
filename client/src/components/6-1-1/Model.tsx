@@ -112,10 +112,66 @@ const SOLUTION_BOTTLE_MAPPING = {
 }
 
 const SPRAY_PLANE_MATERIALS = {
-  splash01: ['Decal', 'Decal.005', 'Decal.006', 'Decal.007', 'Decal2', 'Decal2.001', 'Decal2.002', 'Decal.003', 'Decal.001', 'Spread', 'Decal2.003', 'Decal2.004', 'Decal2.005'],
-  splash02: ['Decal', 'Decal.005', 'Decal.006', 'Decal.007', 'Decal2', 'Decal2.001', 'Decal2.002', 'Decal.003', 'Decal.001', 'Spread', 'Decal2.003', 'Decal2.004', 'Decal2.005'],
-  splash03: ['Decal', 'Decal.005', 'Decal.006', 'Decal.007', 'Decal2', 'Decal2.001', 'Decal2.002', 'Decal.003', 'Decal.001', 'Spread', 'Decal2.003', 'Decal2.004', 'Decal2.005'],
-  splash04: ['Decal', 'Decal.005', 'Decal.006', 'Decal.007', 'Decal2', 'Decal2.001', 'Decal2.002', 'Decal.003', 'Decal.001', 'Spread', 'Decal2.003', 'Decal2.004', 'Decal2.005'],
+  splash01: [
+    'Decal',
+    'Decal.005',
+    'Decal.006',
+    'Decal.007',
+    'Decal2',
+    'Decal2.001',
+    'Decal2.002',
+    'Decal.003',
+    'Decal.001',
+    'Spread',
+    'Decal2.003',
+    'Decal2.004',
+    'Decal2.005',
+  ],
+  splash02: [
+    'Decal',
+    'Decal.005',
+    'Decal.006',
+    'Decal.007',
+    'Decal2',
+    'Decal2.001',
+    'Decal2.002',
+    'Decal.003',
+    'Decal.001',
+    'Spread',
+    'Decal2.003',
+    'Decal2.004',
+    'Decal2.005',
+  ],
+  splash03: [
+    'Decal',
+    'Decal.005',
+    'Decal.006',
+    'Decal.007',
+    'Decal2',
+    'Decal2.001',
+    'Decal2.002',
+    'Decal.003',
+    'Decal.001',
+    'Spread',
+    'Decal2.003',
+    'Decal2.004',
+    'Decal2.005',
+  ],
+  splash04: [
+    'Decal',
+    'Decal.005',
+    'Decal.006',
+    'Decal.007',
+    'Decal2',
+    'Decal2.001',
+    'Decal2.002',
+    'Decal.003',
+    'Decal.001',
+    'Spread',
+    'Decal2.003',
+    'Decal2.004',
+    'Decal2.005',
+  ],
 }
 
 const DIRT_MATERIAL_MAPPING = {
@@ -131,7 +187,8 @@ const DIRT_MATERIAL_MAPPING = {
 type MaterialSnapshot = {
   transparent: boolean
   opacity: number
-  visible: boolean
+  meshVisible: boolean
+  materialVisible: boolean
   color?: number
   map?: THREE.Texture | null
 }
@@ -201,6 +258,55 @@ export const Model = ({
     })
   }
 
+  const setSprayPlanesVisibility = useCallback(
+    (mission: keyof typeof SPRAY_PLANE_MATERIALS, visible: boolean, initialOpacity = 1) => {
+      if (!gltf.scene) return
+      const targets = SPRAY_PLANE_MATERIALS[mission] ?? []
+      gltf.scene.traverse((child) => {
+        if (child instanceof THREE.Mesh && child.material) {
+          const material = child.material as THREE.MeshStandardMaterial
+          const name = (material as any).name as string | undefined
+          if (!name) return
+
+          const isTarget = targets.some((p) => name.toLowerCase().includes(p.toLowerCase()))
+          if (!isTarget) return
+
+          material.transparent = true
+          ;(material as any).visible = visible
+          material.opacity = visible ? initialOpacity : 0
+          child.visible = visible // 메쉬 자체도 켜줘야 함
+          child.castShadow = false
+          material.needsUpdate = true
+        }
+      })
+    },
+    [gltf.scene, sprayColorHex],
+  )
+
+  const takeInitialMaterialSnapshot = useCallback(() => {
+    if (!gltf.scene) return
+    const store = initialMaterialStateRef.current
+    if (store.size > 0) return
+    gltf.scene.traverse((child) => {
+      if (child instanceof THREE.Mesh && child.material) {
+        const materials = Array.isArray(child.material) ? child.material : [child.material]
+        materials.forEach((mat) => {
+          const ms = mat as THREE.MeshStandardMaterial
+          const key = `${child.uuid}::${ms.uuid}`
+          const colorHex = (ms as any).color ? (ms as any).color.getHex() : undefined
+          store.set(key, {
+            transparent: !!ms.transparent,
+            opacity: typeof ms.opacity === 'number' ? ms.opacity : 1,
+            meshVisible: child.visible,
+            materialVisible: (ms as any).visible ?? true,
+            color: colorHex,
+            map: (ms as any).map ?? null,
+          })
+        })
+      }
+    })
+  }, [gltf.scene])
+
   const resetSprayPlanes = useCallback(() => {
     if (!gltf.scene) return
     gltf.scene.traverse((child) => {
@@ -213,8 +319,8 @@ export const Model = ({
               if ((material as any).name.toLowerCase().includes(planeMat.toLowerCase())) {
                 material.transparent = true
                 material.opacity = 0.0
-                ;(material as any).visible = true
-                child.visible = true
+                ;(material as any).visible = false
+                child.visible = false
                 child.castShadow = false
                 material.needsUpdate = true
               }
@@ -235,7 +341,8 @@ export const Model = ({
               materialNames.forEach((materialNamePattern) => {
                 if ((material as any).name === materialNamePattern) {
                   ;(material as any).visible = false
-                  child.visible = false
+                  material.transparent = true
+                  material.opacity = 0
                   material.needsUpdate = true
                 }
               })
@@ -258,7 +365,8 @@ export const Model = ({
           const key = `${child.uuid}::${ms.uuid}`
           const snap = store.get(key)
           if (!snap) return
-          child.visible = snap.visible
+          child.visible = snap.meshVisible
+          ;(ms as any).visible = snap.materialVisible
           ms.transparent = snap.transparent
           ms.opacity = snap.opacity
           if ((ms as any).color && typeof snap.color === 'number') {
@@ -275,25 +383,59 @@ export const Model = ({
 
   useEffect(() => {
     if (!gltf.scene) return
-    const store = initialMaterialStateRef.current
-    if (store.size > 0) return
+    takeInitialMaterialSnapshot()
+    findWipingTools()
+    configureShadows(gltf.scene)
+  }, [gltf.scene])
+
+  useEffect(() => {
+    if (!gltf.scene) return
+
+    // 1) 모두 초기화
+    resetSprayPlanes() // 모든 미션 스프레이 플레인 숨김
+    resetSolutionBottles() // 용액 병/캡 숨김(필요시)
+    restoreAllMaterialsToInitial()
+
+    // 2) 현재 선택된 용액 병/캡만 표시(기존 로직 유지)
     gltf.scene.traverse((child) => {
       if (child instanceof THREE.Mesh && child.material) {
-        const materials = Array.isArray(child.material) ? child.material : [child.material]
-        materials.forEach((mat) => {
-          const ms = mat as THREE.MeshStandardMaterial
-          const key = `${child.uuid}::${ms.uuid}`
-          store.set(key, {
-            transparent: !!ms.transparent,
-            opacity: ms.opacity ?? 1,
-            visible: child.visible && (ms as any).visible !== false,
-            color: (ms as any).color ? (ms as any).color.getHex() : undefined,
-            map: (ms as any).map ?? null,
+        const material = child.material as THREE.MeshStandardMaterial
+        const name = (material as any).name as string | undefined
+        if (!name) return
+        Object.entries(SOLUTION_BOTTLE_MAPPING).forEach(([mission, solutions]) => {
+          Object.entries(solutions).forEach(([solution, mats]) => {
+            mats.forEach((pattern) => {
+              const match = name === pattern || name.toLowerCase().includes(pattern.toLowerCase())
+              if (match) {
+                const isCurrent = currentMission === mission && selectedSolution === solution
+                ;(material as any).visible = isCurrent
+                material.transparent = true
+                material.opacity = isCurrent ? 1 : 0
+                material.needsUpdate = true
+                if (isCurrent) child.visible = true
+              }
+            })
           })
         })
       }
     })
-  }, [gltf.scene])
+
+    // 3) 현재 미션의 스프레이 플레인 즉시 보이게
+    if (currentMission) {
+      // gamePhase 제한을 두고 싶으면 아래 조건 추가:
+      // if (gamePhase === 'spraying') {
+      setSprayPlanesVisibility(currentMission as keyof typeof SPRAY_PLANE_MATERIALS, true, 1)
+      // }
+    }
+  }, [
+    selectedSolution,
+    currentMission,
+    gltf.scene,
+    resetSprayPlanes,
+    resetSolutionBottles,
+    restoreAllMaterialsToInitial,
+    setSprayPlanesVisibility,
+  ])
 
   useEffect(() => {
     if (resetTrigger !== lastResetTriggerRef.current) {
@@ -327,13 +469,6 @@ export const Model = ({
       })
     })
   }, [gltf.scene])
-
-  useEffect(() => {
-    if (gltf.scene) {
-      findWipingTools()
-      configureShadows(gltf.scene)
-    }
-  }, [gltf.scene, findWipingTools])
 
   const playAnimationSequence = useCallback(
     (animationIndices: number[]) => {
@@ -406,6 +541,7 @@ export const Model = ({
                   } else {
                     ;(material as any).visible = false
                     child.visible = false
+                    material.opacity = 0
                   }
                   material.needsUpdate = true
                 }
@@ -423,24 +559,23 @@ export const Model = ({
     gltf.scene.traverse((child) => {
       if (child instanceof THREE.Mesh && child.material) {
         const material = child.material as THREE.MeshStandardMaterial
-        if (
-          (material as any).name &&
-          currentSprayPlanes.some((planeMat) => (material as any).name.toLowerCase().includes(planeMat.toLowerCase()))
-        ) {
-          material.transparent = true
-          ;(material as any).visible = true
-          if (gamePhase === 'wiping' && selectedSolution) {
-            const progress = wipingProgress?.[currentMission as keyof typeof wipingProgress] || 0
-            const fadeOpacity = Math.max(0, 1.0 - progress / 100)
-            material.opacity = fadeOpacity
-            ;(material as any).visible = fadeOpacity > 0.01
-          }
-          material.needsUpdate = true
-          child.castShadow = false
-        }
+        const name = (material as any).name as string | undefined
+        if (!name) return
+        const isSprayPlane = currentSprayPlanes.some((p) => name.toLowerCase().includes(p.toLowerCase()))
+        if (!isSprayPlane) return
+
+        const progress = wipingProgress?.[currentMission as keyof typeof wipingProgress] || 0
+        const fadeOpacity = Math.max(0, 1 - progress / 100)
+
+        // 선택 후 즉시 보이게(1) → 진행도에 따라 감소
+        material.opacity = fadeOpacity
+        ;(material as any).visible = fadeOpacity > 0
+        child.visible = fadeOpacity > 0.01
+        material.needsUpdate = true
+        child.castShadow = false
       }
     })
-  }, [gamePhase, currentMission, sprayEffects, wipingProgress, sprayColorHex, gltf.scene])
+  }, [currentMission, wipingProgress, gltf.scene])
 
   useEffect(() => {
     if (!modelRef.current || !gltf.scene || !currentMission || !splashOpacities) return
