@@ -667,14 +667,14 @@
 				1.4335236549377441
 			],
 			"translation":[
-				-2.577345848083496,
+				-2.583677291870117,
 				5.483370780944824,
 				6.5674262046813965
 			]
 		},
 		{
 			"mesh":8,
-			"name":"Tower_Material.001_0",
+			"name":"Tower_Cutting_board",
 			"rotation":[
 				0,
 				0.7071066498756409,
@@ -694,7 +694,7 @@
 		},
 		{
 			"mesh":9,
-			"name":"Tower_Material.001_0.001",
+			"name":"Tower_Window",
 			"rotation":[
 				-0.5,
 				-0.5,
@@ -714,7 +714,7 @@
 		},
 		{
 			"mesh":10,
-			"name":"Burasi_B_0",
+			"name":"Bathroom_Scrub",
 			"rotation":[
 				-0.70710688829422,
 				0,
@@ -895,7 +895,7 @@
 			"translation":[
 				-5.8210835456848145,
 				6.37837028503418,
-				-2.170900344848633
+				-1.3647809028625488
 			]
 		},
 		{
@@ -909,7 +909,7 @@
 			"translation":[
 				-6.239641189575195,
 				6.408610820770264,
-				-2.225572109222412
+				-1.4194526672363281
 			]
 		},
 		{
@@ -1417,7 +1417,7 @@
 		},
 		{
 			"mesh":46,
-			"name":"Object_12",
+			"name":"Toilet_Brush",
 			"scale":[
 				0.013388377614319324,
 				0.013388377614319324,
@@ -1840,15 +1840,21 @@
 		{
 			"mesh":68,
 			"name":"Bleach_opener_toilet",
+			"rotation":[
+				0,
+				0,
+				-0.6827650666236877,
+				0.7306379675865173
+			],
 			"scale":[
-				0.026584472507238388,
-				0.026584476232528687,
-				0.026584476232528687
+				0.026584280654788017,
+				0.026584278792142868,
+				0.02658427506685257
 			],
 			"translation":[
 				-3.0517578125e-05,
-				-7.53062340663746e-06,
-				-15.20255184173584
+				-7.820359314791858e-06,
+				-15.817008018493652
 			]
 		},
 		{
@@ -8655,6 +8661,10 @@
 		},
 		{
 			"sampler":1,
+			"source":34
+		},
+		{
+			"sampler":1,
 			"source":35
 		},
 		{
@@ -8667,11 +8677,39 @@
 		},
 		{
 			"sampler":1,
+			"source":35
+		},
+		{
+			"sampler":1,
 			"source":38
 		},
 		{
 			"sampler":1,
+			"source":39
+		},
+		{
+			"sampler":1,
+			"source":40
+		},
+		{
+			"sampler":1,
+			"source":35
+		},
+		{
+			"sampler":1,
 			"source":36
+		},
+		{
+			"sampler":1,
+			"source":37
+		},
+		{
+			"sampler":1,
+			"source":41
+		},
+		{
+			"sampler":1,
+			"source":38
 		},
 		{
 			"sampler":1,
@@ -8687,27 +8725,7 @@
 		},
 		{
 			"sampler":1,
-			"source":36
-		},
-		{
-			"sampler":1,
-			"source":37
-		},
-		{
-			"sampler":1,
-			"source":38
-		},
-		{
-			"sampler":1,
-			"source":42
-		},
-		{
-			"sampler":1,
-			"source":39
-		},
-		{
-			"sampler":1,
-			"source":40
+			"source":34
 		},
 		{
 			"sampler":1,
@@ -8715,15 +8733,7 @@
 		},
 		{
 			"sampler":1,
-			"source":42
-		},
-		{
-			"sampler":1,
-			"source":34
-		},
-		{
-			"sampler":1,
-			"source":42
+			"source":36
 		},
 		{
 			"sampler":1,
@@ -8731,11 +8741,7 @@
 		},
 		{
 			"sampler":1,
-			"source":38
-		},
-		{
-			"sampler":1,
-			"source":36
+			"source":35
 		},
 		{
 			"sampler":1,
@@ -8743,11 +8749,15 @@
 		},
 		{
 			"sampler":1,
-			"source":36
+			"source":35
 		},
 		{
 			"sampler":1,
-			"source":36
+			"source":35
+		},
+		{
+			"sampler":1,
+			"source":42
 		},
 		{
 			"sampler":1,
@@ -8763,10 +8773,6 @@
 		},
 		{
 			"sampler":1,
-			"source":46
-		},
-		{
-			"sampler":1,
 			"source":29
 		},
 		{
@@ -8819,15 +8825,19 @@
 		},
 		{
 			"sampler":1,
-			"source":42
+			"source":41
 		},
 		{
 			"sampler":1,
-			"source":42
+			"source":41
 		},
 		{
 			"sampler":1,
-			"source":42
+			"source":41
+		},
+		{
+			"sampler":1,
+			"source":36
 		},
 		{
 			"sampler":1,
@@ -8844,10 +8854,6 @@
 		{
 			"sampler":1,
 			"source":40
-		},
-		{
-			"sampler":1,
-			"source":41
 		},
 		{
 			"sampler":1,
@@ -8883,15 +8889,15 @@
 		},
 		{
 			"sampler":1,
+			"source":38
+		},
+		{
+			"sampler":1,
 			"source":39
 		},
 		{
 			"sampler":1,
 			"source":40
-		},
-		{
-			"sampler":1,
-			"source":41
 		}
 	],
 	"images":[
@@ -9064,11 +9070,6 @@
 			"mimeType":"image/png",
 			"name":"T_BigSplash08Opacity",
 			"uri":"T_BigSplash08Opacity.png"
-		},
-		{
-			"mimeType":"image/png",
-			"name":"Vinegar \ubcf5\uc0ac",
-			"uri":"Vinegar%20%EB%B3%B5%EC%82%AC.png"
 		},
 		{
 			"mimeType":"image/png",

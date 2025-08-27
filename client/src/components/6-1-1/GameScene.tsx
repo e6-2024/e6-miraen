@@ -1,34 +1,12 @@
-import React, { useCallback, useEffect, useRef } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { OrbitControls, Environment, ContactShadows, PerformanceMonitor, useProgress } from '@react-three/drei'
 import { Model } from './Model'
 import { SpeechBubble } from './SpeechBubble'
-import {
-  VinegarTool,
-  SprayTool,
-  BleachTool,
-  ToiletCleanerTool,
-  GlassRagTool,
-  ToiletBrushTool,
-  BathroomScrubTool,
-} from './CleaningTool'
-import {
-  CollisionSprayTool,
-  CollisionVinegarTool,
-  CollisionBleachTool,
-  CollisionToiletCleanerTool,
-  CollisionGlassRagTool,
-  CollisionToiletBrushTool,
-  CollisionBathroomScrubTool,
-} from './CollisionAwareCleaningTool'
 import { CollisionPlane } from './CollisionPlane'
 import { CuttingBoardSmell } from './SmellPlane'
-import { Toilet } from './Toilet'
-import { CuttingBoard } from './CuttingBoardTool'
 import { missions, solutionColors } from '../../types/6-1-1'
 import { GameState } from './GameStateManager'
 import * as THREE from 'three'
-import CameraLogger from '@/hook/CameraLogger'
-import AudioManager from './AudioManager'
 
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
   const { progress, active } = useProgress()
@@ -53,6 +31,7 @@ interface GameSceneProps {
     cameraPosition: [number, number, number],
   ) => void
   onSpray: () => void
+  onAnimationComplete?: () => void
   splashOpacities: {
     splash01: number
     splash02: number
@@ -69,16 +48,40 @@ export const GameScene: React.FC<GameSceneProps> = ({
   onPerfDecline,
   onMissionClick,
   onSpray,
+  onAnimationComplete,
   splashOpacities,
   isAudioManagerStarted,
 }) => {
-  // 현재 재생중인 오디오들을 추적
   const currentAudiosRef = useRef<HTMLAudioElement[]>([])
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+  const [screenSize, setScreenSize] = useState({ 
+    width: window.innerWidth, 
+    height: window.innerHeight 
+  })
 
-  // isAudioManagerStarted 상태 변경시 모든 사운드 정지/재개
+  useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      setMousePosition({ x: event.clientX, y: event.clientY })
+    }
+
+    const handleResize = () => {
+      setScreenSize({ width: window.innerWidth, height: window.innerHeight })
+    }
+
+    if (gameState.gamePhase === 'wiping') {
+      window.addEventListener('mousemove', handleMouseMove)
+    }
+    
+    window.addEventListener('resize', handleResize)
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [gameState.gamePhase])
+
   useEffect(() => {
     if (isAudioManagerStarted) {
-      // 모든 현재 재생중인 사운드 정지
       currentAudiosRef.current.forEach((audio) => {
         audio.pause()
       })
@@ -87,7 +90,6 @@ export const GameScene: React.FC<GameSceneProps> = ({
 
   const playSound = useCallback(
     (path: string, volume = 0.5) => {
-      // isAudioManagerStarted가 true면 사운드 재생하지 않음
       if (isAudioManagerStarted) {
         return
       }
@@ -96,10 +98,8 @@ export const GameScene: React.FC<GameSceneProps> = ({
         const audio = new Audio(path)
         audio.volume = volume
 
-        // 현재 재생중인 오디오 목록에 추가
         currentAudiosRef.current.push(audio)
 
-        // 재생 완료되면 목록에서 제거
         audio.addEventListener('ended', () => {
           const index = currentAudiosRef.current.indexOf(audio)
           if (index > -1) {
@@ -113,7 +113,6 @@ export const GameScene: React.FC<GameSceneProps> = ({
     [isAudioManagerStarted],
   )
 
-  // 컴포넌트 언마운트시 모든 오디오 정리
   useEffect(() => {
     return () => {
       currentAudiosRef.current.forEach((audio) => {
@@ -140,8 +139,12 @@ export const GameScene: React.FC<GameSceneProps> = ({
         splashOpacities={splashOpacities}
         sprayEffects={gameState.sprayEffects}
         wipingProgress={gameState.wipingProgress}
+        selectedSolution={gameState.selectedSolution}
+        currentMission={gameState.currentMission}
+        gamePhase={gameState.gamePhase}
+        triggerSpray={gameState.selectedSolution !== null && gameState.currentMission !== null}
+        onAnimationComplete={onAnimationComplete}
         sprayColorHex={
-          //창문에서만 사용되는 색상
           gameState.selectedSolution === 'vinegar'
             ? '#ffa200'
             : gameState.selectedSolution === 'spray'
@@ -153,17 +156,6 @@ export const GameScene: React.FC<GameSceneProps> = ({
             : activeColorHex
         }
       />
-
-      {/* <group renderOrder={-1}>
-        <Toilet
-          scale={1}
-          position={[10.5, 5, 0.5]}
-          splashOpacities={splashOpacities}
-          sprayEffects={gameState.sprayEffects}
-          wipingProgress={gameState.wipingProgress}
-          sprayColorHex={activeColorHex}
-        />
-      </group> */}
 
       {gameState.isBathroomLightOn && (
         <rectAreaLight
@@ -177,7 +169,6 @@ export const GameScene: React.FC<GameSceneProps> = ({
         />
       )}
 
-      {/* Collision Planes for each mission */}
       {!gameState.showIntro && (
         <>
           <CollisionPlane
@@ -232,27 +223,6 @@ export const GameScene: React.FC<GameSceneProps> = ({
         </>
       )}
 
-      {gameState.gamePhase === 'spraying' && gameState.selectedSolution && (
-        <>
-          {gameState.selectedSolution === 'vinegar' && <CollisionVinegarTool visible={true} onSpray={onSpray} />}
-          {gameState.selectedSolution === 'spray' && <CollisionSprayTool visible={true} onSpray={onSpray} />}
-          {gameState.selectedSolution === 'toilet_cleaner' && (
-            <CollisionToiletCleanerTool visible={true} onSpray={onSpray} />
-          )}
-          {gameState.selectedSolution === 'bleach' && <CollisionBleachTool visible={true} onSpray={onSpray} />}
-        </>
-      )}
-
-      {/* 닦기 도구들 (충돌 감지 포함) */}
-      {gameState.gamePhase === 'wiping' && gameState.currentMission && (
-        <>
-          {gameState.currentMission === 'splash02' && <CollisionGlassRagTool visible={true} />}
-          {gameState.currentMission === 'splash03' && <CollisionToiletBrushTool visible={true} />}
-          {gameState.currentMission === 'splash04' && <CollisionBathroomScrubTool visible={true} />}
-        </>
-      )}
-
-      {/* 도마와 냄새 */}
       {!gameState.showIntro && (
         <>
           <CuttingBoardSmell
@@ -260,18 +230,9 @@ export const GameScene: React.FC<GameSceneProps> = ({
             opacity={1 - gameState.cleaningProgress.splash01 / 100}
             enabled={true}
           />
-          {/* <CuttingBoard
-            position={missions.splash01.position}
-            wipingProgress={gameState.wipingProgress.splash01}
-            isInteractive={gameState.currentMission === 'splash01' && gameState.gamePhase === 'wiping'}
-            sprayEffect={gameState.sprayEffects.splash01}
-            isCompleted={gameState.completedMissions.splash01}
-            sprayColorHex={activeColorHex}
-          /> */}
         </>
       )}
 
-      {/* 미션 선택 버블들 */}
       {!gameState.showIntro && gameState.gamePhase === 'selection' && (
         <>
           <SpeechBubble

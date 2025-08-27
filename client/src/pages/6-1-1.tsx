@@ -14,6 +14,7 @@ import { useGameHandlers } from '@/components/6-1-1/useGameHandlers'
 import { useAudioManager } from '@/components/6-1-1/useAudioManager'
 import { GameScene } from '@/components/6-1-1/GameScene'
 import { CrayonTextButton } from '@/components/CrayonUIButton'
+
 type ButtonStyle = { bg: string; border: string; text: string }
 
 type RoomTheme = {
@@ -108,7 +109,7 @@ export default function Home() {
 
   // --- BGM 상태 ---
   const bgmRef = useRef<HTMLAudioElement | null>(null)
-  const [bgmEnabled, setBgmEnabled] = useState<boolean>(true) // 초기 고정값
+  const [bgmEnabled, setBgmEnabled] = useState<boolean>(true)
   const [bgmReady, setBgmReady] = useState(false)
   const [mounted, setMounted] = useState(false)
 
@@ -122,9 +123,9 @@ export default function Home() {
     } catch {}
   }, [])
 
-  // 인스턴스 준비
+  // BGM 인스턴스 준비
   useEffect(() => {
-    const el = new Audio('/sounds/6-1-1/6-1-1-BGM.mp3') // ★ 6-1-1 프로젝트에 맞는 BGM 경로로 변경
+    const el = new Audio('/sounds/6-1-1/6-1-1-BGM.mp3')
     el.loop = true
     el.volume = 0.05
     bgmRef.current = el
@@ -146,22 +147,6 @@ export default function Home() {
     return () => document.removeEventListener('visibilitychange', handleVisibility)
   }, [bgmEnabled, bgmReady])
 
-  // 페이드 함수
-  const fadeTo = useCallback(async (targetVol: number, ms = 400) => {
-    const el = bgmRef.current
-    if (!el) return
-    const start = el.volume
-    const startTime = performance.now()
-    return new Promise<void>((resolve) => {
-      const tick = (t: number) => {
-        const k = Math.min(1, (t - startTime) / ms)
-        el.volume = start + (targetVol - start) * k
-        if (k < 1) requestAnimationFrame(tick)
-        else resolve()
-      }
-      requestAnimationFrame(tick)
-    })
-  }, [])
 
   // 상태 반영(저장/재생/일시정지)
   useEffect(() => {
@@ -173,19 +158,17 @@ export default function Home() {
     const run = async () => {
       if (bgmEnabled && bgmReady) {
         await el.play().catch(() => {})
-        await fadeTo(0.2, 300)
       } else {
-        await fadeTo(0.0, 200)
         el.pause()
       }
     }
     run()
-  }, [bgmEnabled, bgmReady, fadeTo])
+  }, [bgmEnabled, bgmReady])
 
   const toggleBgm = () => {
     setBgmEnabled((v) => {
       const next = !v
-      if (next) setBgmReady(true) // 토글로 켜도 바로 준비
+      if (next) setBgmReady(true)
       return next
     })
   }
@@ -193,10 +176,14 @@ export default function Home() {
   // 커스텀 훅들
   const audio = useAudioManager()
   const { controlsRef, moveToTarget, resetCamera } = useCameraController(gameState, gameActions)
-  const { handleSolutionSelect, handleSpray, handleWiping, restartCurrentMission, resetMission } = useGameHandlers(
-    gameState,
-    gameActions,
-  )
+  const { 
+    handleSolutionSelect, 
+    handleSpray, 
+    handleAnimationComplete, 
+    handleWiping, 
+    restartCurrentMission, 
+    resetMission 
+  } = useGameHandlers(gameState, gameActions)
 
   // 계산된 값들
   const splashOpacities = {
@@ -207,7 +194,9 @@ export default function Home() {
   } as const
 
   const handleGoBack = () => {
-    resetCamera(), setIsAudioManagerStarted(false), audio.stopAllAudio()
+    resetCamera()
+    setIsAudioManagerStarted(false)
+    audio.stopAllAudio()
   }
 
   const resetToIntro = () => {
@@ -261,45 +250,20 @@ export default function Home() {
       }
     }
 
-    const handleClick = (event: MouseEvent) => {
-      if (gameState.gamePhase === 'spraying' && gameState.selectedSolution && gameState.currentMission) {
-        const target = event.target as HTMLElement
-        if (!target.closest('button') && !target.closest('.absolute')) {
-          handleSpray()
-        }
-      }
-    }
-
+    // 닦기 단계에서만 마우스 무브 이벤트 등록
     if (gameState.gamePhase === 'wiping') {
       window.addEventListener('mousemove', handleMouseMove)
     }
 
-    if (gameState.gamePhase === 'spraying' && gameState.selectedSolution) {
-      const timeoutId = setTimeout(() => {
-        window.addEventListener('click', handleClick)
-      }, 0)
-
-      return () => {
-        clearTimeout(timeoutId)
-        window.removeEventListener('mousemove', handleMouseMove)
-        window.removeEventListener('click', handleClick)
-      }
-    }
-
     return () => {
       window.removeEventListener('mousemove', handleMouseMove)
-      window.removeEventListener('click', handleClick)
     }
   }, [
     gameState.gamePhase,
-    gameState.sprayCount,
     gameState.currentMission,
     gameState.mouseVelocity,
     gameState.lastMousePosition,
-    gameState.selectedSolution,
   ])
-
-  // console.log('isAudioManagerStarted:', isAudioManagerStarted)
 
   return (
     <div className='w-screen h-screen bg-white flex flex-col'>
@@ -395,6 +359,7 @@ export default function Home() {
           onPerfDecline={() => degrade(true)}
           onMissionClick={handleMissionClick}
           onSpray={handleSpray}
+          onAnimationComplete={handleAnimationComplete}
           splashOpacities={splashOpacities}
           isAudioManagerStarted={isAudioManagerStarted}
         />

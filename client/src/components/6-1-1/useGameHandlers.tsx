@@ -26,38 +26,28 @@ export const useGameHandlers = (gameState: GameState, gameActions: GameActions) 
       ...prev,
       [gameState.currentMission!]: false,
     }))
-
     gameActions.setGamePhase('spraying')
-    gameActions.setSprayCount(0)
-
-    audio.playLiquidMessageNarration(gameState.currentMission)
-
-    setTimeout(() => {
-      gameActions.setSprayCount(0)
-    }, 100)
+    gameActions.setSprayCount(1) 
   }
 
   const handleSpray = () => {
     if (gameState.gamePhase !== 'spraying' || !gameState.currentMission) return
     if (!gameState.selectedSolution) return
 
-    const path = sprayAudioBySolution[gameState.selectedSolution] ?? '/sounds/6-1-1/6-1-1-2_spray.MP3' // fallback
-
+    const path = sprayAudioBySolution[gameState.selectedSolution] ?? '/sounds/6-1-1/6-1-1-2_spray.MP3'
     audio.playSound(path, 0.5)
 
     const newSprayCount = gameState.sprayCount + 1
     gameActions.setSprayCount(newSprayCount)
+  }
 
-    gameActions.setSprayEffects((prev) => ({
-      ...prev,
-      [gameState.currentMission!]: true,
-    }))
-
-    if (newSprayCount >= 1) {
-      audio.playClickMessageNarration(gameState.currentMission)
-      setTimeout(() => {
-        gameActions.setGamePhase('wiping')
-      }, 300)
+  const handleAnimationComplete = () => {
+    if (gameState.gamePhase === 'spraying' && gameState.currentMission) {
+      gameActions.setSprayEffects((prev) => ({
+        ...prev,
+        [gameState.currentMission!]: true,
+      }))
+      gameActions.setGamePhase('wiping')
     }
   }
 
@@ -189,7 +179,7 @@ export const useGameHandlers = (gameState: GameState, gameActions: GameActions) 
     gameActions.setSprayEffects((prev) => ({ ...prev, [gameState.currentMission!]: false }))
 
     gameActions.setSelectedSolution(null)
-    gameActions.setSprayCount(0)
+    gameActions.setSprayCount(1)
     gameActions.setMouseVelocity(0)
     gameActions.setWrongMessageShown(false)
     gameActions.setGamePhase('solution_choice')
@@ -218,6 +208,7 @@ export const useGameHandlers = (gameState: GameState, gameActions: GameActions) 
   return {
     handleSolutionSelect,
     handleSpray,
+    handleAnimationComplete,
     handleWiping,
     restartCurrentMission,
     resetMission,

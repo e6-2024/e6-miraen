@@ -1,6 +1,7 @@
 import * as THREE from 'three'
-import React, { useRef, useEffect } from 'react'
-import { useGLTF } from '@react-three/drei'
+import React, { useRef, useEffect, useMemo, useCallback } from 'react'
+import { useGLTF, useAnimations } from '@react-three/drei'
+import { useFrame } from '@react-three/fiber'
 
 interface ModelProps {
   scale?: number
@@ -27,6 +28,35 @@ interface ModelProps {
   receiveShadow?: boolean
   doubleSide?: boolean
   sprayColorHex?: string
+  // 새로운 애니메이션 관련 props
+  selectedSolution?: string | null
+  currentMission?: string | null
+  gamePhase?: string
+  triggerSpray?: boolean
+  onAnimationComplete?: () => void
+}
+
+const ANIMATION_INDEX_MAP: Record<string, number[]> = {
+  // splash01 (도마)
+  splash01_vinegar: [18,19,20,21,22],
+  splash01_spray: [29,30],
+  splash01_toilet_cleaner: [11,12,13],
+  splash01_bleach: [14,15,16,17],
+  // splash02 (유리창)
+  splash02_vinegar: [3,4,5],
+  splash02_spray: [0,1,2],
+  splash02_toilet_cleaner: [6,7],
+  splash02_bleach: [8,9,10],
+  // splash03 (변기)
+  splash03_vinegar: [24,25,26],
+  splash03_spray: [42,43,44],
+  splash03_toilet_cleaner: [21,22,23],
+  splash03_bleach: [27,28,45,46,47],
+  // splash04 (욕실)
+  splash04_vinegar: [33,34,35],
+  splash04_spray: [31,32],
+  splash04_toilet_cleaner: [37,38,39],
+  splash04_bleach: [36,40,41,42,43,44,45],
 }
 
 export const Model = ({
@@ -39,10 +69,26 @@ export const Model = ({
   receiveShadow = true,
   doubleSide = true,
   sprayColorHex = '#ffffff',
+  selectedSolution,
+  currentMission,
+  gamePhase,
+  triggerSpray = false,
+  onAnimationComplete,
 }: ModelProps) => {
   const gltf = useGLTF('/models/6-1-1/New_Clean_Room/New_Room.gltf')
+  const { actions, names } = useAnimations(gltf.animations, gltf.scene)
+  
   const modelRef = useRef<THREE.Group>(null)
   const sprayColor = new THREE.Color(sprayColorHex)
+  const currentAnimationRef = useRef<THREE.AnimationAction | null>(null)
+  const lastTriggerRef = useRef(false)
+  const runningActionsRef = useRef<THREE.AnimationAction[]>([])
+
+  const animationKey = useMemo(() => {
+    if (!currentMission || !selectedSolution) return null
+    return `${currentMission}_${selectedSolution}`
+  }, [currentMission, selectedSolution])
+
   const configureShadows = (object: THREE.Object3D) => {
     object.traverse((child) => {
       if (child instanceof THREE.Mesh) {
@@ -61,162 +107,72 @@ export const Model = ({
     })
   }
 
-  useEffect(() => {
-    if (modelRef.current && splashOpacities) {
-      modelRef.current.traverse((child) => {
-        if (child instanceof THREE.Mesh && child.material) {
-          const materials = Array.isArray(child.material) ? child.material : [child.material]
+  // 애니메이션 재생 함수 (동시 재생)
+  const playAnimationSequence = useCallback((animationIndices: number[]) => {
+    if (!actions || animationIndices.length === 0) return
 
-          materials.forEach((material) => {
-            if (doubleSide) {
-              material.side = THREE.DoubleSide
-            }
+    // 기존 애니메이션들 정지
+    runningActionsRef.current.forEach(action => action.stop())
+    runningActionsRef.current = []
 
-            if (material.name) {
-              const matName = material.name.toLowerCase()
+    const runningActions: THREE.AnimationAction[] = []
+    let completedCount = 0
 
-              if (matName.includes('windowsglass.001')) {
-                material.transparent = true
-                material.opacity = splashOpacities.splash02
-                material.needsUpdate = true
+    // 모든 애니메이션을 동시에 시작
+    animationIndices.forEach((currentIndex) => {
+      const animationName = names[currentIndex]
+      
+      if (animationName && actions[animationName]) {
+        const action = actions[animationName]
+        action.reset()
+        action.setLoop(THREE.LoopOnce, 1)
+        action.clampWhenFinished = true
+        action.play()
+        
+        runningActions.push(action)
 
-                if (splashOpacities.splash02 <= 0.1) {
-                  material.visible = false
-                  child.castShadow = false
-                  child.receiveShadow = false
-                } else {
-                  material.visible = true
-                  child.castShadow = castShadow
-                  child.receiveShadow = receiveShadow
-                }
-              } else if (
-                matName.includes('material.009') ||
-                matName.includes('material.010') ||
-                matName.includes('material.011') ||
-                matName.includes('material.012') ||
-                matName.includes('material.013') ||
-                matName.includes('material.014') ||
-                matName.includes('material.015') ||
-                matName.includes('material.016')
-              ) {
-                material.transparent = true
-                if ('color' in material && (material as any).color?.set) {
-                  (material as any).color.set(sprayColor)
-                }
-
-                if (sprayEffects?.splash02 && splashOpacities.splash02 > 0.1) {
-                  const wipingProgressValue = wipingProgress?.splash02 || 0
-                  const fadeOpacity = Math.max(0, 1.0 - wipingProgressValue / 100)
-                  material.opacity = fadeOpacity
-                  material.visible = fadeOpacity > 0.01
-                } else {
-                  material.opacity = 0.0
-                  material.visible = false
-                }
-
-                material.needsUpdate = true
-                child.castShadow = false
-              } else if (matName.includes('material.006') || matName === 'material') {
-                material.transparent = true
-                if ('color' in material && (material as any).color?.set) {
-                    (material as any).color.set(sprayColor)
-                  }
-
-                if (sprayEffects?.splash04 && splashOpacities.splash04 > 0.1) {
-                  const wipingProgressValue = wipingProgress?.splash04 || 0
-                  const fadeOpacity = Math.max(0, 1.0 - wipingProgressValue / 100)
-                  material.opacity = fadeOpacity
-                  material.visible = fadeOpacity > 0.01
-                } else {
-                  material.opacity = 0.0
-                  material.visible = false
-                }
-
-                material.needsUpdate = true
-                child.castShadow = false
-              } else if (matName.includes('material.008')) {
-                material.transparent = true
-                material.opacity = splashOpacities.splash04
-                material.needsUpdate = true
-
-                if (splashOpacities.splash04 <= 0.1) {
-                  material.visible = false
-                  child.castShadow = false
-                } else {
-                  material.visible = true
-                  child.castShadow = castShadow
-                }
-              }
-            }
-
-            const mapTypes = ['map', 'alphaMap', 'normalMap'] as const
-            mapTypes.forEach((mapType) => {
-              const textureMap = material[mapType] as THREE.Texture | undefined
-              if (textureMap?.name) {
-                const texName = textureMap.name.toLowerCase()
-
-                if (texName.includes('windowsglass') && texName.includes('001')) {
-                  material.transparent = true
-                  material.opacity = splashOpacities.splash02
-                  material.needsUpdate = true
-                } else if (
-                  texName.includes('material') &&
-                  (texName.includes('009') ||
-                    texName.includes('010') ||
-                    texName.includes('011') ||
-                    texName.includes('012') ||
-                    texName.includes('013') ||
-                    texName.includes('014') ||
-                    texName.includes('015') ||
-                    texName.includes('016'))
-                ) {
-                  material.transparent = true
-                  if (sprayEffects?.splash02 && splashOpacities.splash02 > 0.1) {
-                    const wipingProgressValue = wipingProgress?.splash02 || 0
-                    const fadeOpacity = Math.max(0, 1.0 - wipingProgressValue / 100)
-                    material.opacity = fadeOpacity
-                    material.visible = fadeOpacity > 0.01
-                  } else {
-                    material.opacity = 0.0
-                    material.visible = false
-                  }
-                  material.needsUpdate = true
-                } else if (texName.includes('material') && (texName.includes('006') || texName === 'material')) {
-                  material.transparent = true
-                  if ('color' in material && (material as any).color?.set) {
-                    (material as any).color.set(sprayColor)
-                  }
-                  if (sprayEffects?.splash04 && splashOpacities.splash04 > 0.1) {
-                    const wipingProgressValue = wipingProgress?.splash04 || 0
-                    const fadeOpacity = Math.max(0, 1.0 - wipingProgressValue / 100)
-                    material.opacity = fadeOpacity
-                    material.visible = fadeOpacity > 0.01
-                  } else {
-                    material.opacity = 0.0
-                    material.visible = false
-                  }
-                  material.needsUpdate = true
-                } else if (texName.includes('material') && texName.includes('008')) {
-                  material.transparent = true
-                  material.opacity = splashOpacities.splash04
-                  material.needsUpdate = true
-                  if ('color' in material && (material as any).color?.set) {
-                    (material as any).color.set(sprayColor)
-                  }
-                }
-              }
-            })
-          })
+        // 각 애니메이션의 완료 이벤트
+        const onFinished = () => {
+          action.getMixer().removeEventListener('finished', onFinished)
+          completedCount += 1
+          
+          // 모든 애니메이션이 완료되면 콜백 호출
+          if (completedCount >= animationIndices.length) {
+            runningActionsRef.current = []
+            onAnimationComplete?.()
+          }
         }
-      })
+        action.getMixer().addEventListener('finished', onFinished)
+      }
+    })
+
+    // 현재 실행 중인 액션들을 저장
+    runningActionsRef.current = runningActions
+    currentAnimationRef.current = runningActions[0] // 첫 번째 액션을 대표로 저장
+  }, [actions, names, onAnimationComplete])
+
+  // 스프레이 트리거 감지 및 애니메이션 재생
+  useEffect(() => {
+    if (triggerSpray && !lastTriggerRef.current && animationKey && actions) {
+      const animationIndices = ANIMATION_INDEX_MAP[animationKey]
+      
+      if (animationIndices && animationIndices.length > 0) {
+        playAnimationSequence(animationIndices)
+      }
     }
-  }, [splashOpacities, sprayEffects, wipingProgress, castShadow, receiveShadow, doubleSide, sprayColorHex])
+    lastTriggerRef.current = triggerSpray
+  }, [triggerSpray, animationKey, actions, playAnimationSequence])
+
+  useEffect(() => {
+    if (gamePhase !== 'spraying') {
+      runningActionsRef.current.forEach(action => action.stop())
+      runningActionsRef.current = []
+      currentAnimationRef.current = null
+    }
+  }, [gamePhase])
 
   useEffect(() => {
     if (modelRef.current && gltf.scene) {
-      if (gltf.scene.children.length > 0) {
-        gltf.scene.remove(gltf.scene.children[1])
-      }
       configureShadows(gltf.scene)
     }
   }, [gltf.scene, castShadow, receiveShadow])
