@@ -35,6 +35,8 @@ interface ModelProps {
   onAnimationComplete?: () => void
   mousePosition?: { x: number; y: number }
   screenSize?: { width: number; height: number }
+  // 추가: 리셋 트리거
+  resetTrigger?: number
 }
 
 const WIPING_TOOL_CONFIG = {
@@ -179,10 +181,66 @@ const SOLUTION_BOTTLE_MAPPING = {
 }
 
 const SPRAY_PLANE_MATERIALS = {
-  splash01: [],
-  splash02: [],
-  splash03: [],
-  splash04: [],
+  splash01: [
+    'Decal',
+    'Decal.005',
+    'Decal.006',
+    'Decal.007',
+    'Decal2',
+    'Decal2.001',
+    'Decal2.002',
+    'Decal.003',
+    'Decal.001',
+    'Spread',
+    'Decal2.003',
+    'Decal2.004',
+    'Decal2.005',
+  ],
+  splash02: [
+    'Decal',
+    'Decal.005',
+    'Decal.006',
+    'Decal.007',
+    'Decal2',
+    'Decal2.001',
+    'Decal2.002',
+    'Decal.003',
+    'Decal.001',
+    'Spread',
+    'Decal2.003',
+    'Decal2.004',
+    'Decal2.005',
+  ],
+  splash03: [
+    'Decal',
+    'Decal.005',
+    'Decal.006',
+    'Decal.007',
+    'Decal2',
+    'Decal2.001',
+    'Decal2.002',
+    'Decal.003',
+    'Decal.001',
+    'Spread',
+    'Decal2.003',
+    'Decal2.004',
+    'Decal2.005',
+  ],
+  splash04: [
+    'Decal',
+    'Decal.005',
+    'Decal.006',
+    'Decal.007',
+    'Decal2',
+    'Decal2.001',
+    'Decal2.002',
+    'Decal.003',
+    'Decal.001',
+    'Spread',
+    'Decal2.003',
+    'Decal2.004',
+    'Decal2.005',
+  ],
 }
 
 // 더러운 부분 매핑 (정답 선택 시에만 사라져야 할 실제 더러운 부분)
@@ -228,6 +286,7 @@ export const Model = ({
   onAnimationComplete,
   mousePosition = { x: 0, y: 0 },
   screenSize = { width: window.innerWidth, height: window.innerHeight },
+  resetTrigger = 0, // 추가
 }: ModelProps) => {
   const gltf = useGLTF('/models/6-1-1/New_Clean_Room/New_Room.gltf')
   const { actions, names } = useAnimations(gltf.animations, gltf.scene)
@@ -237,6 +296,9 @@ export const Model = ({
   const currentAnimationRef = useRef<THREE.AnimationAction | null>(null)
   const lastTriggerRef = useRef(false)
   const runningActionsRef = useRef<THREE.AnimationAction[]>([])
+
+  // 추가: 리셋 트리거 추적
+  const lastResetTriggerRef = useRef(resetTrigger)
 
   const wipingToolsRef = useRef<{
     [key: string]: THREE.Object3D | null
@@ -275,6 +337,79 @@ export const Model = ({
       }
     })
   }
+
+  const resetSprayPlanes = useCallback(() => {
+    if (!gltf.scene) return
+
+    gltf.scene.traverse((child) => {
+      if (child instanceof THREE.Mesh && child.material) {
+        const material = child.material as THREE.MeshStandardMaterial
+
+        if (material.name) {
+          // 모든 스프레이 플레인을 완전히 초기 상태로 되돌리기
+          Object.values(SPRAY_PLANE_MATERIALS)
+            .flat()
+            .forEach((planeMat) => {
+              if (material.name.toLowerCase().includes(planeMat.toLowerCase())) {
+                // 기본 상태로 복원
+                material.transparent = false
+                material.opacity = 1.0
+                material.visible = false // 기본적으로 숨김
+                material.needsUpdate = true
+                child.visible = false
+                child.castShadow = false
+              }
+            })
+        }
+      }
+    })
+  }, [gltf.scene])
+
+  // 추가: 용액 병 초기화 함수
+  const resetSolutionBottles = useCallback(() => {
+    if (!gltf.scene) return
+
+    gltf.scene.traverse((child) => {
+      if (child instanceof THREE.Mesh && child.material) {
+        const material = child.material as THREE.MeshStandardMaterial
+
+        if (material.name) {
+          // 모든 용액 병들을 숨기기
+          Object.values(SOLUTION_BOTTLE_MAPPING).forEach((solutions) => {
+            Object.values(solutions).forEach((materialNames) => {
+              materialNames.forEach((materialNamePattern) => {
+                if (material.name === materialNamePattern) {
+                  material.visible = false
+                  child.visible = false
+                  material.needsUpdate = true
+                }
+              })
+            })
+          })
+        }
+      }
+    })
+  }, [gltf.scene])
+
+  // 추가: 리셋 트리거 감지
+  useEffect(() => {
+    if (resetTrigger !== lastResetTriggerRef.current) {
+      console.log('Reset trigger detected:', resetTrigger)
+
+      // 애니메이션 정지
+      runningActionsRef.current.forEach((action) => action.stop())
+      runningActionsRef.current = []
+      currentAnimationRef.current = null
+
+      // 스프레이 플레인 초기화
+      resetSprayPlanes()
+
+      // 용액 병 초기화
+      resetSolutionBottles()
+
+      lastResetTriggerRef.current = resetTrigger
+    }
+  }, [resetTrigger, resetSprayPlanes, resetSolutionBottles])
 
   const findWipingTools = useCallback(() => {
     if (!gltf.scene) return
@@ -423,25 +558,14 @@ export const Model = ({
           currentSprayPlanes.some((planeMat) => material.name.toLowerCase().includes(planeMat.toLowerCase()))
         ) {
           material.transparent = true
-          // wiping 단계에서 용액 효과는 진행도에 따라 사라짐
-          if (
-            gamePhase === 'wiping' &&
-            wipingProgress &&
-            wipingProgress[currentMission as keyof typeof wipingProgress]
-          ) {
-            const progress = wipingProgress[currentMission as keyof typeof wipingProgress]
+          material.visible = true
+
+          if (gamePhase === 'wiping' && selectedSolution) {
+            const progress = wipingProgress?.[currentMission as keyof typeof wipingProgress] || 0
             const fadeOpacity = Math.max(0, 1.0 - progress / 100)
             material.opacity = fadeOpacity
             material.visible = fadeOpacity > 0.01
-          } else if (sprayEffects && sprayEffects[currentMission as keyof typeof sprayEffects]) {
-            // spraying 단계에서는 스프레이 효과가 보임
-            material.opacity = 1.0
-            material.visible = true
-          } else {
-            material.opacity = 0.0
-            material.visible = false
           }
-
           material.needsUpdate = true
           child.castShadow = false
         }

@@ -27,7 +27,7 @@ export const useGameHandlers = (gameState: GameState, gameActions: GameActions) 
       [gameState.currentMission!]: false,
     }))
     gameActions.setGamePhase('spraying')
-    gameActions.setSprayCount(1) 
+    gameActions.setSprayCount(1)
   }
 
   const handleSpray = () => {

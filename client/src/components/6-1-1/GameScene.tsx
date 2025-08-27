@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { OrbitControls, Environment, ContactShadows, PerformanceMonitor, useProgress } from '@react-three/drei'
 import { Model } from './Model'
 import { SpeechBubble } from './SpeechBubble'
-import { CollisionPlane } from './CollisionPlane'
 import { CuttingBoardSmell } from './SmellPlane'
 import { missions, solutionColors } from '../../types/6-1-1'
 import { GameState } from './GameStateManager'
@@ -42,6 +41,8 @@ interface GameSceneProps {
   // 마우스 위치 정보를 받기 위한 props
   mousePosition?: { x: number; y: number }
   screenSize?: { width: number; height: number }
+  // 추가: 리셋 트리거
+  resetTrigger?: number
 }
 
 export const GameScene: React.FC<GameSceneProps> = ({
@@ -55,7 +56,8 @@ export const GameScene: React.FC<GameSceneProps> = ({
   splashOpacities,
   isAudioManagerStarted,
   mousePosition = { x: 0, y: 0 },
-  screenSize = { width: window.innerWidth, height: window.innerHeight }
+  screenSize = { width: window.innerWidth, height: window.innerHeight },
+  resetTrigger = 0 // 추가
 }) => {
   const currentAudiosRef = useRef<HTMLAudioElement[]>([])
 
@@ -125,6 +127,7 @@ export const GameScene: React.FC<GameSceneProps> = ({
         onAnimationComplete={onAnimationComplete}
         mousePosition={mousePosition}
         screenSize={screenSize}
+        resetTrigger={resetTrigger} // 리셋 트리거 전달
         sprayColorHex={
           gameState.selectedSolution === 'vinegar'
             ? '#ffa200'
@@ -148,60 +151,6 @@ export const GameScene: React.FC<GameSceneProps> = ({
           position={[9, 3, 1.5]}
           rotation={[0, 0, 0]}
         />
-      )}
-
-      {!gameState.showIntro && (
-        <>
-          <CollisionPlane
-            position={missions.splash01.position}
-            rotation={[-Math.PI / 2, 0, 0]}
-            size={[4.0, 4.0]}
-            missionId='splash01'
-            visible={false}
-          />
-
-          <CollisionPlane
-            position={[
-              missions.splash01.position[0] - 0.5,
-              missions.splash01.position[1] + 0.2,
-              missions.splash01.position[2],
-            ]}
-            rotation={[Math.PI / 2, Math.PI / 2, 0]}
-            size={[4.0, 4.0]}
-            missionId='splash01'
-            visible={false}
-          />
-
-          <CollisionPlane
-            position={missions.splash02.position}
-            rotation={[0, Math.PI / 2, 0]}
-            size={[2.0, 2.5]}
-            missionId='splash02'
-            visible={false}
-          />
-          <CollisionPlane
-            position={[
-              missions.splash03.position[0],
-              missions.splash03.position[1] - 0.5,
-              missions.splash03.position[2],
-            ]}
-            rotation={[Math.PI / 2, 0, 0]}
-            size={[2.0, 2.0]}
-            missionId='splash03'
-            visible={false}
-          />
-          <CollisionPlane
-            position={[
-              missions.splash04.position[0],
-              missions.splash04.position[1] - 0.6,
-              missions.splash04.position[2],
-            ]}
-            rotation={[-Math.PI / 2, 0, 0]}
-            size={[4.0, 4.0]}
-            missionId='splash04'
-            visible={false}
-          />
-        </>
       )}
 
       {!gameState.showIntro && (

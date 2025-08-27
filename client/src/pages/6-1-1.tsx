@@ -78,7 +78,7 @@ function BackButton({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5, ease: 'easeInOut' }}>
             <CrayonTextButton
-              ariaLabel='모드 선택 화면으로 돌아가기'
+              ariaLabel='다시하기'
               text='다시하기'
               icon='replay'
               iconPosition='left'
@@ -113,6 +113,9 @@ export default function Home() {
 
   // 오디오 매니저 상태
   const [isAudioManagerStarted, setIsAudioManagerStarted] = useState(false)
+
+  // 추가: 리셋 트리거 상태
+  const [resetTrigger, setResetTrigger] = useState(0)
 
   // --- BGM 상태 ---
   const bgmRef = useRef<HTMLAudioElement | null>(null)
@@ -154,7 +157,6 @@ export default function Home() {
     return () => document.removeEventListener('visibilitychange', handleVisibility)
   }, [bgmEnabled, bgmReady])
 
-
   // 상태 반영(저장/재생/일시정지)
   useEffect(() => {
     const el = bgmRef.current
@@ -191,6 +193,12 @@ export default function Home() {
     restartCurrentMission, 
     resetMission 
   } = useGameHandlers(gameState, gameActions)
+
+  // 다시하기 함수 수정 - 리셋 트리거도 함께 업데이트
+  const handleRestart = () => {
+    restartCurrentMission()
+    setResetTrigger(prev => prev + 1) // 리셋 트리거 증가
+  }
 
   // 마우스 위치 및 화면 크기 추적
   useEffect(() => {
@@ -317,7 +325,7 @@ export default function Home() {
         isZoomed={gameState.isZoomed}
         showIntro={gameState.showIntro}
         onBack={handleGoBack}
-        onRestart={restartCurrentMission}
+        onRestart={handleRestart} // 수정된 핸들러 사용
         isAnimating={gameState.isAnimating}
         gamePhase={gameState.gamePhase}
         currentMission={gameState.currentMission}
@@ -373,6 +381,7 @@ export default function Home() {
           isAudioManagerStarted={isAudioManagerStarted}
           mousePosition={mousePosition}
           screenSize={screenSize}
+          resetTrigger={resetTrigger} // 리셋 트리거 전달
         />
       </Scene>
 
