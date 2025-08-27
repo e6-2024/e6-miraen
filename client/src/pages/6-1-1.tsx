@@ -342,7 +342,6 @@ export default function Home() {
         gamePhase={gameState.gamePhase}
         material={gameState.showClickMessage}
         wipingProgress={gameState.currentMission ? gameState.wipingProgress[gameState.currentMission] : 0}
-        showLiquidMessage={gameState.showLiquidMessage}
       />
 
       <SolutionSelector

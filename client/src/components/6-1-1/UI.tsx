@@ -218,14 +218,12 @@ export function GameMessages({
   showIntro,
   gamePhase,
   wipingProgress,
-  showLiquidMessage,
   material,
 }: {
   showMessage: string
   showIntro: boolean
   gamePhase: GamePhase
   wipingProgress: number
-  showLiquidMessage: string
   material: string
 }) {
   if (showIntro) return null
@@ -236,14 +234,6 @@ export function GameMessages({
         <div className='absolute bottom-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none'>
           <CrayonTextBox textcolor='#333' textAlign='center' bg='#FFFFFF' color='#01A7A2' padding={20} animated={true}>
             <div className='text-xl font-bold'>{showMessage}</div>
-          </CrayonTextBox>
-        </div>
-      )}
-
-      {gamePhase === 'spraying' && (
-        <div className='absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none'>
-          <CrayonTextBox textcolor='#333' textAlign='center' bg='#FFFFFF' color='#01A7A2' padding={20} animated={true}>
-            <div className='text-lg font-bold'>{showLiquidMessage}</div>
           </CrayonTextBox>
         </div>
       )}

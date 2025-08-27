@@ -173,17 +173,17 @@ export const useGameHandlers = (gameState: GameState, gameActions: GameActions) 
 
     audio.stopAllAudio()
 
-    gameActions.setCleaningProgress((prev) => ({ ...prev, [gameState.currentMission!]: 0 }))
-    gameActions.setWipingProgress((prev) => ({ ...prev, [gameState.currentMission!]: 0 }))
-    gameActions.setCompletedMissions((prev) => ({ ...prev, [gameState.currentMission!]: false }))
-    gameActions.setSprayEffects((prev) => ({ ...prev, [gameState.currentMission!]: false }))
-
     gameActions.setSelectedSolution(null)
     gameActions.setSprayCount(1)
     gameActions.setMouseVelocity(0)
     gameActions.setWrongMessageShown(false)
     gameActions.setGamePhase('solution_choice')
     gameActions.setShowMessage('')
+
+    gameActions.setCleaningProgress((prev) => ({ ...prev, [gameState.currentMission!]: 0 }))
+    gameActions.setWipingProgress((prev) => ({ ...prev, [gameState.currentMission!]: 0 }))
+    gameActions.setCompletedMissions((prev) => ({ ...prev, [gameState.currentMission!]: false }))
+    gameActions.setSprayEffects((prev) => ({ ...prev, [gameState.currentMission!]: false }))
 
     setTimeout(() => {
       const narrationFiles = {

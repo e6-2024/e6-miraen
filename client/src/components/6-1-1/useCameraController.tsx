@@ -58,7 +58,6 @@ export const useCameraController = (gameState: GameState, gameActions: GameActio
             gameActions.setShowMessage(completedMessages[missionId])
           } else {
             gameActions.setShowMessage(missions[missionId].selectMessage)
-            gameActions.setShowLiquidMessage(missions[missionId].showLiquidMessage)
             gameActions.setClickMessage(missions[missionId].showClickMessage)
           }
 

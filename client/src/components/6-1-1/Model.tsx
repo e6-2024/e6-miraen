@@ -55,7 +55,7 @@ const WIPING_TOOL_CONFIG = {
     toolNames: ['Toilet_Brush'],
     basePosition: null as THREE.Vector3 | null,
     moveRange: { x: 0.4, y: 0.4 },
-    baseOffset: { x: 0.5, y: 0, z: 0 },
+    baseOffset: { x: 0.35, y: 0, z: 0 },
   },
   splash04: {
     toolNames: ['Bathroom_Scrub'],
@@ -88,7 +88,7 @@ const SOLUTION_BOTTLE_MAPPING = {
   splash01: {
     vinegar: ['Vinegar.001', 'Bottle.003', 'blinn1.001', 'Material.048'],
     spray: ['Material.045', 'Material_41.004', 'Material.046', 'Material.047', 'Material_41.004'],
-    toilet_cleaner: ['Material.042', 'Material.043', 'JOY_BELACH:cap_2.001', 'Material.044'],
+    toilet_cleaner: ['Material.042', 'Material.043', 'Material.044'],
     bleach: ['JOY_BELACH:cap_2.001', 'Material.044'],
   },
   splash02: {
@@ -258,35 +258,120 @@ export const Model = ({
     })
   }
 
-  const setSprayPlanesVisibility = useCallback(
-    (mission: keyof typeof SPRAY_PLANE_MATERIALS, visible: boolean, initialOpacity = 1) => {
+  // 모든 애니메이션을 초기 상태로 리셋하는 함수
+  const resetAllAnimations = useCallback(() => {
+    if (!actions || !names) return
+
+    // 현재 실행 중인 애니메이션들 중지
+    runningActionsRef.current.forEach((action) => {
+      action.stop()
+    })
+    runningActionsRef.current = []
+    currentAnimationRef.current = null
+
+    // 모든 애니메이션을 초기 프레임으로 리셋
+    names.forEach((animationName) => {
+      const action = actions[animationName]
+      if (action) {
+        action.stop()
+        action.reset()
+        action.time = 0
+        action.weight = 1
+        action.enabled = true
+        action.setEffectiveWeight(1)
+        action.setEffectiveTimeScale(1)
+        // 첫 번째 프레임으로 설정하고 즉시 업데이트
+        action.play()
+        action.paused = true
+        action.time = 0
+        action.getMixer().update(0)
+        action.stop()
+      }
+    })
+
+    // 트리거 상태도 초기화
+    lastTriggerRef.current = false
+  }, [actions, names])
+
+  // 와이핑 툴들을 원래 위치로 리셋하는 함수
+  const resetWipingTools = useCallback(() => {
+    Object.entries(WIPING_TOOL_CONFIG).forEach(([mission, config]) => {
+      const tool = wipingToolsRef.current[mission]
+      if (tool && config.basePosition) {
+        tool.position.copy(config.basePosition)
+      }
+    })
+  }, [])
+
+  // 모든 스프레이 플레인을 투명하게 하는 함수
+  const hideAllSprayPlanes = useCallback(() => {
+    if (!gltf.scene) return
+
+    const allSprayPlaneMaterials = Object.values(SPRAY_PLANE_MATERIALS).flat()
+
+    gltf.scene.traverse((child) => {
+      if (child instanceof THREE.Mesh && child.material) {
+        const material = child.material as THREE.MeshStandardMaterial
+        const name = (material as any).name as string | undefined
+        if (!name) return
+
+        const isSprayPlane = allSprayPlaneMaterials.some((planeMat) =>
+          name.toLowerCase().includes(planeMat.toLowerCase()),
+        )
+
+        if (isSprayPlane) {
+          material.transparent = true
+          material.opacity = 0.0
+          ;(material as any).visible = false
+          child.visible = false
+          child.castShadow = false
+          material.needsUpdate = true
+        }
+      }
+    })
+  }, [gltf.scene])
+
+  // 특정 미션의 스프레이 플레인만 보이게 하는 함수
+  const showMissionSprayPlanes = useCallback(
+    (mission: keyof typeof SPRAY_PLANE_MATERIALS) => {
       if (!gltf.scene) return
-      const targets = SPRAY_PLANE_MATERIALS[mission] ?? []
+
+      const missionSprayPlaneMaterials = SPRAY_PLANE_MATERIALS[mission]
+
       gltf.scene.traverse((child) => {
         if (child instanceof THREE.Mesh && child.material) {
           const material = child.material as THREE.MeshStandardMaterial
           const name = (material as any).name as string | undefined
           if (!name) return
 
-          const isTarget = targets.some((p) => name.toLowerCase().includes(p.toLowerCase()))
-          if (!isTarget) return
+          const isMissionSprayPlane = missionSprayPlaneMaterials.some((planeMat) =>
+            name.toLowerCase().includes(planeMat.toLowerCase()),
+          )
 
-          material.transparent = true
-          ;(material as any).visible = visible
-          material.opacity = visible ? initialOpacity : 0
-          child.visible = visible // 메쉬 자체도 켜줘야 함
-          child.castShadow = false
-          material.needsUpdate = true
+          if (isMissionSprayPlane) {
+            material.transparent = true
+            material.opacity = 1.0
+            ;(material as any).visible = true
+            child.visible = true
+            child.castShadow = false
+            material.needsUpdate = true
+          }
         }
       })
     },
-    [gltf.scene, sprayColorHex],
+    [gltf.scene],
   )
+
+  // 초기화 시 모든 스프레이 플레인을 투명하게 설정하는 함수
+  const initializeSprayPlanesTransparent = useCallback(() => {
+    hideAllSprayPlanes()
+  }, [hideAllSprayPlanes])
 
   const takeInitialMaterialSnapshot = useCallback(() => {
     if (!gltf.scene) return
     const store = initialMaterialStateRef.current
     if (store.size > 0) return
+
     gltf.scene.traverse((child) => {
       if (child instanceof THREE.Mesh && child.material) {
         const materials = Array.isArray(child.material) ? child.material : [child.material]
@@ -294,14 +379,34 @@ export const Model = ({
           const ms = mat as THREE.MeshStandardMaterial
           const key = `${child.uuid}::${ms.uuid}`
           const colorHex = (ms as any).color ? (ms as any).color.getHex() : undefined
+
+          const isSolutionBottle = Object.values(SOLUTION_BOTTLE_MAPPING)
+            .flatMap((solutions) => Object.values(solutions))
+            .flat()
+            .some((pattern) => (ms as any).name === pattern)
+
+          const isSprayPlane = Object.values(SPRAY_PLANE_MATERIALS)
+            .flat()
+            .some((planeMat) => (ms as any).name && (ms as any).name.toLowerCase().includes(planeMat.toLowerCase()))
+
+          // 스프레이 플레인과 솔루션 병은 항상 초기에 투명 상태로 저장
           store.set(key, {
-            transparent: !!ms.transparent,
-            opacity: typeof ms.opacity === 'number' ? ms.opacity : 1,
-            meshVisible: child.visible,
-            materialVisible: (ms as any).visible ?? true,
+            transparent: !!ms.transparent || isSolutionBottle || isSprayPlane,
+            opacity: isSolutionBottle || isSprayPlane ? 0 : typeof ms.opacity === 'number' ? ms.opacity : 1,
+            meshVisible: isSolutionBottle || isSprayPlane ? false : child.visible,
+            materialVisible: isSolutionBottle || isSprayPlane ? false : (ms as any).visible ?? true,
             color: colorHex,
             map: (ms as any).map ?? null,
           })
+
+          // 즉시 투명하게 설정
+          if (isSolutionBottle || isSprayPlane) {
+            child.visible = false
+            ;(ms as any).visible = false
+            ms.transparent = true
+            ms.opacity = 0
+            ms.needsUpdate = true
+          }
         })
       }
     })
@@ -343,6 +448,7 @@ export const Model = ({
                   ;(material as any).visible = false
                   material.transparent = true
                   material.opacity = 0
+                  child.visible = false
                   material.needsUpdate = true
                 }
               })
@@ -365,6 +471,7 @@ export const Model = ({
           const key = `${child.uuid}::${ms.uuid}`
           const snap = store.get(key)
           if (!snap) return
+
           child.visible = snap.meshVisible
           ;(ms as any).visible = snap.materialVisible
           ms.transparent = snap.transparent
@@ -381,74 +488,107 @@ export const Model = ({
     })
   }, [gltf.scene, castShadow, receiveShadow])
 
+  // 초기화 시 스프레이 플레인을 투명하게 설정
   useEffect(() => {
     if (!gltf.scene) return
+
+    // 초기 상태 스냅샷 생성
     takeInitialMaterialSnapshot()
-    findWipingTools()
-    configureShadows(gltf.scene)
-  }, [gltf.scene])
 
+    // 모든 스프레이 플레인을 투명하게 초기화
+    initializeSprayPlanesTransparent()
+
+    // 와이핑 툴 찾기
+    findWipingTools()
+
+    // 그림자 설정
+    configureShadows(gltf.scene)
+  }, [gltf.scene, takeInitialMaterialSnapshot, initializeSprayPlanesTransparent])
+
+  // resetTrigger가 변경될 때 전체 초기화 수행
+  useEffect(() => {
+    if (resetTrigger !== lastResetTriggerRef.current) {
+      console.log('Resetting model to initial state...')
+
+      // 1. 모든 애니메이션 리셋
+      resetAllAnimations()
+
+      // 2. 와이핑 툴들 원래 위치로 리셋
+      resetWipingTools()
+
+      // 3. 전체 머티리얼 복원 수행
+      restoreAllMaterialsToInitial()
+
+      // 4. 리셋 후 모든 스프레이 플레인과 솔루션 병 투명하게
+      hideAllSprayPlanes()
+      resetSolutionBottles()
+
+      lastResetTriggerRef.current = resetTrigger
+      console.log('Model reset complete')
+    }
+  }, [
+    resetTrigger,
+    resetAllAnimations,
+    resetWipingTools,
+    restoreAllMaterialsToInitial,
+    hideAllSprayPlanes,
+    resetSolutionBottles,
+  ])
   useEffect(() => {
     if (!gltf.scene) return
 
-    // 1) 모두 초기화
-    resetSprayPlanes() // 모든 미션 스프레이 플레인 숨김
-    resetSolutionBottles() // 용액 병/캡 숨김(필요시)
-    restoreAllMaterialsToInitial()
+    if (resetTrigger !== lastResetTriggerRef.current) {
+      return
+    }
 
-    // 2) 현재 선택된 용액 병/캡만 표시(기존 로직 유지)
-    gltf.scene.traverse((child) => {
-      if (child instanceof THREE.Mesh && child.material) {
-        const material = child.material as THREE.MeshStandardMaterial
-        const name = (material as any).name as string | undefined
-        if (!name) return
-        Object.entries(SOLUTION_BOTTLE_MAPPING).forEach(([mission, solutions]) => {
-          Object.entries(solutions).forEach(([solution, mats]) => {
-            mats.forEach((pattern) => {
-              const match = name === pattern || name.toLowerCase().includes(pattern.toLowerCase())
-              if (match) {
-                const isCurrent = currentMission === mission && selectedSolution === solution
-                ;(material as any).visible = isCurrent
-                material.transparent = true
-                material.opacity = isCurrent ? 1 : 0
-                material.needsUpdate = true
-                if (isCurrent) child.visible = true
-              }
-            })
-          })
-        })
-      }
-    })
+    if (currentMission && selectedSolution) {
+      // 1. 먼저 모든 스프레이 플레인 숨김
+      hideAllSprayPlanes()
 
-    // 3) 현재 미션의 스프레이 플레인 즉시 보이게
-    if (currentMission) {
-      // gamePhase 제한을 두고 싶으면 아래 조건 추가:
-      // if (gamePhase === 'spraying') {
-      setSprayPlanesVisibility(currentMission as keyof typeof SPRAY_PLANE_MATERIALS, true, 1)
-      // }
+      // 2. 모든 솔루션 병 숨김
+      resetSolutionBottles()
+
+      // 3. 선택된 솔루션 병만 보이게 (수정된 로직)
+      const currentSolutionMaterials = SOLUTION_BOTTLE_MAPPING[currentMission]?.[selectedSolution] || []
+
+      gltf.scene.traverse((child) => {
+        if (child instanceof THREE.Mesh && child.material) {
+          const material = child.material as THREE.MeshStandardMaterial
+          const name = (material as any).name as string | undefined
+          if (!name) return
+
+          // 현재 선택된 미션-솔루션 조합의 재료인지 확인
+          const isCurrentSolutionMaterial = currentSolutionMaterials.some(
+            (pattern) => name === pattern || name.toLowerCase().includes(pattern.toLowerCase()),
+          )
+
+          if (isCurrentSolutionMaterial) {
+            // 현재 선택된 솔루션의 재료만 보이게 함
+            ;(material as any).visible = true
+            material.transparent = true
+            material.opacity = 1
+            child.visible = true
+            material.needsUpdate = true
+          }
+        }
+      })
+
+      // 4. 선택된 미션의 스프레이 플레인만 보이게
+      showMissionSprayPlanes(currentMission as keyof typeof SPRAY_PLANE_MATERIALS)
+    } else {
+      // 미션이나 솔루션이 선택되지 않았으면 모든 것 숨김
+      hideAllSprayPlanes()
+      resetSolutionBottles()
     }
   }, [
     selectedSolution,
     currentMission,
     gltf.scene,
-    resetSprayPlanes,
+    hideAllSprayPlanes,
+    showMissionSprayPlanes,
     resetSolutionBottles,
-    restoreAllMaterialsToInitial,
-    setSprayPlanesVisibility,
+    resetTrigger,
   ])
-
-  useEffect(() => {
-    if (resetTrigger !== lastResetTriggerRef.current) {
-      restoreAllMaterialsToInitial()
-      runningActionsRef.current.forEach((action) => action.stop())
-      runningActionsRef.current = []
-      currentAnimationRef.current = null
-      resetSprayPlanes()
-      resetSolutionBottles()
-      lastResetTriggerRef.current = resetTrigger
-    }
-  }, [resetTrigger, restoreAllMaterialsToInitial, resetSprayPlanes, resetSolutionBottles])
-
   const findWipingTools = useCallback(() => {
     if (!gltf.scene) return
     gltf.scene.traverse((child) => {
@@ -522,40 +662,10 @@ export const Model = ({
   }, [gamePhase])
 
   useEffect(() => {
-    if (!modelRef.current || !gltf.scene) return
-    gltf.scene.traverse((child) => {
-      if (child instanceof THREE.Mesh && child.material) {
-        const material = child.material as THREE.MeshStandardMaterial
-        if ((material as any).name) {
-          const matName = (material as any).name
-          Object.entries(SOLUTION_BOTTLE_MAPPING).forEach(([mission, solutions]) => {
-            Object.entries(solutions).forEach(([solution, materialNames]) => {
-              materialNames.forEach((materialNamePattern) => {
-                if (matName === materialNamePattern) {
-                  const isCurrentMissionAndSolution = currentMission === mission && selectedSolution === solution
-                  if (isCurrentMissionAndSolution) {
-                    material.transparent = true
-                    material.opacity = 1.0
-                    ;(material as any).visible = true
-                    child.visible = true
-                  } else {
-                    ;(material as any).visible = false
-                    child.visible = false
-                    material.opacity = 0
-                  }
-                  material.needsUpdate = true
-                }
-              })
-            })
-          })
-        }
-      }
-    })
-  }, [selectedSolution, currentMission, gltf.scene])
+    if (!modelRef.current || !gltf.scene || !currentMission || !selectedSolution) return
 
-  useEffect(() => {
-    if (!modelRef.current || !gltf.scene || !currentMission) return
     const currentSprayPlanes = SPRAY_PLANE_MATERIALS[currentMission as keyof typeof SPRAY_PLANE_MATERIALS]
+
     gltf.scene.traverse((child) => {
       if (child instanceof THREE.Mesh && child.material) {
         const material = child.material as THREE.MeshStandardMaterial
@@ -564,10 +674,10 @@ export const Model = ({
         const isSprayPlane = currentSprayPlanes.some((p) => name.toLowerCase().includes(p.toLowerCase()))
         if (!isSprayPlane) return
 
+        // wipingProgress에 따라 점진적으로 투명해짐
         const progress = wipingProgress?.[currentMission as keyof typeof wipingProgress] || 0
         const fadeOpacity = Math.max(0, 1 - progress / 100)
 
-        // 선택 후 즉시 보이게(1) → 진행도에 따라 감소
         material.opacity = fadeOpacity
         ;(material as any).visible = fadeOpacity > 0
         child.visible = fadeOpacity > 0.01
@@ -575,7 +685,7 @@ export const Model = ({
         child.castShadow = false
       }
     })
-  }, [currentMission, wipingProgress, gltf.scene])
+  }, [currentMission, wipingProgress, gltf.scene, selectedSolution])
 
   useEffect(() => {
     if (!modelRef.current || !gltf.scene || !currentMission || !splashOpacities) return

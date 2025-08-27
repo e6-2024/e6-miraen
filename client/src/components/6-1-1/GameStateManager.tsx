@@ -7,7 +7,6 @@ export interface GameState {
   isZoomed: boolean
   showIntro: boolean
   showMessage: string
-  showLiquidMessage: string
   showClickMessage: string
   wrongMessageShown: boolean
   isBathroomLightOn: boolean
@@ -35,7 +34,6 @@ export interface GameActions {
   setIsZoomed: (value: boolean) => void
   setShowIntro: (value: boolean) => void
   setShowMessage: (value: string) => void
-  setShowLiquidMessage: (value: string) => void
   setClickMessage: (value: string) => void
   setWrongMessageShown: (value: boolean) => void
   setIsBathroomLightOn: (value: boolean) => void
@@ -58,7 +56,6 @@ export const useGameState = (): [GameState, GameActions] => {
   const [isZoomed, setIsZoomed] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
   const [showMessage, setShowMessage] = useState<string>('')
-  const [showLiquidMessage, setShowLiquidMessage] = useState<string>('')
   const [showClickMessage, setClickMessage] = useState<string>('')
   const [wrongMessageShown, setWrongMessageShown] = useState(false)
   const [isBathroomLightOn, setIsBathroomLightOn] = useState(false)
@@ -108,7 +105,6 @@ export const useGameState = (): [GameState, GameActions] => {
     isZoomed,
     showIntro,
     showMessage,
-    showLiquidMessage,
     showClickMessage,
     wrongMessageShown,
     isBathroomLightOn,
@@ -131,7 +127,6 @@ export const useGameState = (): [GameState, GameActions] => {
     setIsZoomed,
     setShowIntro,
     setShowMessage,
-    setShowLiquidMessage,
     setClickMessage,
     setWrongMessageShown,
     setIsBathroomLightOn,
