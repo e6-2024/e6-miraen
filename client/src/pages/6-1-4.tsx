@@ -51,7 +51,7 @@ export default function HomePage() {
   useEffect(() => {
     const el = new Audio('/sounds/6-1-4/6-1-4-BGM_airy-196973.mp3')
     el.loop = true
-    el.volume = 0.3
+    el.volume = 0.1
     bgmRef.current = el
     return () => {
       el.pause()

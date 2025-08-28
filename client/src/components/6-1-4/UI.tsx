@@ -3,6 +3,7 @@ import { BoxLineGeometry } from 'three-stdlib'
 import { AnimatePresence, motion } from 'framer-motion'
 import { CrayonTextBox } from '../CrayonTextBox'
 import { CrayonTextButton } from '../CrayonUIButton'
+import { act } from '@react-three/fiber'
 
 type Season = 'spring' | 'summer' | 'fall' | 'winter'
 
@@ -39,10 +40,8 @@ export function UI({ isLockedToSurface, activeSeason, onReset }: UIProps) {
     setShowExplainPopup(true)
   }
 
-  // Store audio instance to control playback
   const [audioInstance, setAudioInstance] = useState<HTMLAudioElement | null>(null)
 
-  // Stop and clean up audio
   const stopAll = useCallback(() => {
     if (audioInstance) {
       audioInstance.pause()
@@ -51,7 +50,6 @@ export function UI({ isLockedToSurface, activeSeason, onReset }: UIProps) {
     }
   }, [audioInstance])
 
-  // Modified playClickSound to optionally set audio instance
   const playClickSound = (
     audioPath: string = '/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3',
     setAsInstance: boolean = false,
@@ -158,10 +156,10 @@ export function UI({ isLockedToSurface, activeSeason, onReset }: UIProps) {
             iconPosition='left'
             x='50vw'
             y='87dvh'
-            width={170}
+            width={290}
             height={75}
             iconSize={30}
-            text='추가 설명 읽기'
+            text={activeSeason==='spring'? '봄철 대표적인 별자리 알아보기': activeSeason==='summer' ? '겨울철 대표적인 별자리 알아보기': activeSeason==='fall' ? '가을철 대표적인 별자리 알아보기':'여름철 대표적인 별자리 알아보기'}
             color='#ffffff'
             textcolor='#ffffff'
             bg='rgba(255,255,255,0.10)'
@@ -182,7 +180,7 @@ export function UI({ isLockedToSurface, activeSeason, onReset }: UIProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 1, ease: 'easeInOut' }}
-            className='absolute flex flex-col justify-center items-center font-bold gap-5 bg-white/85 px-4 pt-4 pb-24 rounded-xl top-1/2 left-1/2 transform -translate-x-1/2 transform -translate-y-1/2 z-10 w-[40vw]'>
+            className='absolute flex flex-col justify-center items-center font-bold gap-5 bg-white/85 px-4 py-4 rounded-xl bottom-0 right-0 z-10 w-[40vw]'>
             <CrayonTextBox
               text={seasonExplain[activeSeason].text}
               color='#333'
@@ -194,7 +192,7 @@ export function UI({ isLockedToSurface, activeSeason, onReset }: UIProps) {
               padding={20}
               animated={true}></CrayonTextBox>
 
-            <CrayonTextButton
+            {/* <CrayonTextButton
               onClick={() => {
                 handleCloseExplain()
                 stopAll()
@@ -205,7 +203,7 @@ export function UI({ isLockedToSurface, activeSeason, onReset }: UIProps) {
               textcolor='#333'
               color='#333'
               bg='#FFF'
-            />
+            /> */}
           </motion.div>
         </AnimatePresence>
       )}
