@@ -520,7 +520,7 @@ export default function Page() {
                       color={active ? '#E8AAAB' : '#666666'}
                       textcolor='#FFFFFF'
                       className={`transition-all duration-300 ${
-                        isModelsLoading ? 'opacity-50 cursor-not-allowed' : 'hover:brightness-110 active:scale-90'
+                        isModelsLoading ? 'opacity-50 cursor-not-allowed' : ' active:scale-90'
                       }`}
                       onClick={() => !isModelsLoading && handleAnimationChange(state)}
                       innerCircleVisible={false}
@@ -546,7 +546,7 @@ export default function Page() {
                       className={`transition-all duration-300 ${
                         isModelsLoading
                           ? 'opacity-50 cursor-not-allowed'
-                          : 'hover:brightness-110 active:scale-90 hover:scale-105'
+                          : ' active:scale-90 hover:scale-105'
                       }`}
                       onClick={() => !isModelsLoading && handleModelTypeChange(type)}
                       innerCircleVisible={false}
@@ -584,7 +584,7 @@ export default function Page() {
                   bg='#D54D50'
                   color='#E8AAAB'
                   textcolor='#FFFFFF'
-                  className='hover:brightness-110 active:scale-90 transition-all duration-300'
+                  className=' active:scale-90 transition-all duration-300'
                   onClick={handleExtend}
                   innerCircleVisible={false}
                 />
@@ -596,7 +596,7 @@ export default function Page() {
                   bg='#E8AAAB'
                   color='#D54D50'
                   textcolor='#FFFFFF'
-                  className='hover:brightness-110 active:scale-90 transition-all duration-300'
+                  className=' active:scale-90 transition-all duration-300'
                   onClick={handleFold}
                   innerCircleVisible={false}
                 />

@@ -201,7 +201,7 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
             ry={(height - 10) / 2}
             fill={bg}
             filter='url(#paperTextureStatic)'
-            className='transition-all duration-300 group-hover:opacity-0'
+            className='transition-all duration-300'
           />
           <rect
             x='5'
@@ -212,7 +212,7 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
             ry={(height - 10) / 2}
             fill={bg}
             filter='url(#paperTextureAnimated)'
-            className='transition-all duration-300 opacity-0 group-hover:opacity-100'
+            className='transition-all duration-300 opacity-0'
           />
           {/* 테두리 */}
           <rect

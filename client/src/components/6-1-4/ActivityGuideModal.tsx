@@ -137,7 +137,7 @@ const ActivityGuideModal: React.FC<{
                       bg='#9E9E9E'
                       color='#666666'
                       textcolor='#FFFFFF'
-                      className='hover:brightness-110 active:scale-90 transition-all duration-300'
+                      className='active:scale-90 transition-all duration-300'
                       onClick={handlePrevious}
                       innerCircleVisible={false}
                     />
@@ -155,7 +155,7 @@ const ActivityGuideModal: React.FC<{
                       bg='#9E9E9E'
                       color='#666666'
                       textcolor='#FFFFFF'
-                      className='hover:brightness-110 active:scale-90 transition-all duration-300'
+                      className='active:scale-90 transition-all duration-300'
                       onClick={handleNext}
                       innerCircleVisible={false}
                     />
@@ -173,7 +173,7 @@ const ActivityGuideModal: React.FC<{
                     className={`w-2 h-2 rounded-full mx-2 transition-all duration-300 ${
                       index === currentSlide
                         ? 'bg-[#4CAF50] shadow-[0_0_8px_rgba(76,175,80,0.6)] scale-125'
-                        : 'bg-gray-300 hover:bg-gray-400'
+                        : 'bg-gray-300 '
                     }`}
                   />
                 ))}
@@ -191,7 +191,7 @@ const ActivityGuideModal: React.FC<{
                   bg='#4CAF50'
                   color='#096A2E'
                   textcolor='#FFFFFF'
-                  className='relative hover:brightness-110 active:scale-95 transition-all duration-300'
+                  className='relative  active:scale-95 transition-all duration-300'
                   onClick={handleNext}
                   innerCircleVisible={false}
                 />

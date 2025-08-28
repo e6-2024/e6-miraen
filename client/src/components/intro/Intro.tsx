@@ -154,7 +154,7 @@ export default function Intro<T = string>({
               bg={buttonTheme.goal.bg}
               color={buttonTheme.goal.border}
               textcolor={buttonTheme.goal.text}
-              className='transition-all duration-300 hover:brightness-110 active:scale-90'
+              className='transition-all duration-300  active:scale-90'
               onClick={() => {
                 handleGoalClick()
                 playDescriptionSound()
@@ -170,7 +170,7 @@ export default function Intro<T = string>({
               bg={buttonTheme.guide.bg}
               color={buttonTheme.guide.border}
               textcolor={buttonTheme.guide.text}
-              className='transition-all duration-300 hover:brightness-110 active:scale-90'
+              className='transition-all duration-300  active:scale-90'
               onClick={handleActivityGuideClick}
               innerCircleVisible={false}
             />
@@ -187,18 +187,23 @@ export default function Intro<T = string>({
               bg={buttonTheme.start.bg}
               color={buttonTheme.start.border}
               textcolor={buttonTheme.start.text}
-              className='transition-all duration-300 hover:brightness-110 active:scale-90'
+              className='transition-all duration-300  active:scale-90'
               onClick={handleEnter}
               innerCircleVisible={false}
             />
           ) : (
             <div className='flex flex-row gap-4 items-center'>
               {modeButtons.map(({ mode, label }, index) => {
-                // 모드별 임시 색 구성 (원하면 외부에서 주입하도록 확장 가능)
                 const scheme =
                   String(mode) === 'bones'
-                    ? { bg: '#4E9F3D', border: '#3E7F30' } // Green
-                    : { bg: '#6C63FF', border: '#5A54D6' } // Purple-Blue
+                    ? { bg: '#4E9F3D', border: '#3E7F30' }
+                    : String(mode) === 'direct'
+                    ? {  bg: '#F3921C', border: '#FFDBB0' }
+                    : String(mode) === 'reflection'
+                    ? { bg: '#01A7A2', border: '#78C9C9' }
+                    : String(mode) === 'refraction'
+                    ? {  bg: '#6C63FF', border: '#5A54D6' }
+                    : { bg: '#6C63FF', border: '#5A54D6' }
 
                 return (
                   <div
@@ -215,7 +220,7 @@ export default function Intro<T = string>({
                       bg={scheme.bg}
                       color={scheme.border}
                       textcolor='#FFFFFF'
-                      className='font-bold hover:brightness-110 active:scale-90 transition-all duration-300'
+                      className='font-bold  active:scale-90 transition-all duration-300'
                       onClick={() => handleModeButtonClick(mode)}
                       innerCircleVisible={false}
                     />
@@ -261,7 +266,7 @@ export default function Intro<T = string>({
               bg={buttonTheme.goal.bg}
               color={buttonTheme.goal.border}
               textcolor={buttonTheme.goal.text}
-              className='hover:brightness-110 active:scale-95 transition-all duration-300'
+              className=' active:scale-95 transition-all duration-300'
               onClick={handleGoalClick}
               innerCircleVisible={false}
             />
@@ -273,7 +278,7 @@ export default function Intro<T = string>({
               bg={buttonTheme.guide.bg}
               color={buttonTheme.guide.border}
               textcolor={buttonTheme.guide.text}
-              className='hover:brightness-110 active:scale-95 transition-all duration-300'
+              className=' active:scale-95 transition-all duration-300'
               onClick={handleActivityGuideClick}
               innerCircleVisible={false}
             />
@@ -288,7 +293,7 @@ export default function Intro<T = string>({
               bg={buttonTheme.start.bg}
               color={buttonTheme.start.border}
               textcolor={buttonTheme.start.text}
-              className='hover:brightness-110 active:scale-95 transition-all duration-300'
+              className=' active:scale-95 transition-all duration-300'
               onClick={handleEnter}
               innerCircleVisible={false}
             />
@@ -303,7 +308,7 @@ export default function Intro<T = string>({
                   bg={color}
                   color='#3b3b3b'
                   textcolor='#FFFFFF'
-                  className='font-bold hover:brightness-110 active:scale-95 transition-all duration-300'
+                  className='font-bold  active:scale-95 transition-all duration-300'
                   onClick={() => handleModeButtonClick(mode)}
                   innerCircleVisible={false}
                   // hoverColor는 현재 컴포에서 직접 처리하지 않음 (원하면 CrayonTextButton에 hoverBg prop 추가)
@@ -347,7 +352,7 @@ export default function Intro<T = string>({
                 bg={buttonTheme.goal.bg}
                 color={buttonTheme.goal.border}
                 textcolor={buttonTheme.goal.text}
-                className='w-full max-w-[320px] hover:brightness-110 active:scale-95 transition-all duration-300'
+                className='w-full max-w-[320px]  active:scale-95 transition-all duration-300'
                 onClick={handleClosePopup}
                 innerCircleVisible={false}
               />

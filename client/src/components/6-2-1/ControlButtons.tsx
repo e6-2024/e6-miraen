@@ -63,8 +63,8 @@ function ControlButtons({
         }}
         className={`px-4 py-2 rounded-lg shadow-lg transition-colors duration-200 text-lg font-bold ${
           showObservationLines
-            ? 'bg-black hover:bg-gray-400 text-white'
-            : 'bg-white hover:bg-gray-400 text-black'
+            ? 'bg-black  text-white'
+            : 'bg-white  text-black'
         }`}
       >
         {showObservationLines ? '관측선 숨기기' : '관측선 표시하기'}
