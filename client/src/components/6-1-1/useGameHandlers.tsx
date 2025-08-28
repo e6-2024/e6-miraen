@@ -1,4 +1,4 @@
-import { SplashType, CleaningToolType, missions, wipingEfficiency } from '../../types/6-1-1'
+import { SplashType, CleaningToolType, missions, wipingEfficiency } from '../../types/6-1-1/types'
 import { GameState, GameActions } from './GameStateManager'
 import { useAudioManager } from './useAudioManager'
 

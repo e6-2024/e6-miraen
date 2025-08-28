@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect } from 'react'
 import { BoxLineGeometry } from 'three-stdlib'
 import { AnimatePresence, motion } from 'framer-motion'
-import { CrayonTextBox } from '../CrayonTextBox'
-import { CrayonTextButton } from '../CrayonUIButton'
+import { CrayonTextBox } from '../common/CrayonTextBox'
+import { CrayonTextButton } from '../common/CrayonUIButton'
 import { act } from '@react-three/fiber'
 
 type Season = 'spring' | 'summer' | 'fall' | 'winter'

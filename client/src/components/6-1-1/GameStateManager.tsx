@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { CleaningToolType, SplashType, GamePhase } from '../../types/6-1-1'
+import { CleaningToolType, SplashType, GamePhase } from '../../types/6-1-1/types'
 
 export interface GameState {
   // UI 상태

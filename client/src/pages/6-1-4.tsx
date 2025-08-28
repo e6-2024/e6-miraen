@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import SpaceScene from '@/scenes/SpaceScene'
 import Intro from '@/components/intro/Intro'
 import ActivityGuideModal from '@/components/6-1-4/ActivityGuideModal'
-import { CrayonTextButton } from '@/components/CrayonUIButton'
+import { CrayonTextButton } from '@/components/common/CrayonUIButton'
 
 type ButtonStyle = { bg: string; border: string; text: string }
 type SpaceTheme = {

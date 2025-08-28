@@ -1,13 +1,25 @@
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 
-export default function PostEffects() {
+interface PostEffectsProps {
+  bloomIntensity?: number;
+  luminanceThreshold?: number;
+  luminanceSmoothing?: number;
+  mipmapBlur?: boolean;
+}
+
+export default function PostEffects({
+  bloomIntensity = 0.5,
+  luminanceThreshold = 0.0,
+  luminanceSmoothing = 0.0,
+  mipmapBlur = true
+}: PostEffectsProps) {
   return (
     <EffectComposer>
       <Bloom
-        intensity={0.5}
-        luminanceThreshold={0.0}
-        luminanceSmoothing={0.0}
-        mipmapBlur
+        intensity={bloomIntensity}
+        luminanceThreshold={luminanceThreshold}
+        luminanceSmoothing={luminanceSmoothing}
+        mipmapBlur={mipmapBlur}
       />
     </EffectComposer>
   );

@@ -12,8 +12,8 @@ import NavigationUI, { NavigationUIRef } from '@/components/5-1-1/NavigationUI'
 import { motion } from 'framer-motion'
 import AudioManager from '@/components/5-1-1/AudioManager'
 import ActivityGuideModal from '@/components/5-1-1/ActivityGuideModal'
-import { CrayonTextBox } from '@/components/CrayonTextBox'
-import { CrayonTextButton } from '@/components/CrayonUIButton'
+import { CrayonTextBox } from '@/components/common/CrayonTextBox'
+import { CrayonTextButton } from '@/components/common/CrayonUIButton'
 
 type ButtonStyle = { bg: string; border: string; text: string }
 

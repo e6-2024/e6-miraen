@@ -1,6 +1,6 @@
 import { useRef, useState, useImperativeHandle, forwardRef } from 'react'
-import { CrayonTextButton } from '@/components/CrayonUIButton'
-import { CrayonTextBox } from '../CrayonTextBox'
+import { CrayonTextButton } from '@/components/common/CrayonUIButton'
+import { CrayonTextBox } from '../common/CrayonTextBox'
 
 export interface NavigationUIRef {
   stopAllAudios: () => void

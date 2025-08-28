@@ -14,7 +14,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import ConnectedBuzzers from '@/components/6-2-3/ConnectedBuzzers'
 import ConnectedLights from '@/components/6-2-3/ConnectedLights'
 import ConnectedFans from '@/components/6-2-3/ConnectedFans'
-import IntroMouseCameraController from '@/components/IntroMouseCameraController'
+import IntroMouseCameraController from '@/components/intro/IntroMouseCameraController'
 
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
   const { progress, active } = useProgress()

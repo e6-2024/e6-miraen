@@ -6,7 +6,7 @@ import Scene from '@/components/canvas/Scene'
 import CameraLogger from '@/hook/CameraLogger'
 import Intro from '@/components/intro/Intro'
 import { Environment } from '@react-three/drei'
-import IntroMouseCameraController from '@/components/IntroMouseCameraController'
+import IntroMouseCameraController from '@/components/intro/IntroMouseCameraController'
 
 const INITIAL_CAMERA_POSITION: [number, number, number] = [-5, -14, 1]
 const INITIAL_CAMERA_TARGET: [number, number, number] = [-5, -14, 0]

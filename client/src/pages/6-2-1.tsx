@@ -22,7 +22,7 @@ import SummaryPopup from '@/components/6-2-1/SummaryPopup'
 import SubtitleDisplay from '@/components/6-2-1/SubtitleDisplay'
 import { useNarrationManager } from '@/components/6-2-1/useNarrationManager'
 import NarrationManager from '@/components/6-2-1/NarrationManager'
-import IntroMouseCameraController from '@/components/IntroMouseCameraController'
+import IntroMouseCameraController from '@/components/intro/IntroMouseCameraController'
 
 
 const timeData = timeData2

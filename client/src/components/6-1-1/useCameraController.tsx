@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import * as THREE from 'three'
-import { SplashType, missions, initialCamera } from '../../types/6-1-1'
+import { SplashType, missions, initialCamera } from '../../types/6-1-1/types'
 import { GameState, GameActions } from './GameStateManager'
 
 export const useCameraController = (gameState: GameState, gameActions: GameActions) => {

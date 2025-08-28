@@ -8,7 +8,7 @@ import * as THREE from 'three'
 import { WaterFlowAnimation } from '../components/6-1-3/WaterFlowAnimation'
 import { ControlPoint } from '../components/6-1-3/ControlPoint'
 import { SpeechBubble } from '../components/6-1-3/SpeechBubble'
-import IntroMouseCameraController from '@/components/IntroMouseCameraController'
+import IntroMouseCameraController from '@/components/intro/IntroMouseCameraController'
 
 // 뿌리 물 흡수 애니메이션 컴포넌트
 function RootWaterAbsorption({ isActive, rootPosition }) {

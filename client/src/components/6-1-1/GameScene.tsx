@@ -3,7 +3,7 @@ import { OrbitControls, Environment, ContactShadows, PerformanceMonitor, useProg
 import { Model } from './Model'
 import { SpeechBubble } from './SpeechBubble'
 import { CuttingBoardSmell } from './SmellPlane'
-import { missions, solutionColors } from '../../types/6-1-1'
+import { missions, solutionColors } from '../../types/6-1-1/types'
 import { GameState } from './GameStateManager'
 import * as THREE from 'three'
 

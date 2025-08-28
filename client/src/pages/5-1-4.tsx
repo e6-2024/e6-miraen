@@ -6,15 +6,15 @@ import { Environment, OrbitControls, useProgress, useGLTF } from '@react-three/d
 import * as THREE from 'three'
 import { AnimatePresence, motion } from 'framer-motion'
 
-import AnimatedModel from '../components/AnimatedModel'
-import AnimatedModel2 from '../components/AnimatedModel2'
+import AnimatedModel from '@/components/5-1-4/AnimatedModel'
+import AnimatedModel2 from '@/components/5-1-4/AnimatedModel2'
 const Scene = dynamic(() => import('@/components/canvas/Scene'), { ssr: false })
 
 import Intro from '@/components/intro/Intro'
-import MouseInteractiveGroup from '@/components/MouseInteractiveGroup'
+import MouseInteractiveGroup from '@/components/intro/MouseInteractiveGroup'
 import ActivityGuideModal from '@/components/5-1-4/ActivityGuideModal'
-import { CrayonTextBox } from '@/components/CrayonTextBox'
-import { CrayonTextButton } from '@/components/CrayonUIButton'
+import { CrayonTextBox } from '@/components/common/CrayonTextBox'
+import { CrayonTextButton } from '@/components/common/CrayonUIButton'
 
 type ModelType = 'boy' | 'muscle' | 'bone'
 type AnimationState = 'walk' | 'pose'
@@ -101,12 +101,10 @@ function IntroModels() {
   )
 }
 
-export default function IntegratedPage() {
-  // ✅ 마운트 여부 - 클라 의존 UI는 mounted 이후에만 렌더
+export default function Page() {
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
 
-  // 상태 관리
   const [mode, setMode] = useState<PageMode>(null)
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
@@ -127,12 +125,11 @@ export default function IntegratedPage() {
 
   const orbitControlsRef = useRef<any>(null)
 
-  // === BGM (hydration-safe) ===
+  // === BGM ===
   const bgmRef = useRef<HTMLAudioElement | null>(null)
-  const [bgmEnabled, setBgmEnabled] = useState<boolean>(true) // 서버/초기 렌더와 동일한 상수로 시작
+  const [bgmEnabled, setBgmEnabled] = useState<boolean>(true) 
   const [bgmReady, setBgmReady] = useState(false)
 
-  // 마운트 후에만 localStorage에서 복원
   useEffect(() => {
     if (!mounted) return
     try {
@@ -141,7 +138,6 @@ export default function IntegratedPage() {
     } catch {}
   }, [mounted])
 
-  // 오디오 인스턴스 준비 (클라 전용)
   useEffect(() => {
     if (!mounted) return
     const el = new Audio('/sounds/5-1-4/5-1-4-BGM_little-steps-246641.mp3')
@@ -169,7 +165,6 @@ export default function IntegratedPage() {
 
   const toggleBgm = () => setBgmEnabled((v) => !v)
 
-  // 인트로 모델 프리로드
   useEffect(() => {
     const loadIntroModels = async () => {
       try {

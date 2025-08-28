@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react'
-import { CrayonTextBox } from '../CrayonTextBox'
-import { CrayonTextButton } from '../CrayonUIButton'
+import { CrayonTextBox } from '../common/CrayonTextBox'
+import { CrayonTextButton } from '../common/CrayonUIButton'
 
 interface ModeButton<T = string> {
   mode: T

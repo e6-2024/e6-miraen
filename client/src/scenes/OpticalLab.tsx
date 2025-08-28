@@ -1,152 +1,95 @@
-// scenes/OpticalLab.tsx
-import { Ray } from '../components/5-1-2/Ray';
-import { LensConvex } from '../components/5-1-2/LensConvex';
-import { LensConcave } from '../components/5-1-2/LensConcave';
+import { Ray } from '@/components/5-1-2/Ray';
+import { Lens } from '@/components/5-1-2/Lens';
 import * as THREE from 'three';
 import { useMemo } from 'react';
 import { Reflector } from '@react-three/drei';
+import { OpticalMode, LensType, RayStates, OpticalSurface } from '@/types/5-1-2/types';
+import { getRayOrigins } from '@/utils/5-1-2/utils';
 
 interface OpticalLabProps {
-  mode: 'direct' | 'reflection' | 'refraction';
-  lensType?: 'convex' | 'concave';
-  rayStates: [boolean, boolean, boolean];
+  mode: OpticalMode;
+  lensType?: LensType;
+  rayStates: RayStates;
   laserAngle?: number;
-  rayOrigins?: THREE.Vector3[];
 }
 
 export function OpticalLab({
   mode,
   lensType = 'convex',
   rayStates,
-  laserAngle = 45, // 기본값 45도
-  rayOrigins = [], // 동적 Ray 시작점
+  laserAngle = 45
 }: OpticalLabProps) {
-  const mirrorPosition = new THREE.Vector3(0, 0, 0);
+  // Ray 시작점
+  const rayOrigins = useMemo(() => getRayOrigins(mode), [mode]);
 
-  const mirrorNormal = useMemo(() => {
-    const normal = new THREE.Vector3(-1, 0, 0);
-    return normal;
-  }, []);
-
-  // 레이저 각도에 따른 방향 벡터 계산
+  // 반사용 방향 벡터
   const rayDirection = useMemo(() => {
     const angleRad = (laserAngle * Math.PI) / 180;
-    return new THREE.Vector3(
-      Math.cos(angleRad),
-      0,               
-      Math.sin(angleRad)
-    ).normalize();
+    return new THREE.Vector3(Math.cos(angleRad), 0, Math.sin(angleRad)).normalize();
   }, [laserAngle]);
 
-  // 반사 모드의 Ray 시작점 - 레이저 포인터에서 전달받은 위치 사용
-  const reflectionRayOrigins = useMemo(() => {
-    // rayOrigins가 있으면 사용, 없으면 기본값
-    if (rayOrigins.length >= 3) {
-      return rayOrigins;
-    }
-    
-    const laserPointerPos = new THREE.Vector3(-9, 1.2, -4.2);
-    
-    return [
-      new THREE.Vector3(laserPointerPos.x, laserPointerPos.y + 0.6, laserPointerPos.z),   // Ray 1 (위쪽)
-      new THREE.Vector3(laserPointerPos.x, laserPointerPos.y, laserPointerPos.z),          // Ray 2 (중간)
-      new THREE.Vector3(laserPointerPos.x, laserPointerPos.y - 0.6, laserPointerPos.z),  // Ray 3 (아래쪽)
-    ];
-  }, [rayOrigins]);
-
-  // 직진 모드의 Ray 시작점
-  const directRayOrigins = useMemo(() => [
-    new THREE.Vector3(-9, 1.8, -0.6),
-    new THREE.Vector3(-9, 1.2, -0.6),
-    new THREE.Vector3(-9, 0.6, -0.6),
-  ], []);
-
-  // 굴절 모드의 Ray 시작점  
-  const refractionRayOrigins = useMemo(() => [
-    new THREE.Vector3(-9, 5.6, -0.6),
-    new THREE.Vector3(-9, 5.0, -0.6),
-    new THREE.Vector3(-9, 4.4, -0.6),
-  ], []);
-
-  const lensPosition = new THREE.Vector3(-3, 0.6, -0.5);
-
-  const reflectSurfaces = useMemo(() => {
+  // 반사/굴절 표면 정의
+  const reflectSurfaces = useMemo<OpticalSurface[]>(() => {
     if (mode === 'reflection') {
-      return [
-        {
-          position: mirrorPosition,
-          normal: mirrorNormal,
-          type: 'mirror' as const,
-        },
-      ];
-    } else if (mode === 'refraction') {
-      const lensThickness = 0.3
-
-      return [
-        {
-        position: new THREE.Vector3(-3.4, 1, 2),
+      return [{
+        position: new THREE.Vector3(0, 0, 0),
         normal: new THREE.Vector3(-1, 0, 0),
-        type: 'lens' as const,
-        refractiveIndex: 1.5,
-        lensType: lensType,
-        surface: 'entrance' as const
-      },
-      {
-        position: new THREE.Vector3(-3 + lensThickness, 1, 2),
-        normal: new THREE.Vector3(1, 0, 0),
-        type: 'lens' as const,
-        refractiveIndex: 1.0,
-        lensType: lensType,
-        surface: 'exit' as const
-      },
+        type: 'mirror'
+      }];
+    } 
+    
+    if (mode === 'refraction') {
+      return [
+        {
+          position: new THREE.Vector3(-3.4, 1, 2),
+          normal: new THREE.Vector3(-1, 0, 0),
+          type: 'lens',
+          refractiveIndex: 1.5,
+          lensType,
+          surface: 'entrance'
+        },
+        {
+          position: new THREE.Vector3(-3 + 0.3, 1, 2),
+          normal: new THREE.Vector3(1, 0, 0),
+          type: 'lens',
+          refractiveIndex: 1.0,
+          lensType,
+          surface: 'exit'
+        }
       ];
     }
+    
     return [];
-  }, [mode, mirrorPosition, mirrorNormal, lensPosition, lensType]);
+  }, [mode, lensType]);
+
+  const renderRays = () => {
+    const direction = mode === 'reflection' ? rayDirection : new THREE.Vector3(1, 0, 0);
+    
+    return rayOrigins.map((origin, index) => 
+      rayStates[index] && (
+        <Ray
+          key={`${mode}-${index}`}
+          origin={origin}
+          direction={direction}
+          reflectSurfaces={reflectSurfaces}
+          color="red"
+        />
+      )
+    );
+  };
 
   return (
     <>
-      {mode === 'direct' && (
-        <>
-          {directRayOrigins.map((origin, index) => 
-            rayStates[index] && (
-              <Ray
-                key={`direct-${index}`}
-                origin={origin}
-                direction={new THREE.Vector3(1, 0, 0)}
-                reflectSurfaces={reflectSurfaces}
-                color="red"
-                length={35}
-              />
-            )
-          )}
-        </>
-      )}
-
-      {/* 반사 모드 - 이제 동적 Ray 위치 사용 */}
+      {renderRays()}
+      
+      {/* 반사 모드: 거울 */}
       {mode === 'reflection' && (
         <>
-          {reflectionRayOrigins.map((origin, index) => 
-            rayStates[index] && (
-              <Ray
-                key={`reflection-${index}`}
-                origin={origin}
-                direction={rayDirection}
-                reflectSurfaces={reflectSurfaces}
-                color="red"
-                length={35}
-              />
-            )
-          )}
-          
-          {/* 거울 */}
           <Reflector
             resolution={2048}
             args={[10, 30]}
             mirror={0.9}
             mixStrength={0.5}
-            mixBlur={0}
-            blur={[0, 0]}
             rotation={[Math.PI / 2, 3*Math.PI / 2, 0]} 
             position={[0, 5, 2]}
           >
@@ -167,26 +110,12 @@ export function OpticalLab({
         </>
       )}
 
-      {/* 굴절 모드 */}
+      {/* 굴절 모드: 렌즈 */}
       {mode === 'refraction' && (
-        <>
-          {refractionRayOrigins.map((origin, index) => 
-            rayStates[index] && (
-              <Ray
-                key={`refraction-${index}`}
-                origin={origin}
-                direction={new THREE.Vector3(1, 0, 0)}
-                reflectSurfaces={reflectSurfaces}
-                color="red"
-                length={35}
-              />
-            )
-          )}
-
-          {/* 렌즈 */}
-          {lensType === 'convex' && <LensConvex position={lensPosition} />}
-          {lensType === 'concave' && <LensConcave position={lensPosition} />}
-        </>
+        <Lens 
+          position={new THREE.Vector3(-3, 0.6, -0.5)} 
+          type={lensType}
+        />
       )}
     </>
   );

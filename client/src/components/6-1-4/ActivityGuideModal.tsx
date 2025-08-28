@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import AudioManager from '../5-1-1/AudioManager'
-import { CrayonTextButton } from '../CrayonUIButton'
-import { CrayonTextBox } from '../CrayonTextBox'
+import { CrayonTextButton } from '../common/CrayonUIButton'
+import { CrayonTextBox } from '../common/CrayonTextBox'
 
 interface ActivityGuideSlide {
   id: string

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { SplashType } from '../../types/6-1-1'
+import { SplashType } from '../../types/6-1-1/types'
 
 type WipeAudios = Record<SplashType, HTMLAudioElement>
 

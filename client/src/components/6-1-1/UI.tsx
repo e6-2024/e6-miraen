@@ -1,7 +1,7 @@
-import { CleaningToolType, SplashType, GamePhase, missions, solutions } from '../../types/6-1-1'
+import { CleaningToolType, SplashType, GamePhase, missions, solutions } from '../../types/6-1-1/types'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CrayonTextBox } from '../CrayonTextBox'
-import { CrayonTextButton } from '../CrayonUIButton'
+import { CrayonTextBox } from '../common/CrayonTextBox'
+import { CrayonTextButton } from '../common/CrayonUIButton'
 
 interface BackButtonProps {
   isZoomed: boolean

@@ -6,7 +6,7 @@ import Scene from '@/components/canvas/Scene'
 import Intro from '@/components/intro/Intro'
 import { useState, useRef, useEffect } from 'react'
 import * as THREE from 'three'
-import IntroMouseCameraController from '@/components/IntroMouseCameraController'
+import IntroMouseCameraController from '@/components/intro/IntroMouseCameraController'
 import { ContactShadows, AccumulativeShadows, RandomizedLight } from '@react-three/drei'
 
 const VEHICLE_SPEEDS = {

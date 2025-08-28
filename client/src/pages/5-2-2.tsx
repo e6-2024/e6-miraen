@@ -14,7 +14,7 @@ import { BG } from '@/components/5-2-2/models/BG'
 import {Dish} from '@/components/5-2-2/models/Dish'
 import CameraLogger from '@/hook/CameraLogger'
 import StoveController from '@/components/5-2-2/models/StoveController'
-import IntroMouseCameraController from '@/components/IntroMouseCameraController'
+import IntroMouseCameraController from '@/components/intro/IntroMouseCameraController'
 
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
   const { progress, active } = useProgress()

@@ -3,7 +3,7 @@ import { useGLTF, useAnimations, Billboard, Html } from '@react-three/drei'
 import { Group, Object3D, Vector3, Mesh, Material, MeshStandardMaterial, LineSegments, Box3 } from 'three'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
-import { CrayonTextBox } from '@/components/CrayonTextBox'
+import { CrayonTextBox } from '@/components/common/CrayonTextBox'
 
 type Props = {
   url: string
