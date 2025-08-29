@@ -102,7 +102,7 @@ export function LaserPointer({
     <group
       ref={pivotGroupRef}
       position={position}
-      scale={0.1}
+      scale={1}
       castShadow
       receiveShadow
     >

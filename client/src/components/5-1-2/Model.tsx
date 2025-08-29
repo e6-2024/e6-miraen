@@ -21,23 +21,22 @@ export default function Model({
   ...props
 }: ModelProps) {
   const { scene } = useGLTF('models/5-1-2/Other_equipment.glb');
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [initialAngle, setInitialAngle] = useState(45);
 
-  // 모드별 오브젝트 표시/숨김 처리
   useEffect(() => {
-    const table = scene.getObjectByName('Table');
+    const table = scene.getObjectByName('table')
+    const pSphere1= scene.getObjectByName('pSphere1');
     const paper = scene.getObjectByName('Plane');
     const frame = scene.getObjectByName('Object_10');
 
-    // 반사 모드에서만 거울 프레임 표시
+    if(pSphere1){
+      scene.remove(pSphere1)
+    }
+
     if (frame) {
       frame.visible = mode === 'reflection';
       frame.position.set(-1.0, -0.0, 0);
     }
 
-    // 테이블과 종이 위치 설정
     if (table) {
       table.position.set(-1.0, -0.3, 0);
     }
@@ -53,8 +52,6 @@ export default function Model({
       if (child instanceof THREE.Mesh) {
         child.castShadow = true;
         child.receiveShadow = true;
-        
-        // 재질 설정 개선
         const materials = Array.isArray(child.material) ? child.material : [child.material];
         materials.forEach(material => {
           if (material instanceof THREE.MeshStandardMaterial || 
@@ -67,15 +64,6 @@ export default function Model({
     });
   }, [scene]);
 
-  // 반사 모드에서 레이저 각도 드래그 이벤트 (필요시 사용)
-  const handleLaserPointerDown = (e: ThreeEvent<PointerEvent>) => {
-    if (mode !== 'reflection') return;
-
-    e.stopPropagation();
-    setIsDragging(true);
-    setDragStart({ x: e.clientX, y: e.clientY });
-    setInitialAngle(laserAngle);
-  };
 
   return (
     <primitive 

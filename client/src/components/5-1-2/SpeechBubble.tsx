@@ -50,12 +50,13 @@ export const SpeechBubble = ({
                   border: `2px solid ${pointColor}`,
                   boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                   maxWidth: '300px',
-                  fontSize: '14px',
+                  fontSize: '16px',
                   cursor: onBubbleClick ? 'pointer' : 'default',
                   position: 'relative',
                   transition: 'transform 0.2s ease',
                   color: '#374151',
-                  fontWeight: '500'
+                  fontWeight: '500',
+                  textAlign:'center'
                 }}
                 dangerouslySetInnerHTML={{ __html: html }}
               />

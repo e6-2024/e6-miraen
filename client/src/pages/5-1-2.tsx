@@ -1,5 +1,5 @@
 import { Canvas, useThree } from '@react-three/fiber'
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Environment, useProgress, OrbitControls } from '@react-three/drei'
 import dynamic from 'next/dynamic'
@@ -11,12 +11,14 @@ import { SpeechBubble } from '@/components/5-1-2/SpeechBubble'
 import Scene from '../components/canvas/Scene'
 import Model from '../components/5-1-2/Model'
 import Intro from '../components/intro/Intro'
+import Stand from '../components/5-1-2/Stand'
+import Background from '@/components/5-1-2/Background'
 
 import { CrayonTextBox } from '@/components/common/CrayonTextBox'
 import { CrayonTextButton } from '@/components/common/CrayonUIButton'
 import { OpticalMode, LensType, RayStates } from '@/types/5-1-2/types'
 import { useAudio } from '@/hook/5-1-2/useAudio'
-import { CAMERA_CONFIGS, getLaserPointerPosition, getNarrationText } from '@/utils/5-1-2/utils'
+import { CAMERA_CONFIGS, getLaserPointerPosition, getNarrationText, getStandPosition } from '@/utils/5-1-2/utils'
 
 const PostEffects = dynamic(() => import('../components/5-1-2/PostEffects'), { ssr: false })
 
@@ -67,10 +69,10 @@ function ModeBasedControls({ mode }: { mode: OpticalMode }) {
     <OrbitControls
       target={currentConfig.target}
       enableZoom={true}
-      enablePan={false}
+      enablePan={true}
       enableRotate={true}
       minDistance={5}
-      maxDistance={25}
+      // maxDistance={25}
       maxPolarAngle={currentConfig.maxPolarAngle}
       minAzimuthAngle={currentConfig.minAzimuthAngle}
       maxAzimuthAngle={currentConfig.maxAzimuthAngle}
@@ -108,7 +110,6 @@ function NarrationPopup({
   )
 }
 
-// 모드 컨트롤 UI
 function ModeControls({
   activeMode,
   lensType,
@@ -136,9 +137,11 @@ function ModeControls({
   ]
 
   return (
-    <div className='absolute top-5 left-5 flex flex-col gap-4 bg-black bg-opacity-80 p-5 rounded-lg text-white'>
-      {/* 모드 선택 */}
-      <div className='flex gap-2'>
+    <div className='absolute bottom-5 left-5 flex flex-col gap-4 p-0 rounded-lg text-white'>
+      <CrayonTextBox color='#F3921C' bg='#FFF' animated={true}
+      >
+        {/* 모드 선택 */}
+        {/* <div className='flex gap-2'>
         {modes.map(({ key, label }) => (
           <button
             key={key}
@@ -149,43 +152,44 @@ function ModeControls({
             {label}
           </button>
         ))}
-      </div>
+      </div> */}
 
-      {/* 굴절 모드일 때 렌즈 타입 선택 */}
-      {activeMode === 'refraction' && (
-        <>
-          <h4 className='text-base font-medium'>볼록렌즈와 오목렌즈가 있어요.</h4>
-          <div className='flex gap-2'>
-            {lensTypes.map(({ key, label }) => (
-              <button
-                key={key}
-                onClick={() => onLensTypeChange(key)}
-                className={`px-3 py-1.5 rounded text-xs transition-colors ${
-                  lensType === key ? 'bg-blue-500 text-white' : 'bg-gray-700 text-white hover:bg-gray-600'
-                }`}>
-                {label}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
+        {/* 굴절 모드일 때 렌즈 타입 선택 */}
+        {activeMode === 'refraction' && (
+          <>
+            <h4 className='text-base font-medium'>볼록렌즈와 오목렌즈가 있어요.</h4>
+            <div className='flex gap-2'>
+              {lensTypes.map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => onLensTypeChange(key)}
+                  className={`px-3 py-1.5 rounded text-xs transition-colors ${
+                    lensType === key ? 'bg-blue-500 text-white' : 'bg-gray-700 text-white hover:bg-gray-600'
+                  }`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
 
-      {/* 반사 모드일 때 각도 조절 */}
-      {activeMode === 'reflection' && (
-        <>
-          <h4 className='text-base font-medium'>레이저 빛의 각도를 조절해보세요.</h4>
-          <div className='flex items-center gap-2'>
-            <input
-              type='range'
-              min='3'
-              max='65'
-              value={laserAngle}
-              onChange={(e) => onAngleChange(Number(e.target.value))}
-              className='w-48 accent-green-500'
-            />
-          </div>
-        </>
-      )}
+        {/* 반사 모드일 때 각도 조절 */}
+        {activeMode === 'reflection' && (
+          <>
+            <h4 className='text-base font-medium'>레이저 빛의 각도를 조절해보세요.</h4>
+            <div className='flex items-center gap-2'>
+              <input
+                type='range'
+                min='3'
+                max='65'
+                value={laserAngle}
+                onChange={(e) => onAngleChange(Number(e.target.value))}
+                className='w-48 accent-green-500'
+              />
+            </div>
+          </>
+        )}
+      </CrayonTextBox>
     </div>
   )
 }
@@ -215,6 +219,23 @@ function ExplanationToggleButton({
   )
 }
 
+function SubtitleBox({ mode, lensType }: { mode: OpticalMode; lensType: LensType }) {
+  const descriptions = {
+    direct: '빛은 곧게 나아갑니다.',
+    reflection: '빛은 곧게 나아가다가 거울에 부딪치면 방향이 바뀌어 나아갑니다.',
+    convex: '빛은 볼록 렌즈를 통과할 때 렌즈의 가운데 쪽으로 굴절하여 나아갑니다.',
+    concave: '빛은 오목 렌즈를 통과할 때 렌즈의 바깥쪽으로 굴절하여 나아갑니다.',
+  }
+
+  return (
+    <div className='absolute flex w-full justify-center left-1/2 -translate-x-1/2 items-center top-16'>
+      <CrayonTextBox color='#F3921C' bg='#FFF'>
+        {mode === 'direct' ? descriptions[mode] : mode === 'reflection' ? descriptions[mode] : descriptions[lensType]}
+      </CrayonTextBox>
+    </div>
+  )
+}
+
 function ExplanationBox({ isVisible, mode, lensType }: { isVisible: boolean; mode: OpticalMode; lensType: LensType }) {
   if (!isVisible) return null
 
@@ -233,6 +254,8 @@ function ExplanationBox({ isVisible, mode, lensType }: { isVisible: boolean; mod
 }
 
 export default function OpticalExperiment() {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
   const [activeMode, setActiveMode] = useState<OpticalMode | null>('direct')
   const [lensType, setLensType] = useState<LensType>('convex')
   const [laserAngle, setLaserAngle] = useState(45)
@@ -255,18 +278,58 @@ export default function OpticalExperiment() {
     [],
   )
 
-  // 모드 선택 핸들러 (새로 추가)
+  // === BGM ===
+  const bgmRef = useRef<HTMLAudioElement | null>(null)
+  const [bgmEnabled, setBgmEnabled] = useState<boolean>(true)
+  const [bgmReady, setBgmReady] = useState(false)
+
+  useEffect(() => {
+    if (!mounted) return
+    try {
+      const saved = localStorage.getItem('bgmEnabled')
+      if (saved !== null) setBgmEnabled(JSON.parse(saved))
+    } catch {}
+  }, [mounted])
+
+  useEffect(() => {
+    if (!mounted) return
+    const el = new Audio('/sounds/5-1-2/5-1-2-BGM.mp3')
+    el.loop = true
+    el.volume = 0.2
+    bgmRef.current = el
+    return () => {
+      el.pause()
+      bgmRef.current = null
+    }
+  }, [mounted])
+
+  // 상태 반영 (재생/일시정지 + 저장)
+  useEffect(() => {
+    if (!mounted || !bgmRef.current) return
+    try {
+      localStorage.setItem('bgmEnabled', JSON.stringify(bgmEnabled))
+    } catch {}
+    if (bgmEnabled && bgmReady) {
+      bgmRef.current.play().catch(() => {})
+    } else {
+      bgmRef.current.pause()
+    }
+  }, [bgmEnabled, bgmReady, mounted])
+
+  const toggleBgm = () => setBgmEnabled((v) => !v)
+
   const handleModeSelect = useCallback(
     (selectedMode: OpticalMode) => {
       setActiveMode(selectedMode)
       setShowIntro(false)
+      setBgmReady(true)
+
       playSound('/sounds/Enter_Cute.mp3')
       setTimeout(playBackgroundMusic, 1000)
     },
     [playSound, playBackgroundMusic],
   )
 
-  // 첫 화면으로 돌아가기 핸들러 (새로 추가)
   const handleBackToModeSelection = useCallback(() => {
     playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3')
     stopNarration()
@@ -279,7 +342,6 @@ export default function OpticalExperiment() {
     setShowExplanation(false)
   }, [playSound, stopNarration])
 
-  // 기존 모드 변경 시 상태 초기화 로직은 activeMode가 변경될 때만 실행
   useEffect(() => {
     if (activeMode) {
       setRayStates([false, false, false])
@@ -298,6 +360,12 @@ export default function OpticalExperiment() {
     },
     [playSound],
   )
+
+  const handleBackToIntro = useCallback(() => {
+    setShowIntro(true)
+    setIsBackFromMode(false)
+    setActiveMode('direct')
+  }, [])
 
   const handleRayToggle = useCallback(
     (buttonIndex: number) => {
@@ -321,8 +389,41 @@ export default function OpticalExperiment() {
 
       <NarrationPopup isVisible={showNarration} text={narrationText} onHide={() => setShowNarration(false)} />
 
+      <CrayonTextButton
+        ariaLabel={'첫 화면으로'}
+        icon={'home'}
+        position='absolute'
+        iconPosition='left'
+        onClick={handleBackToIntro}
+        width={108}
+        height={108}
+        color='#ffffff'
+        textcolor='#ffffff'
+        bg='rgba(255,255,255,0.10)'
+        className='background-blur z-[200] right-[108px] mix-blend-difference'
+        right={16}
+        top={16}
+        iconSize={40}
+      />
+      <CrayonTextButton
+        icon={bgmEnabled ? 'volume2' : 'volumeX'}
+        position='absolute'
+        iconPosition='left'
+        onClick={toggleBgm}
+        width={108}
+        height={108}
+        color='#fff'
+        textcolor='#fff'
+        bg='rgba(255,255,255,0.10)'
+        className='backdrop-blur z-[1000] mix-blend-difference'
+        right={16}
+        top={16}
+        iconSize={40}
+        innerCircleVisible={true}
+      />
+
       {/* 첫 화면으로 돌아가기 버튼 - 모드가 선택된 상태에서만 표시 */}
-      {hasContent && (
+      {!showIntro && hasContent && (
         <AnimatePresence>
           <motion.div
             initial={{ opacity: 0 }}
@@ -367,68 +468,81 @@ export default function OpticalExperiment() {
             shadow-camera-bottom={-50}
             shadow-camera-near={0.1}
             shadow-camera-far={200}
+            shadow-normalBias = {0.2}
             shadow-bias={-0.0001}
           />
           <ambientLight color='white' intensity={1} />
 
-          {/* 모드가 선택된 경우에만 실험 컨텐츠 렌더링 */}
           {hasContent && (
             <>
-              {/* 광학 실험실 */}
-              <OpticalLab mode={activeMode} lensType={lensType} rayStates={rayStates} laserAngle={laserAngle} />
+              {/* 전체 postion 조정 */}
+              <group position={[0, -4, 0]}>
+                {/* 광학 실험실 */}
+                <OpticalLab mode={activeMode} lensType={lensType} rayStates={rayStates} laserAngle={laserAngle} />
 
-              {/* 3D 모델 */}
-              <Model
-                mode={activeMode}
-                onToggle={handleRayToggle}
-                rayStates={rayStates}
-                laserAngle={laserAngle}
-                onAngleChange={setLaserAngle}
-              />
+                {/* 3D 모델 */}
+                <Model
+                  mode={activeMode}
+                  onToggle={handleRayToggle}
+                  rayStates={rayStates}
+                  laserAngle={laserAngle}
+                  onAngleChange={setLaserAngle}
+                />
 
-              {/* 레이저 포인터 */}
-              <LaserPointer
-                position={getLaserPointerPosition(activeMode)}
-                angle={laserAngle}
-                visible={true}
-                onToggle={handleRayToggle}
-                rayStates={rayStates}
-                pivotOffset={[0, 0, activeMode === 'reflection' ? -20.0 : 3]}
-                mode={activeMode}
-              />
+                <Stand
+                  position={getStandPosition(activeMode)}
+                  rotation={
+                    activeMode === 'direct'
+                      ? [0, (3 * Math.PI) / 2, 0]
+                      : activeMode === 'reflection'
+                      ? [laserAngle[0], laserAngle[1], laserAngle[2]]
+                      : [0, 0, 0]
+                  }
+                />
 
-              {/* 말풍선 */}
-              <SpeechBubble
-                position={
-                  activeMode === 'direct' ? [-10, 3, 0] : activeMode === 'reflection' ? [-10, 3, -6] : [-10, 6.5, 0]
-                }
-                pointColor={activeMode === 'direct' ? '#4fc3f7' : activeMode === 'reflection' ? '#ff6b6b' : '#25e5c2'}
-                html='버튼을 눌러 3구 레이저를 켜고, 빛이 나아가는 모습을 관찰해 보세요.'
-                visible={!showIntro}
-              />
+                <LaserPointer
+                  position={getLaserPointerPosition(activeMode)}
+                  angle={laserAngle}
+                  visible={true}
+                  onToggle={handleRayToggle}
+                  rayStates={rayStates}
+                  pivotOffset={[0, 0, activeMode === 'reflection' ? -20.0 : 3]}
+                  mode={activeMode}
+                />
+
+                <Background/>
+
+                {/* <SpeechBubble
+                  position={
+                    activeMode === 'direct' ? [0, 0, 0] : activeMode === 'reflection' ? [-10, 3, -6] : [-10, 6.5, 0]
+                  }
+                  pointColor={activeMode === 'direct' ? '#4fc3f7' : activeMode === 'reflection' ? '#ff6b6b' : '#25e5c2'}
+                  html={'버튼을 눌러 3구 레이저를 켜고, 빛이 나아가는 모습을 관찰해 보세요.'}
+                  visible={!showIntro}
+                /> */}
+              </group>
             </>
           )}
 
-          {/* 카메라 컨트롤 - 모드가 선택된 경우에만 */}
           {hasContent && <ModeBasedControls mode={activeMode} />}
 
           <SafePostEffects />
         </Scene>
       </div>
 
-      {/* UI 컨트롤들 - 모드가 선택되고 인트로가 끝난 후에만 표시 */}
       {hasContent && !showIntro && isLoaded && (
         <>
-          {/* <ModeControls
+          <ModeControls
             activeMode={activeMode}
             lensType={lensType}
             laserAngle={laserAngle}
             onModeChange={handleModeChange}
             onLensTypeChange={setLensType}
             onAngleChange={setLaserAngle}
-          /> */}
+          />
 
           <ExplanationBox isVisible={showExplanation} mode={activeMode} lensType={lensType} />
+          <SubtitleBox mode={activeMode} lensType={lensType} />
 
           <ExplanationToggleButton
             mode={activeMode}
@@ -441,10 +555,9 @@ export default function OpticalExperiment() {
         </>
       )}
 
-      {/* 인트로 화면 - 모드 선택 기능 추가 */}
       {isLoaded && showIntro && (
         <Intro
-          onEnter={() => {}} // 더 이상 사용하지 않음
+          onEnter={() => {}}
           title='빛의 직진, 반사, 굴절 관찰하기'
           description={[
             '빛이 공기 중에서 나아갈 때, 거울과 같은 물체에 부딪쳤을 때, 렌즈를 통과할 때 어떻게 나아가는지 알아봅시다.',
