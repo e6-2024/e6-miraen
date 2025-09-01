@@ -34,11 +34,11 @@ export default function Model({
 
     if (frame) {
       frame.visible = mode === 'reflection';
-      frame.position.set(-1.0, -0.0, 0);
+      frame.position.set(0.0, -0.0, 0);
     }
 
     if (table) {
-      table.position.set(-1.0, -0.3, 0);
+      table.position.set(-1.0, -0.5, 0);
     }
 
     if (paper) {

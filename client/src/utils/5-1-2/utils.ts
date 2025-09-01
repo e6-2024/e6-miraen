@@ -3,7 +3,7 @@ import { OpticalMode, LensType } from '@/types/5-1-2/types';
 
 export const CAMERA_CONFIGS = {
   direct: {
-    position: [0, 0, 20] as [number, number, number],
+    position: [0, 0, 30] as [number, number, number],
     target: [0, 0, 0] as [number, number, number],
     maxPolarAngle: Math.PI,
     minAzimuthAngle: -Infinity,
@@ -17,11 +17,11 @@ export const CAMERA_CONFIGS = {
     maxAzimuthAngle: Infinity
   },
   refraction: {
-    position: [0, 0, 20] as [number, number, number],
+    position: [0, 0, 30] as [number, number, number],
     target: [0, 0, 0] as [number, number, number],
     maxPolarAngle: Math.PI / 2,
-    minAzimuthAngle: 0,
-    maxAzimuthAngle: Math.PI / 4
+    minAzimuthAngle: -Infinity,
+    maxAzimuthAngle: Infinity
   }
 } as const;
 
@@ -35,7 +35,7 @@ export const calculateLensRefraction = (
   lensType: LensType, 
   surface: 'entrance' | 'exit'
 ): THREE.Vector3 => {
-  const offsetY = point.y - 5.0;
+  const offsetY = point.y - 5.6;
   const offsetZ = point.z + (surface === 'exit' ? 0.6 : 0);
   const focalLength = surface === 'entrance' ? 12 : 6;
   const sign = lensType === 'convex' ? -1 : 1;
@@ -49,18 +49,18 @@ export const calculateLensRefraction = (
 
 export const getLaserPointerPosition = (mode: OpticalMode): [number, number, number] => {
   const positions = {
-    direct: [0,5.7, -1],
+    direct: [-11.5,5.7, -1],
     reflection: [-9, 1.2, -4.2],
-    refraction: [-9, 5.0, -0.6]
+    refraction: [-11.5,5.7, -1]
   };
   return positions[mode] as [number, number, number];
 };
 
 export const getStandPosition = (mode: OpticalMode): [number, number, number] => {
   const positions = {
-    direct: [1.5,0, -0.5],
+    direct: [-10,0, -0.5],
     reflection: [-9, 0, -4.2],
-    refraction: [-9, 0, -0.6]
+    refraction: [-10,0, -0.5]
   };
   return positions[mode] as [number, number, number];
 };
@@ -82,9 +82,9 @@ export const getLaserPointerRotation = (mode: OpticalMode, angle: number): [numb
 
 export const getRayOrigins = (mode: OpticalMode): THREE.Vector3[] => {
   const configs = {
-    direct: { base: [2.5, 5.68, -0.65], offsets: [0.75, 0, -0.75] },
+    direct: { base: [-8, 5.68, -0.65], offsets: [0.75, 0, -0.75] },
     reflection: { base: [-9, 1.2, -4.2], offsets: [0.6, 0, -0.6] },
-    refraction: { base: [-9, 5.0, -0.6], offsets: [0.6, 0, -0.6] }
+    refraction: { base: [-8, 5.68, -0.6], offsets: [0.75, 0, -0.75] }
   };
   
   const config = configs[mode];

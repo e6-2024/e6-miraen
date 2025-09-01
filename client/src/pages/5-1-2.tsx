@@ -384,7 +384,7 @@ export default function OpticalExperiment() {
   const handleLoadingComplete = useCallback(() => setIsLoaded(true), [])
 
   return (
-    <div className='w-screen h-screen font-light flex flex-col overflow-hidden relative'>
+    <div className='w-screen h-screen bg-[#E8E8E8] font-light flex flex-col overflow-hidden relative'>
       <LoadingTracker onLoadingComplete={handleLoadingComplete} />
 
       <NarrationPopup isVisible={showNarration} text={narrationText} onHide={() => setShowNarration(false)} />
@@ -422,7 +422,6 @@ export default function OpticalExperiment() {
         innerCircleVisible={true}
       />
 
-      {/* 첫 화면으로 돌아가기 버튼 - 모드가 선택된 상태에서만 표시 */}
       {!showIntro && hasContent && (
         <AnimatePresence>
           <motion.div
@@ -496,7 +495,7 @@ export default function OpticalExperiment() {
                       ? [0, (3 * Math.PI) / 2, 0]
                       : activeMode === 'reflection'
                       ? [laserAngle[0], laserAngle[1], laserAngle[2]]
-                      : [0, 0, 0]
+                      : [0, (3 * Math.PI) / 2, 0]
                   }
                 />
 
@@ -510,7 +509,7 @@ export default function OpticalExperiment() {
                   mode={activeMode}
                 />
 
-                <Background/>
+                {/* <Background/> */}
 
                 {/* <SpeechBubble
                   position={

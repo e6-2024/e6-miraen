@@ -87,11 +87,11 @@ export function OpticalLab({
         <>
           <Reflector
             resolution={2048}
-            args={[10, 30]}
+            args={[10, 10]}
             mirror={0.9}
             mixStrength={0.5}
             rotation={[Math.PI / 2, 3*Math.PI / 2, 0]} 
-            position={[0, 5, 2]}
+            position={[0, 5, 0]}
           >
             {(Material: React.ElementType, props) => (
               <Material
@@ -103,8 +103,8 @@ export function OpticalLab({
               />
             )}
           </Reflector>
-          <mesh position={[0.13, 5, 2.0]}>
-            <boxGeometry args={[0.2, 10, 30]} />
+          <mesh position={[0.13, 5, 0]}>
+            <boxGeometry args={[0.2, 10, 10]} />
             <meshStandardMaterial color="gray" />
           </mesh>
         </>
@@ -113,8 +113,9 @@ export function OpticalLab({
       {/* 굴절 모드: 렌즈 */}
       {mode === 'refraction' && (
         <Lens 
-          position={new THREE.Vector3(-3, 0.6, -0.5)} 
+          position={new THREE.Vector3(-3.2, 1.1, -0.5)} 
           type={lensType}
+          scale={1.045}
         />
       )}
     </>

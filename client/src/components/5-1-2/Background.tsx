@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { OpticalMode, RayStates } from '@/types/5-1-2/types';
 
 export default function Background() {
-  const { scene } = useGLTF('models/Anatomy/Plane.glb');
+  const { scene } = useGLTF('models/5-1-2/Plane.glb');
   useEffect(() => {
     scene.traverse((child) => {
       if (child instanceof THREE.Mesh) {
@@ -29,7 +29,7 @@ export default function Background() {
       object={scene} 
       position={[0, -13.5, 0]} 
       rotation={[0, 0, 0]} 
-      scale={[20, 20, 20]} 
+      scale={[50, 50, 50]} 
     />
   );
 }
