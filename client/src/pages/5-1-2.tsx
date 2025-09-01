@@ -138,8 +138,7 @@ function ModeControls({
 
   return (
     <div className='absolute bottom-5 left-5 flex flex-col gap-4 p-0 rounded-lg text-white'>
-      <CrayonTextBox color='#F3921C' bg='#FFF' animated={true}
-      >
+      <CrayonTextBox color='#F3921C' bg='#FFF' animated={true}>
         {/* 모드 선택 */}
         {/* <div className='flex gap-2'>
         {modes.map(({ key, label }) => (
@@ -211,11 +210,16 @@ function ExplanationToggleButton({
   }
 
   return (
-    <button
-      onClick={onClick}
-      className='fixed bottom-5 right-5 px-5 py-3 bg-white text-black rounded-lg cursor-pointer text-sm font-bold shadow-lg hover:shadow-xl transition-shadow z-50'>
-      {titles[mode]}
-    </button>
+    <>
+      <div className='absolute bottom-0 right-4' onClick={onClick}>
+        <CrayonTextButton
+          text={titles[mode]}
+          width={140}
+          bg='#F3921C'
+          color='#FFDBB0'
+          textcolor='#FFFFFF'></CrayonTextButton>
+      </div>
+    </>
   )
 }
 
@@ -247,8 +251,10 @@ function ExplanationBox({ isVisible, mode, lensType }: { isVisible: boolean; mod
   }
 
   return (
-    <div className='fixed bottom-5 left-5 right-44 bg-white text-black px-5 py-3 rounded-lg shadow-lg z-50 text-sm'>
-      {descriptions[mode]}
+    <div className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'>
+      <CrayonTextBox color='#FFF' bg='#F3921C' fontSize='16px'  width='300px' animated={true}>
+        {descriptions[mode]}
+      </CrayonTextBox>
     </div>
   )
 }
@@ -404,6 +410,7 @@ export default function OpticalExperiment() {
         right={16}
         top={16}
         iconSize={40}
+        innerCircleVisible={true}
       />
       <CrayonTextButton
         icon={bgmEnabled ? 'volume2' : 'volumeX'}
@@ -467,7 +474,7 @@ export default function OpticalExperiment() {
             shadow-camera-bottom={-50}
             shadow-camera-near={0.1}
             shadow-camera-far={200}
-            shadow-normalBias = {0.2}
+            shadow-normalBias={0.2}
             shadow-bias={-0.0001}
           />
           <ambientLight color='white' intensity={1} />

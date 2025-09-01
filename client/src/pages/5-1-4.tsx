@@ -417,7 +417,7 @@ export default function Page() {
     Boy_Pose: 0,
     Muscle_Walking: 1,
     Muscle_Pose: 0,
-    Bone_Walking: 1,
+    Bone_Walking: 0,
     Bone_Pose: 0,
   }
   const animIndex = animIndexMap[modelKey] ?? 0
