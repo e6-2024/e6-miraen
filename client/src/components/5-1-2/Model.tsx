@@ -23,7 +23,7 @@ export default function Model({
   const { scene } = useGLTF('models/5-1-2/Other_equipment.glb');
 
   useEffect(() => {
-    const table = scene.getObjectByName('table')
+    const table = scene.getObjectByName('Sketchfab_model')
     const pSphere1= scene.getObjectByName('pSphere1');
     const paper = scene.getObjectByName('Plane');
     const frame = scene.getObjectByName('Object_10');
@@ -34,11 +34,12 @@ export default function Model({
 
     if (frame) {
       frame.visible = mode === 'reflection';
-      frame.position.set(0.0, -0.0, 0);
+      frame.position.set(-0.0, -0.0, 0);
     }
 
     if (table) {
-      table.position.set(-1.0, -0.5, 0);
+      table.scale.set(1.1,1.1,1.1);
+      table.position.set(-12, -35.3, 0);
     }
 
     if (paper) {

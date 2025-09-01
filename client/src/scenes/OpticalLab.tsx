@@ -20,7 +20,7 @@ export function OpticalLab({
   laserAngle = 45
 }: OpticalLabProps) {
   // Ray 시작점
-  const rayOrigins = useMemo(() => getRayOrigins(mode), [mode]);
+  const rayOrigins = useMemo(() => getRayOrigins(mode,laserAngle), [mode,laserAngle]);
 
   // 반사용 방향 벡터
   const rayDirection = useMemo(() => {

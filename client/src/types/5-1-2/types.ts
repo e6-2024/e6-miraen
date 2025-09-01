@@ -15,7 +15,7 @@ export interface OpticalSurface {
 
 export interface LaserPointerProps {
   position: [number, number, number];
-  angle: number;
+  rotation: [number, number, number];
   visible: boolean;
   onPointerDown?: (e: any) => void;
   onPointerMove?: (e: any) => void;

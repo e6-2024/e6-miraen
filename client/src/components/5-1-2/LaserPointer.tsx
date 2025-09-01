@@ -7,7 +7,7 @@ import { getLaserPointerRotation } from '@/utils/5-1-2/utils';
 
 export function LaserPointer({ 
   position, 
-  angle, 
+  rotation, 
   visible, 
   onPointerDown,
   onPointerMove,
@@ -45,11 +45,6 @@ export function LaserPointer({
   };
 
   useEffect(() => {
-    if (pivotGroupRef.current && mode) {
-      const rotation = getLaserPointerRotation(mode, angle);
-      pivotGroupRef.current.rotation.set(...rotation);
-    }
-
     // 그림자 및 재질 설정
     scene.traverse((child) => {
       if (child instanceof THREE.Mesh) {
@@ -66,7 +61,7 @@ export function LaserPointer({
         });
       }
     });
-  }, [angle, scene, mode]);
+  }, [scene, mode]);
 
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     const buttonIndex = getButtonIndex(e.object.name);
@@ -102,6 +97,7 @@ export function LaserPointer({
     <group
       ref={pivotGroupRef}
       position={position}
+      rotation={rotation}
       scale={1}
       castShadow
       receiveShadow

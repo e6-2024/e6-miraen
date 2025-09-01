@@ -18,7 +18,14 @@ import { CrayonTextBox } from '@/components/common/CrayonTextBox'
 import { CrayonTextButton } from '@/components/common/CrayonUIButton'
 import { OpticalMode, LensType, RayStates } from '@/types/5-1-2/types'
 import { useAudio } from '@/hook/5-1-2/useAudio'
-import { CAMERA_CONFIGS, getLaserPointerPosition, getNarrationText, getStandPosition } from '@/utils/5-1-2/utils'
+import {
+  CAMERA_CONFIGS,
+  getLaserPointerPosition,
+  getLaserPointerRotation,
+  getNarrationText,
+  getStandPosition,
+  getStandRotation,
+} from '@/utils/5-1-2/utils'
 
 const PostEffects = dynamic(() => import('../components/5-1-2/PostEffects'), { ssr: false })
 
@@ -179,8 +186,8 @@ function ModeControls({
             <div className='flex items-center gap-2'>
               <input
                 type='range'
-                min='3'
-                max='65'
+                min='30'
+                max='90'
                 value={laserAngle}
                 onChange={(e) => onAngleChange(Number(e.target.value))}
                 className='w-48 accent-green-500'
@@ -252,7 +259,7 @@ function ExplanationBox({ isVisible, mode, lensType }: { isVisible: boolean; mod
 
   return (
     <div className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'>
-      <CrayonTextBox color='#FFF' bg='#F3921C' fontSize='16px'  width='300px' animated={true}>
+      <CrayonTextBox color='#F3921C' bg='#F3921C' fontSize='16px' width='300px' animated={false}>
         {descriptions[mode]}
       </CrayonTextBox>
     </div>
@@ -496,23 +503,17 @@ export default function OpticalExperiment() {
                 />
 
                 <Stand
-                  position={getStandPosition(activeMode)}
-                  rotation={
-                    activeMode === 'direct'
-                      ? [0, (3 * Math.PI) / 2, 0]
-                      : activeMode === 'reflection'
-                      ? [laserAngle[0], laserAngle[1], laserAngle[2]]
-                      : [0, (3 * Math.PI) / 2, 0]
-                  }
+                  position={getStandPosition(activeMode, laserAngle)}
+                  rotation={getStandRotation(activeMode, laserAngle)}
                 />
 
                 <LaserPointer
-                  position={getLaserPointerPosition(activeMode)}
-                  angle={laserAngle}
+                  position={getLaserPointerPosition(activeMode, laserAngle)}
+                  rotation={getLaserPointerRotation(activeMode, laserAngle)}
                   visible={true}
                   onToggle={handleRayToggle}
                   rayStates={rayStates}
-                  pivotOffset={[0, 0, activeMode === 'reflection' ? -20.0 : 3]}
+                  pivotOffset={[0, 0, activeMode === 'reflection' ? 0 : 3]}
                   mode={activeMode}
                 />
 
