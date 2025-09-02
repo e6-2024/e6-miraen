@@ -28,6 +28,7 @@ import {
   getAudioPath,
 } from '@/utils/5-1-2/utils'
 import { LensPopup } from '@/components/5-1-2/LensPopup'
+import { TiltOnMouse } from '@/components/common/Tilt'
 
 const PostEffects = dynamic(() => import('../components/5-1-2/PostEffects'), { ssr: false })
 
@@ -537,7 +538,8 @@ export default function Page() {
           {hasContent && (
             <>
               {/* 전체 postion 조정 */}
-              <group position={[0, -4, 0]}>
+              <TiltOnMouse enabled={showIntro} maxDeg={5} position={[0, -4, 0]}>
+
                 {/* 광학 실험실 */}
                 <OpticalLab mode={activeMode} lensType={lensType} rayStates={rayStates} laserAngle={laserAngle} />
 
@@ -575,7 +577,7 @@ export default function Page() {
                   html={'버튼을 눌러 3구 레이저를 켜고, 빛이 나아가는 모습을 관찰해 보세요.'}
                   visible={!showIntro}
                 /> */}
-              </group>
+              </TiltOnMouse>
             </>
           )}
 
