@@ -1,4 +1,3 @@
-// src/pages/5-2-1.tsx - Physics 전체 리셋 버전 + 정리하기 기능 + 체 선택 페이지 추가
 import { useState, useRef, useEffect } from 'react'
 import { Physics } from '@react-three/cannon'
 import { useProgress, useGLTF } from '@react-three/drei'
@@ -33,7 +32,6 @@ function SievePreview({ level }: { level: number }) {
   )
 }
 
-// 3D 구슬 프리뷰 컴포넌트
 function ParticlePreview({ radius, color }: { radius: number; color: string }) {
   return (
     <div className='w-20 h-20 mx-auto mb-2'>
@@ -51,22 +49,19 @@ function ParticlePreview({ radius, color }: { radius: number; color: string }) {
   )
 }
 
-// 체 선택 페이지 컴포넌트
 function SieveSelectionPage({ onSelectSieve }: { onSelectSieve: (selectedLevel: number) => void }) {
   const [isVisible, setIsVisible] = useState(false)
   const [selectedSieve, setSelectedSieve] = useState<number | null>(null)
 
   useEffect(() => {
-    // 페이지 애니메이션을 위한 지연
     const timer = setTimeout(() => setIsVisible(true), 50)
     return () => clearTimeout(timer)
   }, [])
 
-  // 나레이션 재생
   useEffect(() => {
     const playNarration = () => {
       try {
-        const audio = new Audio('/sounds/5-2-1/5-2-1-intro.MP3') // 체 소개 나레이션 파일 경로
+        const audio = new Audio('/sounds/5-2-1/5-2-1-intro.MP3')
         audio.volume = 0.5
         audio.play().catch((error) => {
           console.log('나레이션 재생 실패:', error.name)
@@ -167,7 +162,6 @@ function SieveSelectionPage({ onSelectSieve }: { onSelectSieve: (selectedLevel: 
           ))}
         </div>
 
-        {/* 실험 시작 버튼 */}
         <div className='text-center'>
           <button
             onClick={handleStartExperiment}
@@ -185,21 +179,18 @@ function SieveSelectionPage({ onSelectSieve }: { onSelectSieve: (selectedLevel: 
   )
 }
 
-// 정리하기 팝업 컴포넌트
 function SummaryPopup({ onClose }: { onClose: () => void }) {
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
-    // 팝업 애니메이션을 위한 지연
     const timer = setTimeout(() => setIsVisible(true), 50)
     return () => clearTimeout(timer)
   }, [])
 
-  // 나레이션 재생
   useEffect(() => {
     const playNarration = () => {
       try {
-        const audio = new Audio('/sounds/5-2-1/5-2-1-D.MP3') // 나레이션 파일 경로
+        const audio = new Audio('/sounds/5-2-1/5-2-1-D.MP3')
         audio.volume = 0.5
         audio.play().catch((error) => {
           console.log('나레이션 재생 실패:', error.name)
@@ -214,7 +205,7 @@ function SummaryPopup({ onClose }: { onClose: () => void }) {
 
   const handleClose = () => {
     setIsVisible(false)
-    setTimeout(onClose, 300) // 애니메이션 완료 후 닫기
+    setTimeout(onClose, 300)
   }
 
   return (
@@ -290,8 +281,8 @@ export default function Home() {
   const [gravity, setGravity] = useState<[number, number, number]>([0, -9.81, 0])
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
-  const [showSieveSelection, setShowSieveSelection] = useState(false) // 체 선택 페이지 상태 추가
-  const [physicsKey, setPhysicsKey] = useState(0) // Physics 리셋용 키
+  const [showSieveSelection, setShowSieveSelection] = useState(false)
+  const [physicsKey, setPhysicsKey] = useState(0)
   const [showSummaryButton, setShowSummaryButton] = useState(false)
   const [showSummaryPopup, setShowSummaryPopup] = useState(false)
 
@@ -304,7 +295,7 @@ export default function Home() {
       }, 1000)
       setTimeout(() => {
         playNarration2()
-      }, 5000) // 5초 후 재생 시작
+      }, 5000)
     }
 
     if (selectedLevel === 1) {
@@ -314,7 +305,7 @@ export default function Home() {
       setTimeout(() => {
         playNarration2()
         playBallSound()
-      }, 5000) // 5초 후 재생 시작
+      }, 5000)
     }
     if (selectedLevel === 2) {
       setTimeout(() => {
@@ -413,34 +404,30 @@ export default function Home() {
   }
 
   const handleSelectSieve = (selectedLevel: number) => {
-    setSelectedLevel(selectedLevel) // 선택된 체 레벨 설정
+    setSelectedLevel(selectedLevel)
     setShowSieveSelection(false)
   }
 
   const handleReset = () => {
     setGravity([0, -9.81, 0])
     setPhysicsKey((prev) => prev + 1)
-    setShowSummaryButton(false) // 정리하기 버튼 숨기기
+    setShowSummaryButton(false)
   }
 
-  // 레벨 변경 시 Physics 리셋
   const handleLevelChange = (level: number) => {
     console.log(`Changing level to ${level} and resetting physics`)
     setSelectedLevel(level)
     setPhysicsKey((prev) => prev + 1)
-    setShowSummaryButton(false) // 레벨 변경 시 정리하기 버튼 숨기기
+    setShowSummaryButton(false)
   }
 
-  // 분리 완료 콜백 (SieveSimulation에서 호출)
   const handleSeparationComplete = () => {
     if (selectedLevel === 2) {
-      // level 2에서만 정리하기 버튼 표시
       setShowSummaryButton(true)
       playNarration3()
     }
   }
 
-  // 정리하기 버튼 클릭
   const handleSummaryClick = () => {
     playClickSound()
     setShowSummaryPopup(true)
@@ -452,7 +439,6 @@ export default function Home() {
 
   return (
     <div className='w-screen h-screen relative'>
-      {/* 3D Scene - 항상 렌더링하되 체 선택 페이지에서만 숨김 */}
       <div className={`absolute inset-0 ${showSieveSelection ? 'invisible' : 'visible'}`}>
         <Scene
           shadows
@@ -466,7 +452,6 @@ export default function Home() {
           <LoadingTracker onLoadingComplete={handleLoadingComplete} />
           <ShadowLighting />
 
-          {/* Physics 컴포넌트를 physicsKey로 완전 리셋 */}
           <Physics
             key={physicsKey}
             gravity={gravity}
@@ -491,7 +476,6 @@ export default function Home() {
         </Scene>
       </div>
 
-      {/* UI 컨트롤 - 실험 화면에서만 표시 */}
       {!showIntro && !showSieveSelection && (
         <>
           <div className='absolute top-5 right-5 flex flex-col gap-2 z-10'>
@@ -528,7 +512,6 @@ export default function Home() {
               구슬 혼합물 넣기
             </button>
 
-            {/* 정리하기 버튼 - level 2에서 분리 완료 시에만 표시 */}
             {showSummaryButton && (
               <button
                 className='px-4 py-2 bg-green-600 border-2 border-green-600 text-white hover:bg-green-700 hover:border-green-700 transition-colors'
@@ -549,12 +532,11 @@ export default function Home() {
         </>
       )}
 
-      {/* 첫 번째 인트로 화면 */}
       {showIntro && (
         <div className='absolute inset-0 z-30'>
           <Intro
             onEnter={handleEnterExperience}
-            title='혼합물의 분리'
+            title='크기가 다른 구슬 혼합물 분리하기'
             description={[
               '알갱이의 크기가 다른 고체 혼합물은 어떻게 분리할 수 있는지 알아봅시다.',
             ]}
@@ -564,10 +546,8 @@ export default function Home() {
         </div>
       )}
 
-      {/* 체 선택 페이지 */}
       {showSieveSelection && <SieveSelectionPage onSelectSieve={handleSelectSieve} />}
 
-      {/* 정리하기 팝업 */}
       {showSummaryPopup && <SummaryPopup onClose={handleCloseSummaryPopup} />}
     </div>
   )

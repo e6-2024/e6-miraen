@@ -1,10 +1,7 @@
-// src/scenes/SieveSimulation.tsx - 분리 완료 감지 기능 추가
 import { useState, useRef, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { useBox } from '@react-three/cannon';
 import SieveModel from '@/components/5-2-1/SieveModel';
 import Particle from '@/components/5-2-1/Particle';
-import * as THREE from 'three';
 
 interface Props {
   triggerSpawn: boolean;
