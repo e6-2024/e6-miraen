@@ -25,7 +25,9 @@ import {
   getNarrationText,
   getStandPosition,
   getStandRotation,
+  getAudioPath,
 } from '@/utils/5-1-2/utils'
+import { LensPopup } from '@/components/5-1-2/LensPopup'
 
 const PostEffects = dynamic(() => import('../components/5-1-2/PostEffects'), { ssr: false })
 
@@ -143,6 +145,10 @@ function ModeControls({
     { key: 'concave' as const, label: '오목렌즈' },
   ]
 
+  if(activeMode === 'direct') {
+    return null
+  }
+
   return (
     <div className='absolute bottom-5 left-5 flex flex-col gap-4 p-0 rounded-lg text-white'>
       <CrayonTextBox color='#F3921C' bg='#FFF' animated={true}>
@@ -160,7 +166,6 @@ function ModeControls({
         ))}
       </div> */}
 
-        {/* 굴절 모드일 때 렌즈 타입 선택 */}
         {activeMode === 'refraction' && (
           <>
             <h4 className='text-base font-medium'>볼록렌즈와 오목렌즈가 있어요.</h4>
@@ -218,7 +223,7 @@ function ExplanationToggleButton({
 
   return (
     <>
-      <div className='absolute bottom-14 right-4' onClick={onClick}>
+      <div className='absolute bottom-0 right-4' onClick={onClick}>
         <CrayonTextButton
           text={titles[mode]}
           width={140}
@@ -230,15 +235,23 @@ function ExplanationToggleButton({
   )
 }
 
-function LensButton({ mode, lensType }: { mode: OpticalMode; lensType: LensType }) {
+function LensButton({
+  mode,
+  lensType,
+  onLensClick,
+}: {
+  mode: OpticalMode
+  lensType: LensType
+  onLensClick: () => void
+}) {
   if (mode !== 'refraction') {
     return null
   }
 
   return (
-    <div className='absolute bottom-0 right-4'>
+    <div className='absolute bottom-14 right-4' onClick={onLensClick}>
       <CrayonTextButton
-        text={lensType === 'concave' ? '오목렌즈 둘러보기' : lensType === 'convex' ? '볼록렌즈 둘러보기' : ''}
+        text={lensType === 'concave' ? '오목 렌즈 둘러 보기' : lensType === 'convex' ? '볼록 렌즈 둘러 보기' : ''}
         width={200}
         bg='#52AE46'
         color='#A1CC90'
@@ -283,7 +296,7 @@ function ExplanationBox({ isVisible, mode, lensType }: { isVisible: boolean; mod
   )
 }
 
-export default function OpticalExperiment() {
+export default function Page() {
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
   const [activeMode, setActiveMode] = useState<OpticalMode | null>('direct')
@@ -294,10 +307,11 @@ export default function OpticalExperiment() {
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
   const [showNarration, setShowNarration] = useState(false)
-  const [narrationText, setNarrationText] = useState('')
   const [isBackFromMode, setIsBackFromMode] = useState(false)
+  const [showLensPopup, setShowLensPopup] = useState(false)
+  const [narrationText, setnarrationText] = useState()
 
-  const { playSound, playBackgroundMusic, playNarration, stopNarration } = useAudio()
+  const { playSound, playNarration, stopNarration } = useAudio()
 
   const modeButtons = useMemo(
     () => [
@@ -355,11 +369,12 @@ export default function OpticalExperiment() {
       setBgmReady(true)
 
       playSound('/sounds/Enter_Cute.mp3')
-      setTimeout(playBackgroundMusic, 1000)
+      setTimeout(() => {
+        playNarration('/sounds/5-1-2/5-1-2-A.MP3')
+      }, 1000)
     },
-    [playSound, playBackgroundMusic],
+    [playSound, playNarration],
   )
-
   const handleBackToModeSelection = useCallback(() => {
     playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3')
     stopNarration()
@@ -391,6 +406,11 @@ export default function OpticalExperiment() {
     [playSound],
   )
 
+  const handleLensClick = useCallback(() => {
+    setShowLensPopup(true)
+    playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3')
+  }, [playSound])
+
   const handleBackToIntro = useCallback(() => {
     setShowIntro(true)
     setIsBackFromMode(false)
@@ -412,6 +432,17 @@ export default function OpticalExperiment() {
   const hasContent = activeMode !== null
 
   const handleLoadingComplete = useCallback(() => setIsLoaded(true), [])
+
+  useEffect(() => {
+    const allRaysActive = rayStates.every((state) => state === true)
+
+    if (allRaysActive && activeMode) {
+      const audioPath = getAudioPath(activeMode, lensType)
+      if (audioPath) {
+        playNarration(audioPath)
+      }
+    }
+  }, [rayStates, activeMode, lensType, playNarration])
 
   return (
     <div className='w-screen h-screen bg-[#E8E8E8] font-light flex flex-col overflow-hidden relative'>
@@ -566,8 +597,10 @@ export default function OpticalExperiment() {
           />
 
           <ExplanationBox isVisible={showExplanation} mode={activeMode} lensType={lensType} />
-          <LensButton mode={activeMode} lensType={lensType} />
+          <LensButton mode={activeMode} lensType={lensType} onLensClick={handleLensClick} />
           <SubtitleBox mode={activeMode} lensType={lensType} />
+
+          <LensPopup isVisible={showLensPopup} lensType={lensType} onClose={() => setShowLensPopup(false)} />
 
           <ExplanationToggleButton
             mode={activeMode}

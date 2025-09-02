@@ -1,7 +1,7 @@
 import { Ray } from '@/components/5-1-2/Ray'
 import { Lens } from '@/components/5-1-2/Lens'
 import * as THREE from 'three'
-import { useMemo } from 'react'
+import { useMemo} from 'react'
 import { Reflector } from '@react-three/drei'
 import { OpticalMode, LensType, RayStates, OpticalSurface } from '@/types/5-1-2/types'
 import { getRayOrigins } from '@/utils/5-1-2/utils'

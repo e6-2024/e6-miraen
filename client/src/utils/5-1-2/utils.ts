@@ -47,7 +47,7 @@ export const getLaserPointerPosition = (mode: OpticalMode, angle: number): [numb
   const angleRad = (angle * Math.PI) / 180
   const positions = {
     direct: [-11.5, 5.7, -1],
-    reflection: [9 * Math.sin(-angleRad)+0.275, 5.7, -9 * Math.cos(angleRad)-0.275],
+    reflection: [9 * Math.sin(-angleRad) + 0.275, 5.7, -9 * Math.cos(angleRad) - 0.275],
     refraction: [-11.5, 5.7, -1],
   }
   return positions[mode] as [number, number, number]
@@ -106,16 +106,12 @@ export const getAudioPath = (mode: OpticalMode, lensType?: LensType): string => 
     'refraction-concave': '/sounds/5-1-2/5-1-2-E.MP3',
   }
 
-  const key = mode === 'refraction' ? `${mode}-${lensType}` : mode
+  const key = mode === 'refraction' ? (`${mode}-${lensType}` as const) : mode
   return paths[key as keyof typeof paths] || ''
 }
 
 const REFLECTION_CONFIG = {
-  MIRROR_CENTERS: [
-    new THREE.Vector3(0, 6.45, 0),
-    new THREE.Vector3(0, 5.65, 0), 
-    new THREE.Vector3(0, 4.95, 0),
-  ],
+  MIRROR_CENTERS: [new THREE.Vector3(0, 6.45, 0), new THREE.Vector3(0, 5.65, 0), new THREE.Vector3(0, 4.95, 0)],
   LASER_DISTANCE: 8,
 }
 
