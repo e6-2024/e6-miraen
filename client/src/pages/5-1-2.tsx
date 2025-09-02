@@ -186,8 +186,8 @@ function ModeControls({
             <div className='flex items-center gap-2'>
               <input
                 type='range'
-                min='30'
-                max='90'
+                min='5'
+                max='85'
                 value={laserAngle}
                 onChange={(e) => onAngleChange(Number(e.target.value))}
                 className='w-48 accent-green-500'
@@ -218,7 +218,7 @@ function ExplanationToggleButton({
 
   return (
     <>
-      <div className='absolute bottom-0 right-4' onClick={onClick}>
+      <div className='absolute bottom-14 right-4' onClick={onClick}>
         <CrayonTextButton
           text={titles[mode]}
           width={140}
@@ -227,6 +227,23 @@ function ExplanationToggleButton({
           textcolor='#FFFFFF'></CrayonTextButton>
       </div>
     </>
+  )
+}
+
+function LensButton({ mode, lensType }: { mode: OpticalMode; lensType: LensType }) {
+  if (mode !== 'refraction') {
+    return null
+  }
+
+  return (
+    <div className='absolute bottom-0 right-4'>
+      <CrayonTextButton
+        text={lensType === 'concave' ? '오목렌즈 둘러보기' : lensType === 'convex' ? '볼록렌즈 둘러보기' : ''}
+        width={200}
+        bg='#52AE46'
+        color='#A1CC90'
+        textcolor='#FFFFFF'></CrayonTextButton>
+    </div>
   )
 }
 
@@ -549,6 +566,7 @@ export default function OpticalExperiment() {
           />
 
           <ExplanationBox isVisible={showExplanation} mode={activeMode} lensType={lensType} />
+          <LensButton mode={activeMode} lensType={lensType} />
           <SubtitleBox mode={activeMode} lensType={lensType} />
 
           <ExplanationToggleButton

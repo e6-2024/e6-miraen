@@ -1,43 +1,47 @@
-import { Ray } from '@/components/5-1-2/Ray';
-import { Lens } from '@/components/5-1-2/Lens';
-import * as THREE from 'three';
-import { useMemo } from 'react';
-import { Reflector } from '@react-three/drei';
-import { OpticalMode, LensType, RayStates, OpticalSurface } from '@/types/5-1-2/types';
-import { getRayOrigins } from '@/utils/5-1-2/utils';
+import { Ray } from '@/components/5-1-2/Ray'
+import { Lens } from '@/components/5-1-2/Lens'
+import * as THREE from 'three'
+import { useMemo } from 'react'
+import { Reflector } from '@react-three/drei'
+import { OpticalMode, LensType, RayStates, OpticalSurface } from '@/types/5-1-2/types'
+import { getRayOrigins } from '@/utils/5-1-2/utils'
 
 interface OpticalLabProps {
-  mode: OpticalMode;
-  lensType?: LensType;
-  rayStates: RayStates;
-  laserAngle?: number;
+  mode: OpticalMode
+  lensType?: LensType
+  rayStates: RayStates
+  laserAngle?: number
 }
 
-export function OpticalLab({
-  mode,
-  lensType = 'convex',
-  rayStates,
-  laserAngle = 45
-}: OpticalLabProps) {
-  // Ray 시작점
-  const rayOrigins = useMemo(() => getRayOrigins(mode,laserAngle), [mode,laserAngle]);
+export function OpticalLab({ mode, lensType = 'convex', rayStates, laserAngle = 45 }: OpticalLabProps) {
+  const MIRROR_CENTERS = useMemo(
+    () => [new THREE.Vector3(0, 6.45, 0), new THREE.Vector3(0, 5.65, 0), new THREE.Vector3(0, 4.95, 0)],
+    [],
+  )
 
-  // 반사용 방향 벡터
-  const rayDirection = useMemo(() => {
-    const angleRad = (laserAngle * Math.PI) / 180;
-    return new THREE.Vector3(Math.cos(angleRad), 0, Math.sin(angleRad)).normalize();
-  }, [laserAngle]);
+  const rayOrigins = useMemo(() => getRayOrigins(mode, laserAngle), [mode, laserAngle])
 
-  // 반사/굴절 표면 정의
+  const rayDirections = useMemo(() => {
+    if (mode === 'reflection') {
+      return rayOrigins.map((origin, index) => {
+        return MIRROR_CENTERS[index].clone().sub(origin).normalize()
+      })
+    } else {
+      return [new THREE.Vector3(1, 0, 0), new THREE.Vector3(1, 0, 0), new THREE.Vector3(1, 0, 0)]
+    }
+  }, [rayOrigins, mode, MIRROR_CENTERS])
+
   const reflectSurfaces = useMemo<OpticalSurface[]>(() => {
     if (mode === 'reflection') {
-      return [{
-        position: new THREE.Vector3(0, 0, 0),
-        normal: new THREE.Vector3(-1, 0, 0),
-        type: 'mirror'
-      }];
-    } 
-    
+      return [
+        {
+          position: new THREE.Vector3(0, 0, 0),
+          normal: new THREE.Vector3(-1, 0, 0),
+          type: 'mirror',
+        },
+      ]
+    }
+
     if (mode === 'refraction') {
       return [
         {
@@ -46,7 +50,7 @@ export function OpticalLab({
           type: 'lens',
           refractiveIndex: 1.5,
           lensType,
-          surface: 'entrance'
+          surface: 'entrance',
         },
         {
           position: new THREE.Vector3(-3 + 0.3, 1, 2),
@@ -54,35 +58,32 @@ export function OpticalLab({
           type: 'lens',
           refractiveIndex: 1.0,
           lensType,
-          surface: 'exit'
-        }
-      ];
+          surface: 'exit',
+        },
+      ]
     }
-    
-    return [];
-  }, [mode, lensType]);
+
+    return []
+  }, [mode, lensType])
 
   const renderRays = () => {
-    const direction = mode === 'reflection' ? rayDirection : new THREE.Vector3(1, 0, 0);
-    
-    return rayOrigins.map((origin, index) => 
-      rayStates[index] && (
-        <Ray
-          key={`${mode}-${index}`}
-          origin={origin}
-          direction={direction}
-          reflectSurfaces={reflectSurfaces}
-          color="red"
-        />
-      )
-    );
-  };
+    return rayOrigins.map(
+      (origin, index) =>
+        rayStates[index] && (
+          <Ray
+            key={`${mode}-${index}-${laserAngle}`}
+            origin={origin}
+            direction={rayDirections[index]}
+            reflectSurfaces={reflectSurfaces}
+            color='red'
+          />
+        ),
+    )
+  }
 
   return (
     <>
       {renderRays()}
-      
-      {/* 반사 모드: 거울 */}
       {mode === 'reflection' && (
         <>
           <Reflector
@@ -90,34 +91,20 @@ export function OpticalLab({
             args={[10, 10]}
             mirror={0.9}
             mixStrength={0.5}
-            rotation={[Math.PI / 2, 3*Math.PI / 2, 0]} 
-            position={[0, 5, 0]}
-          >
+            rotation={[Math.PI / 2, (3 * Math.PI) / 2, 0]}
+            position={[0, 5, 0]}>
             {(Material: React.ElementType, props) => (
-              <Material
-                color="white"
-                metalness={0.8}
-                roughness={0.2}
-                side={THREE.DoubleSide}
-                {...props}
-              />
+              <Material color='white' metalness={0.8} roughness={0.2} side={THREE.DoubleSide} {...props} />
             )}
           </Reflector>
           <mesh position={[0.13, 5, 0]}>
             <boxGeometry args={[0.2, 10, 10]} />
-            <meshStandardMaterial color="gray" />
+            <meshStandardMaterial color='gray' />
           </mesh>
         </>
       )}
 
-      {/* 굴절 모드: 렌즈 */}
-      {mode === 'refraction' && (
-        <Lens 
-          position={new THREE.Vector3(-3.2, 1.1, -0.5)} 
-          type={lensType}
-          scale={1.045}
-        />
-      )}
+      {mode === 'refraction' && <Lens position={new THREE.Vector3(-3.2, 1.05, -0.5)} type={lensType} scale={1.035} />}
     </>
-  );
+  )
 }

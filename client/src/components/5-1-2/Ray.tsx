@@ -17,7 +17,7 @@ interface RayProps {
 export function Ray({
   origin,
   direction,
-  length = 55,
+  length = 100,
   color = 'red',
   reflectSurfaces = [],
   depth = 0,

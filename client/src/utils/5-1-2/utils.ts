@@ -47,7 +47,7 @@ export const getLaserPointerPosition = (mode: OpticalMode, angle: number): [numb
   const angleRad = (angle * Math.PI) / 180
   const positions = {
     direct: [-11.5, 5.7, -1],
-    reflection: [9 * Math.sin(-angleRad), 5.7, -9 * Math.cos(angleRad)],
+    reflection: [9 * Math.sin(-angleRad)+0.275, 5.7, -9 * Math.cos(angleRad)-0.275],
     refraction: [-11.5, 5.7, -1],
   }
   return positions[mode] as [number, number, number]
@@ -86,19 +86,6 @@ export const getStandRotation = (mode: OpticalMode, angle: number): [number, num
   }
 }
 
-export const getRayOrigins = (mode: OpticalMode, angle:number): THREE.Vector3[] => {
-  const angleRad = (angle * Math.PI) / 180
-
-  const configs = {
-    direct: { base: [-8, 5.68, -0.65], offsets: [0.75, 0, -0.75] },
-    reflection: { base: [10 * Math.sin(-angleRad), 0, -10 * Math.cos(angleRad)], offsets: [0.6, 0, -0.6] },
-    refraction: { base: [-8, 5.68, -0.6], offsets: [0.75, 0, -0.75] },
-  }
-
-  const config = configs[mode]
-  return config.offsets.map((offset) => new THREE.Vector3(config.base[0], config.base[1] + offset, config.base[2]))
-}
-
 export const getNarrationText = (mode: OpticalMode, lensType: LensType): string => {
   const texts = {
     direct: '빛은 곧게 나아갑니다.',
@@ -121,4 +108,43 @@ export const getAudioPath = (mode: OpticalMode, lensType?: LensType): string => 
 
   const key = mode === 'refraction' ? `${mode}-${lensType}` : mode
   return paths[key as keyof typeof paths] || ''
+}
+
+const REFLECTION_CONFIG = {
+  MIRROR_CENTERS: [
+    new THREE.Vector3(0, 6.45, 0),
+    new THREE.Vector3(0, 5.65, 0), 
+    new THREE.Vector3(0, 4.95, 0),
+  ],
+  LASER_DISTANCE: 8,
+}
+
+export const getRayOrigins = (mode: OpticalMode, angle: number): THREE.Vector3[] => {
+  const angleRad = (angle * Math.PI) / 180
+
+  switch (mode) {
+    case 'direct': {
+      const base = [-8, 5.68, -0.65]
+      const offsets = [0.75, 0, -0.75]
+      return offsets.map((offset) => new THREE.Vector3(base[0], base[1] + offset, base[2]))
+    }
+
+    case 'reflection': {
+      const { MIRROR_CENTERS, LASER_DISTANCE } = REFLECTION_CONFIG
+      return MIRROR_CENTERS.map((mirrorCenter) => {
+        const originX = mirrorCenter.x - LASER_DISTANCE * Math.sin(angleRad)
+        const originZ = mirrorCenter.z - LASER_DISTANCE * Math.cos(angleRad)
+        return new THREE.Vector3(originX, mirrorCenter.y, originZ)
+      })
+    }
+
+    case 'refraction': {
+      const base = [-8, 5.68, -0.6]
+      const offsets = [0.75, 0, -0.75]
+      return offsets.map((offset) => new THREE.Vector3(base[0], base[1] + offset, base[2]))
+    }
+
+    default:
+      return []
+  }
 }
