@@ -81,7 +81,7 @@ function ModeBasedControls({ mode }: { mode: OpticalMode }) {
       enablePan={true}
       enableRotate={true}
       minDistance={5}
-      // maxDistance={25}
+      maxDistance={40}
       maxPolarAngle={currentConfig.maxPolarAngle}
       minAzimuthAngle={currentConfig.minAzimuthAngle}
       maxAzimuthAngle={currentConfig.maxAzimuthAngle}

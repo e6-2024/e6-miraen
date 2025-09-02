@@ -38,7 +38,7 @@ export default function Model({
     }
 
     if (table) {
-      table.scale.set(1.1,1.1,1.1);
+      table.scale.set(0.9,1.1,1.1);
       table.position.set(-12, -35.3, 0);
     }
 

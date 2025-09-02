@@ -5,14 +5,14 @@ export const CAMERA_CONFIGS = {
   direct: {
     position: [0, 0, 30] as [number, number, number],
     target: [0, 0, 0] as [number, number, number],
-    maxPolarAngle: Math.PI,
+    maxPolarAngle: Math.PI/2,
     minAzimuthAngle: -Infinity,
     maxAzimuthAngle: Infinity,
   },
   reflection: {
     position: [-27, 10, -0.9] as [number, number, number],
     target: [0, 0, 0] as [number, number, number],
-    maxPolarAngle: Math.PI,
+    maxPolarAngle: Math.PI/2,
     minAzimuthAngle: -Infinity,
     maxAzimuthAngle: Infinity,
   },
