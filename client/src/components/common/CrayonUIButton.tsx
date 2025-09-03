@@ -22,6 +22,8 @@ import {
   Volume2,
   VolumeX,
   RefreshCcw,
+  Expand,
+  PencilLine
 } from 'lucide-react'
 
 interface CrayonTextButtonProps {
@@ -131,6 +133,8 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
         refreshccw: RefreshCcw,
         refresh: RefreshCcw,
         replay: RefreshCcw,
+        expand: Expand,
+        pencilline : PencilLine
       }
 
       const foundIcon = iconMap[key]

@@ -30,8 +30,8 @@ export const PARTICLE_CONFIG = {
     color: 'limegreen',
   },
   SPAWN: {
-    count: 25,
-    batchSize: 3,
+    count: 40,
+    batchSize: 10,
     interval: 200,
     spread: 1.5,
     height: 8,
