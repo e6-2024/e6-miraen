@@ -86,17 +86,6 @@ export const getStandRotation = (mode: OpticalMode, angle: number): [number, num
   }
 }
 
-export const getNarrationText = (mode: OpticalMode, lensType: LensType): string => {
-  const texts = {
-    direct: '빛은 곧게 나아갑니다.',
-    reflection: '빛은 곧게 나아가다가 거울에 부딪치면 방향이 바뀌어 나아갑니다.',
-    refraction:
-      lensType === 'convex'
-        ? '빛은 볼록 렌즈를 통과할 때 렌즈의 가운데 쪽으로 굴절하여 나아갑니다.'
-        : '빛은 오목 렌즈를 통과할 때 렌즈의 바깥쪽으로 굴절하여 나아갑니다.',
-  }
-  return texts[mode]
-}
 
 export const getAudioPath = (mode: OpticalMode, lensType?: LensType): string => {
   const paths = {

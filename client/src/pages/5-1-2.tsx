@@ -22,7 +22,6 @@ import {
   CAMERA_CONFIGS,
   getLaserPointerPosition,
   getLaserPointerRotation,
-  getNarrationText,
   getStandPosition,
   getStandRotation,
   getAudioPath,
@@ -146,7 +145,7 @@ function ModeControls({
     { key: 'concave' as const, label: '오목렌즈' },
   ]
 
-  if(activeMode === 'direct') {
+  if (activeMode === 'direct') {
     return null
   }
 
@@ -261,7 +260,17 @@ function LensButton({
   )
 }
 
-function SubtitleBox({ mode, lensType }: { mode: OpticalMode; lensType: LensType }) {
+function SubtitleBox({
+  mode,
+  lensType,
+  rayStates,
+  isVisible,
+}: {
+  mode: OpticalMode
+  lensType: LensType
+  rayStates: RayStates
+  isVisible: boolean
+}) {
   const descriptions = {
     direct: '빛은 곧게 나아갑니다.',
     reflection: '빛은 곧게 나아가다가 거울에 부딪치면 방향이 바뀌어 나아갑니다.',
@@ -269,8 +278,10 @@ function SubtitleBox({ mode, lensType }: { mode: OpticalMode; lensType: LensType
     concave: '빛은 오목 렌즈를 통과할 때 렌즈의 바깥쪽으로 굴절하여 나아갑니다.',
   }
 
+  if (!isVisible) return null
+
   return (
-    <div className='absolute flex w-full justify-center left-1/2 -translate-x-1/2 items-center top-16'>
+    <div className='absolute flex w-full justify-center left-1/2 -translate-x-1/2 items-center top-1/4 -translate-y-1/2 pointer-events-none'>
       <CrayonTextBox color='#F3921C' bg='#FFF'>
         {mode === 'direct' ? descriptions[mode] : mode === 'reflection' ? descriptions[mode] : descriptions[lensType]}
       </CrayonTextBox>
@@ -311,7 +322,7 @@ export default function Page() {
   const [isBackFromMode, setIsBackFromMode] = useState(false)
   const [showLensPopup, setShowLensPopup] = useState(false)
   const [narrationText, setnarrationText] = useState()
-
+  const [showSubtitle, setShowSubtitle] = useState(false)
   const { playSound, playNarration, stopNarration } = useAudio()
 
   const modeButtons = useMemo(
@@ -436,6 +447,7 @@ export default function Page() {
 
   useEffect(() => {
     const allRaysActive = rayStates.every((state) => state === true)
+    setShowSubtitle(allRaysActive)
 
     if (allRaysActive && activeMode) {
       const audioPath = getAudioPath(activeMode, lensType)
@@ -446,7 +458,7 @@ export default function Page() {
   }, [rayStates, activeMode, lensType, playNarration])
 
   return (
-    <div className='w-screen h-screen bg-[#E8E8E8] font-light flex flex-col overflow-hidden relative'>
+    <div className='w-screen h-screen bg-[#FBF0C7] font-light flex flex-col overflow-hidden relative'>
       <LoadingTracker onLoadingComplete={handleLoadingComplete} />
 
       <NarrationPopup isVisible={showNarration} text={narrationText} onHide={() => setShowNarration(false)} />
@@ -539,7 +551,6 @@ export default function Page() {
             <>
               {/* 전체 postion 조정 */}
               <TiltOnMouse enabled={showIntro} maxDeg={5} position={[0, -4, 0]}>
-
                 {/* 광학 실험실 */}
                 <OpticalLab mode={activeMode} lensType={lensType} rayStates={rayStates} laserAngle={laserAngle} />
 
@@ -569,14 +580,13 @@ export default function Page() {
 
                 {/* <Background/> */}
 
-                {/* <SpeechBubble
+                <SpeechBubble
                   position={
-                    activeMode === 'direct' ? [0, 0, 0] : activeMode === 'reflection' ? [-10, 3, -6] : [-10, 6.5, 0]
+                    activeMode === 'direct' ? [-11, 1.5, 0] : activeMode === 'reflection' ? [-10, 1, -6] : [-11, 1.5, 0]
                   }
-                  pointColor={activeMode === 'direct' ? '#4fc3f7' : activeMode === 'reflection' ? '#ff6b6b' : '#25e5c2'}
-                  html={'버튼을 눌러 3구 레이저를 켜고, 빛이 나아가는 모습을 관찰해 보세요.'}
+                  html={'버튼을 눌러 3구 레이저를 켜고,\n빛이 나아가는 모습을 관찰해 보세요.'}
                   visible={!showIntro}
-                /> */}
+                />
               </TiltOnMouse>
             </>
           )}
@@ -600,7 +610,7 @@ export default function Page() {
 
           <ExplanationBox isVisible={showExplanation} mode={activeMode} lensType={lensType} />
           <LensButton mode={activeMode} lensType={lensType} onLensClick={handleLensClick} />
-          <SubtitleBox mode={activeMode} lensType={lensType} />
+          <SubtitleBox mode={activeMode} lensType={lensType} rayStates={rayStates} isVisible={showSubtitle} />
 
           <LensPopup isVisible={showLensPopup} lensType={lensType} onClose={() => setShowLensPopup(false)} />
 
