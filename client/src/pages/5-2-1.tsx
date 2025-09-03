@@ -108,6 +108,7 @@ function SieveSelectionPage({ onSelectSieve }: { onSelectSieve: (selectedLevel: 
         <div className='flex gap-3'>
           {SIEVE_CONFIG.LEVELS.map((sieve) => (
             <div
+              key={sieve.level}
               className={`cursor-pointer border-4 border-black rounded-xl p-4 transform ${
                 selectedSieve === sieve.level ? 'bg-white' : 'bg-[#e5e5e5]'
               }`}
@@ -472,6 +473,7 @@ export default function Home() {
           <div className='fixed top-4 left-4 flex flex-col gap-0'>
             {[0, 2, 1].map((level) => (
               <CrayonTextButton
+                key={level}
                 width={430}
                 height={72}
                 textSize={18}
