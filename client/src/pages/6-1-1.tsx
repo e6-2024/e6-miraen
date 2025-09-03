@@ -318,7 +318,7 @@ export default function Home() {
             color='#ffffff'
             textcolor='#ffffff'
             bg='rgba(255,255,255,0.10)'
-            className='background-blur border-white/20 z-[1300]'
+            className='background-blur right-[0px] border-white/20 z-[1300]'
             right={16}
             top={16}
             iconSize={40}

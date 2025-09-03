@@ -743,7 +743,7 @@ export default function Page() {
             color='#fff'
             textcolor='#fff'
             bg='rgba(255,255,255,0.10)'
-            className='backdrop-blur z-[1000] mix-blend-difference'
+            className='backdrop-blur z-[1000] right-[0px] mix-blend-difference'
             right={16}
             top={16}
             iconSize={40}

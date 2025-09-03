@@ -545,7 +545,7 @@ export default function Home() {
             color='#ffffff'
             textcolor='#ffffff'
             bg='rgba(255,255,255,0.10)'
-            className='background-blur z-[300] border-white/20'
+            className='background-blur z-[300] right-[0px] border-white/20'
             right={16}
             top={16}
             iconSize={40}

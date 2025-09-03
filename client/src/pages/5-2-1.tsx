@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { Physics } from '@react-three/cannon'
 import { useProgress, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
@@ -6,6 +6,11 @@ import Scene from '@/components/canvas/Scene'
 import SieveSimulation from '@/scenes/SieveSimulation'
 import Intro from '@/components/intro/Intro'
 import { Environment, OrbitControls } from '@react-three/drei'
+import { playSound } from '@/utils/5-2-1/audioManger'
+import { BACKGROUND_MUSIC, NARRATIONS, SOUND_EFFECTS, VOLUMES } from '@/utils/5-2-1/narratonConfig'
+import { SIEVE_CONFIG, PHYSICS_CONFIG } from '@/utils/5-2-1/sieveConfig'
+import { CrayonTextBox } from '@/components/common/CrayonTextBox'
+import { CrayonTextButton } from '@/components/common/CrayonUIButton'
 
 function SievePreview({ level }: { level: number }) {
   const { scene } = useGLTF('/models/5-2-1/Strainers.gltf')
@@ -59,32 +64,8 @@ function SieveSelectionPage({ onSelectSieve }: { onSelectSieve: (selectedLevel: 
   }, [])
 
   useEffect(() => {
-    const playNarration = () => {
-      try {
-        const audio = new Audio('/sounds/5-2-1/5-2-1-intro.MP3')
-        audio.volume = 0.5
-        audio.play().catch((error) => {
-          console.log('나레이션 재생 실패:', error.name)
-        })
-      } catch (error) {
-        console.log('나레이션 생성 실패:', error)
-      }
-    }
-
-    playNarration()
+    playSound(NARRATIONS.INTRO, VOLUMES.NARRATION)
   }, [])
-
-  const playClickSound = (audioPath: string = '/sounds/Enter_Cute.mp3') => {
-    try {
-      const audio = new Audio(audioPath)
-      audio.volume = 0.7
-      audio.play().catch((error) => {
-        console.log('효과음 재생 실패:', error.name)
-      })
-    } catch (error) {
-      console.log('효과음 생성 실패:', error)
-    }
-  }
 
   const handleSieveSelect = (level: number) => {
     setSelectedSieve(level)
@@ -92,29 +73,11 @@ function SieveSelectionPage({ onSelectSieve }: { onSelectSieve: (selectedLevel: 
 
   const handleStartExperiment = () => {
     if (selectedSieve !== null) {
-      playClickSound()
+      playSound(SOUND_EFFECTS.CLICK, VOLUMES.SOUND_EFFECT)
       setIsVisible(false)
       setTimeout(() => onSelectSieve(selectedSieve), 300)
     }
   }
-
-  const sieveTypes = [
-    {
-      level: 0,
-      title: '눈의 크기가 큰 구슬보다 큰 체',
-      color: 'from-red-200 to-red-400',
-    },
-    {
-      level: 2,
-      title: '눈의 크기가 큰 구슬보다 작고 작은 구슬보다 큰 체',
-      color: 'from-green-200 to-green-400',
-    },
-    {
-      level: 1,
-      title: '눈의 크기가 작은 구슬보다 작은 체',
-      color: 'from-blue-200 to-blue-400',
-    },
-  ]
 
   return (
     <div className='fixed inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center z-50'>
@@ -143,7 +106,7 @@ function SieveSelectionPage({ onSelectSieve }: { onSelectSieve: (selectedLevel: 
         </div>
 
         <div className='flex gap-3 mb-4'>
-          {sieveTypes.map((sieve) => (
+          {SIEVE_CONFIG.LEVELS.map((sieve) => (
             <div
               key={sieve.level}
               className={`cursor-pointer transform transition-all duration-300 ${
@@ -188,19 +151,7 @@ function SummaryPopup({ onClose }: { onClose: () => void }) {
   }, [])
 
   useEffect(() => {
-    const playNarration = () => {
-      try {
-        const audio = new Audio('/sounds/5-2-1/5-2-1-D.MP3')
-        audio.volume = 0.5
-        audio.play().catch((error) => {
-          console.log('나레이션 재생 실패:', error.name)
-        })
-      } catch (error) {
-        console.log('나레이션 생성 실패:', error)
-      }
-    }
-
-    playNarration()
+    playSound(NARRATIONS.SUMMARY, VOLUMES.NARRATION)
   }, [])
 
   const handleClose = () => {
@@ -276,9 +227,11 @@ function ShadowLighting() {
 }
 
 export default function Home() {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
   const [triggerSpawn, setTriggerSpawn] = useState(false)
   const [selectedLevel, setSelectedLevel] = useState(0)
-  const [gravity, setGravity] = useState<[number, number, number]>([0, -9.81, 0])
+  const [gravity, setGravity] = useState<[number, number, number]>(PHYSICS_CONFIG.gravity)
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
   const [showSieveSelection, setShowSieveSelection] = useState(false)
@@ -286,30 +239,69 @@ export default function Home() {
   const [showSummaryButton, setShowSummaryButton] = useState(false)
   const [showSummaryPopup, setShowSummaryPopup] = useState(false)
 
+  const bgmRef = useRef<HTMLAudioElement | null>(null)
+  const [bgmEnabled, setBgmEnabled] = useState<boolean>(true)
+  const [bgmReady, setBgmReady] = useState(false)
+
+  useEffect(() => {
+    if (!mounted) return
+    try {
+      const saved = localStorage.getItem('bgmEnabled')
+      if (saved !== null) setBgmEnabled(JSON.parse(saved))
+    } catch {}
+  }, [mounted])
+
+  useEffect(() => {
+    if (!mounted) return
+    const el = new Audio('/sounds/5-2-1/5-2-1-BGM.mp3')
+    el.loop = true
+    el.volume = 0.1
+    bgmRef.current = el
+    return () => {
+      el.pause()
+      bgmRef.current = null
+    }
+  }, [mounted])
+
+  // 상태 반영 (재생/일시정지 + 저장)
+  useEffect(() => {
+    if (!mounted || !bgmRef.current) return
+    try {
+      localStorage.setItem('bgmEnabled', JSON.stringify(bgmEnabled))
+    } catch {}
+    if (bgmEnabled && bgmReady) {
+      bgmRef.current.play().catch(() => {})
+    } else {
+      bgmRef.current.pause()
+    }
+  }, [bgmEnabled, bgmReady, mounted])
+
+  const toggleBgm = () => setBgmEnabled((v) => !v)
+
   const handleSpawn = () => {
     setTriggerSpawn(true)
 
     if (selectedLevel === 0) {
       setTimeout(() => {
-        playBallSound()
+        playSound(SOUND_EFFECTS.BALL_SOUND, VOLUMES.BALL_SOUND)
       }, 1000)
       setTimeout(() => {
-        playNarration2()
+        playSound(NARRATIONS.BALL_DROP, VOLUMES.NARRATION)
       }, 5000)
     }
 
     if (selectedLevel === 1) {
       setTimeout(() => {
-        playBallSound()
+        playSound(SOUND_EFFECTS.BALL_SOUND, VOLUMES.BALL_SOUND)
       }, 1000)
       setTimeout(() => {
-        playNarration2()
-        playBallSound()
+        playSound(NARRATIONS.BALL_DROP, VOLUMES.NARRATION)
+        playSound(SOUND_EFFECTS.BALL_SOUND, VOLUMES.BALL_SOUND)
       }, 5000)
     }
     if (selectedLevel === 2) {
       setTimeout(() => {
-        playBallSound()
+        playSound(SOUND_EFFECTS.BALL_SOUND, VOLUMES.BALL_SOUND)
       }, 1000)
     }
   }
@@ -322,85 +314,16 @@ export default function Home() {
     setIsLoaded(true)
   }
 
-  const playClickSound = (audioPath: string = '/sounds/Enter_Cute.mp3') => {
-    try {
-      const audio = new Audio(audioPath)
-      audio.volume = 0.7
-      audio.play().catch((error) => {
-        console.log('효과음 재생 실패:', error.name)
-      })
-    } catch (error) {
-      console.log('효과음 생성 실패:', error)
-    }
-  }
-
-  const playGeneralButton = (audioPath: string = '/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3') => {
-    try {
-      const audio = new Audio(audioPath)
-      audio.volume = 0.5
-      audio.play().catch((error) => {
-        console.log('효과음 재생 실패:', error.name)
-      })
-    } catch (error) {
-      console.log('효과음 생성 실패:', error)
-    }
-  }
-
-  const playNarration1 = (audioPath: string = '/sounds/5-2-1/5-2-1-A.MP3') => {
-    try {
-      const audio = new Audio(audioPath)
-      audio.volume = 0.5
-      audio.play().catch((error) => {
-        console.log('효과음 재생 실패:', error.name)
-      })
-    } catch (error) {
-      console.log('효과음 생성 실패:', error)
-    }
-  }
-
-  const playNarration2 = (audioPath: string = '/sounds/5-2-1/5-2-1-B.MP3') => {
-    try {
-      const audio = new Audio(audioPath)
-      audio.volume = 0.5
-      audio.play().catch((error) => {
-        console.log('효과음 재생 실패:', error.name)
-      })
-    } catch (error) {
-      console.log('효과음 생성 실패:', error)
-    }
-  }
-
-  const playNarration3 = (audioPath: string = '/sounds/5-2-1/5-2-1-C.MP3') => {
-    try {
-      const audio = new Audio(audioPath)
-      audio.volume = 0.5
-      audio.play().catch((error) => {
-        console.log('효과음 재생 실패:', error.name)
-      })
-    } catch (error) {
-      console.log('효과음 생성 실패:', error)
-    }
-  }
-
-  const playBallSound = (audioPath: string = '/sounds/5-2-1/5-2-1-2_ball-drop-and-sniff-85127.mp3') => {
-    try {
-      const audio = new Audio(audioPath)
-      audio.volume = 0.5
-      audio.play().catch((error) => {
-        console.log('효과음 재생 실패:', error.name)
-      })
-    } catch (error) {
-      console.log('효과음 생성 실패:', error)
-    }
+  const handleBackToIntro = () => {
+    setShowIntro(true)
   }
 
   const handleEnterExperience = () => {
-    playClickSound()
-    setTimeout(() => {
-      setShowIntro(false)
-      playNarration1()
-      setShowSieveSelection(true)
-    }, 300)
+    playSound(SOUND_EFFECTS.CLICK, VOLUMES.SOUND_EFFECT)
+    setShowIntro(false)
+    playSound(NARRATIONS.EXPERIMENT_START, VOLUMES.NARRATION)
+    setShowSieveSelection(true)
+    setBgmReady(true)
   }
 
   const handleSelectSieve = (selectedLevel: number) => {
@@ -409,13 +332,12 @@ export default function Home() {
   }
 
   const handleReset = () => {
-    setGravity([0, -9.81, 0])
+    setGravity(PHYSICS_CONFIG.gravity)
     setPhysicsKey((prev) => prev + 1)
     setShowSummaryButton(false)
   }
 
   const handleLevelChange = (level: number) => {
-    console.log(`Changing level to ${level} and resetting physics`)
     setSelectedLevel(level)
     setPhysicsKey((prev) => prev + 1)
     setShowSummaryButton(false)
@@ -424,12 +346,12 @@ export default function Home() {
   const handleSeparationComplete = () => {
     if (selectedLevel === 2) {
       setShowSummaryButton(true)
-      playNarration3()
+      playSound(NARRATIONS.SEPARATION_COMPLETE, VOLUMES.NARRATION)
     }
   }
 
   const handleSummaryClick = () => {
-    playClickSound()
+    playSound(SOUND_EFFECTS.CLICK, VOLUMES.SOUND_EFFECT)
     setShowSummaryPopup(true)
   }
 
@@ -438,8 +360,43 @@ export default function Home() {
   }
 
   return (
-    <div className='w-screen h-screen relative'>
-      <div className={`absolute inset-0 ${showSieveSelection ? 'invisible' : 'visible'}`}>
+    <div className='w-screen h-screen bg-white relative flex flex-col overflow-hidden '>
+      <LoadingTracker onLoadingComplete={handleLoadingComplete} />
+
+      <CrayonTextButton
+        icon={bgmEnabled ? 'volume2' : 'volumeX'}
+        position='absolute'
+        iconPosition='left'
+        onClick={toggleBgm}
+        width={108}
+        height={108}
+        color='#ffffff'
+        textcolor='#ffffff'
+        bg='rgba(255,255,255,0.10)'
+        className='background-blur z-[200] right-[0px] mix-blend-difference'
+        right={16}
+        top={16}
+        innerCircleVisible={true}
+        iconSize={40}
+      />
+      <CrayonTextButton
+        ariaLabel={'첫 화면으로'}
+        icon={'home'}
+        position='absolute'
+        iconPosition='left'
+        onClick={handleBackToIntro}
+        width={108}
+        height={108}
+        color='#ffffff'
+        textcolor='#ffffff'
+        bg='rgba(255,255,255,0.10)'
+        className='background-blur z-[200] right-[108px] mix-blend-difference'
+        right={16}
+        top={16}
+        iconSize={40}
+        innerCircleVisible={true}
+      />
+      <div className={`flex-1 ${showSieveSelection ? 'invisible' : 'visible'}`}>
         <Scene
           shadows
           camera={{ position: [0, 10, 10], fov: 50 }}
@@ -449,7 +406,6 @@ export default function Home() {
               type: THREE.PCFSoftShadowMap,
             },
           }}>
-          <LoadingTracker onLoadingComplete={handleLoadingComplete} />
           <ShadowLighting />
 
           <Physics
@@ -458,8 +414,8 @@ export default function Home() {
             allowSleep={true}
             iterations={15}
             defaultContactMaterial={{
-              friction: 0.3,
-              restitution: 0.2,
+              friction: PHYSICS_CONFIG.friction,
+              restitution: PHYSICS_CONFIG.restitution,
             }}
             tolerance={0.001}>
             <SieveSimulation
@@ -480,25 +436,24 @@ export default function Home() {
         <>
           <div className='absolute top-5 right-5 flex flex-col gap-2 z-10'>
             <div className='flex gap-2 font-light'>
-              {[0, 2, 1].map((level) => (
-                <button
-                  key={level}
-                  className={`px-4 py-2 border-2 border-black text-white transition-colors ${
-                    selectedLevel === level
-                      ? 'bg-white text-black hover:bg-black hover:text-white'
-                      : 'bg-white text-black hover:bg-black hover:text-white'
-                  }`}
-                  onClick={() => {
-                    handleLevelChange(level)
-                    playGeneralButton()
-                  }}>
-                  {level === 0
-                    ? '눈의 크기가 큰 구슬보다 큰 체'
-                    : level === 1
-                    ? '눈의 크기가 작은 구슬보다 작은 체'
-                    : '눈의 크기가 큰 구슬보다 작고 작은 구슬보다 큰 체'}
-                </button>
-              ))}
+              {[0, 2, 1].map((level) => {
+                const sieveConfig = SIEVE_CONFIG.LEVELS.find((s) => s.level === level)
+                return (
+                  <button
+                    key={level}
+                    className={`px-4 py-2 border-2 border-black text-white transition-colors ${
+                      selectedLevel === level
+                        ? 'bg-white text-black hover:bg-black hover:text-white'
+                        : 'bg-white text-black hover:bg-black hover:text-white'
+                    }`}
+                    onClick={() => {
+                      handleLevelChange(level)
+                      playSound(SOUND_EFFECTS.BUTTON, VOLUMES.SOUND_EFFECT)
+                    }}>
+                    {sieveConfig?.title}
+                  </button>
+                )
+              })}
             </div>
           </div>
 
@@ -507,7 +462,7 @@ export default function Home() {
               className='px-4 py-2 bg-white border-2 border-black text-black hover:bg-black hover:text-white'
               onClick={() => {
                 handleSpawn()
-                playGeneralButton()
+                playSound(SOUND_EFFECTS.BUTTON, VOLUMES.SOUND_EFFECT)
               }}>
               구슬 혼합물 넣기
             </button>
@@ -524,7 +479,7 @@ export default function Home() {
               className='px-4 py-2 bg-white text-black hover:bg-black hover:text-white border-2 border-black'
               onClick={() => {
                 handleReset()
-                playGeneralButton()
+                playSound(SOUND_EFFECTS.BUTTON, VOLUMES.SOUND_EFFECT)
               }}>
               다시하기
             </button>
@@ -532,16 +487,14 @@ export default function Home() {
         </>
       )}
 
-      {showIntro && (
+      {isLoaded && showIntro && (
         <div className='absolute inset-0 z-30'>
           <Intro
             onEnter={handleEnterExperience}
             title='크기가 다른 구슬 혼합물 분리하기'
-            description={[
-              '알갱이의 크기가 다른 고체 혼합물은 어떻게 분리할 수 있는지 알아봅시다.',
-            ]}
+            description={['알갱이의 크기가 다른 고체 혼합물은 어떻게 분리할 수 있는지 알아봅시다.']}
             backgroundSvg='/img/cover/5-2-1.svg'
-            descriptionSound='/sounds/5-2-1/5-2-1-Goal.MP3'
+            descriptionSound={NARRATIONS.GOAL}
           />
         </div>
       )}

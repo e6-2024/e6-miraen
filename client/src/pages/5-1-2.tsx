@@ -458,7 +458,7 @@ export default function Page() {
   }, [rayStates, activeMode, lensType, playNarration])
 
   return (
-    <div className='w-screen h-screen bg-[#FBF0C7] font-light flex flex-col overflow-hidden relative'>
+    <div className='w-screen h-screen bg-[#FBF0C7] flex flex-col overflow-hidden relative'>
       <LoadingTracker onLoadingComplete={handleLoadingComplete} />
 
       <NarrationPopup isVisible={showNarration} text={narrationText} onHide={() => setShowNarration(false)} />
@@ -490,7 +490,7 @@ export default function Page() {
         color='#fff'
         textcolor='#fff'
         bg='rgba(255,255,255,0.10)'
-        className='backdrop-blur z-[1000] mix-blend-difference'
+        className='backdrop-blur z-[1000] right-[0px] mix-blend-difference'
         right={16}
         top={16}
         iconSize={40}

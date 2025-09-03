@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { useThree } from '@react-three/fiber';
 import { Group, Vector2 } from 'three';
+import { PHYSICS_CONFIG } from '@/utils/5-2-1/sieveConfig';
 
 interface Props {
   groupRef: React.RefObject<Group>;
@@ -12,9 +13,6 @@ export default function TiltController({ groupRef, setGravity }: Props) {
   const [isDragging, setIsDragging] = useState(false);
   const startPosition = useRef(new Vector2());
   const currentPosition = useRef(new Vector2());
-  const tiltLimit = 0.15; // 최대 기울기 제한 (라디안)
-  
-  // 시작 회전값 저장
   const startRotation = useRef({ x: 0, z: 0 });
   
   useEffect(() => {
@@ -23,14 +21,12 @@ export default function TiltController({ groupRef, setGravity }: Props) {
     const onMouseDown = (e: MouseEvent) => {
       e.preventDefault();
       
-      // 정규화된 좌표로 변환 (-1 ~ 1)
       const x = (e.clientX / window.innerWidth) * 2 - 1;
       const y = -(e.clientY / window.innerHeight) * 2 + 1;
       
       startPosition.current.set(x, y);
       currentPosition.current.set(x, y);
       
-      // 현재 회전값 저장
       if (groupRef.current) {
         startRotation.current.x = groupRef.current.rotation.x;
         startRotation.current.z = groupRef.current.rotation.z;
@@ -42,30 +38,23 @@ export default function TiltController({ groupRef, setGravity }: Props) {
     const onMouseMove = (e: MouseEvent) => {
       if (!isDragging || !groupRef.current) return;
       
-      // 정규화된 좌표로 변환
       const x = (e.clientX / window.innerWidth) * 2 - 1;
       const y = -(e.clientY / window.innerHeight) * 2 + 1;
       
       currentPosition.current.set(x, y);
       
-      // 드래그 거리 계산
       const deltaX = currentPosition.current.x - startPosition.current.x;
       const deltaY = currentPosition.current.y - startPosition.current.y;
       
-      // 초기 회전값 + 드래그에 따른 추가 회전
-      const sensitivity = 9.5; // 감도 조절
-      const newRotationZ = startRotation.current.z + deltaX * sensitivity;
-      const newRotationX = startRotation.current.x - deltaY * sensitivity;
+      const newRotationZ = startRotation.current.z + deltaX * PHYSICS_CONFIG.sensitivity;
+      const newRotationX = startRotation.current.x - deltaY * PHYSICS_CONFIG.sensitivity;
       
-      // 회전 제한 적용
-      const clampedZ = Math.max(-tiltLimit, Math.min(tiltLimit, newRotationZ));
-      const clampedX = Math.max(-tiltLimit, Math.min(tiltLimit, newRotationX));
+      const clampedZ = Math.max(-PHYSICS_CONFIG.tiltLimit, Math.min(PHYSICS_CONFIG.tiltLimit, newRotationZ));
+      const clampedX = Math.max(-PHYSICS_CONFIG.tiltLimit, Math.min(PHYSICS_CONFIG.tiltLimit, newRotationX));
       
-      // 그룹 전체 회전 (시각적 모델 + 물리 충돌체)
       groupRef.current.rotation.z = clampedZ;
       groupRef.current.rotation.x = clampedX;
       
-      // 중력 벡터 계산
       updateGravityFromRotation(clampedX, clampedZ);
     };
     
@@ -73,7 +62,6 @@ export default function TiltController({ groupRef, setGravity }: Props) {
       setIsDragging(false);
     };
     
-    // 터치 이벤트 (모바일 지원)
     const onTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 1) {
         const touch = e.touches[0];
@@ -108,8 +96,8 @@ export default function TiltController({ groupRef, setGravity }: Props) {
       const newRotationZ = startRotation.current.z + deltaX * sensitivity;
       const newRotationX = startRotation.current.x - deltaY * sensitivity;
       
-      const clampedZ = Math.max(-tiltLimit, Math.min(tiltLimit, newRotationZ));
-      const clampedX = Math.max(-tiltLimit, Math.min(tiltLimit, newRotationX));
+      const clampedZ = Math.max(-PHYSICS_CONFIG.tiltLimit, Math.min(PHYSICS_CONFIG.tiltLimit, newRotationZ));
+      const clampedX = Math.max(-PHYSICS_CONFIG.tiltLimit, Math.min(PHYSICS_CONFIG.tiltLimit, newRotationX));
       
       groupRef.current.rotation.z = clampedZ;
       groupRef.current.rotation.x = clampedX;
@@ -121,21 +109,18 @@ export default function TiltController({ groupRef, setGravity }: Props) {
       setIsDragging(false);
     };
     
-    // 중력 계산 함수
     const updateGravityFromRotation = (angleX: number, angleZ: number) => {
       const gravityMagnitude = 20;
       
       const gravityX = -Math.sin(angleZ) * gravityMagnitude;
       const gravityZ = Math.sin(angleX) * gravityMagnitude;
       
-      // Y 방향 중력
       const totalAngle = Math.sqrt(angleX * angleX + angleZ * angleZ);
       const gravityY = -gravityMagnitude * Math.cos(totalAngle);
       
       setGravity([gravityX, gravityY, gravityZ]);
     };
     
-    // 이벤트 리스너 등록
     canvas.addEventListener('mousedown', onMouseDown);
     canvas.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
@@ -144,7 +129,6 @@ export default function TiltController({ groupRef, setGravity }: Props) {
     canvas.addEventListener('touchmove', onTouchMove, { passive: false });
     window.addEventListener('touchend', onTouchEnd);
     
-    // 클린업 함수
     return () => {
       canvas.removeEventListener('mousedown', onMouseDown);
       canvas.removeEventListener('mousemove', onMouseMove);
@@ -156,7 +140,6 @@ export default function TiltController({ groupRef, setGravity }: Props) {
     };
   }, [gl, groupRef, isDragging, setGravity]);
   
-  // 커서 스타일 변경
   useEffect(() => {
     document.body.style.cursor = isDragging ? 'grabbing' : 'grab';
     return () => {
@@ -164,7 +147,6 @@ export default function TiltController({ groupRef, setGravity }: Props) {
     };
   }, [isDragging]);
   
-  // 초기화 시 중력도 원래대로
   useEffect(() => {
     if (groupRef.current && 
         groupRef.current.rotation.x === 0 && 
