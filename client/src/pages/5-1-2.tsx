@@ -579,14 +579,19 @@ export default function Page() {
                 />
 
                 {/* <Background/> */}
-
-                <SpeechBubble
-                  position={
-                    activeMode === 'direct' ? [-11, 1.5, 0] : activeMode === 'reflection' ? [-10, 1, -6] : [-11, 1.5, 0]
-                  }
-                  html={'버튼을 눌러 3구 레이저를 켜고,\n빛이 나아가는 모습을 관찰해 보세요.'}
-                  visible={!showIntro}
-                />
+                {!showLensPopup && (
+                  <SpeechBubble
+                    position={
+                      activeMode === 'direct'
+                        ? [-11, 1.5, 0]
+                        : activeMode === 'reflection'
+                        ? [-10, 1, -6]
+                        : [-11, 1.5, 0]
+                    }
+                    html={'버튼을 눌러 3구 레이저를 켜고,\n빛이 나아가는 모습을 관찰해 보세요.'}
+                    visible={!showIntro}
+                  />
+                )}
               </TiltOnMouse>
             </>
           )}
