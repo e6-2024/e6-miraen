@@ -1,15 +1,10 @@
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, ContactShadows, useProgress, Environment } from '@react-three/drei'
-import Light1 from '@/components/6-2-3/Light1'
-import Light2 from '@/components/6-2-3/Light2'
-import Fan1 from '@/components/6-2-3/Fan1'
-import Fan2 from '@/components/6-2-3/Fan2'
 import Scene from '@/components/canvas/Scene'
 import Intro from '@/components/intro/Intro'
 import BG from '@/components/6-2-3/BG'
 import * as THREE from 'three'
-import AudioManager from '@/components/6-2-3/AudioManager'
 import { AnimatePresence, motion } from 'framer-motion'
 import ConnectedBuzzers from '@/components/6-2-3/ConnectedBuzzers'
 import ConnectedLights from '@/components/6-2-3/ConnectedLights'
@@ -17,6 +12,8 @@ import ConnectedFans from '@/components/6-2-3/ConnectedFans'
 import IntroMouseCameraController from '@/components/intro/IntroMouseCameraController'
 import { CrayonTextButton } from '@/components/common/CrayonUIButton'
 import { CrayonTextBox } from '@/components/common/CrayonTextBox'
+import { audioManager, playNarration, playEffect, stopNarration, stopAll } from '@/utils/6-2-3/audioManager'
+import { NARRATIONS, SOUND_EFFECTS, BACKGROUND_MUSIC, VOLUMES } from '@/utils/6-2-3/narrationConfig'
 
 const BUTTON_THEME = {
   goal: { bg: '#52AE46', border: '#A1CC90', text: '#FFFFFF' },
@@ -36,7 +33,6 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
   return null
 }
 
-// 정리하기 팝업 컴포넌트
 function SummaryPopup({
   mode,
   isOpen,
@@ -51,7 +47,6 @@ function SummaryPopup({
     buzzer: '전기 회로에 전지 한 개를 연결할 때보다 전지 두 개를 직렬연결할 때 버저에서 나는 소리가 더 큽니다.',
     fan: '전기 회로에 전지 한 개를 연결할 때보다 전지 두 개를 직렬연결할 때 전동기의 날개가 더 빠르게 돌아갑니다.',
   }
-  const audioManager = AudioManager.getInstance()
 
   if (!isOpen) return null
 
@@ -63,7 +58,7 @@ function SummaryPopup({
         exit={{ opacity: 0 }}
         className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50'
         onClick={() => {
-          audioManager.playGeneralButton()
+          playEffect(SOUND_EFFECTS.BUTTON)
           onClose()
         }}>
         <motion.div
@@ -77,7 +72,7 @@ function SummaryPopup({
           <div className='text-center'>
             <button
               onClick={() => {
-                audioManager.playGeneralButton()
+                playEffect(SOUND_EFFECTS.BUTTON)
                 onClose()
               }}
               className='px-8 py-3 bg-blue-500 text-white rounded-xl font-light hover:bg-blue-600 transition-colors duration-200'>
@@ -91,155 +86,158 @@ function SummaryPopup({
 }
 
 export default function Home() {
-  // AudioManager 인스턴스
-  const audioManager = AudioManager.getInstance()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
 
-  // 랜덤 모드 선택 함수
   const getRandomMode = useCallback((): 'light' | 'buzzer' | 'fan' => {
     const modes: ('light' | 'buzzer' | 'fan')[] = ['light', 'buzzer', 'fan']
     return modes[Math.floor(Math.random() * modes.length)]
   }, [])
 
-  // 초기 랜덤 모드로 설정 (intro 상태에서는 랜덤 모드가 미리 선택됨)
   const [initialRandomMode] = useState<'light' | 'buzzer' | 'fan'>(() => getRandomMode())
   const [mode, setMode] = useState<'light' | 'buzzer' | 'fan' | null>(null)
   const [showSummaryPopup, setShowSummaryPopup] = useState(false)
-
-  // 전구 조명 세기 조절
-  const [light1Intensity, setLight1Intensity] = useState(1.0)
-  const [light2Intensity, setLight2Intensity] = useState(0.5)
-
-  // Intro 관련 상태
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
-
-  // 자막 관련 상태
+  const [isBackFromMode, setIsBackFromMode] = useState(false)
   const [showSubtitle, setShowSubtitle] = useState(false)
   const [subtitleText, setSubtitleText] = useState('')
 
-  const playClickSound = useCallback(
-    (audioPath: string = '/sounds/Enter_Cute.mp3') => {
-      audioManager.playEffect(audioPath, 0.7).catch((error) => {
-        console.log('효과음 재생 실패:', error)
-      })
-    },
-    [audioManager],
-  )
+  const bgmRef = useRef<HTMLAudioElement | null>(null)
+  const [bgmEnabled, setBgmEnabled] = useState<boolean>(true)
+  const [bgmReady, setBgmReady] = useState(false)
 
-  // 자막과 함께 오디오 재생하는 함수
-  const playAudioWithSubtitle = useCallback(
-    (audioPath: string, subtitle: string, duration: number = 5000) => {
-      // 자막 표시
-      setSubtitleText(subtitle)
-      setShowSubtitle(true)
+  useEffect(() => {
+    if (!mounted) return
+    try {
+      const saved = localStorage.getItem('bgmEnabled')
+      if (saved !== null) setBgmEnabled(JSON.parse(saved))
+    } catch {}
+  }, [mounted])
 
-      // 나레이션 재생
-      audioManager
-        .playNarration(audioPath, 0.7)
-        .then(() => {
-          // 오디오 종료 시 자막 숨김
-          setShowSubtitle(false)
-        })
-        .catch((error) => {
-          console.log('나레이션 재생 실패:', error)
-          setShowSubtitle(false)
-        })
+  useEffect(() => {
+    if (!mounted) return
+    const el = new Audio(BACKGROUND_MUSIC)
+    el.loop = true
+    el.volume = VOLUMES.BACKGROUND_MUSIC
+    bgmRef.current = el
+    return () => {
+      el.pause()
+      bgmRef.current = null
+    }
+  }, [mounted])
 
-      // fallback: 지정된 시간 후 자막 숨김
-      setTimeout(() => {
+  useEffect(() => {
+    if (!mounted || !bgmRef.current) return
+    try {
+      localStorage.setItem('bgmEnabled', JSON.stringify(bgmEnabled))
+    } catch {}
+    if (bgmEnabled && bgmReady) {
+      bgmRef.current.play().catch(() => {})
+    } else {
+      bgmRef.current.pause()
+    }
+  }, [bgmEnabled, bgmReady, mounted])
+
+  const toggleBgm = () => setBgmEnabled((v) => !v)
+
+  const playAudioWithSubtitle = useCallback((audioPath: string, subtitle: string, duration: number = 5000) => {
+    setSubtitleText(subtitle)
+    setShowSubtitle(true)
+
+    playNarration(audioPath, VOLUMES.NARRATION)
+      .then(() => {
         setShowSubtitle(false)
-      }, duration)
-    },
-    [audioManager],
-  )
+      })
+      .catch((error) => {
+        console.log('나레이션 재생 실패:', error)
+        setShowSubtitle(false)
+      })
+
+    setTimeout(() => {
+      setShowSubtitle(false)
+    }, duration)
+  }, [])
 
   const handleLoadingComplete = useCallback(() => {
     setIsLoaded(true)
   }, [])
 
-  const handleEnterExperience = useCallback(() => {
-    playClickSound()
-  }, [playClickSound, mode])
-
   const handleModeSelect = useCallback(
     (selectedMode: 'light' | 'buzzer' | 'fan') => {
-      audioManager.playGeneralButton()
+      playEffect(SOUND_EFFECTS.CLICK)
       setMode(selectedMode)
       setShowIntro(false)
+      setBgmReady(true)
       setTimeout(() => {
-        playAudioWithSubtitle('/sounds/6-2-3/narration/6-2-3-A.MP3', '전기 회로에 전지를 연결해 보세요.', 6000)
+        playAudioWithSubtitle(NARRATIONS.BATTERY_CONNECT, '전기 회로에 전지를 연결해 보세요.', 6000)
       }, 500)
     },
-    [playAudioWithSubtitle, audioManager],
+    [playAudioWithSubtitle],
   )
 
   const handleBackToModeSelection = useCallback(() => {
-    audioManager.playGeneralButton()
-    audioManager.stopAll()
-    setTimeout(() => {
-      setMode(null)
-      setShowIntro(true)
-    }, 100)
-  }, [audioManager])
+    playEffect(SOUND_EFFECTS.BUTTON)
+    stopAll()
+    stopNarration()
+    setMode(null)
+    setShowIntro(true)
+    setIsBackFromMode(true)
+    setShowSubtitle(false)
+  }, [])
+
+  const handleBackToIntro = useCallback(() => {
+    playEffect(SOUND_EFFECTS.BUTTON)
+    stopAll()
+    stopNarration()
+    setShowIntro(true)
+    setIsBackFromMode(false)
+    setMode(null)
+  }, [])
 
   const handleSummaryClick = useCallback(() => {
     if (!mode) return
 
-    // 정리하기 버튼 클릭 사운드
-    audioManager.playGeneralButton()
+    playEffect(SOUND_EFFECTS.BUTTON)
 
-    // 각 모드별 정리하기 오디오 재생
     const summaryAudioMap = {
-      light: '/sounds/6-2-3/narration/6-2-3-E.MP3',
-      buzzer: '/sounds/6-2-3/narration/6-2-3-F.MP3',
-      fan: '/sounds/6-2-3/narration/6-2-3-G.MP3',
+      light: NARRATIONS.LIGHT_SUMMARY,
+      buzzer: NARRATIONS.BUZZER_SUMMARY,
+      fan: NARRATIONS.FAN_SUMMARY,
     }
 
-    audioManager.playNarration(summaryAudioMap[mode], 0.7).catch((error) => {
+    playNarration(summaryAudioMap[mode], VOLUMES.NARRATION).catch((error) => {
       console.log('정리하기 나레이션 재생 실패:', error)
     })
 
     setShowSummaryPopup(true)
-  }, [mode, playClickSound, audioManager])
+  }, [mode])
 
   const handleCloseSummaryPopup = useCallback(() => {
     setShowSummaryPopup(false)
+    stopNarration()
   }, [])
 
-  // 컴포넌트 언마운트 시 모든 오디오 정리
   useEffect(() => {
     return () => {
-      audioManager.stopAll()
+      stopAll()
     }
-  }, [audioManager])
+  }, [])
 
-  // 현재 모드에 따라 컴포넌트를 조건부 렌더링 (useMemo로 최적화)
   const getCurrentComponents = useMemo(() => {
-    const currentMode = showIntro ? initialRandomMode : mode // intro 상태에서는 랜덤 모드 사용
+    const currentMode = showIntro ? initialRandomMode : mode
 
     switch (currentMode) {
       case 'light':
-        return (
-          <>
-            <ConnectedLights key='connected-lights' scale={1} position={[0, 0, 0]} />
-          </>
-        )
+        return <ConnectedLights key='connected-lights' scale={1} position={[0, 0, 0]} />
       case 'buzzer':
-        return (
-          <>
-            <ConnectedBuzzers key='connected-buzzers' scale={1} position={[0, 0, 0]} />
-          </>
-        )
+        return <ConnectedBuzzers key='connected-buzzers' scale={1} position={[0, 0, 0]} />
       case 'fan':
-        return (
-          <>
-            <ConnectedFans key='connected-fans' scale={1} position={[0, 0, 0]} />
-          </>
-        )
+        return <ConnectedFans key='connected-fans' scale={1} position={[0, 0, 0]} />
       default:
         return null
     }
-  }, [mode, showIntro, initialRandomMode, light1Intensity, light2Intensity])
+  }, [mode, showIntro, initialRandomMode])
 
   const modeButtons = useMemo(
     () => [
@@ -267,8 +265,42 @@ export default function Home() {
 
   return (
     <div className='w-screen h-screen bg-white flex flex-col'>
+      <CrayonTextButton
+        ariaLabel={'첫 화면으로'}
+        icon={'home'}
+        position='absolute'
+        iconPosition='left'
+        onClick={handleBackToIntro}
+        width={108}
+        height={108}
+        color='#ffffff'
+        textcolor='#ffffff'
+        bg='rgba(255,255,255,0.10)'
+        className='background-blur z-[200] mix-blend-difference'
+        right={138}
+        top={16}
+        iconSize={40}
+        innerCircleVisible={true}
+      />
+      <CrayonTextButton
+        icon={bgmEnabled ? 'volume2' : 'volumeX'}
+        position='absolute'
+        iconPosition='left'
+        onClick={toggleBgm}
+        width={108}
+        height={108}
+        color='#fff'
+        textcolor='#fff'
+        bg='rgba(255,255,255,0.10)'
+        className='backdrop-blur z-[1000] mix-blend-difference'
+        right={16}
+        top={16}
+        iconSize={40}
+        innerCircleVisible={true}
+      />
+
       <AnimatePresence>
-        {mode !== null && (
+        {!showIntro && mode !== null && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -300,7 +332,7 @@ export default function Home() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5, ease: 'easeInOut' }}
-            className='absolute top-4 right-4 z-10 w-fit h-fit'>
+            className='absolute bottom-4 right-4 z-10 w-fit h-fit'>
             <CrayonTextButton
               onClick={handleSummaryClick}
               width={170}
@@ -317,7 +349,6 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {/* 3D 씬 */}
       <div className='flex-1 relative overflow-hidden'>
         <Scene
           shadows
@@ -375,22 +406,21 @@ export default function Home() {
 
       {isLoaded && showIntro && (
         <Intro
-          onEnter={handleEnterExperience}
+          onEnter={() => {}}
           title='전지의 수에 따른 전기 회로의 특징 비교하기'
           description={['전지 1 개를 연결한 전기 회로와 전지 2 개를 직렬연결한', '전기 회로의 특징을 비교해 봅시다.']}
           backgroundSvg='/img/cover/6-2-3.svg'
-          descriptionSound='/sounds/6-2-3/narration/6-2-3-Goal.MP3'
+          descriptionSound={NARRATIONS.GOAL}
           showModeSelection={true}
           modeButtons={modeButtons}
           onModeSelect={handleModeSelect}
+          showModeButtonsDirectly={isBackFromMode}
           buttonTheme={BUTTON_THEME}
         />
       )}
 
-      {/* 정리하기 팝업 */}
       {mode && <SummaryPopup mode={mode} isOpen={showSummaryPopup} onClose={handleCloseSummaryPopup} />}
 
-      {/* 자막 표시 */}
       <AnimatePresence>
         {showSubtitle && (
           <motion.div

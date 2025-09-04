@@ -3,7 +3,7 @@ import { GroupProps, ThreeEvent } from '@react-three/fiber'
 import { useRef, useEffect, useState } from 'react'
 import * as THREE from 'three'
 import { BatteryModule1, BatteryModule2 } from './BatteryModule'
-import AudioManager from '@/components/6-2-3/AudioManager'
+import AudioManager from '@/utils/6-2-3/audioManager'
 
 // Individual Light Component
 function LightComponent({
