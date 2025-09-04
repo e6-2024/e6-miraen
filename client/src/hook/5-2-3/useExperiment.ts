@@ -25,30 +25,30 @@ export const useExperiment = () => {
       animationCleanupRef.current = null;
     }
 
-    setState({
-      timeOfDay: state.timeOfDay,
-      currentStep: 'initial',
+    setState(prev => ({
+      timeOfDay: prev.timeOfDay,
+      currentStep: 'initial', 
       completedSteps: new Set(),
       temperatures: getInitialTemperatures(),
-      pressures: getPressures(state.timeOfDay),
+      pressures: getPressures(prev.timeOfDay),
       showTemperatureDisplay: false,
       showPressureDisplay: false,
       showWind: false,
       isTemperatureAnimating: false,
       modelAnimationEnabled: false,
-    });
+    }));
 
     setCameraTarget({
       position: CAMERA_CONFIGS.initial.position,
       lookAt: CAMERA_CONFIGS.initial.target,
     });
-  }, [state.timeOfDay]);
+  }, []);
 
   const setTimeOfDay = useCallback((timeOfDay: TimeOfDay) => {
     setState(prev => ({
       ...prev,
       timeOfDay,
-      currentStep: 'day-selected',
+      currentStep: 'day-selected', // 시간 선택 완료
       temperatures: getInitialTemperatures(),
       pressures: getPressures(timeOfDay),
     }));

@@ -21,6 +21,7 @@ import { useAudio } from '@/hook/5-2-3/useAudio'
 import { TimeOfDay, PopupContent } from '@/types/5-2-3/types'
 import { getPopupContent, getWindDirection, getPressures, CAMERA_CONFIGS } from '@/utils/5-2-3/utils'
 import { TiltOnMouse } from '@/components/common/Tilt'
+import { CrayonTextBox } from '@/components/common/CrayonTextBox'
 
 const BUTTON_THEME = {
   goal: { bg: '#52AE46', border: '#A1CC90', text: '#FFFFFF' },
@@ -28,10 +29,75 @@ const BUTTON_THEME = {
   start: { bg: '#F3921C', border: '#FFDBB0', text: '#FFFFFF' },
 }
 
+interface TimeSelectionPopupProps {
+  isOpen: boolean
+  onTimeSelect: (time: TimeOfDay) => void
+}
+
+const TimeSelectionPopup: React.FC<TimeSelectionPopupProps> = ({ isOpen, onTimeSelect }) => {
+  const [isVisible, setIsVisible] = useState(false)
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsVisible(true)
+    }
+  }, [isOpen])
+
+  const handleTimeSelect = (time: TimeOfDay) => {
+    setIsVisible(false)
+    setTimeout(() => {
+      onTimeSelect(time)
+    }, 300)
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div className='fixed inset-0 flex items-center justify-center z-50 bg-white bg-opacity-50 transition-all duration-300'>
+      <CrayonTextBox width={900} height={600} bg='#fff' color='#52AE46' animated={true}>
+        <div className='p-8 blur-none'>
+          <h3 className='text-2xl font-bold text-gray-900 mb-8 text-center'>시간대를 선택해 보세요</h3>
+
+          <div className='flex gap-4 justify-center'>
+            <button
+              onClick={() => handleTimeSelect('day')}
+              className='flex flex-col items-center rounded-xl font-bold'>
+              <img
+                src='/img/5-2-3/day.png'
+                alt='낮'
+                className='w-full h-full mb-2 object-contain hover:ring-4 hover:ring-gray-300'
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none'
+                }}
+              />
+              <span className='text-xl text-black'>낮</span>
+            </button>
+
+            <button
+              onClick={() => handleTimeSelect('night')}
+              className='flex flex-col items-center rounded-xl font-bold'>
+              <img
+                src='/img/5-2-3/night.png'
+                alt='밤'
+                className='w-full h-full mb-2 object-contain hover:ring-4 hover:ring-gray-300'
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none'
+                }}
+              />
+              <span className='text-xl text-black'>밤</span>
+            </button>
+          </div>
+        </div>
+      </CrayonTextBox>
+    </div>
+  )
+}
+
 export default function Page() {
   const [mounted, setMounted] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
+  const [showTimeSelectionPopup, setShowTimeSelectionPopup] = useState(false)
   const [showPopup, setShowPopup] = useState(false)
   const [popupContent, setPopupContent] = useState<PopupContent>({
     title: '',
@@ -101,20 +167,40 @@ export default function Page() {
     setBgmReady(true)
     setTimeout(() => {
       setShowIntro(false)
-      setCameraTarget({
-        position: CAMERA_CONFIGS.initial.position,
-        lookAt: CAMERA_CONFIGS.initial.target,
-      })
+      // 시간대 선택 팝업 표시
+      setShowTimeSelectionPopup(true)
     }, 300)
-  }, [playSound, setCameraTarget])
+  }, [playSound])
 
   const handleBackToIntro = useCallback(() => {
     playSound('/sounds/Enter_Cute.mp3')
     setShowIntro(true)
+    setShowTimeSelectionPopup(false)
     resetExperiment()
     setShowPopup(false)
     setBgmReady(false)
   }, [playSound, resetExperiment])
+
+  const handleTimeSelectionFromPopup = useCallback(
+    (time: TimeOfDay) => {
+      playSound('/sounds/Enter_Cute.mp3')
+      setShowTimeSelectionPopup(false)
+      setTimeOfDay(time)
+
+      // 카메라 위치 설정
+      setCameraTarget({
+        position: CAMERA_CONFIGS.initial.position,
+        lookAt: CAMERA_CONFIGS.initial.target,
+      })
+
+      // 시간대 선택 후 안내 팝업 표시
+      setTimeout(() => {
+        setShowPopup(true)
+        setPopupContent(getPopupContent(time, 'day-selected'))
+      }, 500)
+    },
+    [playSound, setTimeOfDay, setCameraTarget],
+  )
 
   const handleTimeSelect = useCallback(
     (time: TimeOfDay) => {
@@ -158,7 +244,7 @@ export default function Page() {
   }, [])
 
   const stepConfigs = ['temperature', 'pressure', 'wind'].map(getStepConfig)
-  const showExperimentUI = !showIntro && state.currentStep !== 'initial'
+  const showExperimentUI = !showIntro && !showTimeSelectionPopup && state.currentStep !== 'initial'
   const pressures = getPressures(state.timeOfDay)
 
   return (
@@ -210,7 +296,7 @@ export default function Page() {
           type: 'PCFSoftShadowMap',
         }}>
         <LoadingTracker onLoadingComplete={handleLoadingComplete} />
-        <TiltOnMouse enabled={showIntro} maxDeg={10} position={[0, 0, 0]}>
+        <TiltOnMouse enabled={showIntro || showTimeSelectionPopup} maxDeg={10} position={[0, 0, 0]}>
           {/* 조명 설정 */}
           <ambientLight
             intensity={state.timeOfDay === 'day' ? 0.4 : 0.2}
@@ -265,11 +351,11 @@ export default function Page() {
             <CameraController
               targetPosition={cameraTarget.position}
               targetLookAt={cameraTarget.lookAt}
-              enabled={!showIntro && !showPopup}
+              enabled={!showIntro && !showTimeSelectionPopup && !showPopup}
             />
           ) : (
             <OrbitControls
-              enabled={!showIntro && !showPopup}
+              enabled={!showIntro && !showTimeSelectionPopup && !showPopup}
               minDistance={0}
               maxDistance={300}
               minPolarAngle={0}
@@ -281,7 +367,12 @@ export default function Page() {
         </TiltOnMouse>
       </Scene>
 
-      <TimeSelector timeOfDay={state.timeOfDay} onTimeSelect={handleTimeSelect} visible={!showIntro} />
+      {/* 시간 선택기 - 실험 중에만 표시 */}
+      <TimeSelector
+        timeOfDay={state.timeOfDay}
+        onTimeSelect={handleTimeSelect}
+        visible={!showIntro && !showTimeSelectionPopup && state.currentStep !== 'initial'}
+      />
 
       <StepControls steps={stepConfigs} onStepClick={handleStepClick} visible={showExperimentUI} />
 
@@ -327,7 +418,6 @@ export default function Page() {
         innerCircleVisible={true}
       />
 
-      {/* 인트로 */}
       {isLoaded && showIntro && (
         <Intro
           onEnter={handleEnterExperience}
@@ -339,7 +429,8 @@ export default function Page() {
         />
       )}
 
-      {/* 팝업 */}
+      <TimeSelectionPopup isOpen={showTimeSelectionPopup} onTimeSelect={handleTimeSelectionFromPopup} />
+
       <Popup isOpen={showPopup} onClose={() => setShowPopup(false)} content={popupContent} />
     </div>
   )
