@@ -1,16 +1,22 @@
 import { TimeOfDay, ExperimentStep, TemperatureData, PressureData, CameraTarget } from '@/types/5-2-3/types';
 
-export const INITIAL_CAMERA_POSITION: [number, number, number] =  [-5, -14, -5];
-export const INITIAL_CAMERA_TARGET: [number, number, number] = [-5, -14, -6];
+export const INITIAL_CAMERA_POSITION: [number, number, number] =  [-5, -12, -5];
+export const INITIAL_CAMERA_TARGET: [number, number, number] = [-5, -12, -6];
 
 export const CAMERA_CONFIGS = {
   initial: {
     position: INITIAL_CAMERA_POSITION,
     target: INITIAL_CAMERA_TARGET,
   },
+  observation: {
+    position: [-5, -12, -5] as [number, number, number],
+    target: [-5, -12, -6] as [number, number, number],
+  },
   windObservation: {
-    position: [-5, -14, -5] as [number, number, number],
-    target: [-5, -14, -6] as [number, number, number],
+    position: [-11, -9.96, 3.5] as [number, number, number],
+    target: [-6, -10, -10] as [number, number, number],
+    position2: [1.52, -9.96, 1.82] as [number, number, number],
+    target2: [-0.5, -10, -10] as [number, number, number],
   },
 } as const;
 
@@ -53,12 +59,12 @@ export const getPopupContent = (timeOfDay: TimeOfDay, step: ExperimentStep) => {
     },
     'day-conclusion': {
       title: '낮에 바닷가에서 부는 바람',
-      content: '낮에는 육지 온도가 바다 온도보다 상대적으로 높아져 바다는 고기압이 되고 육지는 저기압이 되어 바다에서 육지 쪽으로 바람이 분다.',
+      content: '낮에는 육지 온도가 바다 온도보다 상대적으로 높아져 바다는 고기압이 되고 육지는 저기압이 되어 바다에서 육지 쪽으로 바람이 붑니다.',
       narrationPath: '/sounds/5-2-3/narration/5-2-3-C.MP3',
     },
     'night-conclusion': {
       title: '밤에 바닷가에서 부는 바람',
-      content: '밤에는 육지 온도가 바다 온도보다 상대적으로 낮아져 바다는 저기압이 되고 육지는 고기압이 되어 육지에서 바다 쪽으로 바람이 분다.',
+      content: '밤에는 육지 온도가 바다 온도보다 상대적으로 낮아져 바다는 저기압이 되고 육지는 고기압이 되어 육지에서 바다 쪽으로 바람이 붑니다.',
       narrationPath: '/sounds/5-2-3/narration/5-2-3-F.MP3',
     },
   };
@@ -72,11 +78,11 @@ export const getPopupContent = (timeOfDay: TimeOfDay, step: ExperimentStep) => {
 
 export const getStepButtonStyle = (enabled: boolean, completed: boolean): string => {
   if (completed) {
-    return 'px-4 py-2 bg-green-500 text-white rounded-lg cursor-default opacity-90';
+    return 'cursor-default opacity-90';
   } else if (enabled) {
-    return 'px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shadow-lg animate-pulse cursor-pointer';
+    return 'animate-pulse cursor-pointer';
   } else {
-    return 'px-4 py-2 bg-gray-400 text-gray-200 rounded-lg cursor-not-allowed opacity-50';
+    return 'cursor-not-allowed opacity-50';
   }
 };
 

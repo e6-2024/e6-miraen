@@ -14,19 +14,19 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({ timeOfDay, onTimeSel
   const checked = timeOfDay === 'day'
 
   return (
-    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30">
+    <div className="absolute text-2xl top-4 left-1/2 -translate-x-1/2 z-30">
       <CrayonToggle
         checked={checked}
         onChange={(next) => onTimeSelect(next ? 'day' : 'night')}
         leftLabel="낮"
         rightLabel="밤"
-        width={200}
+        width={180}
         height={78}
         ariaLabel="낮/밤 전환"
-        bg="#fff7ed"
-        border="#7c2d12"
-        knobBg="#ffffff"
-        activeText="#7c2d12"
+        bg="#fff"
+        border="#52AE46"
+        knobBg="#ffffff1e"
+        activeText="#000"
         inactiveText="#64748b"
       />
     </div>

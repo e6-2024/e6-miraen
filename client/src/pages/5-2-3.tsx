@@ -22,6 +22,7 @@ import { TimeOfDay, PopupContent } from '@/types/5-2-3/types'
 import { getPopupContent, getWindDirection, getPressures, CAMERA_CONFIGS } from '@/utils/5-2-3/utils'
 import { TiltOnMouse } from '@/components/common/Tilt'
 import { CrayonTextBox } from '@/components/common/CrayonTextBox'
+import CameraLogger from '@/hook/CameraLogger'
 
 const BUTTON_THEME = {
   goal: { bg: '#52AE46', border: '#A1CC90', text: '#FFFFFF' },
@@ -59,9 +60,7 @@ const TimeSelectionPopup: React.FC<TimeSelectionPopupProps> = ({ isOpen, onTimeS
           <h3 className='text-2xl font-bold text-gray-900 mb-8 text-center'>시간대를 선택해 보세요</h3>
 
           <div className='flex gap-4 justify-center'>
-            <button
-              onClick={() => handleTimeSelect('day')}
-              className='flex flex-col items-center rounded-xl font-bold'>
+            <button onClick={() => handleTimeSelect('day')} className='flex flex-col items-center rounded-xl font-bold'>
               <img
                 src='/img/5-2-3/day.png'
                 alt='낮'
@@ -167,13 +166,19 @@ export default function Page() {
     setBgmReady(true)
     setTimeout(() => {
       setShowIntro(false)
-      // 시간대 선택 팝업 표시
       setShowTimeSelectionPopup(true)
     }, 300)
   }, [playSound])
 
+  const handleBackToTimeSelection = useCallback(() => {
+    playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3')
+    setShowTimeSelectionPopup(true)
+    resetExperiment()
+    setShowPopup(false)
+  }, [playSound, resetExperiment])
+
   const handleBackToIntro = useCallback(() => {
-    playSound('/sounds/Enter_Cute.mp3')
+    playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3')
     setShowIntro(true)
     setShowTimeSelectionPopup(false)
     resetExperiment()
@@ -183,7 +188,7 @@ export default function Page() {
 
   const handleTimeSelectionFromPopup = useCallback(
     (time: TimeOfDay) => {
-      playSound('/sounds/Enter_Cute.mp3')
+      playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3')
       setShowTimeSelectionPopup(false)
       setTimeOfDay(time)
 
@@ -204,7 +209,7 @@ export default function Page() {
 
   const handleTimeSelect = useCallback(
     (time: TimeOfDay) => {
-      playSound('/sounds/Enter_Cute.mp3')
+      playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3')
       resetExperiment()
       setTimeOfDay(time)
 
@@ -229,10 +234,11 @@ export default function Page() {
           break
         case 'wind':
           startWindAnimation()
+          // 바람 애니메이션이 시작된 후 카메라가 이동하면 팝업 표시
           setTimeout(() => {
             setShowPopup(true)
             setPopupContent(getPopupContent(state.timeOfDay, 'wind-animation'))
-          }, 2200)
+          }, 2500) // 카메라 이동 시간을 고려해서 조금 늦게 표시
           break
       }
     },
@@ -247,18 +253,18 @@ export default function Page() {
   const showExperimentUI = !showIntro && !showTimeSelectionPopup && state.currentStep !== 'initial'
   const pressures = getPressures(state.timeOfDay)
 
+  const delayFor = (type: 'high' | 'low', base = 0.2, gap = 0.6) => (type === 'high' ? base : base + gap)
+
   return (
     <div className='w-screen h-screen bg-red flex flex-col relative'>
-      {/* 밤 오버레이 */}
       <div
         className={`absolute inset-0 transition-opacity duration-1000 z-5 ${
           state.timeOfDay === 'night' ? 'bg-black opacity-60' : 'opacity-0'
         } pointer-events-none`}
       />
 
-      {/* 온도 표시 */}
       {state.showTemperatureDisplay && (
-        <div className='absolute flex flex-row left-1/2 -translate-x-1/2 top-4 gap-[800px] z-30'>
+        <div className='absolute flex flex-row left-1/2 -translate-x-1/2 top-1/3 -translate-y-1/2 gap-[800px] z-30'>
           <Thermometer
             temperature={state.temperatures.sea}
             label='바다'
@@ -272,18 +278,21 @@ export default function Page() {
         </div>
       )}
 
-      {/* 기압 표시 */}
       {state.showPressureDisplay && (
-        <div className='absolute flex flex-row left-1/2 -translate-x-1/2 top-10 gap-[200px] z-30'>
+        <div className='absolute flex flex-row left-1/2 -translate-x-1/2 top-1/3 -translate-y-1/2 gap-[200px] z-30'>
           <PressureDisplay
+            key={`sea-${pressures.sea}-${state.timeOfDay}`}
             type={pressures.sea}
             label='바다'
             color={state.timeOfDay === 'day' ? '#ef4444' : '#3b82f6'}
+            delay={delayFor(pressures.sea, 0.2, 0.6)}
           />
           <PressureDisplay
+            key={`land-${pressures.land}-${state.timeOfDay}`}
             type={pressures.land}
             label='육지'
             color={state.timeOfDay === 'day' ? '#3b82f6' : '#ef4444'}
+            delay={delayFor(pressures.land, 0.2, 0.6)}
           />
         </div>
       )}
@@ -295,6 +304,7 @@ export default function Page() {
           enabled: true,
           type: 'PCFSoftShadowMap',
         }}>
+        <CameraLogger />
         <LoadingTracker onLoadingComplete={handleLoadingComplete} />
         <TiltOnMouse enabled={showIntro || showTimeSelectionPopup} maxDeg={10} position={[0, 0, 0]}>
           {/* 조명 설정 */}
@@ -357,13 +367,13 @@ export default function Page() {
             <OrbitControls
               enabled={!showIntro && !showTimeSelectionPopup && !showPopup}
               minDistance={0}
-              maxDistance={300}
+              maxDistance={500}
               minPolarAngle={0}
               maxPolarAngle={Math.PI / 2}
             />
           )}
 
-          <Environment preset={state.timeOfDay === 'day' ? 'sunset' : 'night'} blur={0.8} resolution={512} />
+          <Environment preset={state.timeOfDay === 'day' ? 'sunset' : 'night'} blur={1} resolution={256} />
         </TiltOnMouse>
       </Scene>
 
@@ -381,7 +391,32 @@ export default function Page() {
         visible={state.currentStep === 'temperature-animation'}
       />
 
-      {/* 홈 버튼 */}
+      <AnimatePresence>
+        {!showIntro && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5, ease: 'easeInOut' }}
+            className='absolute top-4 left-4 z-10 w-fit h-fit'>
+            <CrayonTextButton
+              ariaLabel='모드 선택 화면으로 돌아가기'
+              text='첫 화면으로'
+              icon='arrow-left'
+              iconPosition='left'
+              width={170}
+              height={75}
+              iconSize={30}
+              color='#52AE46'
+              bg='#fff'
+              textcolor='#444'
+              onClick={handleBackToTimeSelection}
+              innerCircleVisible={false}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <CrayonTextButton
         ariaLabel='첫 화면으로'
         icon='home'
@@ -393,14 +428,12 @@ export default function Page() {
         color='#ffffff'
         textcolor='#ffffff'
         bg='rgba(255,255,255,0.10)'
-        className='backdrop-blur z-[200] right-[108px] mix-blend-difference'
-        right={16}
+        className='backdrop-blur z-[200] mix-blend-difference'
+        right={138}
         top={16}
         iconSize={40}
         innerCircleVisible={true}
       />
-
-      {/* BGM 토글 버튼 */}
       <CrayonTextButton
         icon={bgmEnabled ? 'volume2' : 'volumeX'}
         position='absolute'
@@ -411,7 +444,7 @@ export default function Page() {
         color='#fff'
         textcolor='#fff'
         bg='rgba(255,255,255,0.10)'
-        className='backdrop-blur z-[1000] right-[0px] mix-blend-difference'
+        className='backdrop-blur z-[1000] mix-blend-difference'
         right={16}
         top={16}
         iconSize={40}

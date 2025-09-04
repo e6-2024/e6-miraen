@@ -65,7 +65,7 @@ export const CrayonToggle: React.FC<CrayonToggleSwitchProps> = ({
   // 손잡이 위치 (좌=checked, 우=!checked)
   const knobX = checked
     ? padding + 5
-    : padding + trackW - knobSize - 5
+    : padding + trackW - knobSize-12
 
   return (
     <div
@@ -125,7 +125,7 @@ export const CrayonToggle: React.FC<CrayonToggleSwitchProps> = ({
 
       {/* 라벨/아이콘 */}
       <div className="absolute inset-0 flex items-center justify-between px-6">
-        <div className="flex items-center gap-2">
+        <div className="flex px-2 items-center gap-2">
           <span
             className="font-bold"
             style={{ color: checked ? activeText : inactiveText }}
@@ -133,7 +133,7 @@ export const CrayonToggle: React.FC<CrayonToggleSwitchProps> = ({
             {leftLabel}
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex px-1 items-center gap-2">
           <span
             className="font-bold"
             style={{ color: !checked ? activeText : inactiveText }}

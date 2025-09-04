@@ -118,7 +118,7 @@ export const CameraController: React.FC<CameraControllerProps> = ({
       ref={controlsRef}
       enabled={enabled}
       minDistance={0}
-      maxDistance={10}
+      maxDistance={20}
       minPolarAngle={0}
       maxPolarAngle={Math.PI / 2}
     />

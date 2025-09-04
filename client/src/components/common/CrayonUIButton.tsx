@@ -23,7 +23,7 @@ import {
   VolumeX,
   RefreshCcw,
   Expand,
-  PencilLine
+  PencilLine,
 } from 'lucide-react'
 
 interface CrayonTextButtonProps {
@@ -134,7 +134,7 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
         refresh: RefreshCcw,
         replay: RefreshCcw,
         expand: Expand,
-        pencilline : PencilLine
+        pencilline: PencilLine,
       }
 
       const foundIcon = iconMap[key]
@@ -154,10 +154,21 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
   const IconComponent = icon ? getIconComponent(icon) : null
 
   return (
-    <div style={positionStyle} className='inline-block'>
+    <div style={positionStyle} className='inline-block '>
       {/* SVG 필터 정의 */}
       <svg width='0' height='0' className='absolute'>
         <defs>
+          <mask id='crayonMask'>
+            <rect
+              x='5'
+              y='5'
+              width={width - 10}
+              height={height - 10}
+              rx={(height - 10) / 2}
+              ry={(height - 10) / 2}
+              fill='#fff'
+            />
+          </mask>
           <filter id='paperTextureStatic' x='-15%' y='-15%' width='130%' height='130%'>
             <feTurbulence baseFrequency='0.02' numOctaves='2' result='noise' />
             <feDisplacementMap in='SourceGraphic' in2='noise' scale='0.8' />
@@ -193,16 +204,24 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
         </defs>
       </svg>
 
-      <button type='button' aria-label={ariaLabel ?? text} className={`relative group ${className}`} onClick={onClick}>
-        <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className='w-full h-full'>
-          {/* 배경 */}
+      <button
+        type='button'
+        aria-label={ariaLabel ?? text}
+        onClick={onClick}
+        className={`relative group rounded-full p-0 border-0 bg-transparent ${className}`}
+        style={{ width, height, WebkitTapHighlightColor: 'transparent' }}>
+        <svg
+          width={width}
+          height={height}
+          viewBox={`0 0 ${width} ${height}`}
+          className='w-full h-full'>
           <rect
-            x='5'
-            y='5'
-            width={width - 10}
-            height={height - 10}
-            rx={(height - 10) / 2}
-            ry={(height - 10) / 2}
+            x='0'
+            y='0'
+            width={width}
+            height={height}
+            rx={(height) / 2}
+            ry={(height) / 2}
             fill={bg}
             filter='url(#paperTextureStatic)'
             className='transition-all duration-300'
@@ -218,7 +237,6 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
             filter='url(#paperTextureAnimated)'
             className='transition-all duration-300 opacity-0'
           />
-          {/* 테두리 */}
           <rect
             x='12'
             y='12'
@@ -265,7 +283,7 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
           />
         </svg>
 
-        <div className='absolute inset-0 flex items-center justify-center'>
+        <div className='absolute inset-0 flex items-center justify-center pointer-events-none'>
           <div className={`flex items-center gap-2 ${iconPosition === 'right' ? 'flex-row-reverse' : ''}`}>
             {IconComponent && (
               <IconComponent size={iconSize} style={{ color: textcolor }} className='transition-all duration-300' />
