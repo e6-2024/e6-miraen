@@ -22,16 +22,14 @@ interface BGProps {
 }
 
 export default function BG({ mode, ...props }: BGProps & JSX.IntrinsicElements['group']) {
-  // 전구 모드일 때는 BG_dark.gltf, 나머지는 BG.gltf 사용
   const modelPath = mode === 'light' ? '/models/6-2-3/BG/BG_dark.gltf' : '/models/6-2-3/BG/BG.gltf'
   const { nodes, materials } = useGLTF(modelPath) as GLTFResult
   
-  // 모드에 따라 다른 노드와 재질 사용
   const isDarkMode = mode === 'light'
-  const deskNode = isDarkMode ? nodes.desk_0001 : nodes.desk_0
+  const deskNode = nodes.desk_0001
   const sphereNode = nodes.pSphere1
-  const woodMaterial = isDarkMode ? materials['wood.001'] : materials.wood
-  const surfaceMaterial = isDarkMode ? materials['surfaceShader1.001'] : materials.surfaceShader1
+  const woodMaterial = materials['wood.001']
+  const surfaceMaterial = materials['surfaceShader1.001']
   
   return (
     <group {...props} dispose={null}>
@@ -56,6 +54,5 @@ export default function BG({ mode, ...props }: BGProps & JSX.IntrinsicElements['
   )
 }
 
-// 두 모델 모두 preload
 useGLTF.preload('/models/6-2-3/BG/BG.gltf')
 useGLTF.preload('/models/6-2-3/BG/BG_dark.gltf')

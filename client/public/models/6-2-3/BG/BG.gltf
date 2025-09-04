@@ -24,7 +24,7 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"desk_0",
+			"name":"desk_0.001",
 			"rotation":[
 				-0.70710688829422,
 				0,
@@ -33,8 +33,8 @@
 			],
 			"scale":[
 				11.46501636505127,
-				11.46501636505127,
-				11.46501636505127
+				11.465014457702637,
+				11.465014457702637
 			],
 			"translation":[
 				0,
@@ -46,29 +46,30 @@
 			"mesh":1,
 			"name":"pSphere1",
 			"rotation":[
-				0.7071066498756409,
+				0.7071065902709961,
 				0,
 				0,
-				0.70710688829422
+				0.7071069478988647
 			],
 			"scale":[
 				410.081787109375,
-				410.081787109375,
-				410.081787109375
+				410.08172607421875,
+				410.08172607421875
 			]
 		}
 	],
 	"materials":[
 		{
 			"doubleSided":true,
-			"name":"wood",
+			"name":"wood.001",
 			"normalTexture":{
 				"extensions":{
 					"KHR_texture_transform":{
 						"offset":[
-							0,
-							-1.6999998092651367
+							-2.699999809265134,
+							1.0000001180207447
 						],
+						"rotation":1.5707963705062866,
 						"scale":[
 							1.3999998569488525,
 							2.6999998092651367
@@ -82,12 +83,13 @@
 					"extensions":{
 						"KHR_texture_transform":{
 							"offset":[
-								0,
-								-1.6999998092651367
+								-0.7999999523162834,
+								1.0000000349691098
 							],
+							"rotation":1.5707963705062866,
 							"scale":[
 								1.3999998569488525,
-								2.6999998092651367
+								0.7999999523162842
 							]
 						}
 					},
@@ -99,19 +101,18 @@
 		},
 		{
 			"doubleSided":true,
-			"name":"surfaceShader1",
+			"name":"surfaceShader1.001",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
 					"index":2
 				},
-				"metallicFactor":0,
-				"roughnessFactor":0.5527864098548889
+				"metallicFactor":0
 			}
 		}
 	],
 	"meshes":[
 		{
-			"name":"desk_0",
+			"name":"desk_0.001",
 			"primitives":[
 				{
 					"attributes":{
@@ -138,7 +139,7 @@
 			]
 		},
 		{
-			"name":"Mesh.004",
+			"name":"Mesh.118",
 			"primitives":[
 				{
 					"attributes":{
@@ -170,18 +171,23 @@
 		},
 		{
 			"sampler":0,
-			"source":0
+			"source":1
 		},
 		{
 			"sampler":0,
-			"source":1
+			"source":2
 		}
 	],
 	"images":[
 		{
+			"mimeType":"image/png",
+			"name":"Material.001_Normal_OpenGL",
+			"uri":"Material_001_Normal_OpenGL.png"
+		},
+		{
 			"mimeType":"image/jpeg",
-			"name":"wood_baseColor",
-			"uri":"wood_baseColor.jpg"
+			"name":"wood-364692",
+			"uri":"wood-364692.jpg"
 		},
 		{
 			"mimeType":"image/png",
@@ -195,8 +201,8 @@
 			"count":44,
 			"max":[
 				1.5374200344085693,
-				0.7947800159454346,
-				0.03217000141739845
+				0.7947225570678711,
+				0.03220588341355324
 			],
 			"min":[
 				-1.5374200344085693,
@@ -229,9 +235,9 @@
 			"componentType":5126,
 			"count":439,
 			"max":[
+				1.000000238418579,
 				1,
-				1.0000001192092896,
-				1
+				1.0000004768371582
 			],
 			"min":[
 				-1.000000238418579,
@@ -259,13 +265,13 @@
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":714,
+			"byteLength":689,
 			"byteOffset":0
 		},
 		{
 			"buffer":0,
-			"byteLength":3368,
-			"byteOffset":716
+			"byteLength":3631,
+			"byteOffset":692
 		}
 	],
 	"samplers":[
@@ -276,7 +282,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":4084,
+			"byteLength":4324,
 			"uri":"BG.bin"
 		}
 	]

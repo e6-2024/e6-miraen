@@ -15,6 +15,14 @@ import ConnectedBuzzers from '@/components/6-2-3/ConnectedBuzzers'
 import ConnectedLights from '@/components/6-2-3/ConnectedLights'
 import ConnectedFans from '@/components/6-2-3/ConnectedFans'
 import IntroMouseCameraController from '@/components/intro/IntroMouseCameraController'
+import { CrayonTextButton } from '@/components/common/CrayonUIButton'
+import { CrayonTextBox } from '@/components/common/CrayonTextBox'
+
+const BUTTON_THEME = {
+  goal: { bg: '#52AE46', border: '#A1CC90', text: '#FFFFFF' },
+  guide: { bg: '#52AE46', border: '#A1CC90', text: '#FFFFFF' },
+  start: { bg: '#F3921C', border: '#FFDBB0', text: '#FFFFFF' },
+}
 
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
   const { progress, active } = useProgress()
@@ -237,19 +245,19 @@ export default function Home() {
     () => [
       {
         mode: 'light' as const,
-        label: '전구를 연결한 전기회로',
+        label: '전구를 연결한 전기 회로',
         color: '#ffbc04',
         hoverColor: '#f5c951',
       },
       {
         mode: 'buzzer' as const,
-        label: '버저를 연결한 전기회로',
+        label: '버저를 연결한 전기 회로',
         color: '#2dc46e',
         hoverColor: '#48dd89',
       },
       {
         mode: 'fan' as const,
-        label: '전동기를 연결한 전기회로',
+        label: '전동기를 연결한 전기 회로',
         color: '#b73ce8',
         hoverColor: '#ba5ae1',
       },
@@ -259,46 +267,6 @@ export default function Home() {
 
   return (
     <div className='w-screen h-screen bg-white flex flex-col'>
-      {mode === null && !showIntro && (
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -50 }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-          className='absolute inset-0 z-40 flex flex-row items-center justify-center gap-8 bg-white/90 backdrop-blur-sm'>
-          <div className='flex flex-row gap-6 max-w-md w-full px-4'>
-            {modeButtons.map(({ mode: buttonMode, label, color, hoverColor }, index) => (
-              <motion.button
-                key={buttonMode}
-                initial={{ opacity: 0, x: -50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 + index * 0.1, duration: 0.5 }}
-                className='w-full px-6 pt-5 pb-6 rounded-[30px] shadow-[inset_0px_-10px_10px_0px_rgba(50,0,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:shadow-[inset_0px_-10px_10px_0px_rgba(50,0,0,0.70)] active:scale-95 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(50,0,0,0.50)] transition-all duration-300 hover:scale-105'
-                style={
-                  {
-                    backgroundColor: color,
-                    '--hover-bg': hoverColor,
-                  } as React.CSSProperties & { '--hover-bg': string }
-                }
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = hoverColor
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = color
-                }}
-                onClick={() => {
-                  handleModeSelect(buttonMode)
-                }}
-                aria-label={`${label} 모드 선택`}>
-                <div className='text-center justify-center text-white text-xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
-                  {label}
-                </div>
-              </motion.button>
-            ))}
-          </div>
-        </motion.div>
-      )}
-
       <AnimatePresence>
         {mode !== null && (
           <motion.div
@@ -307,22 +275,24 @@ export default function Home() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5, ease: 'easeInOut' }}
             className='absolute top-4 left-4 z-10 w-fit h-fit'>
-            <button
-              onClick={() => {
-                audioManager.playGeneralButton()
-                handleBackToModeSelection()
-              }}
-              className='px-6 pt-3 pb-4 bg-[#FF8026] rounded-[20px] shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#ff9b54] hover:shadow-[inset_0px_-10px_10px_0px_rgba(152,0,0,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(152,0,0,0.50)] transition-all duration-300'
-              aria-label='모드 선택 화면으로 돌아가기'>
-              <div className='text-center justify-center text-white text-2xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
-                뒤로가기
-              </div>
-            </button>
+            <CrayonTextButton
+              ariaLabel='모드 선택 화면으로 돌아가기'
+              text='첫 화면으로'
+              icon='arrow-left'
+              iconPosition='left'
+              width={170}
+              height={75}
+              iconSize={30}
+              bg={BUTTON_THEME.start.bg}
+              color={BUTTON_THEME.start.border}
+              textcolor='#FFFFFF'
+              onClick={handleBackToModeSelection}
+              innerCircleVisible={false}
+            />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* 정리하기 버튼 */}
       <AnimatePresence>
         {mode !== null && (
           <motion.div
@@ -331,14 +301,18 @@ export default function Home() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5, ease: 'easeInOut' }}
             className='absolute top-4 right-4 z-10 w-fit h-fit'>
-            <button
+            <CrayonTextButton
               onClick={handleSummaryClick}
-              className='px-6 pt-3 pb-4 bg-[#4CAF50] rounded-[20px] shadow-[inset_0px_-10px_10px_0px_rgba(0,152,0,0.50)] inline-flex justify-center items-center gap-2.5 overflow-hidden hover:bg-[#66BB6A] hover:shadow-[inset_0px_-10px_10px_0px_rgba(0,152,0,0.70)] active:scale-90 active:translate-y-2 active:shadow-[inset_0px_-2px_2px_0px_rgba(0,152,0,0.50)] transition-all duration-300'
-              aria-label='정리하기'>
-              <div className='text-center justify-center text-white text-2xl font-bold [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]'>
-                정리하기
-              </div>
-            </button>
+              width={170}
+              height={75}
+              icon={'PencilLine'}
+              iconSize={18}
+              iconPosition='left'
+              bg={BUTTON_THEME.goal.bg}
+              color={BUTTON_THEME.goal.border}
+              textcolor={BUTTON_THEME.goal.text}
+              text='정리하기'
+            />
           </motion.div>
         )}
       </AnimatePresence>
@@ -406,10 +380,10 @@ export default function Home() {
           description={['전지 1 개를 연결한 전기 회로와 전지 2 개를 직렬연결한', '전기 회로의 특징을 비교해 봅시다.']}
           backgroundSvg='/img/cover/6-2-3.svg'
           descriptionSound='/sounds/6-2-3/narration/6-2-3-Goal.MP3'
-          // 모드 선택 관련 props 추가
           showModeSelection={true}
           modeButtons={modeButtons}
           onModeSelect={handleModeSelect}
+          buttonTheme={BUTTON_THEME}
         />
       )}
 

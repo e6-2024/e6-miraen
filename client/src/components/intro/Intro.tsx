@@ -203,6 +203,10 @@ export default function Intro<T = string>({
                     ? { bg: '#01A7A2', border: '#78C9C9' }
                     : String(mode) === 'refraction'
                     ? {  bg: '#6C63FF', border: '#5A54D6' }
+                    : String(mode) === 'light'
+                    ? {  bg: '#F3921C', border: '#FFDBB0' }
+                    : String(mode) === 'buzzer'
+                    ? {  bg: '#4E9F3D', border: '#3E7F30' }
                     : { bg: '#6C63FF', border: '#5A54D6' }
 
                 return (
