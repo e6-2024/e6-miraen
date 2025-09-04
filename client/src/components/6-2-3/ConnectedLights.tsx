@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import { BatteryModule1, BatteryModule2 } from './BatteryModule'
 import AudioManager from '@/utils/6-2-3/audioManager'
 import { BatteryButton1, BatteryButton2 } from './BatteryButton'
+
 type Props = JSX.IntrinsicElements['group'] & {
   onBatteryClick?: () => void
 }
@@ -236,7 +237,7 @@ function LightComponent({
 /* =========================
    ConnectedLights
 ========================= */
-export default function ConnectedLights(props: GroupProps) {
+export default function ConnectedLights(props: Props) {
   const [light1BatteryMode, setLight1BatteryMode] = useState(0)
   const [light2BatteryMode, setLight2BatteryMode] = useState(0)
 
@@ -260,7 +261,10 @@ export default function ConnectedLights(props: GroupProps) {
   // 배터리 버튼 1
   const handleBattery1Click = () => {
     if (battery1Used) return
-    playBatteryAudio()
+    if (!battery1Used && !battery2Used) playBatteryAudio()
+    if (props.onBatteryClick) {
+      props.onBatteryClick()
+    }
     audioManager.playGeneralButton()
     setBattery1Used(true)
 
@@ -278,7 +282,10 @@ export default function ConnectedLights(props: GroupProps) {
   // 배터리 버튼 2
   const handleBattery2Click = () => {
     if (battery2Used) return
-    playBatteryAudio()
+    if (!battery1Used && !battery2Used) playBatteryAudio()
+    if (props.onBatteryClick) {
+      props.onBatteryClick()
+    }
     audioManager.playGeneralButton()
     setBattery2Used(true)
 

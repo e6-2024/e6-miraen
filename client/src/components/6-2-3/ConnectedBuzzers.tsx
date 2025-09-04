@@ -190,7 +190,7 @@ function BuzzerComponent({
     if (batteryMode > 0) {
       setBuzzerOn(false)
       setActiveBuzzer(null)
-      onDetach()
+      onDetach && onDetach()
     }
   }
 
@@ -226,19 +226,18 @@ function BuzzerComponent({
   )
 }
 
-//setshowNarration
 function NarrationText() {
   return (
     <CrayonTextBox
       bg='#FFFFFF'
       className='p-8 max-w-lg'
       animated={true}
-      text='스위치를 닫아 전구의 밝기를 비교해 보세요.'
+      text='스위치를 닫아 버저의 소리를 비교해 보세요.'
     />
   )
 }
 
-export default function ConnectedBuzzers(props: GroupProps) {
+export default function ConnectedBuzzers(props: Props) {
   // 배터리 연결 상태: 0=없음, 1=1개, 2=2개
   const [buzzer1BatteryMode, setBuzzer1BatteryMode] = useState(0)
   const [buzzer2BatteryMode, setBuzzer2BatteryMode] = useState(0)
@@ -255,8 +254,6 @@ export default function ConnectedBuzzers(props: GroupProps) {
 
   const [activeBuzzer, setActiveBuzzer] = useState<string | null>(null)
 
-  const [showNarration, setShowNarration] = useState(true)
-
   // AudioManager 인스턴스
   const audioManager = AudioManager.getInstance()
 
@@ -268,8 +265,10 @@ export default function ConnectedBuzzers(props: GroupProps) {
 
   const handleBattery1Click = (e: ThreeEvent<PointerEvent>) => {
     if (battery1Used) return
-    playBatteryAudio()
-    setShowNarration(true)
+    if (!battery1Used && !battery2Used) playBatteryAudio()
+    if (props.onBatteryClick) {
+      props.onBatteryClick()
+    }
     audioManager.playGeneralButton()
     setBattery1Used(true)
 
@@ -286,14 +285,16 @@ export default function ConnectedBuzzers(props: GroupProps) {
 
   const handleBattery2Click = (e: ThreeEvent<PointerEvent>) => {
     if (battery2Used) return
-    playBatteryAudio()
-    setShowNarration(true)
+    if (!battery1Used && !battery2Used) playBatteryAudio()
+    if (props.onBatteryClick) {
+      props.onBatteryClick()
+    }
     audioManager.playGeneralButton()
     setBattery2Used(true)
 
     if (nextTargetIsLeft) {
-      setBuzzer1BatteryMode(2)
-      setBuzzer1Source(2)
+      setBuzzer2BatteryMode(2)
+      setBuzzer2Source(2)
       setNextTargetIsLeft(false)
     } else {
       setBuzzer2BatteryMode(2)

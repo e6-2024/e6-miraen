@@ -88,8 +88,17 @@ function SummaryPopup({
   )
 }
 
-function NarrationText() {
-  return <CrayonTextBox bg='#FFFFFF' animated={true} text='스위치를 닫아 전구의 밝기를 비교해 보세요.' />
+function NarrationText({ mode }: { mode: 'light' | 'buzzer' | 'fan' | null }): JSX.Element {
+  let text = ''
+  if (mode === 'light'){
+    text = '스위치를 닫아 전구의 밝기를 비교해 보세요.'
+  }else if (mode === 'buzzer') {
+    text = '스위치를 닫아 버저 소리의 크기를 비교해 보세요.'
+  }
+   else if (mode === 'fan') {
+    text = '스위치를 닫아 전동기 날개의 빠르기를 비교해 보세요.'
+  }
+  return <CrayonTextBox bg='#FFFFFF' color={BUTTON_THEME.start.border} className='font-light' animated={true} text={text} />
 }
 
 export default function Home() {
@@ -289,8 +298,8 @@ export default function Home() {
     <div className='w-screen h-screen bg-white flex flex-col'>
       {showNarrationText && (
         <div className='absolute top-24 left-1/2 -translate-x-1/2 z-[300]'>
-          <NarrationText />
-        </div>
+          <NarrationText mode={mode || initialRandomMode} />
+        </div>  
       )}
       <CrayonTextButton
         ariaLabel={'첫 화면으로'}

@@ -125,15 +125,7 @@ function FanComponent({
   }
 
   const rotationSpeed =
-    batteryMode === 0
-      ? 0
-      : batteryMode === 1
-      ? componentName === 'Fan1'
-        ? 5
-        : 8
-      : componentName === 'Fan1'
-      ? 15
-      : 25
+    batteryMode === 0 ? 0 : batteryMode === 1 ? (componentName === 'Fan1' ? 5 : 8) : componentName === 'Fan1' ? 15 : 25
 
   useFrame((_, delta) => {
     if (fanBladeRef.current && isRotating && batteryMode > 0) {
@@ -159,16 +151,14 @@ function FanComponent({
         <group
           onPointerDown={handleBatteryDetach}
           onPointerOver={() => (document.body.style.cursor = 'pointer')}
-          onPointerOut={() => (document.body.style.cursor = 'default')}
-        >
+          onPointerOut={() => (document.body.style.cursor = 'default')}>
           <BatteryModule1 position={[0, 0, 0]} batteryType='fan' />
         </group>
       ) : batteryMode === 2 ? (
         <group
           onPointerDown={handleBatteryDetach}
           onPointerOver={() => (document.body.style.cursor = 'pointer')}
-          onPointerOut={() => (document.body.style.cursor = 'default')}
-        >
+          onPointerOut={() => (document.body.style.cursor = 'default')}>
           <BatteryModule2 position={[0, 0, 0]} batteryType='fan' />
         </group>
       ) : (
@@ -180,15 +170,18 @@ function FanComponent({
         fontSize={0.2}
         color={isRotating && batteryMode > 0 ? 'lightgreen' : 'gray'}
         anchorX='center'
-        anchorY='middle'
-      >
-        {batteryMode === 0 ? '전원 없음' : isRotating ? `회전 중 (속도: ${batteryMode === 1 ? '느림' : '빠름'})` : '정지'}
+        anchorY='middle'>
+        {batteryMode === 0
+          ? '전원 없음'
+          : isRotating
+          ? `회전 중 (속도: ${batteryMode === 1 ? '느림' : '빠름'})`
+          : '정지'}
       </Text>
     </group>
   )
 }
 
-export default function ConnectedFans(props: GroupProps) {
+export default function ConnectedFans(props: Props) {
   const [fan1BatteryMode, setFan1BatteryMode] = useState(0)
   const [fan2BatteryMode, setFan2BatteryMode] = useState(0)
 
@@ -202,32 +195,49 @@ export default function ConnectedFans(props: GroupProps) {
 
   const audioManager = AudioManager.getInstance()
   const playBatteryAudio = () => {
-    audioManager.playNarration('/sounds/6-2-3/narration/6-2-3-D.MP3', 0.7).catch((e) => console.log('나레이션 재생 실패:', e))
+    audioManager
+      .playNarration('/sounds/6-2-3/narration/6-2-3-D.MP3', 0.7)
+      .catch((e) => console.log('나레이션 재생 실패:', e))
   }
 
   const handleBattery1Click = () => {
     if (battery1Used) return
-    playBatteryAudio()
+    if (!battery1Used && !battery2Used) playBatteryAudio()
     audioManager.playGeneralButton()
     setBattery1Used(true)
+    if (props.onBatteryClick) {
+      props.onBatteryClick()
+    }
 
     if (nextTargetIsLeft) {
-      setFan1BatteryMode(1); setFan1Source(1); setNextTargetIsLeft(false)
+      setFan1BatteryMode(1)
+      setFan1Source(1)
+      setNextTargetIsLeft(false)
     } else {
-      setFan2BatteryMode(1); setFan2Source(1); setNextTargetIsLeft(true)
+      setFan2BatteryMode(1)
+      setFan2Source(1)
+      setNextTargetIsLeft(true)
     }
   }
 
   const handleBattery2Click = () => {
     if (battery2Used) return
-    playBatteryAudio()
+    if (!battery1Used && !battery2Used) playBatteryAudio()
     audioManager.playGeneralButton()
     setBattery2Used(true)
 
+    if (props.onBatteryClick) {
+      props.onBatteryClick()
+    }
+
     if (nextTargetIsLeft) {
-      setFan1BatteryMode(2); setFan1Source(2); setNextTargetIsLeft(false)
+      setFan1BatteryMode(2)
+      setFan1Source(2)
+      setNextTargetIsLeft(false)
     } else {
-      setFan2BatteryMode(2); setFan2Source(2); setNextTargetIsLeft(true)
+      setFan2BatteryMode(2)
+      setFan2Source(2)
+      setNextTargetIsLeft(true)
     }
   }
 
