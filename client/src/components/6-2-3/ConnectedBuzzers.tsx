@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import { BatteryModule1, BatteryModule2 } from './BatteryModule'
 import { BatteryButton1, BatteryButton2 } from './BatteryButton'
 import AudioManager from '@/utils/6-2-3/audioManager'
+import { CrayonTextBox } from '../common/CrayonTextBox'
 
 interface SwitchContextType {
   activeBuzzer: string | null
@@ -221,7 +222,18 @@ function BuzzerComponent({
   )
 }
 
-// Main Connected Buzzers Component
+//setshowNarration
+function NarrationText() {
+  return (
+    <CrayonTextBox
+      bg='#FFFFFF'
+      className='p-8 max-w-lg'
+      animated={true}
+      text='스위치를 닫아 전구의 밝기를 비교해 보세요.'
+    />
+  )
+}
+
 export default function ConnectedBuzzers(props: GroupProps) {
   // 배터리 연결 상태: 0=없음, 1=1개, 2=2개
   const [buzzer1BatteryMode, setBuzzer1BatteryMode] = useState(0)
@@ -239,6 +251,8 @@ export default function ConnectedBuzzers(props: GroupProps) {
 
   const [activeBuzzer, setActiveBuzzer] = useState<string | null>(null)
 
+  const [showNarration, setShowNarration] = useState(true)
+
   // AudioManager 인스턴스
   const audioManager = AudioManager.getInstance()
 
@@ -251,6 +265,7 @@ export default function ConnectedBuzzers(props: GroupProps) {
   const handleBattery1Click = (e: ThreeEvent<PointerEvent>) => {
     if (battery1Used) return
     playBatteryAudio()
+    setShowNarration(true)
     audioManager.playGeneralButton()
     setBattery1Used(true)
 
@@ -268,6 +283,7 @@ export default function ConnectedBuzzers(props: GroupProps) {
   const handleBattery2Click = (e: ThreeEvent<PointerEvent>) => {
     if (battery2Used) return
     playBatteryAudio()
+    setShowNarration(true)
     audioManager.playGeneralButton()
     setBattery2Used(true)
 
@@ -289,17 +305,16 @@ export default function ConnectedBuzzers(props: GroupProps) {
     setBuzzer1Source(null)
     setBuzzer1BatteryMode(0)
     setActiveBuzzer(null)
-    setNextTargetIsLeft(true) // 다음 클릭은 왼쪽부터 연결하도록
+    setNextTargetIsLeft(true)
   }
 
-  // ★ 오른쪽 버저에서 배터리 분리
   const detachRight = () => {
     if (buzzer2Source === 1) setBattery1Used(false)
     if (buzzer2Source === 2) setBattery2Used(false)
     setBuzzer2Source(null)
     setBuzzer2BatteryMode(0)
     setActiveBuzzer(null)
-    setNextTargetIsLeft(false) // 다음 클릭은 오른쪽부터 연결하도록
+    setNextTargetIsLeft(false)
   }
 
   return (
@@ -311,7 +326,7 @@ export default function ConnectedBuzzers(props: GroupProps) {
           position={[-5, -0.1, 0]}
           batteryMode={buzzer1BatteryMode}
           componentName='Buzzer1'
-          onDetach={detachLeft} 
+          onDetach={detachLeft}
         />
 
         {/* Buzzer2 */}
@@ -320,10 +335,10 @@ export default function ConnectedBuzzers(props: GroupProps) {
           position={[5, -0.1, 0]}
           batteryMode={buzzer2BatteryMode}
           componentName='Buzzer2'
-          onDetach={detachRight} 
+          onDetach={detachRight}
         />
 
-        <group position={[0, 1, 6]}>
+        <group position={[0, 1, 6.66]}>
           <BatteryButton1 position={[-2.5, 0, 0]} isUsed={battery1Used} onClick={handleBattery1Click} />
 
           <BatteryButton2 position={[2.5, 0, 0]} isUsed={battery2Used} onClick={handleBattery2Click} />

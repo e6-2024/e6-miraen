@@ -43,9 +43,9 @@ function SummaryPopup({
   onClose: () => void
 }) {
   const summaryTexts = {
-    light: '전기 회로에 전지 한 개를 연결할 때보다 전지 두 개를 직렬연결할 때 전구의 밝기가 더 밝습니다.',
-    buzzer: '전기 회로에 전지 한 개를 연결할 때보다 전지 두 개를 직렬연결할 때 버저에서 나는 소리가 더 큽니다.',
-    fan: '전기 회로에 전지 한 개를 연결할 때보다 전지 두 개를 직렬연결할 때 전동기의 날개가 더 빠르게 돌아갑니다.',
+    light: '전기 회로에 전지 1 개를 연결할 때보다 전지 2 개를 직렬연결할 때 전구의 밝기가 더 밝습니다.',
+    buzzer: '전기 회로에 전지 1 개를 연결할 때보다 전지 2 개를 직렬연결할 때 버저에서 나는 소리가 더 큽니다.',
+    fan: '전기 회로에 전지 1 개를 연결할 때보다 전지 2 개를 직렬연결할 때 전동기의 날개가 더 빠르게 돌아갑니다.',
   }
 
   if (!isOpen) return null
@@ -65,23 +65,36 @@ function SummaryPopup({
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.8, opacity: 0 }}
-          className='bg-white rounded-3xl p-8 max-w-md mx-4 shadow-2xl'
           onClick={(e) => e.stopPropagation()}>
-          <h2 className='text-2xl font-bold text-center mb-6 text-gray-800'>정리하기</h2>
-          <p className='text-lg text-center font-light text-gray-700 leading-relaxed mb-8'>{summaryTexts[mode]}</p>
-          <div className='text-center'>
-            <button
-              onClick={() => {
-                playEffect(SOUND_EFFECTS.BUTTON)
-                onClose()
-              }}
-              className='px-8 py-3 bg-blue-500 text-white rounded-xl font-light hover:bg-blue-600 transition-colors duration-200'>
-              확인
-            </button>
-          </div>
+          <CrayonTextBox bg='#FFFFFF' color={BUTTON_THEME.start.border} className='p-8 max-w-lg' animated={true}>
+            <h2 className='text-2xl font-bold text-center mb-6 text-gray-800'>정리하기</h2>
+            <p className='text-lg text-center font-light text-gray-700 leading-relaxed mb-8'>{summaryTexts[mode]}</p>
+            <div className='text-center'>
+              <CrayonTextButton
+                onClick={() => {
+                  playEffect(SOUND_EFFECTS.BUTTON, VOLUMES.SOUND_EFFECT)
+                  onClose()
+                }}
+                bg={BUTTON_THEME.start.bg}
+                color={BUTTON_THEME.start.border}
+                textcolor='#FFFFFF'
+                text='확인'
+                innerCircleVisible={false}></CrayonTextButton>
+            </div>
+          </CrayonTextBox>
         </motion.div>
       </motion.div>
     </AnimatePresence>
+  )
+}
+
+function NarrationText() {
+  return (
+    <CrayonTextBox
+      bg='#FFFFFF'
+      animated={true}
+      text='스위치를 닫아 전구의 밝기를 비교해 보세요.'
+    />
   )
 }
 
@@ -106,6 +119,7 @@ export default function Home() {
   const bgmRef = useRef<HTMLAudioElement | null>(null)
   const [bgmEnabled, setBgmEnabled] = useState<boolean>(true)
   const [bgmReady, setBgmReady] = useState(false)
+  const [showNarration, setShowNarration] = useState(false)
 
   useEffect(() => {
     if (!mounted) return
@@ -298,7 +312,6 @@ export default function Home() {
         iconSize={40}
         innerCircleVisible={true}
       />
-
       <AnimatePresence>
         {!showIntro && mode !== null && (
           <motion.div
@@ -324,7 +337,6 @@ export default function Home() {
           </motion.div>
         )}
       </AnimatePresence>
-
       <AnimatePresence>
         {mode !== null && (
           <motion.div
@@ -348,7 +360,6 @@ export default function Home() {
           </motion.div>
         )}
       </AnimatePresence>
-
       <div className='flex-1 relative overflow-hidden'>
         <Scene
           shadows
@@ -359,8 +370,6 @@ export default function Home() {
           }}
           camera={{ position: [14, 8, 15], fov: 50 }}>
           <LoadingTracker onLoadingComplete={handleLoadingComplete} />
-          <IntroMouseCameraController enabled={showIntro} />
-
           <fog attach='fog' args={['#0c0c0cff', 10, 25]} />
           <fogExp2 attach='fog' color={'#ffffffff'} density={0.002} />
           <directionalLight
@@ -403,7 +412,6 @@ export default function Home() {
           />
         </Scene>
       </div>
-
       {isLoaded && showIntro && (
         <Intro
           onEnter={() => {}}
@@ -418,9 +426,7 @@ export default function Home() {
           buttonTheme={BUTTON_THEME}
         />
       )}
-
       {mode && <SummaryPopup mode={mode} isOpen={showSummaryPopup} onClose={handleCloseSummaryPopup} />}
-
       <AnimatePresence>
         {showSubtitle && (
           <motion.div

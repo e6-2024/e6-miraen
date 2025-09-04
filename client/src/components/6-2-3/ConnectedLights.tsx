@@ -1,105 +1,144 @@
-import { useGLTF, useAnimations, Text, Box } from '@react-three/drei'
+import { useGLTF, useAnimations, Text } from '@react-three/drei'
 import { GroupProps, ThreeEvent } from '@react-three/fiber'
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect, useState, createContext, useContext } from 'react'
 import * as THREE from 'three'
 import { BatteryModule1, BatteryModule2 } from './BatteryModule'
 import AudioManager from '@/utils/6-2-3/audioManager'
+import { BatteryButton1, BatteryButton2 } from './BatteryButton'
 
-// Individual Light Component
+/* =========================
+   Switch Context (Light 전용)
+========================= */
+interface SwitchContextType {
+  activeLight: string | null
+  setActiveLight: (light: string | null) => void
+}
+const SwitchContext = createContext<SwitchContextType>({
+  activeLight: null,
+  setActiveLight: () => {},
+})
+
+/* =========================
+   LightComponent
+========================= */
 function LightComponent({
   modelPath,
   position,
   batteryMode,
-  textPosition,
   componentName,
+  onDetach,
 }: {
   modelPath: string
   position: [number, number, number]
   batteryMode: number
-  textPosition: [number, number, number]
   componentName: string
+  onDetach?: () => void
 }) {
   const groupRef = useRef<THREE.Group>(null)
   const { scene, animations } = useGLTF(modelPath)
   const { actions } = useAnimations(animations, groupRef)
+
   const [lightOn, setLightOn] = useState(false)
-  
-  // AudioManager 인스턴스
+  const { activeLight, setActiveLight } = useContext(SwitchContext)
+
   const audioManager = AudioManager.getInstance()
 
-  // 전구 상태와 배터리 모드에 따른 오디오 제어
+  // 전역 활성 라이트 변경 시 내 상태 동기화
+  useEffect(() => {
+    if (activeLight !== componentName) {
+      setLightOn(false)
+    }
+  }, [activeLight, componentName])
+
+  // 스위치 효과음
   useEffect(() => {
     if (lightOn && batteryMode > 0) {
-      // 전구가 켜지고 배터리가 있으면 오디오 재생
-      audioManager.playComponentSound(
-        '/sounds/6-2-3/6-2-3-2_switch-light-04-82204.mp3',
-        `light-${componentName}`,
-        0.6,
-        false // 전구 효과음은 루프하지 않음
-      ).catch((error) => {
-        console.log(`${componentName} 전구 오디오 재생 실패:`, error)
-      })
+      audioManager
+        .playComponentSound('/sounds/6-2-3/6-2-3-2_switch-light-04-82204.mp3', `light-${componentName}`, 0.6, false)
+        .catch((err) => console.log(`${componentName} 전구 오디오 재생 실패:`, err))
     } else {
-      // 전구가 꺼지거나 배터리가 없으면 오디오 중지
       audioManager.stopComponentSound(`light-${componentName}`)
     }
   }, [lightOn, batteryMode, componentName, audioManager])
 
-  // 컴포넌트 언마운트 시 오디오 정리
+  // 언마운트 시 오디오 정리
   useEffect(() => {
     return () => {
       audioManager.stopComponentSound(`light-${componentName}`)
     }
   }, [audioManager, componentName])
 
-  // 그림자 설정
+  // 그림자/머티리얼 설정 + 밝기 반영
   useEffect(() => {
-    if (scene) {
-      scene.traverse((child) => {
-        if (child instanceof THREE.Mesh) {
-          // Light_Bulb 그룹 내의 mesh들은 shadow를 처리하지 않음
-          const isInLightBulbGroup = child.parent?.name === 'Light_Bulb'
+    if (!scene) return
 
-          if (isInLightBulbGroup) {
-            child.castShadow = false
-            child.receiveShadow = false
-          } else {
-            child.castShadow = true
-            child.receiveShadow = true
+    scene.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        const inBulb = child.parent?.name === 'Light_Bulb'
+        if (inBulb) {
+          child.castShadow = false
+          child.receiveShadow = false
+        } else {
+          child.castShadow = true
+          child.receiveShadow = true
+        }
+
+        // 발광/투명도 반영 (머티리얼이 표준 머티리얼일 때)
+        if (child.material instanceof THREE.MeshStandardMaterial) {
+          const mat = child.material
+          // 전구 유리나 광원 메쉬에만 적용되도록 이름 체크(필요 시 이름 조정)
+          const isBulbSurface =
+            inBulb || /bulb|glass|lamp|light/i.test(child.name) || /bulb|glass|lamp|light/i.test(mat.name)
+
+          if (isBulbSurface) {
+            const emissiveIntensity =
+              batteryMode === 0
+                ? 0
+                : batteryMode === 1
+                ? componentName === 'Light1'
+                  ? 0.1
+                  : 0.1
+                : componentName === 'Light1'
+                ? 0.5
+                : 1.0
+            const opacity = batteryMode === 0 ? 0.2 : batteryMode === 1 ? (lightOn ? 0.6 : 0.3) : lightOn ? 1.0 : 0.4
+
+            mat.transparent = true
+            mat.opacity = opacity
+            mat.emissive = new THREE.Color(1.0, 0.8, 0.4) // 따뜻한 불빛
+            // emissiveIntensity가 별도 프로퍼티로 없으므로 color scale로 근사
+            mat.emissiveIntensity = 1
+            mat.emissive.multiplyScalar(lightOn && batteryMode > 0 ? emissiveIntensity : 0)
           }
         }
-      })
-    }
-  }, [scene])
-
-  // 애니메이션 제어
-  useEffect(() => {
-    if (actions && Object.keys(actions).length > 0) {
-      const actionName = Object.keys(actions)[0]
-      const action = actions[actionName]
-
-      if (action) {
-        const animationDuration = action.getClip().duration
-        const halfDuration = animationDuration / 2
-
-        action.reset()
-        action.setLoop(THREE.LoopOnce, 1)
-        action.clampWhenFinished = true
-        action.timeScale = 4
-
-        if (lightOn) {
-          action.time = 0
-          action.play()
-          setTimeout(() => {
-            if (action) {
-              action.paused = true
-            }
-          }, halfDuration * 250)
-        } else {
-          action.time = halfDuration
-          action.play()
-        }
       }
+    })
+  }, [scene, lightOn, batteryMode, componentName])
+
+  // 스위치 애니메이션 (반쯤에서 on/off 정지)
+  useEffect(() => {
+    if (!actions || Object.keys(actions).length === 0) return
+    const actionName = Object.keys(actions)[0]
+    const action = actions[actionName]
+    if (!action) return
+
+    const clipDur = action.getClip().duration
+    const half = clipDur / 2
+
+    action.reset()
+    action.setLoop(THREE.LoopOnce, 1)
+    action.clampWhenFinished = true
+    action.timeScale = 4
+
+    if (lightOn) {
+      action.time = 0
+      action.play()
+      setTimeout(() => {
+        if (action) action.paused = true
+      }, half * 250)
+    } else {
+      action.time = half
+      action.play()
     }
   }, [lightOn, actions])
 
@@ -108,10 +147,8 @@ function LightComponent({
     e.nativeEvent.stopImmediatePropagation()
 
     let obj: THREE.Object3D | null = e.object
-
     while (obj) {
       if (obj.name === 'Switch' && scene.getObjectById(obj.id)) {
-        console.log(`${componentName} Switch clicked - toggling light and animation`)
         setLightOn((prev) => !prev)
         return
       }
@@ -119,53 +156,27 @@ function LightComponent({
     }
   }
 
-  // 배터리 모드에 따른 밝기 계산
-  const getLightIntensity = () => {
-    if (batteryMode === 0) return 0 // 배터리 없음 - 불이 안 켜짐
-    if (batteryMode === 1) {
-      // 배터리 1개 - 낮은 밝기
-      return componentName === 'Light1' ? 0.5 : 0.8
-    }
-    if (batteryMode === 2) {
-      // 배터리 2개 - 높은 밝기
-      return componentName === 'Light1' ? 2.0 : 3.0
-    }
-    return 0
-  }
+  // 포인트 라이트 밝기 (배터리/스위치 상태에 비례)
+  const pointLightIntensity =
+    batteryMode === 0
+      ? 0
+      : batteryMode === 1
+      ? componentName === 'Light1'
+        ? 2
+        : 5
+      : componentName === 'Light1'
+      ? 20
+      : 20
 
-  const getEmissiveIntensity = () => {
-    if (batteryMode === 0) return 0
-    if (batteryMode === 1) {
-      return componentName === 'Light1' ? 0.2 : 0.4
+  // 배터리 분리
+  const handleBatteryDetach = (e: ThreeEvent<PointerEvent>) => {
+    e.stopPropagation()
+    if (batteryMode > 0) {
+      setLightOn(false)
+      setActiveLight(null)
+      onDetach && onDetach()
     }
-    if (batteryMode === 2) {
-      return componentName === 'Light1' ? 0.5 : 1.0
-    }
-    return 0
   }
-
-  const getPointLightIntensity = () => {
-    if (batteryMode === 0) return 0
-    if (batteryMode === 1) {
-      return componentName === 'Light1' ? 2 : 5
-    }
-    if (batteryMode === 2) {
-      return componentName === 'Light1' ? 20 : 20
-    }
-    return 0
-  }
-
-  const getOpacity = () => {
-    if (batteryMode === 0) return 0.2
-    if (batteryMode === 1) return lightOn ? 0.6 : 0.3
-    if (batteryMode === 2) return lightOn ? 1.0 : 0.4
-    return 0.2
-  }
-
-  const lightIntensity = getLightIntensity()
-  const emissiveIntensity = getEmissiveIntensity()
-  const pointLightIntensity = getPointLightIntensity()
-  const opacity = getOpacity()
 
   return (
     <group ref={groupRef} position={position}>
@@ -187,149 +198,149 @@ function LightComponent({
         color={new THREE.Color(1, 0.8, 0.4)}
       />
 
-      {/* 배터리 모듈 렌더링 */}
+      {/* 배터리 모듈 (클릭 시 분리) */}
       {batteryMode === 1 ? (
-        <BatteryModule1 position={[0, 0, 0]} batteryType='light' />
+        <group
+          onPointerDown={handleBatteryDetach}
+          onPointerOver={() => (document.body.style.cursor = 'pointer')}
+          onPointerOut={() => (document.body.style.cursor = 'default')}>
+          <BatteryModule1 position={[0, 0, 0]} batteryType='light' />
+        </group>
       ) : batteryMode === 2 ? (
-        <BatteryModule2 position={[0, 0, 0]} batteryType='light' />
+        <group
+          onPointerDown={handleBatteryDetach}
+          onPointerOver={() => (document.body.style.cursor = 'pointer')}
+          onPointerOut={() => (document.body.style.cursor = 'default')}>
+          <BatteryModule2 position={[0, 0, 0]} batteryType='light' />
+        </group>
       ) : (
         <BatteryModule1 showBody={false} position={[0, 0, 0]} batteryType='light' />
       )}
+
+      {/* 상태 텍스트 (선택사항) */}
+      <Text
+        position={[0, -1, 3]}
+        fontSize={0.2}
+        color={lightOn && batteryMode > 0 ? 'gold' : 'gray'}
+        anchorX='center'
+        anchorY='middle'>
+        {batteryMode === 0 ? '전원 없음' : lightOn ? (batteryMode === 1 ? '켜짐 (약한 빛)' : '켜짐 (강한 빛)') : '꺼짐'}
+      </Text>
     </group>
   )
 }
 
-// Main Connected Lights Component
+/* =========================
+   ConnectedLights
+========================= */
 export default function ConnectedLights(props: GroupProps) {
-  const [light1BatteryMode, setLight1BatteryMode] = useState(0) // 0: 없음, 1: 낮음, 2: 높음
+  const [light1BatteryMode, setLight1BatteryMode] = useState(0)
   const [light2BatteryMode, setLight2BatteryMode] = useState(0)
-  const [buttonAPressed, setButtonAPressed] = useState(false) // 버튼 A 상태
-  const [buttonBPressed, setButtonBPressed] = useState(false) // 버튼 B 상태
 
-  // AudioManager 인스턴스
+  const [battery1Used, setBattery1Used] = useState(false)
+  const [battery2Used, setBattery2Used] = useState(false)
+
+  const [light1Source, setLight1Source] = useState<1 | 2 | null>(null)
+  const [light2Source, setLight2Source] = useState<1 | 2 | null>(null)
+
+  const [nextTargetIsLeft, setNextTargetIsLeft] = useState(true)
+  const [activeLight, setActiveLight] = useState<string | null>(null)
+
   const audioManager = AudioManager.getInstance()
 
   const playBatteryAudio = () => {
-    audioManager.playNarration('/sounds/6-2-3/narration/6-2-3-B.MP3', 0.7)
-      .catch((error) => console.log('나레이션 재생 실패:', error))
+    audioManager
+      .playNarration('/sounds/6-2-3/narration/6-2-3-B.MP3', 0.7)
+      .catch((e) => console.log('나레이션 재생 실패:', e))
   }
 
-  // 버튼 A 클릭 - Light1을 2개로, Light2를 1개로
-  const handleButtonAClick = () => {
-    if (!buttonAPressed) {
-      playBatteryAudio()
-      audioManager.playGeneralButton()
-    }
-    if (buttonAPressed) {
-      // 이미 눌려있으면 해제 - 모든 배터리 모드를 0으로
-      setButtonAPressed(false)
-      setLight1BatteryMode(0)
-      setLight2BatteryMode(0)
+  // 배터리 버튼 1
+  const handleBattery1Click = () => {
+    if (battery1Used) return
+    playBatteryAudio()
+    audioManager.playGeneralButton()
+    setBattery1Used(true)
+
+    if (nextTargetIsLeft) {
+      setLight1BatteryMode(1)
+      setLight1Source(1)
+      setNextTargetIsLeft(false)
     } else {
-      // 눌려있지 않으면 누르기
-      setButtonAPressed(true)
-      setButtonBPressed(false) // 버튼 B 해제
-      setLight1BatteryMode(2) // Light1을 배터리 2개 모드로
-      setLight2BatteryMode(1) // Light2를 배터리 1개 모드로
+      setLight2BatteryMode(1)
+      setLight2Source(1)
+      setNextTargetIsLeft(true)
     }
   }
 
-  // 버튼 B 클릭 - Light1을 1개로, Light2를 2개로
-  const handleButtonBClick = () => {
-    if (!buttonBPressed) {
-      playBatteryAudio()
-      audioManager.playGeneralButton()
-    }
-    if (buttonBPressed) {
-      // 이미 눌려있으면 해제 - 모든 배터리 모드를 0으로
-      setButtonBPressed(false)
-      setLight1BatteryMode(0)
-      setLight2BatteryMode(0)
+  // 배터리 버튼 2
+  const handleBattery2Click = () => {
+    if (battery2Used) return
+    playBatteryAudio()
+    audioManager.playGeneralButton()
+    setBattery2Used(true)
+
+    if (nextTargetIsLeft) {
+      setLight1BatteryMode(2)
+      setLight1Source(2)
+      setNextTargetIsLeft(false)
     } else {
-      // 눌려있지 않으면 누르기
-      setButtonBPressed(true)
-      setButtonAPressed(false) // 버튼 A 해제
-      setLight1BatteryMode(1) // Light1을 배터리 1개 모드로
-      setLight2BatteryMode(2) // Light2를 배터리 2개 모드로
+      setLight2BatteryMode(2)
+      setLight2Source(2)
+      setNextTargetIsLeft(true)
     }
+  }
+
+  // 왼쪽 라이트 분리
+  const detachLeft = () => {
+    if (light1Source === 1) setBattery1Used(false)
+    if (light1Source === 2) setBattery2Used(false)
+    setLight1Source(null)
+    setLight1BatteryMode(0)
+    setActiveLight(null)
+    setNextTargetIsLeft(true)
+  }
+
+  // 오른쪽 라이트 분리
+  const detachRight = () => {
+    if (light2Source === 1) setBattery1Used(false)
+    if (light2Source === 2) setBattery2Used(false)
+    setLight2Source(null)
+    setLight2BatteryMode(0)
+    setActiveLight(null)
+    setNextTargetIsLeft(false)
   }
 
   return (
-    <group {...props}>
-      {/* Light1 */}
-      <LightComponent
-        modelPath='models/6-2-3/Light1-notConnected.glb'
-        position={[-5, -0.1, 0]}
-        batteryMode={light1BatteryMode}
-        textPosition={[5, 3, 3]}
-        componentName='Light1'
-      />
+    <SwitchContext.Provider value={{ activeLight, setActiveLight }}>
+      <group {...props}>
+        {/* Light1 */}
+        <LightComponent
+          modelPath='models/6-2-3/Light1-notConnected.glb'
+          position={[-5, -0.1, 0]}
+          batteryMode={light1BatteryMode}
+          componentName='Light1'
+          onDetach={detachLeft}
+        />
 
-      {/* Light2 */}
-      <LightComponent
-        modelPath='models/6-2-3/Light2-notConnected.glb'
-        position={[5, -0.1, 0]}
-        batteryMode={light2BatteryMode}
-        textPosition={[3, 3, 3]}
-        componentName='Light2'
-      />
+        {/* Light2 */}
+        <LightComponent
+          modelPath='models/6-2-3/Light2-notConnected.glb'
+          position={[5, -0.1, 0]}
+          batteryMode={light2BatteryMode}
+          componentName='Light2'
+          onDetach={detachRight}
+        />
 
-      {/* 중앙 제어 버튼들 */}
-      <group position={[1, 0, 6]}>
-        <Box
-          position={[-1.5, buttonAPressed ? -0.1 : 0, 0]}
-          args={[2, 0.5, 1.2]}
-          onClick={(e) => {
-            e.stopPropagation()
-            handleButtonAClick()
-          }}
-          onPointerOver={(e) => e.stopPropagation()}
-          onPointerOut={(e) => e.stopPropagation()}
-          castShadow
-          receiveShadow>
-          <meshStandardMaterial color={buttonAPressed ? '#ffd700' : '#666666'} />
-          <Text
-            position={[0, 0.26, 0]}
-            rotation={[-Math.PI / 2, 0, 0]}
-            fontSize={0.25}
-            color='black'
-            fontWeight='bold'
-            anchorX='center'
-            font='/fonts/Maplestory Bold.ttf'
-            anchorY='middle'>
-            전지 : 1개
-          </Text>
-        </Box>
-
-        {/* 버튼 B - Light1을 1개, Light2를 2개로 */}
-        <Box
-          position={[1.5, buttonBPressed ? -0.1 : 0, 0]}
-          args={[2, 0.5, 1.2]}
-          onClick={(e) => {
-            e.stopPropagation()
-            handleButtonBClick()
-          }}
-          onPointerOver={(e) => e.stopPropagation()}
-          onPointerOut={(e) => e.stopPropagation()}
-          castShadow
-          receiveShadow>
-          <meshStandardMaterial color={buttonBPressed ? '#87ceeb' : '#666666'} />
-          <Text
-            position={[0, 0.26, 0]}
-            rotation={[-Math.PI / 2, 0, 0]}
-            fontWeight='bold'
-            fontSize={0.25}
-            font='/fonts/Maplestory Bold.ttf'
-            color='black'
-            anchorX='center'
-            anchorY='middle'>
-            전지 : 2개
-          </Text>
-        </Box>
+        {/* 중앙 배터리 버튼 */}
+        <group position={[0, 1, 6.66]}>
+          <BatteryButton1 position={[-2.5, 0, 0]} isUsed={battery1Used} onClick={handleBattery1Click} />
+          <BatteryButton2 position={[2.5, 0, 0]} isUsed={battery2Used} onClick={handleBattery2Click} />
+        </group>
       </group>
-    </group>
+    </SwitchContext.Provider>
   )
 }
 
+// 모델 프리로드
 useGLTF.preload('models/6-2-3/Light1-notConnected.glb')
 useGLTF.preload('models/6-2-3/Light2-notConnected.glb')
