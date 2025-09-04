@@ -31,9 +31,9 @@ export const PARTICLE_CONFIG = {
   },
   SPAWN: {
     count: 40,
-    batchSize: 10,
+    batchSize: 7,
     interval: 200,
-    spread: 1.5,
+    spread: 2.0,
     height: 8,
   },
 } as const;

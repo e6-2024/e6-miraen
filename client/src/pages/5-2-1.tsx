@@ -11,6 +11,7 @@ import { BACKGROUND_MUSIC, NARRATIONS, SOUND_EFFECTS, VOLUMES } from '@/utils/5-
 import { SIEVE_CONFIG, PHYSICS_CONFIG } from '@/utils/5-2-1/sieveConfig'
 import { CrayonTextBox } from '@/components/common/CrayonTextBox'
 import { CrayonTextButton } from '@/components/common/CrayonUIButton'
+import { TiltOnMouse } from '@/components/common/Tilt'
 
 type ButtonStyle = { bg: string; border: string; text: string }
 
@@ -232,7 +233,7 @@ function ShadowLighting() {
       <ambientLight intensity={0.2} />
       <directionalLight
         position={[10, 10, 5]}
-        intensity={1}
+        intensity={3}
         castShadow
         shadow-mapSize={[2048, 2048]}
         shadow-camera-far={50}
@@ -392,7 +393,7 @@ export default function Home() {
   }
 
   return (
-    <div className='w-screen h-screen bg-white relative flex flex-col overflow-hidden '>
+    <div className='w-screen h-screen bg-[#D5E8E8] relative flex flex-col overflow-hidden '>
       <LoadingTracker onLoadingComplete={handleLoadingComplete} />
 
       <CrayonTextButton
@@ -431,33 +432,35 @@ export default function Home() {
       <div className={`flex-1 ${showSieveSelection ? 'invisible' : 'visible'}`}>
         <Scene
           shadows
-          camera={{ position: [0, 10, 10], fov: 50 }}
+          camera={{ position: [10, 14, 10], fov: 50 }}
           gl={{
             shadowMap: {
               enabled: true,
               type: THREE.PCFSoftShadowMap,
             },
           }}>
-          <ShadowLighting />
+          <TiltOnMouse enabled={showIntro} maxDeg={10} position={[0, 0, 0]}>
+            <ShadowLighting />
 
-          <Physics
-            key={physicsKey}
-            gravity={gravity}
-            allowSleep={true}
-            iterations={15}
-            defaultContactMaterial={{
-              friction: PHYSICS_CONFIG.friction,
-              restitution: PHYSICS_CONFIG.restitution,
-            }}
-            tolerance={0.001}>
-            <SieveSimulation
-              triggerSpawn={triggerSpawn}
-              onSpawnHandled={handleSpawnHandled}
-              selectedLevel={selectedLevel}
-              setGravity={setGravity}
-              onSeparationComplete={handleSeparationComplete}
-            />
-          </Physics>
+            <Physics
+              key={physicsKey}
+              gravity={gravity}
+              allowSleep={true}
+              iterations={15}
+              defaultContactMaterial={{
+                friction: PHYSICS_CONFIG.friction,
+                restitution: PHYSICS_CONFIG.restitution,
+              }}
+              tolerance={0.001}>
+              <SieveSimulation
+                triggerSpawn={triggerSpawn}
+                onSpawnHandled={handleSpawnHandled}
+                selectedLevel={selectedLevel}
+                setGravity={setGravity}
+                onSeparationComplete={handleSeparationComplete}
+              />
+            </Physics>
+          </TiltOnMouse>
 
           <Environment preset='warehouse' backgroundIntensity={0.1} />
           <OrbitControls minDistance={1} maxDistance={15} />
@@ -482,7 +485,7 @@ export default function Home() {
                 icon={selectedLevel === level ? 'arrow-right' : undefined}
                 iconSize={22}
                 iconPosition='left'
-                bg={selectedLevel === level ? '#e5e5e5' : '#fff'}
+                bg={selectedLevel === level ? '#fff' : '#e5e5e5'}
                 text={SIEVE_CONFIG.LEVELS.find((s) => s.level === level)?.title || ''}
                 onClick={() => {
                   playSound(SOUND_EFFECTS.BUTTON, VOLUMES.SOUND_EFFECT)
