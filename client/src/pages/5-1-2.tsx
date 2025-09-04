@@ -113,7 +113,7 @@ function NarrationPopup({
   if (!isVisible) return null
 
   return (
-    <div className='fixed top-5 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-90 text-white px-6 py-4 rounded-xl shadow-2xl z-50 text-base font-medium max-w-4/5 text-center backdrop-blur border border-white border-opacity-10'>
+    <div className='fixed top-5 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-90 text-white px-6 py-4 rounded-xl shadow-2xl z-50 text-base font-bold max-w-4/5 text-center backdrop-blur border border-white border-opacity-10'>
       {text}
     </div>
   )
@@ -168,13 +168,13 @@ function ModeControls({
 
         {activeMode === 'refraction' && (
           <>
-            <h4 className='text-base font-medium'>볼록렌즈와 오목렌즈가 있어요.</h4>
+            <h4 className='text-base font-light'>볼록렌즈와 오목렌즈가 있어요.</h4>
             <div className='flex gap-2'>
               {lensTypes.map(({ key, label }) => (
                 <button
                   key={key}
                   onClick={() => onLensTypeChange(key)}
-                  className={`px-3 py-1.5 rounded text-xs transition-colors ${
+                  className={`px-3 py-1.5 rounded text-xs font-light transition-colors ${
                     lensType === key ? 'bg-blue-500 text-white' : 'bg-gray-700 text-white hover:bg-gray-600'
                   }`}>
                   {label}
@@ -187,7 +187,7 @@ function ModeControls({
         {/* 반사 모드일 때 각도 조절 */}
         {activeMode === 'reflection' && (
           <>
-            <h4 className='text-base font-medium'>레이저 빛의 각도를 조절해보세요.</h4>
+            <h4 className='text-base font-light'>레이저 빛의 각도를 조절해보세요.</h4>
             <div className='flex items-center gap-2'>
               <input
                 type='range'
@@ -300,8 +300,8 @@ function ExplanationBox({ isVisible, mode, lensType }: { isVisible: boolean; mod
   }
 
   return (
-    <div className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'>
-      <CrayonTextBox color='#F3921C' bg='#F3921C' fontSize='16px' width='300px' animated={false}>
+    <div className='absolute left-1/2 font-light top-1/2 -translate-x-1/2 -translate-y-1/2'>
+      <CrayonTextBox textcolor='#333' color='#F3921C' bg='#F3921C' fontSize='16px' width='300px' animated={false}>
         {descriptions[mode]}
       </CrayonTextBox>
     </div>
