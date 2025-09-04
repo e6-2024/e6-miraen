@@ -5,6 +5,9 @@ import * as THREE from 'three'
 import { BatteryModule1, BatteryModule2 } from './BatteryModule'
 import AudioManager from '@/utils/6-2-3/audioManager'
 import { BatteryButton1, BatteryButton2 } from './BatteryButton'
+type Props = JSX.IntrinsicElements['group'] & {
+  onBatteryClick?: () => void
+}
 
 /* =========================
    Switch Context (Light 전용)

@@ -7,6 +7,10 @@ import { BatteryButton1, BatteryButton2 } from './BatteryButton'
 import AudioManager from '@/utils/6-2-3/audioManager'
 import { CrayonTextBox } from '../common/CrayonTextBox'
 
+type Props = JSX.IntrinsicElements['group'] & {
+  onBatteryClick?: () => void
+}
+
 interface SwitchContextType {
   activeBuzzer: string | null
   setActiveBuzzer: (buzzer: string | null) => void
@@ -339,7 +343,11 @@ export default function ConnectedBuzzers(props: GroupProps) {
         />
 
         <group position={[0, 1, 6.66]}>
-          <BatteryButton1 position={[-2.5, 0, 0]} isUsed={battery1Used} onClick={handleBattery1Click} />
+          <BatteryButton1
+            position={[-2.5, 0, 0]}
+            isUsed={battery1Used}
+            onClick={handleBattery1Click}
+          />
 
           <BatteryButton2 position={[2.5, 0, 0]} isUsed={battery2Used} onClick={handleBattery2Click} />
         </group>

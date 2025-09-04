@@ -89,13 +89,7 @@ function SummaryPopup({
 }
 
 function NarrationText() {
-  return (
-    <CrayonTextBox
-      bg='#FFFFFF'
-      animated={true}
-      text='스위치를 닫아 전구의 밝기를 비교해 보세요.'
-    />
-  )
+  return <CrayonTextBox bg='#FFFFFF' animated={true} text='스위치를 닫아 전구의 밝기를 비교해 보세요.' />
 }
 
 export default function Home() {
@@ -119,7 +113,12 @@ export default function Home() {
   const bgmRef = useRef<HTMLAudioElement | null>(null)
   const [bgmEnabled, setBgmEnabled] = useState<boolean>(true)
   const [bgmReady, setBgmReady] = useState(false)
-  const [showNarration, setShowNarration] = useState(false)
+  const [showNarrationText, setShowNarrationText] = useState(false)
+
+  const handleBatteryClick = useCallback(() => {
+    setShowNarrationText(true)
+    setTimeout(() => setShowNarrationText(false), 4000)
+  }, [])
 
   useEffect(() => {
     if (!mounted) return
@@ -243,15 +242,24 @@ export default function Home() {
 
     switch (currentMode) {
       case 'light':
-        return <ConnectedLights key='connected-lights' scale={1} position={[0, 0, 0]} />
+        return (
+          <ConnectedLights key='connected-lights' scale={1} position={[0, 0, 0]} onBatteryClick={handleBatteryClick} />
+        )
       case 'buzzer':
-        return <ConnectedBuzzers key='connected-buzzers' scale={1} position={[0, 0, 0]} />
+        return (
+          <ConnectedBuzzers
+            key='connected-buzzers'
+            scale={1}
+            position={[0, 0, 0]}
+            onBatteryClick={handleBatteryClick}
+          />
+        )
       case 'fan':
-        return <ConnectedFans key='connected-fans' scale={1} position={[0, 0, 0]} />
+        return <ConnectedFans key='connected-fans' scale={1} position={[0, 0, 0]} onBatteryClick={handleBatteryClick} />
       default:
         return null
     }
-  }, [mode, showIntro, initialRandomMode])
+  }, [mode, showIntro, initialRandomMode, handleBatteryClick])
 
   const modeButtons = useMemo(
     () => [
@@ -279,6 +287,11 @@ export default function Home() {
 
   return (
     <div className='w-screen h-screen bg-white flex flex-col'>
+      {showNarrationText && (
+        <div className='absolute top-24 left-1/2 -translate-x-1/2 z-[300]'>
+          <NarrationText />
+        </div>
+      )}
       <CrayonTextButton
         ariaLabel={'첫 화면으로'}
         icon={'home'}
