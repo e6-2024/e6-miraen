@@ -1,8 +1,9 @@
-import { useGLTF, useAnimations, Text, Box } from '@react-three/drei'
+import { useGLTF, useAnimations, Text } from '@react-three/drei'
 import { GroupProps, ThreeEvent } from '@react-three/fiber'
 import { useRef, useEffect, useState, createContext, useContext } from 'react'
 import * as THREE from 'three'
 import { BatteryModule1, BatteryModule2 } from './BatteryModule'
+import { BatteryButton1, BatteryButton2 } from './BatteryButton'
 import AudioManager from '@/utils/6-2-3/audioManager' 
 
 interface SwitchContextType {
@@ -20,13 +21,11 @@ function BuzzerComponent({
   modelPath,
   position,
   batteryMode,
-  textPosition,
   componentName,
 }: {
   modelPath: string
   position: [number, number, number]
   batteryMode: number
-  textPosition: [number, number, number]
   componentName: string
 }) {
   const groupRef = useRef<THREE.Group>(null)
@@ -48,7 +47,7 @@ function BuzzerComponent({
     }
   }, [activeBuzzer, componentName])
 
-  // 버저 상태와 배터리 모드에 따른 오디오 제어
+  // 버저 상태와 배터리 모드에 따른 오디오 제어 (소리 크기 개선)
   useEffect(() => {
     // 기존 오디오 중지
     if (currentAudioRef.current) {
@@ -62,11 +61,14 @@ function BuzzerComponent({
         ? '/sounds/6-2-3/buzzer1.MP3' 
         : '/sounds/6-2-3/buzzer2.MP3'
 
+      // 전지 2개일 때 소리를 더 크게 설정 (0.7 -> 0.9)
+      const volume = batteryMode === 1 ? 0.7 : 0.9
+
       // 버저 사운드는 루프로 재생
       audioManager.playComponentSound(
         audioPath,
         `buzzer-${componentName}`,
-        0.7,
+        volume,
         true // 루프 재생
       ).then((audio) => {
         currentAudioRef.current = audio
@@ -205,10 +207,17 @@ function BuzzerComponent({
 
 // Main Connected Buzzers Component
 export default function ConnectedBuzzers(props: GroupProps) {
-  const [buzzer1BatteryMode, setBuzzer1BatteryMode] = useState(0) // 0: 없음, 1: 낮음, 2: 높음
+  // 배터리 연결 상태: 0=없음, 1=1개, 2=2개
+  const [buzzer1BatteryMode, setBuzzer1BatteryMode] = useState(0)
   const [buzzer2BatteryMode, setBuzzer2BatteryMode] = useState(0)
-  const [buttonAPressed, setButtonAPressed] = useState(false) // 버튼 A 상태
-  const [buttonBPressed, setButtonBPressed] = useState(false) // 버튼 B 상태
+  
+  // 전지 사용 상태 추적
+  const [battery1Used, setBattery1Used] = useState(false)
+  const [battery2Used, setBattery2Used] = useState(false)
+  
+  // 다음에 연결될 회로 추적 (true=왼쪽, false=오른쪽)
+  const [nextTargetIsLeft, setNextTargetIsLeft] = useState(true)
+  
   const [activeBuzzer, setActiveBuzzer] = useState<string | null>(null)
 
   // AudioManager 인스턴스
@@ -219,43 +228,43 @@ export default function ConnectedBuzzers(props: GroupProps) {
       .catch((error) => console.log('나레이션 재생 실패:', error))
   }
 
-  // 버튼 A 클릭 - Buzzer1을 2개로, Buzzer2를 1개로
-  const handleButtonAClick = () => {
-    if (!buttonAPressed) {
-      playBatteryAudio()
-      audioManager.playGeneralButton()
-    }
-    if (buttonAPressed) {
-      // 이미 눌려있으면 해제 - 모든 배터리 모드를 0으로
-      setButtonAPressed(false)
-      setBuzzer1BatteryMode(0)
-      setBuzzer2BatteryMode(0)
+  // 전지 1개 클릭
+  const handleBattery1Click = (e: ThreeEvent<PointerEvent>) => {
+    if (battery1Used) return // 이미 사용된 전지는 클릭 불가
+    
+    playBatteryAudio()
+    audioManager.playGeneralButton()
+    
+    setBattery1Used(true)
+    
+    if (nextTargetIsLeft) {
+      // 왼쪽 회로에 연결
+      setBuzzer1BatteryMode(1)
+      setNextTargetIsLeft(false) // 다음은 오른쪽으로
     } else {
-      // 눌려있지 않으면 누르기
-      setButtonAPressed(true)
-      setButtonBPressed(false) // 버튼 B 해제
-      setBuzzer1BatteryMode(2) // Buzzer1을 배터리 2개 모드로
-      setBuzzer2BatteryMode(1) // Buzzer2를 배터리 1개 모드로
+      // 오른쪽 회로에 연결
+      setBuzzer2BatteryMode(1)
+      setNextTargetIsLeft(true) // 다음은 왼쪽으로
     }
   }
 
-  // 버튼 B 클릭 - Buzzer1을 1개로, Buzzer2를 2개로
-  const handleButtonBClick = () => {
-    if (!buttonBPressed) {
-      playBatteryAudio()
-      audioManager.playGeneralButton()
-    }
-    if (buttonBPressed) {
-      // 이미 눌려있으면 해제 - 모든 배터리 모드를 0으로
-      setButtonBPressed(false)
-      setBuzzer1BatteryMode(0)
-      setBuzzer2BatteryMode(0)
+  // 전지 2개 클릭
+  const handleBattery2Click = (e: ThreeEvent<PointerEvent>) => {
+    if (battery2Used) return // 이미 사용된 전지는 클릭 불가
+    
+    playBatteryAudio()
+    audioManager.playGeneralButton()
+    
+    setBattery2Used(true)
+    
+    if (nextTargetIsLeft) {
+      // 왼쪽 회로에 연결
+      setBuzzer1BatteryMode(2)
+      setNextTargetIsLeft(false) // 다음은 오른쪽으로
     } else {
-      // 눌려있지 않으면 누르기
-      setButtonBPressed(true)
-      setButtonAPressed(false) // 버튼 A 해제
-      setBuzzer1BatteryMode(1) // Buzzer1을 배터리 1개 모드로
-      setBuzzer2BatteryMode(2) // Buzzer2를 배터리 2개 모드로
+      // 오른쪽 회로에 연결
+      setBuzzer2BatteryMode(2)
+      setNextTargetIsLeft(true) // 다음은 왼쪽으로
     }
   }
 
@@ -267,7 +276,6 @@ export default function ConnectedBuzzers(props: GroupProps) {
           modelPath='models/6-2-3/Buzzer1-notConnected.glb'
           position={[-5, -0.1, 0]}
           batteryMode={buzzer1BatteryMode}
-          textPosition={[4, 3, 3]}
           componentName='Buzzer1'
         />
 
@@ -276,60 +284,21 @@ export default function ConnectedBuzzers(props: GroupProps) {
           modelPath='models/6-2-3/Buzzer2-notConnected.glb'
           position={[5, -0.1, 0]}
           batteryMode={buzzer2BatteryMode}
-          textPosition={[3, 3, 3]}
           componentName='Buzzer2'
         />
 
-        <group position={[1, 0, 6]}>
-          <Box
-            position={[-1.5, buttonAPressed ? -0.1 : 0, 0]}
-            args={[2, 0.5, 1.2]}
-            onClick={(e) => {
-              e.stopPropagation()
-              handleButtonAClick()
-            }}
-            onPointerOver={(e) => e.stopPropagation()}
-            onPointerOut={(e) => e.stopPropagation()}
-            castShadow
-            receiveShadow>
-            <meshStandardMaterial color={buttonAPressed ? '#ff6b6b' : '#666666'} />
-            <Text
-              position={[0, 0.26, 0]}
-              rotation={[-Math.PI / 2, 0, 0]}
-              fontSize={0.5}
-              color='black'
-              fontWeight='bold'
-              font='/fonts/Maplestory Bold.ttf'
-              anchorX='center'
-              anchorY='middle'>
-              1개
-            </Text>
-          </Box>
+        <group position={[0, 1, 6]}>
+          <BatteryButton1
+            position={[-2.5, 0, 0]}
+            isUsed={battery1Used}
+            onClick={handleBattery1Click}
+          />
 
-          <Box
-            position={[1.5, buttonBPressed ? -0.1 : 0, 0]}
-            args={[2, 0.5, 1.2]}
-            onClick={(e) => {
-              e.stopPropagation()
-              handleButtonBClick()
-            }}
-            onPointerOver={(e) => e.stopPropagation()}
-            onPointerOut={(e) => e.stopPropagation()}
-            castShadow
-            receiveShadow>
-            <meshStandardMaterial color={buttonBPressed ? '#4ecdc4' : '#666666'} />
-            <Text
-              position={[0, 0.26, 0]}
-              rotation={[-Math.PI / 2, 0, 0]}
-              fontWeight='bold'
-              fontSize={0.5}
-              color='black'
-              font='/fonts/Maplestory Bold.ttf'
-              anchorX='center'
-              anchorY='middle'>
-              2개
-            </Text>
-          </Box>
+          <BatteryButton2
+            position={[2.5, 0, 0]}
+            isUsed={battery2Used}
+            onClick={handleBattery2Click}
+          />
         </group>
       </group>
     </SwitchContext.Provider>
