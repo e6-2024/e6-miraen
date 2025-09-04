@@ -24,8 +24,8 @@ export default function Model({
   const animationEnabledRef = useRef(true)
   const sceneRef = useRef<THREE.Group | null>(null)
 
-  const dayModel = useGLTF('models/5-2-3/Weather.glb')
-  const nightModel = useGLTF('models/5-2-3/Weather_Night.glb')
+  const dayModel = useGLTF('models/5-2-3/Day/Weather.gltf')
+  const nightModel = useGLTF('models/5-2-3/Night/Weather_Night.gltf')
 
   const activeModel = currentModel === 'day' ? dayModel : nightModel
 
@@ -237,5 +237,5 @@ export default function Model({
   )
 }
 
-useGLTF.preload('models/5-2-3/Weather.glb')
-useGLTF.preload('models/5-2-3/Weather_Night.glb')
+useGLTF.preload('models/5-2-3/Day/Weather.gltf')
+useGLTF.preload('models/5-2-3/Night/Weather_Night.gltf')
