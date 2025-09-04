@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { ExperimentState, TimeOfDay, ExperimentStep, CameraTarget } from '@/types/5-2-3/types';
-import { getInitialTemperatures, getFinalTemperatures, getPressures, animateTemperature } from '@/utils/5-2-3/utils';
+import { getInitialTemperatures, getFinalTemperatures, getPressures, animateTemperature, CAMERA_CONFIGS } from '@/utils/5-2-3/utils';
 
 export const useExperiment = () => {
   const [state, setState] = useState<ExperimentState>({
@@ -39,8 +39,8 @@ export const useExperiment = () => {
     });
 
     setCameraTarget({
-      position: [-5, -14, 1],
-      lookAt: [-5, -14, 0],
+      position: CAMERA_CONFIGS.initial.position,
+      lookAt: CAMERA_CONFIGS.initial.target,
     });
   }, [state.timeOfDay]);
 

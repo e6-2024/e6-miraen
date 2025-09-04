@@ -1,44 +1,43 @@
-// client/src/pages/5-2-3.tsx
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Environment, OrbitControls } from '@react-three/drei';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { Environment, OrbitControls } from '@react-three/drei'
+import { motion, AnimatePresence } from 'framer-motion'
 
-import Scene from '@/components/canvas/Scene';
-import Model from '@/components/5-2-3/Model';
-import Intro from '@/components/intro/Intro';
-import IntroMouseCameraController from '@/components/intro/IntroMouseCameraController';
-import { CrayonTextButton } from '@/components/common/CrayonUIButton';
+import Scene from '@/components/canvas/Scene'
+import Model from '@/components/5-2-3/Model'
+import Intro from '@/components/intro/Intro'
+import { CrayonTextButton } from '@/components/common/CrayonUIButton'
 
-import { TimeSelector } from '@/components/5-2-3/TimeSelector';
-import { Thermometer } from '@/components/5-2-3/Thermometer';
-import { PressureDisplay } from '@/components/5-2-3/PressureDisplay';
-import { StepControls } from '@/components/5-2-3/StepControls';
-import { TimeAnimation } from '@/components/5-2-3/TimeAnimation';
-import { CameraController } from '@/components/5-2-3/CameraController';
-import { Popup } from '@/components/5-2-3/Popup';
-import { LoadingTracker } from '@/components/5-2-3/LoadingTracker';
+import { TimeSelector } from '@/components/5-2-3/TimeSelector'
+import { Thermometer } from '@/components/5-2-3/Thermometer'
+import { PressureDisplay } from '@/components/5-2-3/PressureDisplay'
+import { StepControls } from '@/components/5-2-3/StepControls'
+import { TimeAnimation } from '@/components/5-2-3/TimeAnimation'
+import { CameraController } from '@/components/5-2-3/CameraController'
+import { Popup } from '@/components/5-2-3/Popup'
+import { LoadingTracker } from '@/components/5-2-3/LoadingTracker'
 
-import { useExperiment } from '@/hook/5-2-3/useExperiment';
-import { useAudio } from '@/hook/5-2-3/useAudio';
-import { TimeOfDay, PopupContent } from '@/types/5-2-3/types';
-import { getPopupContent, getWindDirection, getPressures } from '@/utils/5-2-3/utils';
+import { useExperiment } from '@/hook/5-2-3/useExperiment'
+import { useAudio } from '@/hook/5-2-3/useAudio'
+import { TimeOfDay, PopupContent } from '@/types/5-2-3/types'
+import { getPopupContent, getWindDirection, getPressures, CAMERA_CONFIGS } from '@/utils/5-2-3/utils'
+import { TiltOnMouse } from '@/components/common/Tilt'
 
 const BUTTON_THEME = {
   goal: { bg: '#52AE46', border: '#A1CC90', text: '#FFFFFF' },
   guide: { bg: '#52AE46', border: '#A1CC90', text: '#FFFFFF' },
   start: { bg: '#F3921C', border: '#FFDBB0', text: '#FFFFFF' },
-};
+}
 
 export default function Page() {
-  const [mounted, setMounted] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [showIntro, setShowIntro] = useState(true);
-  const [showPopup, setShowPopup] = useState(false);
+  const [mounted, setMounted] = useState(false)
+  const [isLoaded, setIsLoaded] = useState(false)
+  const [showIntro, setShowIntro] = useState(true)
+  const [showPopup, setShowPopup] = useState(false)
   const [popupContent, setPopupContent] = useState<PopupContent>({
     title: '',
     content: '',
     narrationPath: '',
-  });
+  })
 
   const {
     state,
@@ -50,111 +49,117 @@ export default function Page() {
     startPressureAnimation,
     startWindAnimation,
     getStepConfig,
-  } = useExperiment();
+  } = useExperiment()
 
-  const { playSound } = useAudio();
+  const { playSound } = useAudio()
 
   // BGM 관련
-  const bgmRef = useRef<HTMLAudioElement | null>(null);
-  const [bgmEnabled, setBgmEnabled] = useState<boolean>(true);
-  const [bgmReady, setBgmReady] = useState(false);
+  const bgmRef = useRef<HTMLAudioElement | null>(null)
+  const [bgmEnabled, setBgmEnabled] = useState<boolean>(true)
+  const [bgmReady, setBgmReady] = useState(false)
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => setMounted(true), [])
 
   useEffect(() => {
-    if (!mounted) return;
+    if (!mounted) return
     try {
-      const saved = localStorage.getItem('bgmEnabled-5-2-3');
-      if (saved !== null) setBgmEnabled(JSON.parse(saved));
+      const saved = localStorage.getItem('bgmEnabled-5-2-3')
+      if (saved !== null) setBgmEnabled(JSON.parse(saved))
     } catch {}
-  }, [mounted]);
+  }, [mounted])
 
   useEffect(() => {
-    if (!mounted) return;
-    const el = new Audio('/sounds/5-2-3/5-2-3-BGM.mp3');
-    el.loop = true;
-    el.volume = 0.2;
-    bgmRef.current = el;
+    if (!mounted) return
+    const el = new Audio('/sounds/5-2-3/5-2-3-BGM.mp3')
+    el.loop = true
+    el.volume = 0.2
+    bgmRef.current = el
     return () => {
-      el.pause();
-      bgmRef.current = null;
-    };
-  }, [mounted]);
+      el.pause()
+      bgmRef.current = null
+    }
+  }, [mounted])
 
   useEffect(() => {
-    if (!mounted || !bgmRef.current) return;
+    if (!mounted || !bgmRef.current) return
     try {
-      localStorage.setItem('bgmEnabled-5-2-3', JSON.stringify(bgmEnabled));
+      localStorage.setItem('bgmEnabled-5-2-3', JSON.stringify(bgmEnabled))
     } catch {}
     if (bgmEnabled && bgmReady) {
-      bgmRef.current.play().catch(() => {});
+      bgmRef.current.play().catch(() => {})
     } else {
-      bgmRef.current.pause();
+      bgmRef.current.pause()
     }
-  }, [bgmEnabled, bgmReady, mounted]);
+  }, [bgmEnabled, bgmReady, mounted])
 
   const handleLoadingComplete = useCallback(() => {
-    setIsLoaded(true);
-  }, []);
+    setIsLoaded(true)
+  }, [])
 
   const handleEnterExperience = useCallback(() => {
-    playSound('/sounds/Enter_Cute.mp3');
-    setBgmReady(true);
+    playSound('/sounds/Enter_Cute.mp3')
+    setBgmReady(true)
     setTimeout(() => {
-      setShowIntro(false);
+      setShowIntro(false)
       setCameraTarget({
-        position: [-5, -14, 1],
-        lookAt: [-5, -14, 0],
-      });
-    }, 300);
-  }, [playSound, setCameraTarget]);
+        position: CAMERA_CONFIGS.initial.position,
+        lookAt: CAMERA_CONFIGS.initial.target,
+      })
+    }, 300)
+  }, [playSound, setCameraTarget])
 
   const handleBackToIntro = useCallback(() => {
-    playSound('/sounds/Enter_Cute.mp3');
-    setShowIntro(true);
-    resetExperiment();
-    setShowPopup(false);
-    setBgmReady(false);
-  }, [playSound, resetExperiment]);
+    playSound('/sounds/Enter_Cute.mp3')
+    setShowIntro(true)
+    resetExperiment()
+    setShowPopup(false)
+    setBgmReady(false)
+  }, [playSound, resetExperiment])
 
-  const handleTimeSelect = useCallback((time: TimeOfDay) => {
-    playSound('/sounds/Enter_Cute.mp3');
-    resetExperiment();
-    setTimeOfDay(time);
-    
-    setTimeout(() => {
-      setShowPopup(true);
-      setPopupContent(getPopupContent(time, 'day-selected'));
-    }, 100);
-  }, [playSound, resetExperiment, setTimeOfDay]);
+  const handleTimeSelect = useCallback(
+    (time: TimeOfDay) => {
+      playSound('/sounds/Enter_Cute.mp3')
+      resetExperiment()
+      setTimeOfDay(time)
 
-  const handleStepClick = useCallback((stepId: string) => {
-    playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3');
-    
-    switch (stepId) {
-      case 'temperature':
-        startTemperatureAnimation();
-        break;
-      case 'pressure':
-        startPressureAnimation();
-        break;
-      case 'wind':
-        startWindAnimation();
-        setTimeout(() => {
-          setShowPopup(true);
-          setPopupContent(getPopupContent(state.timeOfDay, 'wind-animation'));
-        }, 2200);
-        break;
-    }
-  }, [playSound, startTemperatureAnimation, startPressureAnimation, startWindAnimation, state.timeOfDay]);
+      setTimeout(() => {
+        setShowPopup(true)
+        setPopupContent(getPopupContent(time, 'day-selected'))
+      }, 100)
+    },
+    [playSound, resetExperiment, setTimeOfDay],
+  )
+
+  const handleStepClick = useCallback(
+    (stepId: string) => {
+      playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3')
+
+      switch (stepId) {
+        case 'temperature':
+          startTemperatureAnimation()
+          break
+        case 'pressure':
+          startPressureAnimation()
+          break
+        case 'wind':
+          startWindAnimation()
+          setTimeout(() => {
+            setShowPopup(true)
+            setPopupContent(getPopupContent(state.timeOfDay, 'wind-animation'))
+          }, 2200)
+          break
+      }
+    },
+    [playSound, startTemperatureAnimation, startPressureAnimation, startWindAnimation, state.timeOfDay],
+  )
 
   const toggleBgm = useCallback(() => {
-    setBgmEnabled(v => !v);
-  }, []);
+    setBgmEnabled((v) => !v)
+  }, [])
 
-  const stepConfigs = ['temperature', 'pressure', 'wind'].map(getStepConfig);
-  const showExperimentUI = !showIntro && state.currentStep !== 'initial';
-  const pressures = getPressures(state.timeOfDay);
+  const stepConfigs = ['temperature', 'pressure', 'wind'].map(getStepConfig)
+  const showExperimentUI = !showIntro && state.currentStep !== 'initial'
+  const pressures = getPressures(state.timeOfDay)
 
   return (
     <div className='w-screen h-screen bg-red flex flex-col relative'>
@@ -199,86 +204,86 @@ export default function Page() {
 
       {/* 3D Scene */}
       <Scene
-        camera={{ position: [0, 0.5, 3], fov: 50, far: 1000 }}
+        camera={{ position: [0, 1, 3], fov: 50, far: 1000 }}
         shadows={{
           enabled: true,
           type: 'PCFSoftShadowMap',
         }}>
         <LoadingTracker onLoadingComplete={handleLoadingComplete} />
-        <IntroMouseCameraController enabled={showIntro} />
-        
-        {/* 조명 설정 */}
-        <ambientLight intensity={state.timeOfDay === 'day' ? 0.4 : 0.2} color={state.timeOfDay === 'day' ? '#ffffff' : '#404080'} />
-        
-        <directionalLight
-          position={state.timeOfDay === 'day' ? [15, 20, 10] : [5, 15, 8]}
-          intensity={state.timeOfDay === 'day' ? 1.5 : 0.6}
-          color={state.timeOfDay === 'day' ? '#ffeaa7' : '#74b9ff'}
-          castShadow
-          shadow-mapSize-width={4096}
-          shadow-mapSize-height={4096}
-          shadow-camera-far={100}
-          shadow-camera-left={-50}
-          shadow-camera-right={50}
-          shadow-camera-top={50}
-          shadow-camera-bottom={-50}
-          shadow-bias={-0.0005}
-          shadow-normalBias={0.02}
-          shadow-radius={10}
-        />
-        
-        <directionalLight
-          position={state.timeOfDay === 'day' ? [-5, 10, 5] : [-3, 8, 3]}
-          intensity={state.timeOfDay === 'day' ? 0.3 : 0.15}
-          color={state.timeOfDay === 'day' ? '#81ecec' : '#6c5ce7'}
-        />
-        
-        <pointLight
-          position={[-10, 2, 0]}
-          intensity={state.timeOfDay === 'day' ? 0.8 : 0.3}
-          color={state.timeOfDay === 'day' ? '#74b9ff' : '#00cec9'}
-          distance={30}
-          decay={2}
-        />
-      
-        {/* 3D 모델 */}
-        <Model
-          scale={0.2}
-          rotation={[0, -Math.PI / 2, 0]}
-          position={[0, -15, 0]}
-          windEnabled={state.showWind}
-          windDirection={getWindDirection(state.timeOfDay)}
-          windSpeed={0.2}
-          isDay={state.timeOfDay === 'day'}
-          animationEnabled={state.modelAnimationEnabled}
-        />
-
-        {/* 카메라 컨트롤 */}
-        {cameraTarget ? (
-          <CameraController
-            targetPosition={cameraTarget.position}
-            targetLookAt={cameraTarget.lookAt}
-            enabled={!showIntro && !showPopup}
+        <TiltOnMouse enabled={showIntro} maxDeg={10} position={[0, 0, 0]}>
+          {/* 조명 설정 */}
+          <ambientLight
+            intensity={state.timeOfDay === 'day' ? 0.4 : 0.2}
+            color={state.timeOfDay === 'day' ? '#ffffff' : '#404080'}
           />
-        ) : (
-          <OrbitControls enabled={!showIntro && !showPopup} minDistance={0} maxDistance={10} minPolarAngle={0} maxPolarAngle={Math.PI/2}/>
-        )}
 
-        <Environment preset={state.timeOfDay === 'day' ? 'sunset' : 'night'} blur={0.8} resolution={512} />
+          <directionalLight
+            position={state.timeOfDay === 'day' ? [15, 20, 10] : [5, 15, 8]}
+            intensity={state.timeOfDay === 'day' ? 1.5 : 0.6}
+            color={state.timeOfDay === 'day' ? '#ffeaa7' : '#74b9ff'}
+            castShadow
+            shadow-mapSize-width={4096}
+            shadow-mapSize-height={4096}
+            shadow-camera-far={100}
+            shadow-camera-left={-50}
+            shadow-camera-right={50}
+            shadow-camera-top={50}
+            shadow-camera-bottom={-50}
+            shadow-bias={-0.0005}
+            shadow-normalBias={0.02}
+            shadow-radius={10}
+          />
+
+          <directionalLight
+            position={state.timeOfDay === 'day' ? [-5, 10, 5] : [-3, 8, 3]}
+            intensity={state.timeOfDay === 'day' ? 0.3 : 0.15}
+            color={state.timeOfDay === 'day' ? '#81ecec' : '#6c5ce7'}
+          />
+
+          <pointLight
+            position={[-10, 2, 0]}
+            intensity={state.timeOfDay === 'day' ? 0.8 : 0.3}
+            color={state.timeOfDay === 'day' ? '#74b9ff' : '#00cec9'}
+            distance={30}
+            decay={2}
+          />
+
+          {/* 3D 모델 */}
+          <Model
+            scale={0.2}
+            rotation={[0, -Math.PI / 2, 0]}
+            position={[0, -15, 0]}
+            windEnabled={state.showWind}
+            windDirection={getWindDirection(state.timeOfDay)}
+            windSpeed={0.2}
+            isDay={state.timeOfDay === 'day'}
+            animationEnabled={state.modelAnimationEnabled}
+          />
+
+          {/* 카메라 컨트롤 */}
+          {cameraTarget ? (
+            <CameraController
+              targetPosition={cameraTarget.position}
+              targetLookAt={cameraTarget.lookAt}
+              enabled={!showIntro && !showPopup}
+            />
+          ) : (
+            <OrbitControls
+              enabled={!showIntro && !showPopup}
+              minDistance={0}
+              maxDistance={300}
+              minPolarAngle={0}
+              maxPolarAngle={Math.PI / 2}
+            />
+          )}
+
+          <Environment preset={state.timeOfDay === 'day' ? 'sunset' : 'night'} blur={0.8} resolution={512} />
+        </TiltOnMouse>
       </Scene>
 
-      {/* UI 컨트롤들 */}
-      <TimeSelector
-        timeOfDay={state.timeOfDay}
-        onTimeSelect={handleTimeSelect}
-        visible={!showIntro}
-      />
+      <TimeSelector timeOfDay={state.timeOfDay} onTimeSelect={handleTimeSelect} visible={!showIntro} />
 
-      <StepControls
-        steps={stepConfigs}
-        onStepClick={handleStepClick}
-        visible={showExperimentUI}
-      />
+      <StepControls steps={stepConfigs} onStepClick={handleStepClick} visible={showExperimentUI} />
 
       <TimeAnimation
         isAnimating={state.isTemperatureAnimating}
@@ -335,11 +340,7 @@ export default function Page() {
       )}
 
       {/* 팝업 */}
-      <Popup
-        isOpen={showPopup}
-        onClose={() => setShowPopup(false)}
-        content={popupContent}
-      />
+      <Popup isOpen={showPopup} onClose={() => setShowPopup(false)} content={popupContent} />
     </div>
-  );
+  )
 }

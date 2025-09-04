@@ -2,7 +2,7 @@ import { useGLTF, useAnimations, Text, Box } from '@react-three/drei'
 import { GroupProps, ThreeEvent } from '@react-three/fiber'
 import { useRef, useEffect, useState, createContext, useContext } from 'react'
 import * as THREE from 'three'
-import { BatteryModule0, BatteryModule1, BatteryModule2 } from './BatteryModule'
+import { BatteryModule1, BatteryModule2 } from './BatteryModule'
 import AudioManager from '@/components/6-2-3/AudioManager' 
 
 interface SwitchContextType {
@@ -197,7 +197,7 @@ function BuzzerComponent({
       ) : batteryMode === 2 ? (
         <BatteryModule2 position={[0, 0, 0]} batteryType='buzzer' />
       ) : (
-        <BatteryModule0 position={[0, 0, 0]} batteryType='buzzer' />
+        <BatteryModule1 showBody={false} position={[0, 0, 0]} batteryType='buzzer' />
       )}
     </group>
   )

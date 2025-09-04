@@ -2,7 +2,7 @@ import { useGLTF, useAnimations, Text, Box } from '@react-three/drei'
 import { GroupProps, useFrame, ThreeEvent } from '@react-three/fiber'
 import { useRef, useEffect, useState } from 'react'
 import * as THREE from 'three'
-import { BatteryModule0, BatteryModule1, BatteryModule2 } from './BatteryModule'
+import { BatteryModule1, BatteryModule2 } from './BatteryModule'
 import AudioManager from '@/components/6-2-3/AudioManager'
 
 function FanComponent({
@@ -162,7 +162,7 @@ function FanComponent({
       ) : batteryMode === 2 ? (
         <BatteryModule2 position={[0, 0, 0]} batteryType='fan' />
       ) : (
-        <BatteryModule0 position={[0, 0, 0]} batteryType='fan' />
+        <BatteryModule1 showBody={false} position={[0, 0, 0]} batteryType='fan' />
       )}
       {/* 회전 상태 및 속도 표시 */}
       <Text

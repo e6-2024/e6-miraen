@@ -1,7 +1,7 @@
 import { TimeOfDay, ExperimentStep, TemperatureData, PressureData, CameraTarget } from '@/types/5-2-3/types';
 
-export const INITIAL_CAMERA_POSITION: [number, number, number] = [-5, -14, 1];
-export const INITIAL_CAMERA_TARGET: [number, number, number] = [-5, -14, 0];
+export const INITIAL_CAMERA_POSITION: [number, number, number] =  [-5, -14, -5];
+export const INITIAL_CAMERA_TARGET: [number, number, number] = [-5, -14, -6];
 
 export const CAMERA_CONFIGS = {
   initial: {
@@ -9,8 +9,8 @@ export const CAMERA_CONFIGS = {
     target: INITIAL_CAMERA_TARGET,
   },
   windObservation: {
-    position: [-5, -14, 3] as [number, number, number],
-    target: [-5, -14, 1] as [number, number, number],
+    position: [-5, -14, -5] as [number, number, number],
+    target: [-5, -14, -6] as [number, number, number],
   },
 } as const;
 
