@@ -281,7 +281,7 @@ function SubtitleBox({
   if (!isVisible) return null
 
   return (
-    <div className='absolute flex w-full justify-center left-1/2 -translate-x-1/2 items-center top-1/4 -translate-y-1/2 pointer-events-none'>
+    <div className='absolute flex w-full font-bold justify-center left-1/2 -translate-x-1/2 items-center top-1/4 -translate-y-1/2 pointer-events-none'>
       <CrayonTextBox color='#F3921C' bg='#FFF'>
         {mode === 'direct' ? descriptions[mode] : mode === 'reflection' ? descriptions[mode] : descriptions[lensType]}
       </CrayonTextBox>

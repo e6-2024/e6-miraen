@@ -52,6 +52,7 @@ export const SpeechBubble = ({
                   color: '#374151',
                   fontWeight: '500',
                   textAlign: 'left',
+                  fontFamily: 'MapleStoryOTFBold, sans-serif',
                 }}
               >
               {html.split('\n').map((line, index) => (
