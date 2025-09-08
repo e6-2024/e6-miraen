@@ -266,11 +266,11 @@ export default function ConnectedBuzzers(props: Props) {
   const handleBattery1Click = (e: ThreeEvent<PointerEvent>) => {
     if (battery1Used) return
     if (!battery1Used && !battery2Used) playBatteryAudio()
+    audioManager.playGeneralButton()
+    setBattery1Used(true)
     if (props.onBatteryClick) {
       props.onBatteryClick()
     }
-    audioManager.playGeneralButton()
-    setBattery1Used(true)
 
     if (nextTargetIsLeft) {
       setBuzzer1BatteryMode(1)
@@ -286,15 +286,13 @@ export default function ConnectedBuzzers(props: Props) {
   const handleBattery2Click = (e: ThreeEvent<PointerEvent>) => {
     if (battery2Used) return
     if (!battery1Used && !battery2Used) playBatteryAudio()
-    if (props.onBatteryClick) {
-      props.onBatteryClick()
-    }
     audioManager.playGeneralButton()
     setBattery2Used(true)
+    props.onBatteryClick?.()
 
     if (nextTargetIsLeft) {
-      setBuzzer2BatteryMode(2)
-      setBuzzer2Source(2)
+      setBuzzer1BatteryMode(2)
+      setBuzzer1Source(2)
       setNextTargetIsLeft(false)
     } else {
       setBuzzer2BatteryMode(2)
@@ -309,7 +307,6 @@ export default function ConnectedBuzzers(props: Props) {
     if (buzzer1Source === 2) setBattery2Used(false)
     setBuzzer1Source(null)
     setBuzzer1BatteryMode(0)
-    setActiveBuzzer(null)
     setNextTargetIsLeft(true)
   }
 
@@ -318,7 +315,6 @@ export default function ConnectedBuzzers(props: Props) {
     if (buzzer2Source === 2) setBattery2Used(false)
     setBuzzer2Source(null)
     setBuzzer2BatteryMode(0)
-    setActiveBuzzer(null)
     setNextTargetIsLeft(false)
   }
 
@@ -344,12 +340,7 @@ export default function ConnectedBuzzers(props: Props) {
         />
 
         <group position={[0, 1, 6.66]}>
-          <BatteryButton1
-            position={[-2.5, 0, 0]}
-            isUsed={battery1Used}
-            onClick={handleBattery1Click}
-          />
-
+          <BatteryButton1 position={[-2.5, 0, 0]} isUsed={battery1Used} onClick={handleBattery1Click} />
           <BatteryButton2 position={[2.5, 0, 0]} isUsed={battery2Used} onClick={handleBattery2Click} />
         </group>
       </group>
