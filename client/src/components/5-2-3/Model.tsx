@@ -37,10 +37,15 @@ export default function Model({
   const getWindObjectFromIndices = useCallback(() => {
     const scene = activeModel.scene
     if (!scene) return null
-    return currentModel === 'day'
-      ? (scene.children?.[1]?.children?.[0] as THREE.Object3D | undefined) ?? null
-      : (scene.children?.[0] as THREE.Object3D | undefined) ?? null
-  }, [activeModel.scene, currentModel])
+
+    let foundObj: THREE.Object3D | null = null
+    scene.traverse((child) => {
+      if (child.name && child.name.includes('pPlane')) {
+        foundObj = child
+      }
+    })
+    return foundObj
+  }, [activeModel.scene])
 
   const cacheWindObject = useCallback(() => {
     const obj = getWindObjectFromIndices()
@@ -161,26 +166,25 @@ export default function Model({
   }, [activeModel.scene, currentModel])
 
   useEffect(() => {
-  if (!windObjRef.current) cacheWindObject()
-  if (windObjRef.current) {
-    windObjRef.current.visible = !!windEnabled
-    windObjRef.current.traverse((o) => {
-      if (o instanceof THREE.Mesh) {
-        o.castShadow = false
-        o.receiveShadow = false
-        const m = o.material
-        const mats = Array.isArray(m) ? m : [m]
-        mats.forEach((mat) => {
-          if (!mat) return
-          if ('transparent' in mat) (mat as any).transparent = true
-          if ('opacity' in mat) (mat as any).opacity = Math.max((mat as any).opacity ?? 1, 1)
-          if ('depthWrite' in mat) (mat as any).depthWrite = true
-        })
-      }
-    })
-  }
-}, [windEnabled, cacheWindObject])
-
+    if (!windObjRef.current) cacheWindObject()
+    if (windObjRef.current) {
+      windObjRef.current.visible = !!windEnabled
+      windObjRef.current.traverse((o) => {
+        if (o instanceof THREE.Mesh) {
+          o.castShadow = false
+          o.receiveShadow = false
+          const m = o.material
+          const mats = Array.isArray(m) ? m : [m]
+          mats.forEach((mat) => {
+            if (!mat) return
+            if ('transparent' in mat) (mat as any).transparent = true
+            if ('opacity' in mat) (mat as any).opacity = Math.max((mat as any).opacity ?? 1, 1)
+            if ('depthWrite' in mat) (mat as any).depthWrite = true
+          })
+        }
+      })
+    }
+  }, [windEnabled, cacheWindObject])
 
   useFrame((state, delta) => {
     if (mixer.current && isAnimationPlayingRef.current && animationEnabled) {
@@ -192,13 +196,7 @@ export default function Model({
     const windObj = windObjRef.current ?? getWindObjectFromIndices()
     if (!windObj) return
     const directionMultiplier =
-      currentModel === 'day'
-        ? windDirection === 'sea-to-land'
-          ? 1
-          : -1
-        : windDirection === 'sea-to-land'
-        ? -1
-        : 1
+      currentModel === 'day' ? (windDirection === 'sea-to-land' ? 1 : -1) : windDirection === 'sea-to-land' ? -1 : 1
     windObj.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         const materials = Array.isArray(child.material) ? child.material : [child.material]
