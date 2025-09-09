@@ -370,6 +370,8 @@ export default function Page() {
               maxDistance={500}
               minPolarAngle={0}
               maxPolarAngle={Math.PI / 2}
+              minAzimuthAngle={-Math.PI / 4}
+              maxAzimuthAngle={Math.PI / 4}
             />
           )}
 

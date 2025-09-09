@@ -1,14 +1,14 @@
 // client/src/components/5-2-3/CameraController.tsx
-import { useThree } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
-import { useEffect, useRef } from 'react';
-import * as THREE from 'three';
+import { useThree } from '@react-three/fiber'
+import { OrbitControls } from '@react-three/drei'
+import { useEffect, useRef } from 'react'
+import * as THREE from 'three'
 
 interface CameraControllerProps {
-  targetPosition: [number, number, number];
-  targetLookAt: [number, number, number];
-  onComplete?: () => void;
-  enabled?: boolean;
+  targetPosition: [number, number, number]
+  targetLookAt: [number, number, number]
+  onComplete?: () => void
+  enabled?: boolean
 }
 
 export const CameraController: React.FC<CameraControllerProps> = ({
@@ -17,15 +17,15 @@ export const CameraController: React.FC<CameraControllerProps> = ({
   onComplete,
   enabled = true,
 }) => {
-  const { camera } = useThree();
-  const controlsRef = useRef<any>();
-  const animationRef = useRef<number | null>(null);
-  const isAnimatingRef = useRef(false);
+  const { camera } = useThree()
+  const controlsRef = useRef<any>()
+  const animationRef = useRef<number | null>(null)
+  const isAnimatingRef = useRef(false)
 
   useEffect(() => {
     if (isAnimatingRef.current) {
       if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
+        cancelAnimationFrame(animationRef.current)
       }
     }
 
@@ -33,85 +33,79 @@ export const CameraController: React.FC<CameraControllerProps> = ({
       return new Promise<void>((resolve) => {
         const checkControls = () => {
           if (controlsRef.current && controlsRef.current.target) {
-            resolve();
+            resolve()
           } else {
-            setTimeout(checkControls, 50);
+            setTimeout(checkControls, 50)
           }
-        };
-        checkControls();
-      });
-    };
+        }
+        checkControls()
+      })
+    }
 
     const startAnimation = async () => {
       try {
-        await waitForControls();
+        await waitForControls()
 
         if (!controlsRef.current || !controlsRef.current.target) {
-          return;
+          return
         }
 
-        isAnimatingRef.current = true;
+        isAnimatingRef.current = true
 
-        const startPosition = camera.position.clone();
-        const startLookAt = controlsRef.current.target.clone();
+        const startPosition = camera.position.clone()
+        const startLookAt = controlsRef.current.target.clone()
 
-        const duration = 2000;
-        const startTime = Date.now();
+        const duration = 2000
+        const startTime = Date.now()
 
         const animate = () => {
           if (!controlsRef.current || !controlsRef.current.target) {
-            isAnimatingRef.current = false;
-            return;
+            isAnimatingRef.current = false
+            return
           }
 
-          const elapsed = Date.now() - startTime;
-          const progress = Math.min(elapsed / duration, 1);
+          const elapsed = Date.now() - startTime
+          const progress = Math.min(elapsed / duration, 1)
 
           const easeInOutCubic = (t: number) => {
-            return t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
-          };
+            return t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1
+          }
 
-          const easedProgress = easeInOutCubic(progress);
+          const easedProgress = easeInOutCubic(progress)
 
-          camera.position.lerpVectors(
-            startPosition,
-            new THREE.Vector3(...targetPosition),
-            easedProgress,
-          );
+          camera.position.lerpVectors(startPosition, new THREE.Vector3(...targetPosition), easedProgress)
 
-          const newTarget = startLookAt
-            .clone()
-            .lerp(new THREE.Vector3(...targetLookAt), easedProgress);
+          const newTarget = startLookAt.clone().lerp(new THREE.Vector3(...targetLookAt), easedProgress)
 
-          controlsRef.current.target.copy(newTarget);
-          controlsRef.current.update();
+          controlsRef.current.target.copy(newTarget)
+          controlsRef.current.update()
 
           if (progress < 1) {
-            animationRef.current = requestAnimationFrame(animate);
+            animationRef.current = requestAnimationFrame(animate)
           } else {
-            isAnimatingRef.current = false;
-            animationRef.current = null;
-            onComplete?.();
+            isAnimatingRef.current = false
+            animationRef.current = null
+            onComplete?.()
           }
-        };
+        }
 
-        animationRef.current = requestAnimationFrame(animate);
+        animationRef.current = requestAnimationFrame(animate)
       } catch (error) {
-        console.error('Error during camera animation:', error);
-        isAnimatingRef.current = false;
+        console.error('Error during camera animation:', error)
+        isAnimatingRef.current = false
       }
-    };
+    }
 
-    startAnimation();
+    startAnimation()
 
     return () => {
       if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-        animationRef.current = null;
+        cancelAnimationFrame(animationRef.current)
+        animationRef.current = null
       }
-      isAnimatingRef.current = false;
-    };
-  }, [camera, targetPosition, targetLookAt, onComplete]);
+      isAnimatingRef.current = false
+    }
+  }, [camera, targetPosition, targetLookAt, onComplete])
 
   return (
     <OrbitControls
@@ -121,6 +115,8 @@ export const CameraController: React.FC<CameraControllerProps> = ({
       maxDistance={20}
       minPolarAngle={0}
       maxPolarAngle={Math.PI / 2}
+      minAzimuthAngle={-Math.PI / 6}
+      maxAzimuthAngle={Math.PI / 6}
     />
   )
-};
+}
