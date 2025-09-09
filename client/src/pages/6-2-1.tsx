@@ -27,6 +27,7 @@ import { useAudio } from '@/hook/6-2-1/useAudio'
 import { CAMERA_CONFIG } from '@/utils/6-2-1/utils'
 import { useNarrationManager } from '@/components/6-2-1/useNarrationManager'
 import { TiltOnMouse } from '@/components/common/Tilt'
+import IntroMouseCameraController from '@/components/intro/IntroMouseCameraController'
 
 type ButtonStyle = { bg: string; border: string; text: string }
 
@@ -437,7 +438,7 @@ export default function Page() {
       {/* 메인 3D 씬 */}
       <div className='flex-1'>
         <Scene shadows camera={{ position: CAMERA_CONFIG.position, fov: 50 }}>
-          <TiltOnMouse enabled={showIntro} maxDeg={5}>
+          <IntroMouseCameraController enabled={showIntro} />
             <Environment
               files='/img/cover/hdri.JPG'
               background={true}
@@ -489,7 +490,6 @@ export default function Page() {
               enableDamping={true}
               dampingFactor={0.05}
             />
-          </TiltOnMouse>
         </Scene>
       </div>
 
