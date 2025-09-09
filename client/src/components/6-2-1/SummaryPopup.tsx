@@ -1,34 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { CrayonTextBox } from '../common/CrayonTextBox'
+import { useNarrationManager } from './useNarrationManager'
 
 const SummaryPopup = ({ isOpen, onClose }) => {
-  const narrationRef = useRef(null)
-
-  const playNarration = (audioPath) => {
-    try {
-      if (narrationRef.current) {
-        narrationRef.current.pause()
-        narrationRef.current.currentTime = 0
-      }
-
-      const audio = new Audio(audioPath)
-      audio.volume = 0.5
-      narrationRef.current = audio
-
-      audio.play().catch((error) => {
-        console.log('나레이션 재생 실패:', error.name)
-      })
-    } catch (error) {
-      console.log('나레이션 생성 실패:', error)
-    }
-  }
-
-  const stopNarration = () => {
-    if (narrationRef.current) {
-      narrationRef.current.pause()
-      narrationRef.current.currentTime = 0
-    }
-  }
+  const { playNarration, stopNarration } = useNarrationManager('summary-popup')
 
   const [activeGraphs, setActiveGraphs] = useState({
     altitude: false,
@@ -36,15 +11,17 @@ const SummaryPopup = ({ isOpen, onClose }) => {
     temperature: false,
   })
 
-  const toggleGraph = (graphType) => {
+  const toggleGraph = async (graphType) => {
     const wasActive = activeGraphs[graphType]
 
     setActiveGraphs((prev) => ({
       ...prev,
       [graphType]: !prev[graphType],
     }))
+    
     if (!wasActive) {
       let audioPath = ''
+      
       switch (graphType) {
         case 'altitude':
           audioPath = '/sounds/6-2-1/narration/6-2-1-B.MP3'
@@ -58,7 +35,11 @@ const SummaryPopup = ({ isOpen, onClose }) => {
       }
 
       if (audioPath) {
-        playNarration(audioPath)
+        try {
+          await playNarration(audioPath,'',0.7)
+        } catch (error) {
+          console.log('나레이션 재생 실패:', error)
+        }
       }
     } else {
       stopNarration()
@@ -74,7 +55,7 @@ const SummaryPopup = ({ isOpen, onClose }) => {
     return () => {
       stopNarration()
     }
-  }, [])
+  }, [stopNarration])
 
   const getExplanationText = () => {
     const explanations = []
@@ -108,7 +89,7 @@ const SummaryPopup = ({ isOpen, onClose }) => {
           <div className='flex justify-between items-center mb-6'>
             <h2 className='text-2xl font-bold text-gray-800'>정리하기</h2>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className='text-gray-500 hover:text-gray-700 text-2xl font-bold w-8 h-8 flex items-center justify-center'>
               ×
             </button>

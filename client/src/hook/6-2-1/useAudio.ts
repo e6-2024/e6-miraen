@@ -1,8 +1,8 @@
 import { useCallback, useRef } from 'react';
 import { getAudioPath } from '@/utils/6-2-1/utils';
+import NarrationManager from '@/components/6-2-1/NarrationManager';
 
 export const useAudio = () => {
-  const narrationAudioRef = useRef<HTMLAudioElement | null>(null);
   const effectAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const playSound = useCallback((audioPath: string, volume: number = 0.7) => {
@@ -17,7 +17,7 @@ export const useAudio = () => {
     }
   }, []);
 
-  const playNarration = useCallback((pathOrAction: string, volume: number = 1.0) => {
+  const playNarration = useCallback(async (pathOrAction: string, volume: number = 1.0) => {
     let audioPath: string;
     
     if (pathOrAction.includes('/')) {
@@ -28,30 +28,22 @@ export const useAudio = () => {
     
     if (!audioPath) return;
 
-    if (narrationAudioRef.current) {
-      narrationAudioRef.current.pause();
-      narrationAudioRef.current.currentTime = 0;
-    }
-
     try {
-      const audio = new Audio(audioPath);
-      audio.volume = volume;
-      audio.loop = false; 
-      audio.play().catch((error) => {
-        console.log('나레이션 재생 실패:', error.name);
-      });
-      narrationAudioRef.current = audio;
+      const narrationManager = NarrationManager.getInstance();
+      await narrationManager.playNarration(
+        audioPath, 
+        'legacy-narration', 
+        '나레이션이 재생됩니다.',
+        volume
+      );
     } catch (error) {
-      console.log('나레이션 생성 실패:', error);
+      console.log('나레이션 재생 실패:', error);
     }
   }, []);
 
   const stopNarration = useCallback(() => {
-    if (narrationAudioRef.current) {
-      narrationAudioRef.current.pause();
-      narrationAudioRef.current.currentTime = 0;
-      narrationAudioRef.current = null;
-    }
+    const narrationManager = NarrationManager.getInstance();
+    narrationManager.stopCurrentNarration();
   }, []);
 
   const playBackgroundMusic = useCallback((audioPath: string = '/sounds/6-2-1/6-2-1-bg.mp3', volume: number = 0.3) => {

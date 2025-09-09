@@ -19,12 +19,14 @@ import ProgressBar from '@/components/6-2-1/ProgressBar'
 import TimeIntervalImages from '@/components/6-2-1/TimeIntervalImages'
 import SummaryPopup from '@/components/6-2-1/SummaryPopup'
 import SubtitleDisplay from '@/components/6-2-1/SubtitleDisplay'
+import NarrationManager from '@/components/6-2-1/NarrationManager'
 
 import { timeData2 } from '@/components/6-2-1/timeData'
 import { useObservation } from '@/hook/6-2-1/useObservation'
 import { useAudio } from '@/hook/6-2-1/useAudio'
 import { CAMERA_CONFIG } from '@/utils/6-2-1/utils'
 import { useNarrationManager } from '@/components/6-2-1/useNarrationManager'
+import { TiltOnMouse } from '@/components/common/Tilt'
 
 type ButtonStyle = { bg: string; border: string; text: string }
 
@@ -249,16 +251,6 @@ function ControlPanel({
   )
 }
 
-function NarrationText() {
-  return (
-    <div className='absolute top-1/2 z-[30] left-1/2 -translate-x-1/2 -translate-y-1/2 font-light'>
-      <CrayonTextBox bg='#FFFFFF' color='#F3921C' animated={true}>
-        시간에 따라 변하는 태양 고도, 그림자 길이, 기온을 관찰해봅시다.
-      </CrayonTextBox>
-    </div>
-  )
-}
-
 export default function Page() {
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
@@ -276,7 +268,10 @@ export default function Page() {
 
   // 관찰 데이터 훅
   const observation = useObservation(timeData2)
-  const { playSound, playNarration, stopNarration, playBackgroundMusic } = useAudio()
+  const { playSound, playBackgroundMusic } = useAudio()
+
+  // 메인 페이지 나레이션 관리
+  const { playNarration: playMainNarration } = useNarrationManager('main-page')
 
   // BGM 초기화 및 관리
   useEffect(() => {
@@ -291,6 +286,13 @@ export default function Page() {
     if (!mounted) return
     const audio = playBackgroundMusic()
     bgmRef.current = audio
+
+    // NarrationManager에 배경음악 참조 설정
+    if (audio) {
+      const narrationManager = NarrationManager.getInstance()
+      narrationManager.setBackgroundMusic(audio)
+    }
+
     return () => {
       if (audio) {
         audio.pause()
@@ -314,19 +316,32 @@ export default function Page() {
   const toggleBgm = () => setBgmEnabled((v) => !v)
 
   // 이벤트 핸들러들
-  const handleEnterExperience = useCallback(() => {
+  const handleEnterExperience = useCallback(async () => {
     setShowIntro(false)
     setBgmReady(true)
     playSound('/sounds/Enter_Cute.mp3')
 
-    setTimeout(() => {
-      playNarration('intro')
+    setTimeout(async () => {
+      try {
+        await playMainNarration(
+          '/sounds/6-2-1/narration/6-2-1-D.MP3',
+          '시간에 따라 변하는 태양 고도, 그림자 길이, 기온을 살펴봅시다.',
+          0.7,
+        )
+      } catch (error) {
+        console.log('인트로 나레이션 재생 실패:', error)
+      }
+
       setShowNarrationText(true)
       setTimeout(() => setShowNarrationText(false), 4000)
     }, 1000)
-  }, [playSound, playNarration])
+  }, [playSound, playMainNarration])
 
   const handleBackToIntro = useCallback(() => {
+    // 모든 나레이션 중지
+    const narrationManager = NarrationManager.getInstance()
+    narrationManager.stopCurrentNarration()
+
     setShowIntro(true)
     setShowTimeIntervalImages(false)
     setShowSummaryPopup(false)
@@ -342,6 +357,10 @@ export default function Page() {
   }, [playSound])
 
   const handleShowSummary = useCallback(() => {
+    // 현재 재생 중인 나레이션 중지
+    const narrationManager = NarrationManager.getInstance()
+    narrationManager.stopCurrentNarration()
+
     setShowSummaryPopup(true)
     playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3')
   }, [playSound])
@@ -388,10 +407,6 @@ export default function Page() {
         iconSize={40}
         innerCircleVisible={true}
       />
-
-      {/* 나레이션 텍스트 */}
-      {showNarrationText && !showIntro && <NarrationText />}
-
       {/* 뒤로가기 버튼 */}
       {!showIntro && (
         <AnimatePresence>
@@ -422,59 +437,59 @@ export default function Page() {
       {/* 메인 3D 씬 */}
       <div className='flex-1'>
         <Scene shadows camera={{ position: CAMERA_CONFIG.position, fov: 50 }}>
-          <Environment
-            files='/img/cover/hdri.JPG'
-            background={true}
-            ground={{ height: 5, radius: 20, scale: 90 }}
-            backgroundBlurriness={0.8}
-            backgroundIntensity={0.7}
-            environmentIntensity={0.8}
-            backgroundRotation={[0, observation.sunPosition.azimuthRad, 0]}
-          />
-
-          {/* 조명 */}
-          <ambientLight intensity={0.6} />
-          <SunLight sunPosition={observation.sunPosition} />
-
-          {/* 3D 모델들 */}
-          <CompassBillboard />
-
-          {/* 그림자 평면 */}
-          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-            <planeGeometry args={[100, 100]} />
-            <shadowMaterial transparent opacity={0.5} />
-          </mesh>
-
-          {/* 막대 */}
-          <mesh position={[0, 1.25, 0]} castShadow receiveShadow>
-            <cylinderGeometry args={[0.1, 0.1, 2.5, 32]} />
-            <meshStandardMaterial color='black' envMapIntensity={0} />
-          </mesh>
-
-          {/* 관측선 */}
-          {observation.showObservationLines && !showTimeIntervalImages && (
-            <AngleLines
-              azimuth={observation.currentData.azimuth}
-              altitude={observation.currentData.altitude}
-              shadowLength={observation.currentData.shadowLength}
-              sunPosition={observation.sunPosition}
+          <TiltOnMouse enabled={showIntro} maxDeg={5}>
+            <Environment
+              files='/img/cover/hdri.JPG'
+              background={true}
+              ground={{ height: 5, radius: 20, scale: 90 }}
+              backgroundBlurriness={0.8}
+              backgroundIntensity={0.7}
+              environmentIntensity={0.8}
+              backgroundRotation={[0, observation.sunPosition.azimuthRad, 0]}
             />
-          )}
 
-          {/* 온도계 */}
-          {observation.showThermometer && !showTimeIntervalImages && !showSummaryPopup && !showIntro && (
-            <ThermometerDisplay temperature={observation.currentData.temperature} position={[0.6, 3.5, 0]} />
-          )}
+            {/* 조명 */}
+            <ambientLight intensity={0.6} />
+            <SunLight sunPosition={observation.sunPosition} />
 
-          <OrbitControls
-            enabled={!showIntro && !showTimeIntervalImages}
-            minDistance={CAMERA_CONFIG.minDistance}
-            maxDistance={CAMERA_CONFIG.maxDistance}
-            minPolarAngle={CAMERA_CONFIG.minPolarAngle}
-            maxPolarAngle={CAMERA_CONFIG.maxPolarAngle}
-            enableDamping={true}
-            dampingFactor={0.05}
-          />
+            {/* 3D 모델들 */}
+            {!showIntro && <CompassBillboard />}
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+              <planeGeometry args={[100, 100]} />
+              <shadowMaterial transparent opacity={0.5} />
+            </mesh>
+
+            {/* 막대 */}
+            <mesh position={[0, 1.25, 0]} castShadow receiveShadow>
+              <cylinderGeometry args={[0.1, 0.1, 2.5, 32]} />
+              <meshStandardMaterial color='black' envMapIntensity={0} />
+            </mesh>
+
+            {/* 관측선 */}
+            {observation.showObservationLines && !showTimeIntervalImages && (
+              <AngleLines
+                azimuth={observation.currentData.azimuth}
+                altitude={observation.currentData.altitude}
+                shadowLength={observation.currentData.shadowLength}
+                sunPosition={observation.sunPosition}
+              />
+            )}
+
+            {/* 온도계 */}
+            {!observation.showObservationLines && !showTimeIntervalImages && !showSummaryPopup && !showIntro && (
+              <ThermometerDisplay temperature={observation.currentData.temperature} position={[0.6, 3.5, 0]} />
+            )}
+
+            <OrbitControls
+              enabled={!showIntro && !showTimeIntervalImages}
+              minDistance={CAMERA_CONFIG.minDistance}
+              maxDistance={CAMERA_CONFIG.maxDistance}
+              minPolarAngle={CAMERA_CONFIG.minPolarAngle}
+              maxPolarAngle={CAMERA_CONFIG.maxPolarAngle}
+              enableDamping={true}
+              dampingFactor={0.05}
+            />
+          </TiltOnMouse>
         </Scene>
       </div>
 
