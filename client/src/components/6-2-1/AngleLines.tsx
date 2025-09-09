@@ -107,7 +107,7 @@ function AngleLines({ azimuth, altitude, shadowLength, angleGroundLevel = 0, sun
     const halfAngle = angle * 0.5
     const textDirection = horizontalDir.clone()
     textDirection.y = Math.tan(halfAngle) * Math.sqrt(textDirection.x * textDirection.x + textDirection.z * textDirection.z)
-    textDirection.normalize().multiplyScalar(1.7) // 호보다 조금 더 바깥쪽
+    textDirection.normalize().multiplyScalar(1.65)
     
     const textPos = basePosition.clone().add(textDirection)
     
@@ -123,21 +123,21 @@ function AngleLines({ azimuth, altitude, shadowLength, angleGroundLevel = 0, sun
   return (
     <group>
       <primitive object={new THREE.Line(straightLineGeometry)} ref={dashedLineRef}>
-        <lineDashedMaterial color='#ffffff' linewidth={60} dashSize={0.1} gapSize={0.04} transparent opacity={1} />
+        <lineDashedMaterial color='#ffffff' linewidth={200} dashSize={0.1} gapSize={0.04} transparent opacity={1} />
       </primitive>
 
       <primitive object={new THREE.Line(angleArcGeometry)} ref={angleLineRef}>
-        <lineBasicMaterial color='#ffffff' linewidth={60} />
+        <lineBasicMaterial color='#ffffff' linewidth={200} />
       </primitive>
 
-      <Protractor
+      {/* <Protractor
         sunPosition={sunPosition}
         shadowEnd={shadowEnd}
         poleTopPosition={poleInfo.topPosition}
         angleGroundLevel={angleGroundLevel}
-      />
+      /> */}
 
-      <Ruler shadowEnd={shadowEnd} poleTopPosition={poleInfo.topPosition} />
+      {/* <Ruler shadowEnd={shadowEnd} poleTopPosition={poleInfo.topPosition} /> */}
 
       <Billboard position={textPosition}>
         <Text

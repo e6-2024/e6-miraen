@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import ObservationTable from '@/components/6-2-1/ObservationTable'
+import { CrayonTextButton } from '../common/CrayonUIButton'
 
 interface TimeIntervalImagesProps {
   currentData: {
@@ -22,13 +23,13 @@ interface TimeIntervalImagesProps {
 
 // 이미지 파일명과 시간 매핑
 const timeImageMap = {
-  '09:30': '930.png',
-  '10:30': '1030.png',
-  '11:30': '1130.png',
-  '12:30': '1230.png',
-  '13:30': '1330.png',
-  '14:30': '1430.png',
-  '15:30': '1530.png',
+  '09:30': '930.jpg',
+  '10:30': '1030.jpg',
+  '11:30': '1130.jpg',
+  '12:30': '1230.jpg',
+  '13:30': '1330.jpg',
+  '14:30': '1430.jpg',
+  '15:30': '1530.jpg',
 }
 
 function TimeIntervalImages({ currentData, isVisible, timeData, onTimeSelect }: TimeIntervalImagesProps) {
@@ -42,10 +43,10 @@ function TimeIntervalImages({ currentData, isVisible, timeData, onTimeSelect }: 
       console.warn('timeData가 없습니다:', timeData)
       return null
     }
-    const foundData = timeData.find(data => data.time === time)
+    const foundData = timeData.find((data) => data.time === time)
     if (!foundData) {
       console.warn(`시간 ${time}에 해당하는 데이터를 찾을 수 없습니다`)
-      return timeData[0] 
+      return timeData[0]
     }
     return foundData
   }
@@ -77,27 +78,27 @@ function TimeIntervalImages({ currentData, isVisible, timeData, onTimeSelect }: 
 
   return (
     <div className='fixed inset-0 z-[1000] bg-white flex flex-col justify-center items-center'>
-        <img
-          src={`/img/6-2-1/${currentImageName}`}
-          alt={`${currentTime} 관측 자료`}
-          className='h-screen w-auto max-w-none'
-        />
+      <img
+        src={`/img/6-2-1/${currentImageName}`}
+        alt={`${currentTime} 관측 자료`}
+        className='w-screen w-auto max-w-none'
+      />
 
-      <div className='absolute left-4 top-4 mt-4 gap-2 flex flex-col'>
+      <div className='absolute left-4 top-4 mt-0 gap-2 flex flex-col'>
         {availableTimes.map((time, index) => (
-          <button
+          <CrayonTextButton
             key={time}
             onClick={() => {
               setCurrentImageIndex(index)
               onTimeSelect(getDataByTime(time))
             }}
-            className={`px-3 py-1 rounded-full text-lg transition-all duration-200 ${
-              index === currentImageIndex
-                ? 'bg-orange-500 text-white font-bold'
-                : 'bg-white bg-opacity-70 font-bold text-gray-800 hover:bg-opacity-90'
-            }`}>
-            {time}
-          </button>
+            bg={index === currentImageIndex ? '#FF7043' : '#FFFFFF'}
+            color={index === currentImageIndex ? '#FFFFFF' : '#333333'}
+            textcolor={index === currentImageIndex ? '#FFFFFF' : '#333333'}
+            text={time}
+            width={120}
+            height={50}
+            ></CrayonTextButton>
         ))}
       </div>
     </div>
