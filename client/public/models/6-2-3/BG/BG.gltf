@@ -16,8 +16,7 @@
 		{
 			"name":"Scene",
 			"nodes":[
-				0,
-				1
+				0
 			]
 		}
 	],
@@ -33,28 +32,13 @@
 			],
 			"scale":[
 				11.46501636505127,
-				11.465014457702637,
-				11.465014457702637
+				11.46501350402832,
+				11.46501350402832
 			],
 			"translation":[
 				0,
 				-0.3668120801448822,
 				-0.061570003628730774
-			]
-		},
-		{
-			"mesh":1,
-			"name":"pSphere1",
-			"rotation":[
-				0.7071065902709961,
-				0,
-				0,
-				0.7071069478988647
-			],
-			"scale":[
-				410.081787109375,
-				410.08172607421875,
-				410.08172607421875
 			]
 		}
 	],
@@ -101,12 +85,13 @@
 		},
 		{
 			"doubleSided":true,
-			"name":"surfaceShader1.001",
+			"name":"Desk",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
 					"index":2
 				},
-				"metallicFactor":0
+				"metallicFactor":0,
+				"roughnessFactor":0.6663491129875183
 			}
 		}
 	],
@@ -135,17 +120,13 @@
 					"indices":4,
 					"material":0,
 					"mode":4
-				}
-			]
-		},
-		{
-			"name":"Mesh.118",
-			"primitives":[
+				},
 				{
 					"attributes":{
 						"POSITION":5,
 						"NORMAL":6,
-						"TEXCOORD_0":7
+						"TEXCOORD_0":7,
+						"TEXCOORD_1":8
 					},
 					"extensions":{
 						"KHR_draco_mesh_compression":{
@@ -153,11 +134,12 @@
 							"attributes":{
 								"POSITION":0,
 								"NORMAL":1,
-								"TEXCOORD_0":2
+								"TEXCOORD_0":2,
+								"TEXCOORD_1":3
 							}
 						}
 					},
-					"indices":8,
+					"indices":9,
 					"material":1,
 					"mode":4
 				}
@@ -181,7 +163,7 @@
 	"images":[
 		{
 			"mimeType":"image/png",
-			"name":"Material.001_Normal_OpenGL",
+			"name":"Material_001_Normal_OpenGL",
 			"uri":"Material_001_Normal_OpenGL.png"
 		},
 		{
@@ -190,9 +172,9 @@
 			"uri":"wood-364692.jpg"
 		},
 		{
-			"mimeType":"image/png",
-			"name":"lab",
-			"uri":"lab.png"
+			"mimeType":"image/jpeg",
+			"name":"Desk_baseColor",
+			"uri":"Desk_baseColor.jpg"
 		}
 	],
 	"accessors":[
@@ -233,45 +215,50 @@
 		},
 		{
 			"componentType":5126,
-			"count":439,
+			"count":286,
 			"max":[
-				1.000000238418579,
-				1,
-				1.0000004768371582
+				1.4996105432510376,
+				0.7361377477645874,
+				-0.02646160125732422
 			],
 			"min":[
-				-1.000000238418579,
-				-1.0000004768371582,
-				-1
+				-1.4996110200881958,
+				-0.7468776106834412,
+				-1.3472504615783691
 			],
 			"type":"VEC3"
 		},
 		{
 			"componentType":5126,
-			"count":439,
+			"count":286,
 			"type":"VEC3"
 		},
 		{
 			"componentType":5126,
-			"count":439,
+			"count":286,
+			"type":"VEC2"
+		},
+		{
+			"componentType":5126,
+			"count":286,
 			"type":"VEC2"
 		},
 		{
 			"componentType":5123,
-			"count":2280,
+			"count":720,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":689,
+			"byteLength":698,
 			"byteOffset":0
 		},
 		{
 			"buffer":0,
-			"byteLength":3631,
-			"byteOffset":692
+			"byteLength":1611,
+			"byteOffset":700
 		}
 	],
 	"samplers":[
@@ -282,7 +269,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":4324,
+			"byteLength":2312,
 			"uri":"BG.bin"
 		}
 	]

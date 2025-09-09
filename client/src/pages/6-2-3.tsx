@@ -3,7 +3,7 @@ import { Canvas } from '@react-three/fiber'
 import { OrbitControls, ContactShadows, useProgress, Environment } from '@react-three/drei'
 import Scene from '@/components/canvas/Scene'
 import Intro from '@/components/intro/Intro'
-import BG from '@/components/6-2-3/BG'
+import {BG} from '@/components/6-2-3/BG'
 import * as THREE from 'three'
 import { AnimatePresence, motion } from 'framer-motion'
 import ConnectedBuzzers from '@/components/6-2-3/ConnectedBuzzers'
@@ -384,7 +384,7 @@ export default function Home() {
           </motion.div>
         )}
       </AnimatePresence>
-      <div className='flex-1 relative overflow-hidden'>
+      <div className='flex-1 bg-[#FBF0C7] relative overflow-hidden'>
         <Scene
           shadows
           gl={{
@@ -418,7 +418,7 @@ export default function Home() {
                 <group key={showIntro ? `intro-${initialRandomMode}` : mode}>{getCurrentComponents}</group>
               )}
             </AnimatePresence>
-            <BG mode={showIntro ? initialRandomMode : mode} />
+            <BG />
             <OrbitControls
               enabled={!showIntro}
               enablePan={true}
