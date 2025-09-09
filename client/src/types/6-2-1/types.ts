@@ -18,8 +18,8 @@ export interface SunPosition {
 }
 
 export interface CameraConfig {
-  position: [number, number, number];
-  target: [number, number, number];
+  position: readonly [number, number, number];
+  target: readonly [number, number, number];
   minDistance: number;
   maxDistance: number;
   minPolarAngle: number;
