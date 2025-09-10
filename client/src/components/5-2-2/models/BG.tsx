@@ -8,11 +8,9 @@ import { thermalVertexShader, thermalFragmentShader } from '@/components/5-2-2/s
 type GLTFResult = GLTF & {
   nodes: {
     Desk: THREE.Mesh
-    pSphere1: THREE.Mesh
   }
   materials: {
-    ['Desk.001']: THREE.MeshStandardMaterial
-    ['surfaceShader1.001']: THREE.MeshStandardMaterial
+    ['Desk']: THREE.MeshStandardMaterial
   }
 }
 
@@ -117,18 +115,9 @@ export function BG({
         castShadow
         receiveShadow
         geometry={nodes.Desk.geometry}
-        material={materials['Desk.001']}
+        material={materials['Desk']}
         position={[0, -2.094, 0]}
         rotation={[0, -1.571, 0]}
-      />
-      <mesh
-        ref={sphereRef}
-        castShadow
-        receiveShadow
-        geometry={nodes.pSphere1.geometry}
-        material={materials['surfaceShader1.001']}
-        rotation={[Math.PI / 2, 0, 0]}
-        scale={11.076}
       />
     </group>
   )
