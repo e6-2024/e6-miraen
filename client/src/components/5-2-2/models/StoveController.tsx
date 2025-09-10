@@ -126,7 +126,6 @@ export default function StoveController({
     }
   }, [heatingTime, isHeating, thermalMode])
 
-  // 회전 상태에 따른 가열 상태 전달
   useEffect(() => {
     if (onRotationChange) {
       onRotationChange(isOn ? 1 : 0)

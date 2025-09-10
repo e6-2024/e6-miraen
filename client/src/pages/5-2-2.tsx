@@ -25,6 +25,7 @@ import { TiltOnMouse } from '@/components/common/Tilt'
 import { CrayonTextButton } from '@/components/common/CrayonUIButton'
 import { CrayonTextBox } from '@/components/common/CrayonTextBox'
 import { useAudio } from '@/hook/5-2-2/useAudio'
+import { ThermalTemperatureGauge } from '@/components/5-2-2/ThermalTemperatureGauge'
 
 type ButtonStyle = { bg: string; border: string; text: string }
 
@@ -37,7 +38,7 @@ type StoveTheme = {
 const stoveTheme: StoveTheme = {
   goal: { bg: '#EB7200', border: '#F4B476', text: '#FFFFFF' },
   guide: { bg: '#EB7200', border: '#F4B476', text: '#FFFFFF' },
-  start: { bg: '#52AE46', border: '#A1CC90', text: '#FFFFFF' },
+  start: { bg: '#49DE80', border: '#FFF', text: '#FFFFFF' },
 }
 
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
@@ -111,7 +112,7 @@ function TurnOffFireMessage({ visible }: { visible: boolean }) {
         transition={{ duration: 0.3 }}
         className='absolute inset-x-0 top-1/3 flex justify-center z-[20]'>
         <CrayonTextBox color='#222' bg='#FFF' animated={true}>
-          <p className='text-center font-bold text-black'>손잡이를 돌려 불을 끄세요!</p>
+          <p className='text-center font-light text-black'>손잡이를 클릭하여 불을 끄세요.</p>
         </CrayonTextBox>
       </motion.div>
     </AnimatePresence>
@@ -205,7 +206,7 @@ export default function Page() {
   const [controllerRotation, setControllerRotation] = useState(0)
   const [resetTrigger, setResetTrigger] = useState(0)
 
-  const { playSound, playNarration, stopNarration, cleanup } = useAudio()
+  const { playSound, playNarration, stopNarration, stopCookingSound, cleanup } = useAudio()
 
   const bgmRef = useRef<HTMLAudioElement | null>(null)
   const [bgmEnabled, setBgmEnabled] = useState<boolean>(true)
@@ -312,6 +313,7 @@ export default function Page() {
           setFireOff(true)
           setShowTurnOffMessage(false)
           stopNarration()
+          stopCookingSound()
 
           if (heatingIntervalRef.current) {
             clearInterval(heatingIntervalRef.current)
@@ -322,7 +324,7 @@ export default function Page() {
 
       setControllerRotation(rotation)
     },
-    [foodOnPan, isHeating, isHeatingComplete, playSound, playNarration, stopNarration],
+    [foodOnPan, isHeating, isHeatingComplete, playSound, playNarration, stopNarration, stopCookingSound],
   )
 
   const handleFoodClick = useCallback(
@@ -340,6 +342,7 @@ export default function Page() {
       setFireOff(false)
       setIsHeating(false)
       stopNarration()
+      stopCookingSound()
 
       if (heatingIntervalRef.current) {
         clearInterval(heatingIntervalRef.current)
@@ -349,12 +352,12 @@ export default function Page() {
       playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3', 0.5)
       playNarration('/sounds/5-2-2/5-2-2-A.MP3')
     },
-    [isHeating, playSound, playNarration, stopNarration],
+    [isHeating, playSound, playNarration, stopNarration, stopCookingSound],
   )
 
   const handleResetHeating = useCallback(() => {
+    stopCookingSound()
     stopNarration()
-
     if (heatingIntervalRef.current) {
       clearInterval(heatingIntervalRef.current)
       heatingIntervalRef.current = null
@@ -373,7 +376,7 @@ export default function Page() {
     setShowSummaryMessage(false)
     setFireOff(false)
     setIsThermalMode(false)
-  }, [stopNarration])
+  }, [stopNarration, stopCookingSound])
 
   const handleSummaryClick = useCallback(() => {
     playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3', 0.5)
@@ -410,7 +413,7 @@ export default function Page() {
           position={[x + 0.05, -0.93, z - 0.125]}
           scale={isHeating && !fireOff ? 0.1 : 0}
           opacity={isThermalMode ? 0.3 : 1}
-        />,
+        />
       )
     }
 
@@ -513,6 +516,13 @@ export default function Page() {
 
       <SummaryPopup isVisible={showSummaryMessage} selectedFood={selectedFood} onClose={handleSummaryClose} />
 
+      {isThermalMode && !showIntro && (
+        <>
+          <div className='absolute inset-0 bg-black opacity-30 pointer-events-none' />
+          <ThermalTemperatureGauge />
+        </>
+      )}
+
       {!showIntro && (
         <StatusMessage foodOnPan={foodOnPan} isHeating={isHeating} isHeatingComplete={isHeatingComplete} />
       )}
@@ -600,7 +610,16 @@ export default function Page() {
                 isHeating={isHeating && !fireOff}
                 heatingTime={heatingTime}
               />
-
+              <StoveController
+                position={[0.04, -0.96, 0.435]}
+                thermalMode={isThermalMode}
+                isHeating={isHeating}
+                foodOnPan={foodOnPan}
+                heatingTime={0}
+                onRotationChange={handleControllerRotation}
+                disabled={!foodOnPan || showIntro || (isHeating && !isHeatingComplete)}
+                resetTrigger={resetTrigger}
+              />
               <Pan
                 scale={1}
                 position={[0, -0.91, -0.12]}
@@ -614,17 +633,6 @@ export default function Page() {
               <BG position={[0, -1, 0]} thermalMode={isThermalMode} isHeating={isHeating} heatingTime={heatingTime} />
 
               {createCircularFlames()}
-
-              <StoveController
-                position={[0.04, -0.96, 0.435]}
-                thermalMode={isThermalMode}
-                isHeating={isHeating}
-                foodOnPan={foodOnPan}
-                heatingTime={0}
-                onRotationChange={handleControllerRotation}
-                disabled={!foodOnPan || showIntro || (isHeating && !isHeatingComplete)}
-                resetTrigger={resetTrigger}
-              />
             </group>
 
             <OrbitControls

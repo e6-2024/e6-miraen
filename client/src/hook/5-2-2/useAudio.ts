@@ -3,6 +3,7 @@ import { useCallback, useRef } from 'react';
 export const useAudio = () => {
   const narrationAudioRef = useRef<HTMLAudioElement | null>(null);
   const loopingAudioRef = useRef<HTMLAudioElement | null>(null);
+  const cookingSoundRef = useRef<HTMLAudioElement | null>(null);
 
   const playSound = useCallback((audioPath: string, volume: number = 0.7, loop: boolean = false) => {
     try {
@@ -16,6 +17,11 @@ export const useAudio = () => {
           loopingAudioRef.current.currentTime = 0;
         }
         loopingAudioRef.current = audio;
+        
+        // 요리 소리인 경우 별도 ref에도 저장
+        if (audioPath.includes('food-cooking-in-frying-pan')) {
+          cookingSoundRef.current = audio;
+        }
       }
       
       audio.play().catch((error) => {
@@ -63,16 +69,26 @@ export const useAudio = () => {
     }
   }, []);
 
+  const stopCookingSound = useCallback(() => {
+    if (cookingSoundRef.current) {
+      cookingSoundRef.current.pause();
+      cookingSoundRef.current.currentTime = 0;
+      cookingSoundRef.current = null;
+    }
+  }, []);
+
   const cleanup = useCallback(() => {
     stopNarration();
     stopLoopingAudio();
-  }, [stopNarration, stopLoopingAudio]);
+    stopCookingSound();
+  }, [stopNarration, stopLoopingAudio, stopCookingSound]);
 
   return {
     playSound,
     playNarration,
     stopNarration,
     stopLoopingAudio,
+    stopCookingSound,
     cleanup
   };
 };
