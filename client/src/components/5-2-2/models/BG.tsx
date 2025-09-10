@@ -112,8 +112,8 @@ export function BG({
     <group {...props} dispose={null}>
       <mesh
         ref={deskRef}
-        castShadow
-        receiveShadow
+        castShadow ={true}
+        receiveShadow={true}
         geometry={nodes.Desk.geometry}
         material={materials['Desk']}
         position={[0, -2.094, 0]}

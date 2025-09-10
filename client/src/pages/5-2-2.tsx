@@ -75,16 +75,16 @@ function HeatingGauge({
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.3 }}
         className='absolute inset-x-0 top-4 flex justify-center z-[20]'>
-        <CrayonTextBox color={stoveTheme.goal.bg} bg='#FFF' width={320} animated={true}>
+        <CrayonTextBox color='#3BC8FB' bg='#FFF' width={320} animated={true}>
           <div className='text-center mb-3'>
             <h3 className='text-lg font-bold text-gray-800'>{foodName} 가열 중</h3>
-            {isHeatingComplete && <p className='text-sm text-green-600 font-bold'>가열 완료! 불을 꺼주세요</p>}
+            {isHeatingComplete && <p className='text-sm text-black font-bold'>가열 완료! 불을 꺼주세요</p>}
           </div>
 
           <div className='w-full bg-gray-200 rounded-full h-4 overflow-hidden mb-2'>
             <div
               className={`h-4 rounded-full transition-all duration-300 ${
-                progress >= 100 ? 'bg-green-500' : 'bg-orange-500'
+                progress >= 100 ? 'bg-[#70C7C6]' : 'bg-[#3BC8FB]'
               }`}
               style={{ width: `${Math.min(progress, 100)}%` }}
             />
@@ -109,9 +109,9 @@ function TurnOffFireMessage({ visible }: { visible: boolean }) {
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
         transition={{ duration: 0.3 }}
-        className='absolute bottom-32 left-1/2 transform -translate-x-1/2 z-50'>
-        <CrayonTextBox color='#ff4444' bg='#FFF' animated={true}>
-          <p className='text-center font-bold text-red-600'>🔥 손잡이를 돌려 불을 끄세요!</p>
+        className='absolute inset-x-0 top-1/3 flex justify-center z-[20]'>
+        <CrayonTextBox color='#222' bg='#FFF' animated={true}>
+          <p className='text-center font-bold text-black'>손잡이를 돌려 불을 끄세요!</p>
         </CrayonTextBox>
       </motion.div>
     </AnimatePresence>
@@ -128,9 +128,9 @@ function StatusMessage({
   isHeatingComplete: boolean
 }) {
   const getMessage = () => {
-    if (!foodOnPan) return '생선 또는 고기를 클릭하여 프라이팬에 올려보세요!'
-    if (!isHeating) return '가스레인지 손잡이를 클릭하여 가열해보세요!'
-    if (isHeating && !isHeatingComplete) return '가열 중입니다... 완료될 때까지 기다려주세요!'
+    if (!foodOnPan) return '고기 또는 생선을 클릭하여 프라이팬에 올려 보세요.'
+    if (!isHeating) return '가스레인지의 손잡이를 클릭하여 불을 켜세요.'
+    if (isHeating && !isHeatingComplete) return '가열 중입니다. 가열이 완료될 때까지 기다려 주세요.'
     return ''
   }
 
@@ -139,7 +139,7 @@ function StatusMessage({
 
   return (
     <div className='absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-40'>
-      <CrayonTextBox color='#52AE46' bg='#FFF' animated={true}>
+      <CrayonTextBox color='#3BC8FB' bg='#FFF' animated={true}>
         <p className='text-center font-light'>{message}</p>
       </CrayonTextBox>
     </div>
@@ -169,18 +169,11 @@ function SummaryPopup({
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
         transition={{ duration: 0.3 }}>
-        <CrayonTextBox color={stoveTheme.start.bg} bg='#FFF' width={500} animated={true}>
+        <CrayonTextBox color='#3BC8FB' bg='#FFF' width={500} animated={true}>
           <div className='text-center p-4'>
             <h3 className='text-2xl font-bold mb-4 text-gray-800'>정리하기</h3>
             <p className='text-gray-700 font-light mb-6 leading-relaxed'>{message}</p>
-            <CrayonTextButton
-              text='확인'
-              onClick={onClose}
-              width={120}
-              bg={stoveTheme.start.border}
-              color='#fff'
-              textcolor='#333'
-            />
+            <CrayonTextButton text='확인' onClick={onClose} width={120} bg='#3BC8FB' color='#fff' textcolor='#333' />
           </div>
         </CrayonTextBox>
       </motion.div>
@@ -259,7 +252,6 @@ export default function Page() {
     setBgmReady(true)
     setTimeout(() => {
       setShowIntro(false)
-      playNarration('/sounds/5-2-2/5-2-2-A.MP3')
     }, 300)
   }, [playSound, playNarration])
 
@@ -404,8 +396,8 @@ export default function Page() {
 
   const createCircularFlames = () => {
     const flames = []
-    const flameCount = 20
-    const radius = 0.13
+    const flameCount = 40
+    const radius = 0.15
 
     for (let i = 0; i < flameCount; i++) {
       const angle = (i / flameCount) * Math.PI * 2
@@ -415,8 +407,8 @@ export default function Page() {
       flames.push(
         <Flame
           key={i}
-          position={[x + 0.05, -0.93, z - 0.4]}
-          scale={isHeating && !fireOff ? 0.3 : 0}
+          position={[x + 0.05, -0.93, z - 0.125]}
+          scale={isHeating && !fireOff ? 0.1 : 0}
           opacity={isThermalMode ? 0.3 : 1}
         />,
       )
@@ -479,9 +471,9 @@ export default function Page() {
             <CrayonTextButton
               text={isThermalMode ? '돌아가기' : '열화상 카메라로 보기'}
               onClick={toggleThermalMode}
-              width={200}
-              bg={stoveTheme.start.bg}
-              color='#A1CC90'
+              width={isThermalMode ? 120 : 200}
+              bg='#49DE80'
+              color='#fff'
               textcolor='#FFFFFF'
             />
           )}
@@ -490,8 +482,8 @@ export default function Page() {
             text='처음으로'
             onClick={handleResetHeating}
             width={120}
-            bg={stoveTheme.goal.bg}
-            color='#FFDBB0'
+            bg='#3BC8FB'
+            color='#fff'
             textcolor='#FFFFFF'
           />
         </div>
@@ -512,8 +504,8 @@ export default function Page() {
             text='정리하기'
             onClick={handleSummaryClick}
             width={140}
-            bg='#52AE46'
-            color='#A1CC90'
+            bg='#3BC8FB'
+            color='#FFF'
             textcolor='#FFFFFF'
           />
         </div>
@@ -533,28 +525,24 @@ export default function Page() {
             shadowMap: {
               enabled: true,
               type: THREE.PCFSoftShadowMap,
-            }
+            },
+            antialias: true,
           }}>
-          <ambientLight intensity={isThermalMode ? 0.1 : 1} />
+          <ambientLight intensity={isThermalMode ? 0.1 : 0.4} />
           <PerformanceMonitor onDecline={() => degrade(true)} />
           <TiltOnMouse enabled={showIntro} maxDeg={10} position={[0, 0, 0]}>
             {!isThermalMode && (
               <Environment
                 frames={perfSucks ? 1 : Infinity}
                 preset='studio'
-                resolution={256}
+                resolution={512}
                 background={false}
                 blur={1}>
-                <Lightformer intensity={4} rotation-x={Math.PI / 2} position={[0, 5, -9]} scale={[10, 10, 1]} />
-                <Lightformer intensity={4} rotation-x={Math.PI / 2} position={[0, 5, -9]} scale={[10, 10, 1]} />
-                <group rotation={[Math.PI / 2, 1, 0]}>
-                  <Lightformer intensity={0.5} rotation-y={Math.PI / 2} position={[-5, 1, -1]} scale={[50, 2, 1]} />
-                  <Lightformer intensity={0.5} rotation-y={Math.PI / 2} position={[-5, -1, -1]} scale={[50, 2, 1]} />
-                </group>
+                <Lightformer intensity={1} rotation-x={Math.PI / 2} position={[0, 5, -9]} scale={[10, 10, 1]} />
+                <Lightformer intensity={1} rotation-x={Math.PI / 2} position={[0, 5, -9]} scale={[10, 10, 1]} />
                 <Lightformer
-                  intensity={2}
+                  intensity={1}
                   form='ring'
-                  color='white'
                   rotation-y={Math.PI / 2}
                   position={[1, 1, 1]}
                   scale={[4, 4, 1]}
@@ -562,52 +550,82 @@ export default function Page() {
               </Environment>
             )}
 
-            <fogExp2 attach='fog' color={'#ffffffff'} density={0.09} />
-            <directionalLight castShadow position={[2, 2, 2]} intensity={isThermalMode ? 0.1 : 1} />
-
-            <group onClick={() => handleFoodClick('fish')}>
-              <Fish
-                scale={1}
-                position={foodOnPan === 'fish' ? [0.0, -0.87, -0.5] : [1.2, -0.9, 0.3]}
-                thermalMode={isThermalMode}
-                isHeating={isHeating && foodOnPan === 'fish'}
-                heatingTime={foodOnPan === 'fish' ? heatingTime : 0}
-                heatingProgress={foodOnPan === 'fish' ? heatingProgress : 0}
-              />
-            </group>
-
-            <group onClick={() => handleFoodClick('meat')}>
-              <Meat
-                scale={1}
-                position={foodOnPan === 'meat' ? [0.0, -0.87, -0.4] : [-1, -1, 0.3]}
-                thermalMode={isThermalMode}
-                isHeating={isHeating && foodOnPan === 'meat'}
-                heatingTime={foodOnPan === 'meat' ? heatingTime : 0}
-                heatingProgress={foodOnPan === 'meat' ? heatingProgress : 0}
-              />
-            </group>
-
-            <Stove
-              scale={1}
-              position={[0, -1, 0]}
-              thermalMode={isThermalMode}
-              isHeating={isHeating && !fireOff}
-              heatingTime={heatingTime}
+            <fogExp2 attach='fog' color={'#ffffffff'} density={0.3} />
+            <directionalLight
+              castShadow
+              position={[15, 10, 5]}
+              intensity={isThermalMode ? 0.1 : 2.0}
+              shadow-mapSize-width={4096}
+              shadow-mapSize-height={4096}
+              shadow-camera-far={50}
+              shadow-camera-left={-10}
+              shadow-camera-right={10}
+              shadow-camera-top={10}
+              shadow-camera-bottom={-10}
+              shadow-bias={-0.0001}
+              shadow-normalBias={0.1}
             />
 
-            <Pan
-              scale={1}
-              position={[0, -0.88, -0.4]}
-              thermalMode={isThermalMode}
-              isHeating={isHeating && !fireOff}
-              heatingTime={heatingTime}
-            />
+            <group position={[0, 0.4, 0]}>
+              <mesh receiveShadow position={[0, -3.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+                <planeGeometry args={[20, 20]} />
+                <shadowMaterial opacity={0.3} />
+              </mesh>
+              <group onClick={() => handleFoodClick('fish')}>
+                <Fish
+                  scale={1}
+                  position={foodOnPan === 'fish' ? [0.0, -0.87, -0.15] : [1.2, -1.005, 0.25]}
+                  thermalMode={isThermalMode}
+                  isHeating={isHeating && foodOnPan === 'fish'}
+                  heatingTime={foodOnPan === 'fish' ? heatingTime : 0}
+                  heatingProgress={foodOnPan === 'fish' ? heatingProgress : 0}
+                />
+              </group>
 
-            <Dish position={[0, -1, 0.3]} thermalMode={isThermalMode} isHeating={isHeating} heatingTime={0} />
-            <Dish position={[2.2, -1, 0.3]} thermalMode={isThermalMode} isHeating={isHeating} heatingTime={0} />
-            <BG position={[0, -1, 0]} thermalMode={isThermalMode} isHeating={isHeating} heatingTime={heatingTime} />
+              <group onClick={() => handleFoodClick('meat')}>
+                <Meat
+                  scale={1}
+                  position={foodOnPan === 'meat' ? [0.0, -0.87, -0.15] : [-1, -1.02, 0.3]}
+                  thermalMode={isThermalMode}
+                  isHeating={isHeating && foodOnPan === 'meat'}
+                  heatingTime={foodOnPan === 'meat' ? heatingTime : 0}
+                  heatingProgress={foodOnPan === 'meat' ? heatingProgress : 0}
+                />
+              </group>
 
-            {createCircularFlames()}
+              <Stove
+                scale={1}
+                position={[0, -1, 0.3]}
+                thermalMode={isThermalMode}
+                isHeating={isHeating && !fireOff}
+                heatingTime={heatingTime}
+              />
+
+              <Pan
+                scale={1}
+                position={[0, -0.91, -0.12]}
+                thermalMode={isThermalMode}
+                isHeating={isHeating && !fireOff}
+                heatingTime={heatingTime}
+              />
+
+              <Dish position={[0, -1.04, 0.3]} thermalMode={isThermalMode} isHeating={isHeating} heatingTime={0} />
+              <Dish position={[2.2, -1.04, 0.3]} thermalMode={isThermalMode} isHeating={isHeating} heatingTime={0} />
+              <BG position={[0, -1, 0]} thermalMode={isThermalMode} isHeating={isHeating} heatingTime={heatingTime} />
+
+              {createCircularFlames()}
+
+              <StoveController
+                position={[0.04, -0.96, 0.435]}
+                thermalMode={isThermalMode}
+                isHeating={isHeating}
+                foodOnPan={foodOnPan}
+                heatingTime={0}
+                onRotationChange={handleControllerRotation}
+                disabled={!foodOnPan || showIntro || (isHeating && !isHeatingComplete)}
+                resetTrigger={resetTrigger}
+              />
+            </group>
 
             <OrbitControls
               enableRotate={!showIntro}
@@ -617,17 +635,6 @@ export default function Page() {
               maxDistance={6}
               maxPolarAngle={Math.PI / 2}
               minPolarAngle={0}
-            />
-
-            <StoveController
-              position={[0.04, -0.96, 0.13]}
-              thermalMode={isThermalMode}
-              isHeating={isHeating}
-              foodOnPan={foodOnPan}
-              heatingTime={0}
-              onRotationChange={handleControllerRotation}
-              disabled={!foodOnPan || showIntro || (isHeating && !isHeatingComplete)}
-              resetTrigger={resetTrigger}
             />
           </TiltOnMouse>
         </Scene>

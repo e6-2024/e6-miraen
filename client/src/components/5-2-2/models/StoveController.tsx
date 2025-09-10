@@ -14,26 +14,26 @@ interface StoveControllerProps extends GroupProps {
   resetTrigger?: number // 초기화 트리거 추가
 }
 
-export default function StoveController({ 
-  thermalMode = false, 
-  isHeating = false, 
+export default function StoveController({
+  thermalMode = false,
+  isHeating = false,
   foodOnPan = null,
   heatingTime = 0,
   onRotationChange,
   disabled = false,
   resetTrigger = 0,
-  ...props 
+  ...props
 }: StoveControllerProps) {
   const { scene } = useGLTF('models/5-2-2/Stove_Control.glb')
   const [originalMaterials, setOriginalMaterials] = useState<Map<THREE.Mesh, THREE.Material>>(new Map())
   const thermalMaterialRef = useRef<THREE.ShaderMaterial>()
   const groupRef = useRef<THREE.Group>(null)
-  
+
   // 회전 관련 상태
   const [currentRotation, setCurrentRotation] = useState(0)
   const [targetRotation, setTargetRotation] = useState(0)
   const [isOn, setIsOn] = useState(false)
-  
+
   // 모델 오프셋 상태로 관리
   const [modelOffset, setModelOffset] = useState<THREE.Vector3 | null>(null)
 
@@ -51,7 +51,7 @@ export default function StoveController({
     const box = new THREE.Box3()
     box.setFromObject(scene)
     const center = box.getCenter(new THREE.Vector3())
-    
+
     // 중심점을 원점으로 만들기 위한 오프셋 설정
     setModelOffset(center.clone().negate())
   }, [scene])
@@ -59,13 +59,13 @@ export default function StoveController({
   // 클릭 핸들러 - 사운드 제거
   const handleClick = () => {
     if (disabled) return
-    
+
     const newIsOn = !isOn
     setIsOn(newIsOn)
-    
+
     // 90도(π/2) 회전으로 ON/OFF 구분
     setTargetRotation(newIsOn ? Math.PI / 2 : 0)
-    
+
     // 부모 컴포넌트에 상태 전달
     if (onRotationChange) {
       onRotationChange(newIsOn ? 1 : 0)
@@ -74,18 +74,17 @@ export default function StoveController({
 
   useEffect(() => {
     const materials = new Map<THREE.Mesh, THREE.Material>()
-    
+
     scene.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         child.castShadow = true
         child.receiveShadow = true
-        
-        if (!originalMaterials.has(child)) {
-          materials.set(child, child.material)
+        if (child.material instanceof THREE.MeshStandardMaterial) {
+          child.material.needsUpdate = true
         }
       }
     })
-    
+
     if (materials.size > 0) {
       setOriginalMaterials(materials)
     }
@@ -102,12 +101,12 @@ export default function StoveController({
           heatingTime: { value: heatingTime },
           baseColor: { value: new THREE.Color(0.3, 0.3, 0.5) },
           centerPoint: { value: new THREE.Vector3(0, 0, 0) },
-          isHeating: { value: isHeating }
-        }
+          isHeating: { value: isHeating },
+        },
       })
-      
+
       thermalMaterialRef.current = thermalMaterial
-      
+
       scene.traverse((child) => {
         if (child instanceof THREE.Mesh) {
           child.material = thermalMaterial
@@ -141,7 +140,7 @@ export default function StoveController({
 
     // 부드러운 회전 애니메이션
     if (Math.abs(targetRotation - currentRotation) > 0.01) {
-      setCurrentRotation(prev => {
+      setCurrentRotation((prev) => {
         const diff = targetRotation - prev
         return prev + diff * 0.1 // 부드러운 애니메이션을 위한 lerp
       })
@@ -152,7 +151,7 @@ export default function StoveController({
     <group ref={groupRef} {...props}>
       {/* 모델 오프셋이 계산될 때까지 대기 */}
       {modelOffset && (
-        <group 
+        <group
           rotation-y={currentRotation}
           onClick={handleClick}
           onPointerOver={() => {
@@ -160,8 +159,7 @@ export default function StoveController({
           }}
           onPointerOut={() => {
             document.body.style.cursor = 'default'
-          }}
-        >
+          }}>
           {/* 모델을 중심점 기준으로 오프셋 적용 */}
           <group position={[modelOffset.x, modelOffset.y, modelOffset.z]}>
             <primitive object={scene} />
