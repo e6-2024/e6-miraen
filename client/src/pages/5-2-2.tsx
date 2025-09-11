@@ -584,7 +584,7 @@ export default function Page() {
               <group onClick={() => handleFoodClick('fish')}>
                 <Fish
                   scale={1}
-                  position={foodOnPan === 'fish' ? [0.0, -0.87, -0.15] : [1.2, -1.005, 0.25]}
+                  position={foodOnPan === 'fish' ? [0.0, -0.87, -0.15] : [1.2, -1.01, 0.25]}
                   thermalMode={isThermalMode}
                   isHeating={isHeating && foodOnPan === 'fish'}
                   heatingTime={foodOnPan === 'fish' ? heatingTime : 0}
@@ -595,7 +595,7 @@ export default function Page() {
               <group onClick={() => handleFoodClick('meat')}>
                 <Meat
                   scale={1}
-                  position={foodOnPan === 'meat' ? [0.0, -0.87, -0.15] : [-1, -1.02, 0.3]}
+                  position={foodOnPan === 'meat' ? [0.02, -0.87, -0.13] : [-1, -1.03, 0.3]}
                   thermalMode={isThermalMode}
                   isHeating={isHeating && foodOnPan === 'meat'}
                   heatingTime={foodOnPan === 'meat' ? heatingTime : 0}
@@ -612,6 +612,7 @@ export default function Page() {
               />
               <StoveController
                 position={[0.04, -0.96, 0.435]}
+                scale={1.1}
                 thermalMode={isThermalMode}
                 isHeating={isHeating}
                 foodOnPan={foodOnPan}
@@ -622,14 +623,14 @@ export default function Page() {
               />
               <Pan
                 scale={1}
-                position={[0, -0.91, -0.12]}
+                position={[0.03, -0.91, -0.12]}
                 thermalMode={isThermalMode}
                 isHeating={isHeating && !fireOff}
                 heatingTime={heatingTime}
               />
 
-              <Dish position={[0, -1.04, 0.3]} thermalMode={isThermalMode} isHeating={isHeating} heatingTime={0} />
-              <Dish position={[2.2, -1.04, 0.3]} thermalMode={isThermalMode} isHeating={isHeating} heatingTime={0} />
+              <Dish position={[0, -1.05, 0.3]} thermalMode={isThermalMode} isHeating={isHeating} heatingTime={0} />
+              <Dish position={[2.2, -1.05, 0.3]} thermalMode={isThermalMode} isHeating={isHeating} heatingTime={0} />
               <BG position={[0, -1, 0]} thermalMode={isThermalMode} isHeating={isHeating} heatingTime={heatingTime} />
 
               {createCircularFlames()}
