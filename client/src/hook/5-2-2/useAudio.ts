@@ -19,7 +19,7 @@ export const useAudio = () => {
         loopingAudioRef.current = audio;
         
         // 요리 소리인 경우 별도 ref에도 저장
-        if (audioPath.includes('food-cooking-in-frying-pan')) {
+        if (audioPath.includes('food-cooking')) {
           cookingSoundRef.current = audio;
         }
       }
