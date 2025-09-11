@@ -623,7 +623,7 @@ export default function Page() {
               />
               <Pan
                 scale={1}
-                position={[0.03, -0.91, -0.12]}
+                position={[0.04, -0.91, -0.12]}
                 thermalMode={isThermalMode}
                 isHeating={isHeating && !fireOff}
                 heatingTime={heatingTime}
