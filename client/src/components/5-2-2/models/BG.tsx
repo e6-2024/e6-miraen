@@ -8,25 +8,27 @@ import { thermalVertexShader, thermalFragmentShader } from '@/components/5-2-2/s
 type GLTFResult = GLTF & {
   nodes: {
     Desk: THREE.Mesh
+    Sphere: THREE.Mesh
   }
   materials: {
     ['Desk']: THREE.MeshStandardMaterial
+    ['Sphere']: THREE.MeshStandardMaterial
   }
 }
 
 interface BGProps {
-  thermalMode?: boolean;
-  isHeating?: boolean;
-  heatingTime?: number;
-  heatSourcePosition?: [number, number, number];
+  thermalMode?: boolean
+  isHeating?: boolean
+  heatingTime?: number
+  heatSourcePosition?: [number, number, number]
 }
 
-export function BG({ 
-  thermalMode = false, 
-  isHeating = false, 
-  heatingTime = 0, 
-  heatSourcePosition = [0, 0, 0], 
-  ...props 
+export function BG({
+  thermalMode = false,
+  isHeating = false,
+  heatingTime = 0,
+  heatSourcePosition = [0, 0, 0],
+  ...props
 }: BGProps & JSX.IntrinsicElements['group']) {
   const { nodes, materials } = useGLTF('/models/5-2-2/BG.glb') as GLTFResult
   const [originalMaterials, setOriginalMaterials] = useState<Map<THREE.Mesh, THREE.Material>>(new Map())
@@ -34,11 +36,11 @@ export function BG({
   const thermalMaterialRef = useRef<THREE.ShaderMaterial>()
   const deskRef = useRef<THREE.Mesh>(null)
   const sphereRef = useRef<THREE.Mesh>(null)
-  
+
   useEffect(() => {
     const materials = new Map<THREE.Mesh, THREE.Material>()
     const box = new THREE.Box3()
-    
+
     if (deskRef.current) {
       const material = deskRef.current.material
       if (!Array.isArray(material)) {
@@ -46,7 +48,7 @@ export function BG({
       }
       box.expandByObject(deskRef.current)
     }
-    
+
     if (sphereRef.current) {
       const material = sphereRef.current.material
       if (!Array.isArray(material)) {
@@ -54,11 +56,11 @@ export function BG({
       }
       box.expandByObject(sphereRef.current)
     }
-    
+
     if (materials.size > 0) {
       setOriginalMaterials(materials)
     }
-    
+
     const center = box.getCenter(new THREE.Vector3())
     setCenterPoint(center)
   }, [])
@@ -74,12 +76,12 @@ export function BG({
           heatingTime: { value: 0 }, // 가열 시간 항상 0
           baseColor: { value: new THREE.Color(0.5, 0.5, 0.5) },
           centerPoint: { value: centerPoint },
-          isHeating: { value: false } // 항상 가열 상태 아님
-        }
+          isHeating: { value: false }, // 항상 가열 상태 아님
+        },
       })
-      
+
       thermalMaterialRef.current = thermalMaterial
-      
+
       if (deskRef.current) {
         deskRef.current.material = thermalMaterial
       }
@@ -112,12 +114,20 @@ export function BG({
     <group {...props} dispose={null}>
       <mesh
         ref={deskRef}
-        castShadow ={true}
+        castShadow={true}
         receiveShadow={true}
         geometry={nodes.Desk.geometry}
         material={materials['Desk']}
         position={[0, -2.094, 0]}
         rotation={[0, -1.571, 0]}
+      />
+      <mesh
+        ref={sphereRef}
+        castShadow={true}
+        receiveShadow={true}
+        geometry={nodes.Sphere.geometry}
+        material={materials['Sphere']}
+        scale={33.763}
       />
     </group>
   )

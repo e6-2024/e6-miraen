@@ -1,3 +1,4 @@
+// Meat.tsx
 import { useGLTF } from '@react-three/drei'
 import { GroupProps, useFrame } from '@react-three/fiber'
 import { useEffect, useRef, useState } from 'react'
@@ -25,9 +26,28 @@ export function Meat({
   const { scene } = useGLTF('models/5-2-2/Meat.glb')
   const [originalMaterials, setOriginalMaterials] = useState<Map<THREE.Mesh, THREE.Material>>(new Map())
   const [cookedTexture, setCookedTexture] = useState<THREE.Texture | null>(null)
+
   const thermalMaterialRef = useRef<THREE.ShaderMaterial>()
   const groupRef = useRef<THREE.Group>(null)
   const [prevThermalMode, setPrevThermalMode] = useState(thermalMode)
+
+  const boundsRef = useRef<{ bottomY: number; topY: number } | null>(null)
+
+  const computeBounds = () => {
+    if (!groupRef.current) return null
+    const box = new THREE.Box3()
+    groupRef.current.updateWorldMatrix(true, true)
+    box.setFromObject(groupRef.current)
+    return { bottomY: box.min.y, topY: box.max.y }
+  }
+
+  const getCurrentCenterPoint = () => {
+    if (!groupRef.current) return new THREE.Vector3(...position)
+    const box = new THREE.Box3()
+    groupRef.current.updateWorldMatrix(true, true)
+    box.setFromObject(groupRef.current)
+    return box.getCenter(new THREE.Vector3())
+  }
 
   useEffect(() => {
     const materials = new Map<THREE.Mesh, THREE.Material>()
@@ -57,7 +77,6 @@ export function Meat({
     }
 
     const loader = new THREE.TextureLoader()
-
     loader.load(
       '/textures/5-2-2/CookedSteak1.001_AlbedoTransparency.png',
       (texture) => {
@@ -69,28 +88,22 @@ export function Meat({
         console.warn('Cooked texture loading failed:', error)
       },
     )
+
+    const b = computeBounds()
+    if (b) boundsRef.current = b
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scene])
-
-  const getCurrentCenterPoint = () => {
-    if (!groupRef.current) return new THREE.Vector3(...position)
-
-    const box = new THREE.Box3()
-    groupRef.current.updateWorldMatrix(true, true)
-    box.setFromObject(groupRef.current)
-
-    return box.getCenter(new THREE.Vector3())
-  }
 
   useEffect(() => {
     if (thermalMode) {
-      if (thermalMode !== prevThermalMode) {
-        if (thermalMaterialRef.current) {
-          thermalMaterialRef.current.dispose()
-          thermalMaterialRef.current = undefined
-        }
+      if (thermalMode !== prevThermalMode && thermalMaterialRef.current) {
+        thermalMaterialRef.current.dispose()
+        thermalMaterialRef.current = undefined
       }
 
       const currentCenter = getCurrentCenterPoint()
+      const b = computeBounds() || boundsRef.current
+      if (b) boundsRef.current = b
 
       const thermalMaterial = new THREE.ShaderMaterial({
         vertexShader: thermalVertexShader,
@@ -102,6 +115,10 @@ export function Meat({
           baseColor: { value: new THREE.Color(0.9, 0.3, 0.1) },
           centerPoint: { value: currentCenter },
           isHeating: { value: isHeating },
+          bottomY: { value: b ? b.bottomY : 0 },
+          topY: { value: b ? b.topY : 1 },
+          heatProgress: { value: Math.min(Math.max(heatingProgress / 100, 0), 1) },
+          lightDir: { value: new THREE.Vector3(0.6, 1.0, 0.3).normalize() },
         },
       })
 
@@ -119,7 +136,7 @@ export function Meat({
       }
 
       if (cookedTexture) {
-        const blendFactor = heatingProgress > 0 ? Math.min(heatingProgress / 100, 1.0) : 0.2
+        const blendFactor = heatingProgress > 0 ? Math.min(heatingProgress / 100, 1.0) : 0.1
 
         scene.traverse((child) => {
           if (child instanceof THREE.Mesh) {
@@ -135,15 +152,17 @@ export function Meat({
                   canvas.width = 512
                   canvas.height = 512
 
-                  const originalImg = originalMaterial.map.image
+                  const originalImg = (originalMaterial.map as THREE.Texture).image as
+                    | HTMLImageElement
+                    | HTMLCanvasElement
                   if (originalImg) {
-                    ctx.drawImage(originalImg, 0, 0, canvas.width, canvas.height)
+                    ctx.drawImage(originalImg as CanvasImageSource, 0, 0, canvas.width, canvas.height)
 
                     ctx.globalAlpha = blendFactor
                     ctx.globalCompositeOperation = 'source-over'
-                    const cookedImg = cookedTexture.image
+                    const cookedImg = cookedTexture.image as HTMLImageElement | HTMLCanvasElement
                     if (cookedImg) {
-                      ctx.drawImage(cookedImg, 0, 0, canvas.width, canvas.height)
+                      ctx.drawImage(cookedImg as CanvasImageSource, 0, 0, canvas.width, canvas.height)
                     }
 
                     const blendedTexture = new THREE.CanvasTexture(canvas)
@@ -156,7 +175,7 @@ export function Meat({
               } else {
                 child.material = originalMaterial
               }
-            } else {
+            } else if (originalMaterial) {
               child.material = originalMaterial
             }
           }
@@ -169,15 +188,23 @@ export function Meat({
     }
 
     setPrevThermalMode(thermalMode)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [thermalMode, scene, originalMaterials, position, isHeating, heatingProgress, cookedTexture])
 
   useEffect(() => {
     if (thermalMode && thermalMaterialRef.current) {
       const currentCenter = getCurrentCenterPoint()
-
       thermalMaterialRef.current.uniforms.heatingTime.value = heatingTime
       thermalMaterialRef.current.uniforms.isHeating.value = isHeating
       thermalMaterialRef.current.uniforms.centerPoint.value = currentCenter
+      thermalMaterialRef.current.uniforms.heatProgress.value = Math.min(Math.max(heatingProgress / 100, 0), 1)
+
+      const b = computeBounds() || boundsRef.current
+      if (b) {
+        boundsRef.current = b
+        thermalMaterialRef.current.uniforms.bottomY.value = b.bottomY
+        thermalMaterialRef.current.uniforms.topY.value = b.topY
+      }
     }
   }, [heatingTime, isHeating, thermalMode, position])
 
@@ -187,6 +214,13 @@ export function Meat({
 
       const currentCenter = getCurrentCenterPoint()
       thermalMaterialRef.current.uniforms.centerPoint.value = currentCenter
+
+      const b = computeBounds()
+      if (b) {
+        boundsRef.current = b
+        thermalMaterialRef.current.uniforms.bottomY.value = b.bottomY
+        thermalMaterialRef.current.uniforms.topY.value = b.topY
+      }
     }
   })
 
@@ -194,6 +228,7 @@ export function Meat({
     return () => {
       if (thermalMaterialRef.current) {
         thermalMaterialRef.current.dispose()
+        thermalMaterialRef.current = undefined
       }
     }
   }, [])

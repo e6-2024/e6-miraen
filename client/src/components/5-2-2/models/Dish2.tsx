@@ -19,7 +19,7 @@ interface DishProps extends GroupProps {
   heatSourcePosition?: [number, number, number]
 }
 
-export function Dish({
+export function Dish2({
   thermalMode = false,
   isHeating = false,
   heatingTime = 0,
@@ -27,7 +27,7 @@ export function Dish({
   heatSourcePosition = [0, 0, 0],
   ...props
 }: DishProps) {
-  const { nodes, materials } = useGLTF('/models/5-2-2/Dish.glb') as GLTFResult
+  const { nodes, materials } = useGLTF('/models/5-2-2/Dish2.glb') as GLTFResult
 
   const groupRef = useRef<THREE.Group>(null)
   const meshRef = useRef<THREE.Mesh>(null)
@@ -153,4 +153,4 @@ export function Dish({
   )
 }
 
-useGLTF.preload('/models/5-2-2/Dish.glb')
+useGLTF.preload('/models/5-2-2/Dish2.glb')

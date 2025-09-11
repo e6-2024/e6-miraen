@@ -23,14 +23,20 @@ export const ThermalTemperatureGauge: React.FC<ThermalTemperatureGaugeProps> = (
 
   return (
     <div className={`fixed right-4 top-1/2 transform -translate-y-1/2 z-30 ${className}`}>
-      <CrayonTextBox bg='rgb(0,0,0,0)' color='rgb(0,0,0,0)' animated={true}>
+      <CrayonTextBox bg='rgb(0,0,0,0)' color='rgb(0,0,0,0)' 
+      height={460} animated={true}>
         <div className='relative'>
-          <div className='w-8 h-96 bg-gradient-to-t from-blue-900 via-blue-500 via-cyan-400 via-green-400 via-yellow-400 via-orange-400 via-red-500 to-white rounded-lg shadow-lg'></div>
-          <div className='absolute -bottom-6 left-0 right-0 text-center'>
-            <span className='text-white font-light text-xs drop-shadow-lg bg-opacity-50 px-1 py-0.5 rounded'>최저</span>
+          <div
+            className='w-8 h-96 rounded-lg shadow-lg'
+            style={{
+              background: 'linear-gradient(to bottom, white, red, orange, yellow, green, blue)',
+            }}></div>
+
+          <div className='absolute left-1/2 -bottom-7 -translate-x-1/2 text-center'>
+            <span className='text-white whitespace-nowrap font-light text-xs drop-shadow-lg bg-opacity-50 px-1 py-0.5 rounded'>온도 높음</span>
           </div>
-          <div className='absolute -top-7 left-0 right-0 text-center'>
-            <span className='text-white font-light text-xs drop-shadow-lg bg-opacity-50 px-1 py-0.5 rounded'>최고</span>
+          <div className='absolute left-1/2 -top-7 -translate-x-1/2 text-center'>
+            <span className='text-white whitespace-nowrap font-light text-xs drop-shadow-lg bg-opacity-50 px-1 py-0.5 rounded'>온도 낮음</span>
           </div>
         </div>
       </CrayonTextBox>

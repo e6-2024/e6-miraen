@@ -6,6 +6,8 @@ import {
   ContactShadows,
   Lightformer,
   PerformanceMonitor,
+  AccumulativeShadows,
+  RandomizedLight,
 } from '@react-three/drei'
 import { motion, AnimatePresence } from 'framer-motion'
 import dynamic from 'next/dynamic'
@@ -20,6 +22,7 @@ import Intro from '@/components/intro/Intro'
 import Pan from '@/components/5-2-2/models/Pan'
 import { BG } from '@/components/5-2-2/models/BG'
 import { Dish } from '@/components/5-2-2/models/Dish'
+import { Dish2 } from '@/components/5-2-2/models/Dish2'
 import StoveController from '@/components/5-2-2/models/StoveController'
 import { TiltOnMouse } from '@/components/common/Tilt'
 import { CrayonTextButton } from '@/components/common/CrayonUIButton'
@@ -275,11 +278,9 @@ export default function Page() {
         setIsHeatingComplete(false)
         setFireOff(false)
 
-        playSound('/sounds/5-2-2/5-2-2-2_gas-stove-version-2-338042.mp3', 0.5)
+        playSound('/sounds/5-2-2/5-2-2-2_gas-stove-version-2-338042.MP3', 0.5)
 
-        setTimeout(() => {
-          playSound('/sounds/5-2-2/5-2-2-3_food-cooking-in-frying-pan-71250.mp3', 0.5, true)
-        }, 5000)
+        playSound('/sounds/5-2-2/5-2-2-3_food-cooking-in-frying-pan-71250.MP3', 0.5, true)
 
         heatingIntervalRef.current = setInterval(() => {
           setHeatingTime((prev) => {
@@ -410,10 +411,10 @@ export default function Page() {
       flames.push(
         <Flame
           key={i}
-          position={[x + 0.05, -0.93, z - 0.125]}
+          position={[x + 0.05, -0.90, z - 0.125]}
           scale={isHeating && !fireOff ? 0.1 : 0}
           opacity={isThermalMode ? 0.3 : 1}
-        />
+        />,
       )
     }
 
@@ -563,21 +564,27 @@ export default function Page() {
             <fogExp2 attach='fog' color={'#ffffffff'} density={0.3} />
             <directionalLight
               castShadow
-              position={[15, 10, 5]}
+              position={[12, 6, 5]}
               intensity={isThermalMode ? 0.1 : 2.0}
               shadow-mapSize-width={4096}
               shadow-mapSize-height={4096}
               shadow-camera-far={50}
-              shadow-camera-left={-10}
+              shadow-camera-left={-20}
               shadow-camera-right={10}
               shadow-camera-top={10}
               shadow-camera-bottom={-10}
               shadow-bias={-0.0001}
               shadow-normalBias={0.1}
             />
-
+            <ContactShadows
+              position={[0, -0.6, 0]}
+              scale={7}
+              blur={1.0}
+              opacity={1.0}
+              far={5}
+            />
             <group position={[0, 0.4, 0]}>
-              <mesh receiveShadow position={[0, -3.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+              <mesh receiveShadow position={[0, -3.1, 0]} rotation={[-Math.PI / 2, 0, 0]} visible={!isThermalMode}>
                 <planeGeometry args={[20, 20]} />
                 <shadowMaterial opacity={0.3} />
               </mesh>
@@ -591,7 +598,6 @@ export default function Page() {
                   heatingProgress={foodOnPan === 'fish' ? heatingProgress : 0}
                 />
               </group>
-
               <group onClick={() => handleFoodClick('meat')}>
                 <Meat
                   scale={1}
@@ -602,16 +608,15 @@ export default function Page() {
                   heatingProgress={foodOnPan === 'meat' ? heatingProgress : 0}
                 />
               </group>
-
               <Stove
                 scale={1}
-                position={[0, -1, 0.3]}
+                position={[0, -0.97, 0.3]}
                 thermalMode={isThermalMode}
                 isHeating={isHeating && !fireOff}
                 heatingTime={heatingTime}
               />
               <StoveController
-                position={[0.04, -0.96, 0.435]}
+                position={[0.04, -0.922, 0.435]}
                 scale={1.1}
                 thermalMode={isThermalMode}
                 isHeating={isHeating}
@@ -623,16 +628,14 @@ export default function Page() {
               />
               <Pan
                 scale={1}
-                position={[0.04, -0.91, -0.12]}
+                position={[0.04, -0.88, -0.12]}
                 thermalMode={isThermalMode}
                 isHeating={isHeating && !fireOff}
                 heatingTime={heatingTime}
               />
-
-              <Dish position={[0, -1.05, 0.3]} thermalMode={isThermalMode} isHeating={isHeating} heatingTime={0} />
-              <Dish position={[2.07, -1.05, 0.3]} thermalMode={isThermalMode} isHeating={isHeating} heatingTime={0} />
+              <Dish2 position={[0, -1.043, 0.3]} thermalMode={isThermalMode} isHeating={isHeating} heatingTime={0} />
+              <Dish position={[2.07, -1.043, 0.3]} thermalMode={isThermalMode} isHeating={isHeating} heatingTime={0} />
               <BG position={[0, -1, 0]} thermalMode={isThermalMode} isHeating={isHeating} heatingTime={heatingTime} />
-
               {createCircularFlames()}
             </group>
 
