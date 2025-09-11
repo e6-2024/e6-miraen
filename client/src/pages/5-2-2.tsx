@@ -278,9 +278,9 @@ export default function Page() {
         setIsHeatingComplete(false)
         setFireOff(false)
 
-        playSound('/sounds/5-2-2/5-2-2-2_gas-stove-version-2-338042.MP3', 0.5)
+        playSound('/sounds/5-2-2/5-2-2-2_gas-stove-version.MP3', 0.5)
 
-        playSound('/sounds/5-2-2/5-2-2-3_food-cooking-in-frying-pan-71250.MP3', 0.5, true)
+        playSound('/sounds/5-2-2/5-2-2-3_food-cooking.MP3', 0.5, true)
 
         heatingIntervalRef.current = setInterval(() => {
           setHeatingTime((prev) => {
