@@ -112,7 +112,7 @@ function TurnOffFireMessage({ visible }: { visible: boolean }) {
         transition={{ duration: 0.3 }}
         className='absolute inset-x-0 top-1/3 flex justify-center z-[20]'>
         <CrayonTextBox color='#222' bg='#FFF' animated={true}>
-          <p className='text-center font-light text-black'>손잡이를 클릭하여 불을 끄세요.</p>
+          <p className='text-center font-light text-black'>가스레인지의 손잡이를 클릭하여 불을 끄세요.</p>
         </CrayonTextBox>
       </motion.div>
     </AnimatePresence>
@@ -584,7 +584,7 @@ export default function Page() {
               <group onClick={() => handleFoodClick('fish')}>
                 <Fish
                   scale={1}
-                  position={foodOnPan === 'fish' ? [0.0, -0.87, -0.15] : [1.2, -1.01, 0.25]}
+                  position={foodOnPan === 'fish' ? [0.0, -0.87, -0.15] : [1.07, -1.01, 0.25]}
                   thermalMode={isThermalMode}
                   isHeating={isHeating && foodOnPan === 'fish'}
                   heatingTime={foodOnPan === 'fish' ? heatingTime : 0}
@@ -630,7 +630,7 @@ export default function Page() {
               />
 
               <Dish position={[0, -1.05, 0.3]} thermalMode={isThermalMode} isHeating={isHeating} heatingTime={0} />
-              <Dish position={[2.2, -1.05, 0.3]} thermalMode={isThermalMode} isHeating={isHeating} heatingTime={0} />
+              <Dish position={[2.07, -1.05, 0.3]} thermalMode={isThermalMode} isHeating={isHeating} heatingTime={0} />
               <BG position={[0, -1, 0]} thermalMode={isThermalMode} isHeating={isHeating} heatingTime={heatingTime} />
 
               {createCircularFlames()}
