@@ -110,7 +110,7 @@ export function Meat({
         fragmentShader: thermalFragmentShader,
         uniforms: {
           time: { value: 0 },
-          temperature: { value: 0.15 },
+          temperature: { value: 0.0 },
           heatingTime: { value: heatingTime },
           baseColor: { value: new THREE.Color(0.9, 0.3, 0.1) },
           centerPoint: { value: currentCenter },

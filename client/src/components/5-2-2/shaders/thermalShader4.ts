@@ -90,7 +90,7 @@ export const thermalFragmentShader = `
       float headY = mix(bottomY, topY, min(p * 1.25, 1.0));
       float band = 0.16 * (topY - bottomY);
       float belowMask = 1.0 - smoothstep(headY - band, headY + band, vWorldPosition.y);
-      float verticalFalloff = pow(1.0 - h, 1.2);
+      float verticalFalloff = pow(1.0 - h, 1.8);
 
       float centerHeat = belowMask * verticalFalloff * 1.2;
       float globalHeat = p * 0.42;
