@@ -33,10 +33,10 @@ export const ThermalTemperatureGauge: React.FC<ThermalTemperatureGaugeProps> = (
             }}></div>
 
           <div className='absolute left-1/2 -bottom-7 -translate-x-1/2 text-center'>
-            <span className='text-white whitespace-nowrap font-light text-xs drop-shadow-lg bg-opacity-50 px-1 py-0.5 rounded'>온도 높음</span>
+            <span className='text-white whitespace-nowrap font-light text-xs drop-shadow-lg bg-opacity-50 px-1 py-0.5 rounded'>온도 낮음</span>
           </div>
           <div className='absolute left-1/2 -top-7 -translate-x-1/2 text-center'>
-            <span className='text-white whitespace-nowrap font-light text-xs drop-shadow-lg bg-opacity-50 px-1 py-0.5 rounded'>온도 낮음</span>
+            <span className='text-white whitespace-nowrap font-light text-xs drop-shadow-lg bg-opacity-50 px-1 py-0.5 rounded'>온도 높음</span>
           </div>
         </div>
       </CrayonTextBox>
