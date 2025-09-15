@@ -314,23 +314,23 @@
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":1109,
+			"byteLength":1206,
 			"byteOffset":0
 		},
 		{
 			"buffer":0,
-			"byteLength":52592,
-			"byteOffset":1112
+			"byteLength":52462,
+			"byteOffset":1208
 		},
 		{
 			"buffer":0,
-			"byteLength":59118,
-			"byteOffset":53704
+			"byteLength":59068,
+			"byteOffset":53672
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":112824,
+			"byteLength":112740,
 			"uri":"Result_Numbers.bin"
 		}
 	]

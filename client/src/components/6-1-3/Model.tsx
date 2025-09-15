@@ -9,7 +9,7 @@ type GLTFResult = GLTF & {
     GRASS_RoughGrass_Low_Mat_0: THREE.Mesh
     Plane002: THREE.Mesh
     Plane002_1: THREE.Mesh
-    SOIL_Mat_0: THREE.Mesh
+    SOIL_Mat_0001: THREE.Mesh
     TREE_A10_Mat_0001: THREE.Mesh
     TREE_A10_Mat_0002_1: THREE.Mesh
     TREE_A10_Mat_0002_2: THREE.Mesh
@@ -20,10 +20,10 @@ type GLTFResult = GLTF & {
     ['RoughGrass_Low_Mat.002']: THREE.Material
     ['Material.001']: THREE.Material
     ['Material.006']: THREE.Material
-    ['material.002']: THREE.Material
     ['A10_Mat.002']: THREE.Material
     ['Material.007']: THREE.Material
     ['Material.008']: THREE.Material
+    ['material']: THREE.Material
   }
 }
 
@@ -32,7 +32,7 @@ export function Model(props: JSX.IntrinsicElements['group']) {
 
   return (
     <group {...props} dispose={null}>
-      {/* 잔디 두 묶음 */}
+      {/* 잔디 */}
       <group position={[-0.134, -1.156, 0.069]} scale={0.01}>
         <mesh
           castShadow
@@ -66,17 +66,6 @@ export function Model(props: JSX.IntrinsicElements['group']) {
         />
       </group>
 
-      {/* 흙 */}
-      <group position={[0, -0.084, 0]} scale={0.01}>
-        <mesh
-          castShadow
-          receiveShadow
-          geometry={nodes.SOIL_Mat_0.geometry}
-          material={materials['material.002']}
-          position={[-20.52, -8.281, 14.967]}
-        />
-      </group>
-
       {/* 나무 */}
       <group position={[0.149, 2.98, -0.219]} scale={0.01}>
         <mesh
@@ -107,6 +96,16 @@ export function Model(props: JSX.IntrinsicElements['group']) {
           />
         </group>
       </group>
+
+      {/* 흙 (새 스펙에 맞춘 단일 메쉬) */}
+      <mesh
+        castShadow
+        receiveShadow
+        geometry={nodes.SOIL_Mat_0001.geometry}
+        material={materials['material']}
+        position={[0, -0.494, 0]}
+        scale={0.01}
+      />
     </group>
   )
 }
