@@ -2,7 +2,7 @@ import { useGLTF } from '@react-three/drei'
 import { GroupProps, useFrame } from '@react-three/fiber'
 import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
-import { thermalVertexShader, thermalFragmentShader } from '@/components/5-2-2/shaders/thermalShader3'
+import { thermalVertexShader, thermalFragmentShader } from '@/components/5-2-2/models/shaders/thermalShader3'
 
 interface PanProps extends GroupProps {
   thermalMode?: boolean

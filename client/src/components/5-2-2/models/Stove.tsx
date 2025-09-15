@@ -2,7 +2,7 @@ import { useGLTF } from '@react-three/drei'
 import { GroupProps, useFrame } from '@react-three/fiber'
 import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
-import { thermalVertexShader2, thermalFragmentShader2 } from '@/components/5-2-2/shaders/thermalShader2'
+import { thermalVertexShader2, thermalFragmentShader2 } from '@/components/5-2-2/models/shaders/thermalShader2'
 
 interface StoveProps extends GroupProps {
   thermalMode?: boolean
@@ -58,11 +58,13 @@ export default function Stove({
         fragmentShader: thermalFragmentShader2,
         uniforms: {
           time: { value: 0 },
-          temperature: { value: 0.01 },
+          temperature: { value: 0.8 },
           heatingTime: { value: heatingTime },
           baseColor: { value: new THREE.Color(0.3, 0.3, 0.5) },
           centerPoint: { value: centerPoint },
-          isHeating: { value: isHeating }
+          isHeating: { value: isHeating },
+          modelDepth: {value: 0.1},
+          zShiftFactor:{value: 0.9}
         }
       })
       

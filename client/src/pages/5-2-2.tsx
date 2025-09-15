@@ -411,9 +411,10 @@ export default function Page() {
       flames.push(
         <Flame
           key={i}
-          position={[x + 0.05, -0.90, z - 0.125]}
+          position={[x + 0.05, -0.9, z - 0.125]}
           scale={isHeating && !fireOff ? 0.1 : 0}
-          opacity={isThermalMode ? 0.3 : 1}
+          thermalMode={isThermalMode}
+          opacity={isThermalMode ? 1 : 1}
         />,
       )
     }
@@ -576,13 +577,7 @@ export default function Page() {
               shadow-bias={-0.0001}
               shadow-normalBias={0.1}
             />
-            <ContactShadows
-              position={[0, -0.6, 0]}
-              scale={7}
-              blur={1.0}
-              opacity={1.0}
-              far={5}
-            />
+            <ContactShadows position={[0, -0.6, 0]} scale={7} blur={1.0} opacity={1.0} far={5} />
             <group position={[0, 0.4, 0]}>
               <mesh receiveShadow position={[0, -3.1, 0]} rotation={[-Math.PI / 2, 0, 0]} visible={!isThermalMode}>
                 <planeGeometry args={[20, 20]} />

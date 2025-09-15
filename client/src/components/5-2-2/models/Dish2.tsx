@@ -4,7 +4,7 @@ import React, { useRef, useEffect, useState } from 'react'
 import { useGLTF } from '@react-three/drei'
 import { useFrame, GroupProps } from '@react-three/fiber'
 import { GLTF } from 'three-stdlib'
-import { thermalVertexShader, thermalFragmentShader } from '@/components/5-2-2/shaders/thermalShader'
+import { thermalVertexShader, thermalFragmentShader } from '@/components/5-2-2/models/shaders/thermalShader'
 
 type GLTFResult = GLTF & {
   nodes: { SM_WhitePorcelainDish194: THREE.Mesh }
