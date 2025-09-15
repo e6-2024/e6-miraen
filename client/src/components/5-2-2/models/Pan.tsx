@@ -91,7 +91,7 @@ export function Pan({
 
       let isFirstMesh = true
       scene.traverse((child) => {
-        if (child instanceof THREE.Mesh && child.name.includes('Fry_pan')) {
+        if (child instanceof THREE.Mesh && child.name.includes('Fry_pan1')) {
           if (isFirstMesh) {
             child.material = heatingMaterial
             isFirstMesh = false
