@@ -8,6 +8,8 @@ import { WaterFlowAnimation } from '../components/6-1-3/WaterFlowAnimation'
 import { SpeechBubble } from '../components/6-1-3/SpeechBubble'
 import { RootWaterAbsorption, LeafEvaporation, StemWaterMovement } from '../components/6-1-3/WaterFlowEffects'
 import { SubtitleBox, InfoPanel, WaterFlowButton, ViewControls } from '../components/6-1-3/PlantUI'
+import { WaterPathEditor } from '../components/6-1-3/WaterPathEditor'
+import { DeveloperControls } from '../components/6-1-3/DeveloperControls'
 import Scene from '../components/canvas/Scene'
 import Intro from '../components/intro/Intro'
 import { CrayonTextButton } from '@/components/common/CrayonUIButton'
@@ -27,7 +29,7 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
   return null
 }
 
-function ViewBasedControls({ currentView }: { currentView: ViewType }) {
+function ViewBasedControls({ currentView, orbitControlsRef }: { currentView: ViewType; orbitControlsRef: React.RefObject<any> }) {
   const { camera } = useThree()
   const currentConfig = CAMERA_CONFIGS[currentView]
 
@@ -40,6 +42,7 @@ function ViewBasedControls({ currentView }: { currentView: ViewType }) {
 
   return (
     <OrbitControls
+      ref={orbitControlsRef}
       target={currentConfig.target}
       enableZoom={true}
       enablePan={false}
@@ -70,7 +73,12 @@ export default function Page() {
   const [showInfoPanel, setShowInfoPanel] = useState(false)
   const [infoPanelType, setInfoPanelType] = useState<InfoPanelType>('root')
 
-  const basePathPoints = useMemo(() => getBasePathPoints(), [])
+  // Developer controls state
+  const [pathPoints, setPathPoints] = useState<THREE.Vector3[]>(() => getBasePathPoints())
+  const [isPathEditorVisible, setIsPathEditorVisible] = useState(false)
+  const [isDeveloperMode, setIsDeveloperMode] = useState(false)
+
+  const orbitControlsRef = useRef<any>(null)
   const narrationTexts = useMemo(() => getNarrationTexts(), [])
 
   const bgmRef = useRef<HTMLAudioElement | null>(null)
@@ -78,6 +86,31 @@ export default function Page() {
   const [bgmReady, setBgmReady] = useState(false)
 
   const { playSound, playNarration, playBackgroundSound, stopBackgroundSound } = usePlantAudio()
+
+  // Check for developer mode (you can use localStorage or URL params)
+  useEffect(() => {
+    if (!mounted) return
+    
+    // Enable developer mode with URL parameter or localStorage
+    const urlParams = new URLSearchParams(window.location.search)
+    const devMode = urlParams.get('dev') === 'true' || localStorage.getItem('devMode') === 'true'
+    setIsDeveloperMode(devMode)
+    
+    // Keyboard shortcut for toggling dev mode (Ctrl/Cmd + D)
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+        e.preventDefault()
+        setIsDeveloperMode(prev => {
+          const newValue = !prev
+          localStorage.setItem('devMode', newValue.toString())
+          return newValue
+        })
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [mounted])
 
   useEffect(() => {
     if (!mounted) return
@@ -175,11 +208,30 @@ export default function Page() {
     console.log('물 이동 애니메이션 완료!')
   }, [])
 
+  // Developer controls handlers
+  const handlePathChange = useCallback((newPoints: THREE.Vector3[]) => {
+    setPathPoints(newPoints)
+  }, [])
+
+  const togglePathEditor = useCallback(() => {
+    setIsPathEditorVisible(prev => !prev)
+  }, [])
+
   const hasContent = !showIntro
 
   return (
     <div className='w-screen h-screen bg-white flex flex-col overflow-hidden relative'>
       <LoadingTracker onLoadingComplete={handleLoadingComplete} />
+
+      {/* Developer Controls */}
+      {isDeveloperMode && (
+        <DeveloperControls
+          pathPoints={pathPoints}
+          onPathChange={handlePathChange}
+          isEditorVisible={isPathEditorVisible}
+          onToggleEditor={togglePathEditor}
+        />
+      )}
 
       <CrayonTextButton
         ariaLabel={'첫 화면으로'}
@@ -243,7 +295,7 @@ export default function Page() {
                     lineWidth={1.5}
                     isPlaying={isAnimationPlaying}
                     speed={0.3}
-                    pathPoints={basePathPoints}
+                    pathPoints={pathPoints} // Use dynamic path points
                     showPath={showPath}
                     onComplete={handleAnimationComplete}
                     loop={true}
@@ -253,13 +305,38 @@ export default function Page() {
                 </group>
               )}
 
+              {/* Water Path Editor - 회전 그룹 밖에서 독립적으로 */}
+              {isDeveloperMode && (
+                <WaterPathEditor
+                  pathPoints={pathPoints.map(p => {
+                    // 회전 변환 적용
+                    const rotated = p.clone()
+                    rotated.applyEuler(new THREE.Euler(0, (Math.PI * 4) / 3, 0))
+                    rotated.y += -2 // y 오프셋 적용
+                    return rotated
+                  })}
+                  onPathChange={(newPoints) => {
+                    // 역변환 적용
+                    const unrotatedPoints = newPoints.map(p => {
+                      const unrotated = p.clone()
+                      unrotated.y -= -2 // y 오프셋 제거
+                      unrotated.applyEuler(new THREE.Euler(0, -(Math.PI * 4) / 3, 0))
+                      return unrotated
+                    })
+                    handlePathChange(unrotatedPoints)
+                  }}
+                  visible={isPathEditorVisible}
+                  orbitControlsRef={orbitControlsRef}
+                />
+              )}
+
               <RootWaterAbsorption
                 isActive={currentView === 'root'}
                 rootPosition={new THREE.Vector3(3.48, -2.42, 1.82)}
               />
 
               <group position={[0.8, 0, -0.2]}>
-                <StemWaterMovement isActive={currentView === 'stem'} pathPoints={basePathPoints} />
+                <StemWaterMovement isActive={currentView === 'stem'} pathPoints={pathPoints} />
               </group>
 
               <LeafEvaporation isActive={currentView === 'leaf'} leafPosition={new THREE.Vector3(2.15, 10.1, -1.36)} />
@@ -319,7 +396,7 @@ export default function Page() {
 
           <Environment preset={'sunset'} />
 
-          {hasContent && <ViewBasedControls currentView={currentView} />}
+          {hasContent && <ViewBasedControls currentView={currentView} orbitControlsRef={orbitControlsRef} />}
         </Scene>
       </div>
 
