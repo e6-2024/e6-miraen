@@ -16,39 +16,29 @@
 		{
 			"name":"Scene",
 			"nodes":[
-				0,
-				1
+				0
 			]
 		}
 	],
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Arrow",
+			"name":"typeMesh2",
+			"rotation":[
+				0,
+				-0.7071068286895752,
+				0.7071068286895752,
+				5.338509012631221e-08
+			],
 			"scale":[
-				0.6044971346855164,
-				0.3010673522949219,
-				88.39192962646484
+				0.22570998966693878,
+				0.22570998966693878,
+				0.22570998966693878
 			],
 			"translation":[
-				11.55158805847168,
-				-2.4864587783813477,
-				44.01814270019531
-			]
-		},
-		{
-			"mesh":1,
-			"name":"polySurface109",
-			"rotation":[
-				0.7071068286895752,
-				0,
-				0,
-				0.7071068286895752
-			],
-			"scale":[
-				0.009999999776482582,
-				0.009999999776482582,
-				0.009999999776482582
+				-1.1950900554656982,
+				1.753499984741211,
+				25.7230224609375
 			]
 		}
 	],
@@ -56,44 +46,13 @@
 		{
 			"doubleSided":true,
 			"emissiveFactor":[
-				1,
-				0.837571591806171,
-				0
-			],
-			"extensions":{
-				"KHR_materials_emissive_strength":{
-					"emissiveStrength":2.6999998092651367
-				},
-				"KHR_materials_specular":{
-					"specularColorFactor":[
-						2.0,
-						2.0,
-						2.0
-					]
-				}
-			},
-			"name":"Material.002",
-			"pbrMetallicRoughness":{
-				"baseColorFactor":[
-					1,
-					0.9190608263015747,
-					0,
-					1
-				],
-				"metallicFactor":0,
-				"roughnessFactor":0.5
-			}
-		},
-		{
-			"doubleSided":true,
-			"emissiveFactor":[
-				0.25015183917623596,
-				0.25015183917623596,
+				0.015207973106435835,
+				0.02217348542284305,
 				1
 			],
 			"extensions":{
 				"KHR_materials_emissive_strength":{
-					"emissiveStrength":1.0000240802764893
+					"emissiveStrength":1.2000289440166512
 				},
 				"KHR_materials_specular":{
 					"specularColorFactor":[
@@ -106,8 +65,8 @@
 			"name":"phong11.002",
 			"pbrMetallicRoughness":{
 				"baseColorFactor":[
-					0.25,
-					0.25,
+					0.015540692023932934,
+					0.02201117016375065,
 					1,
 					1
 				],
@@ -118,14 +77,11 @@
 		{
 			"doubleSided":true,
 			"emissiveFactor":[
-				0.8878888662396692,
-				0.2746734340150748,
-				1
+				0.699999988079071,
+				0.026097084882479304,
+				0.32790830470990606
 			],
 			"extensions":{
-				"KHR_materials_emissive_strength":{
-					"emissiveStrength":1.0000240802764893
-				},
 				"KHR_materials_specular":{
 					"specularColorFactor":[
 						2.0,
@@ -137,9 +93,9 @@
 			"name":"phong10.002",
 			"pbrMetallicRoughness":{
 				"baseColorFactor":[
-					0.8883000016212463,
-					0.2745000123977661,
 					1,
+					0.036889683455228806,
+					0.46777576208114624,
 					1
 				],
 				"metallicFactor":0.5,
@@ -149,7 +105,7 @@
 	],
 	"meshes":[
 		{
-			"name":"Mesh",
+			"name":"Mesh.002",
 			"primitives":[
 				{
 					"attributes":{
@@ -170,12 +126,7 @@
 					"indices":3,
 					"material":0,
 					"mode":4
-				}
-			]
-		},
-		{
-			"name":"Mesh.001",
-			"primitives":[
+				},
 				{
 					"attributes":{
 						"POSITION":4,
@@ -195,26 +146,6 @@
 					"indices":7,
 					"material":1,
 					"mode":4
-				},
-				{
-					"attributes":{
-						"POSITION":8,
-						"NORMAL":9,
-						"TEXCOORD_0":10
-					},
-					"extensions":{
-						"KHR_draco_mesh_compression":{
-							"bufferView":2,
-							"attributes":{
-								"POSITION":0,
-								"NORMAL":1,
-								"TEXCOORD_0":2
-							}
-						}
-					},
-					"indices":11,
-					"material":2,
-					"mode":4
 				}
 			]
 		}
@@ -222,115 +153,80 @@
 	"accessors":[
 		{
 			"componentType":5126,
-			"count":210,
+			"count":14265,
 			"max":[
-				2.284407138824463,
-				1,
-				-0.12340564280748367
+				68.01654815673828,
+				257.2080078125,
+				2.5913538932800293
 			],
 			"min":[
-				-42.31747817993164,
-				-1,
-				-1
+				-73.56114196777344,
+				-54.593475341796875,
+				-15.284538269042969
 			],
 			"type":"VEC3"
 		},
 		{
 			"componentType":5126,
-			"count":210,
+			"count":14265,
 			"type":"VEC3"
 		},
 		{
 			"componentType":5126,
-			"count":210,
+			"count":14265,
 			"type":"VEC2"
 		},
 		{
 			"componentType":5123,
-			"count":360,
+			"count":55158,
 			"type":"SCALAR"
 		},
 		{
 			"componentType":5126,
-			"count":13467,
+			"count":13905,
 			"max":[
-				1540.8388671875,
-				3841.974609375,
-				-66.40087890625
+				51.866355895996094,
+				303.1949462890625,
+				17.372528076171875
 			],
 			"min":[
-				-1654.710205078125,
-				-2951.845458984375,
-				-520.3369140625
+				-57.35358810424805,
+				96.67630004882812,
+				5.90275764465332
 			],
 			"type":"VEC3"
 		},
 		{
 			"componentType":5126,
-			"count":13467,
+			"count":13905,
 			"type":"VEC3"
 		},
 		{
 			"componentType":5126,
-			"count":13467,
+			"count":13905,
 			"type":"VEC2"
 		},
 		{
 			"componentType":5123,
-			"count":51042,
-			"type":"SCALAR"
-		},
-		{
-			"componentType":5126,
-			"count":13950,
-			"max":[
-				1240.5860595703125,
-				390.2219543457031,
-				220.67724609375
-			],
-			"min":[
-				-1348.9620361328125,
-				-4414.4501953125,
-				20.978271484375
-			],
-			"type":"VEC3"
-		},
-		{
-			"componentType":5126,
-			"count":13950,
-			"type":"VEC3"
-		},
-		{
-			"componentType":5126,
-			"count":13950,
-			"type":"VEC2"
-		},
-		{
-			"componentType":5123,
-			"count":52956,
+			"count":53940,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":1206,
+			"byteLength":54985,
 			"byteOffset":0
 		},
 		{
 			"buffer":0,
-			"byteLength":52462,
-			"byteOffset":1208
-		},
-		{
-			"buffer":0,
-			"byteLength":59068,
-			"byteOffset":53672
+			"byteLength":61767,
+			"byteOffset":54988
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":112740,
+			"byteLength":116756,
 			"uri":"Result_Numbers.bin"
 		}
 	]

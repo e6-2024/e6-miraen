@@ -52,7 +52,7 @@ export function InfoPanel({ type, isVisible, onClose }: InfoPanelProps) {
   if (!isVisible || !info) return null
 
   return (
-    <div className='absolute top-4 right-4 w-80 bg-white rounded-lg shadow-lg p-4 z-50 border'>
+    <div className='absolute bottom-4 right-4 w-80 bg-white rounded-lg shadow-lg p-4 z-50 border'>
       <div className='flex justify-between items-center mb-3'>
         <h3 className='text-lg font-bold text-gray-800'>{info.title}</h3>
         <button onClick={onClose} className='text-gray-500 hover:text-gray-700 text-xl'>
@@ -60,7 +60,7 @@ export function InfoPanel({ type, isVisible, onClose }: InfoPanelProps) {
         </button>
       </div>
       <img src={info.image} alt={info.title} className='w-full h-full object-cover rounded mb-3' />
-      <p className='text-sm text-gray-600 leading-relaxed'>{info.description}</p>
+      <p className='text-sm font-light text-gray-600 leading-relaxed'>{info.description}</p>
     </div>
   )
 }
