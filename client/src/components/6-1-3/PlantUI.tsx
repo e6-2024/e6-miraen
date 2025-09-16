@@ -52,15 +52,17 @@ export function InfoPanel({ type, isVisible, onClose }: InfoPanelProps) {
   if (!isVisible || !info) return null
 
   return (
-    <div className='absolute bottom-4 right-4 w-80 bg-white rounded-lg shadow-lg p-4 z-50 border'>
-      <div className='flex justify-between items-center mb-3'>
-        <h3 className='text-lg font-bold text-gray-800'>{info.title}</h3>
-        <button onClick={onClose} className='text-gray-500 hover:text-gray-700 text-xl'>
-          ×
-        </button>
-      </div>
-      <img src={info.image} alt={info.title} className='w-full h-full object-cover rounded mb-3' />
-      <p className='text-sm font-light text-gray-600 leading-relaxed'>{info.description}</p>
+    <div className='absolute bottom-4 right-4'>
+      <CrayonTextBox width={300} color='#FFDBB0' bg='#FFF'>
+        <div className='flex justify-between items-center mb-3'>
+          <h3 className='text-lg font-bold text-gray-800'>{info.title}</h3>
+          <button onClick={onClose} className='text-gray-500 hover:text-gray-700 text-xl'>
+            ×
+          </button>
+        </div>
+        <img src={info.image} alt={info.title} className='w-full h-full object-cover rounded mb-3' />
+        <p className='text-sm font-light text-gray-600 leading-relaxed'>{info.description}</p>
+      </CrayonTextBox>
     </div>
   )
 }
@@ -74,7 +76,7 @@ export function WaterFlowButton({ isVisible, onClick }: WaterFlowButtonProps) {
   if (!isVisible) return null
 
   return (
-    <div className='absolute bottom-5 right-5'>
+    <div className='absolute bottom-4 left-1/2 -translate-x-1/2'>
       <CrayonTextButton
         text='물의 이동 확인하기'
         width={200}
@@ -97,8 +99,8 @@ export function ViewControls({ currentView, onViewChange }: ViewControlsProps) {
     return (
       <div className='absolute top-4 left-4'>
         <CrayonTextButton
-          text='전체 보기'
-          width={128}
+          text='이전으로 돌아가기'
+          width={180}
           bg='#F3921C'
           color='#FFDBB0'
           textcolor='#FFFFFF'

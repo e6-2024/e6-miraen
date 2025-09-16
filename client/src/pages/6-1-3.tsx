@@ -42,10 +42,11 @@ function ViewBasedControls({ currentView }: { currentView: ViewType }) {
     <OrbitControls
       target={currentConfig.target}
       enableZoom={true}
-      enablePan={true}
+      enablePan={false}
       enableRotate={true}
-      minDistance={10}
-      maxDistance={40}
+      minDistance={currentConfig.minDistance}
+      maxDistance={currentConfig.maxDistance}
+      minPolarAngle={currentConfig.minPolarAngle}
       maxPolarAngle={currentConfig.maxPolarAngle}
       minAzimuthAngle={currentConfig.minAzimuthAngle}
       maxAzimuthAngle={currentConfig.maxAzimuthAngle}
@@ -114,14 +115,8 @@ export default function Page() {
 
   const showSubtitleWithDelay = useCallback(
     (type: keyof typeof narrationTexts) => {
-      setTimeout(() => {
-        setSubtitleText(narrationTexts[type])
-        setShowSubtitle(true)
-
-        setTimeout(() => {
-          setShowSubtitle(false)
-        }, 5000)
-      }, 3000)
+      setSubtitleText(narrationTexts[type])
+      setShowSubtitle(true)
     },
     [narrationTexts],
   )
@@ -135,6 +130,7 @@ export default function Page() {
         showSubtitleWithDelay(view as keyof typeof narrationTexts)
       } else {
         setIsAnimationPlaying(false)
+        setShowSubtitle(false)
       }
 
       if (view !== 'default' && view !== 'water') {
@@ -143,7 +139,6 @@ export default function Page() {
       } else {
         setShowInfoPanel(false)
       }
-
       playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3')
     },
     [playNarration, showSubtitleWithDelay, playBackgroundSound, stopBackgroundSound, playSound, narrationTexts],
