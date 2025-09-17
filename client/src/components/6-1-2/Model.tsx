@@ -112,8 +112,11 @@ export default function Model({
 
   useEffect(() => {
     if (scene) {
+      // 🔍 모든 mesh name 출력
+      console.log('=== Animation Model Mesh Names ===')
       scene.traverse((child) => {
         if (child instanceof Mesh) {
+          console.log('Mesh name:', child.name, '| Type:', child.type)
           child.castShadow = castShadow
           child.receiveShadow = receiveShadow
 
@@ -146,6 +149,7 @@ export default function Model({
           }
         }
       })
+      console.log('=== End of Animation Model Mesh Names ===')
     }
   }, [scene, castShadow, receiveShadow])
   return (

@@ -1,16 +1,16 @@
-import { useRef, useEffect } from 'react';
-import { useFrame, useThree } from '@react-three/fiber';
-import * as THREE from 'three';
-import { ViewMode, VehicleId, CameraState } from '@/types/6-1-2/types';
-import { CAMERA_POSITIONS, CAMERA_TARGETS, getVehiclePosition, calculateFirstPersonCamera } from '@/utils/6-1-2/utils';
+import { useRef, useEffect } from 'react'
+import { useFrame, useThree } from '@react-three/fiber'
+import * as THREE from 'three'
+import { ViewMode, VehicleId, CameraState } from '@/types/6-1-2/types'
+import { CAMERA_POSITIONS, CAMERA_TARGETS, getVehiclePosition, calculateFirstPersonCamera } from '@/utils/6-1-2/utils'
 
 interface UseCameraProps {
-  viewMode: ViewMode;
-  selectedVehicle: VehicleId;
-  isAnimationPlaying: boolean;
-  sceneRef: React.RefObject<THREE.Group>;
-  showIntro: boolean;
-  showResult: boolean;
+  viewMode: ViewMode
+  selectedVehicle: VehicleId
+  isAnimationPlaying: boolean
+  sceneRef: React.RefObject<THREE.Group>
+  showIntro: boolean
+  showResult: boolean
 }
 
 export const useCamera = ({
@@ -19,102 +19,116 @@ export const useCamera = ({
   isAnimationPlaying,
   sceneRef,
   showIntro,
-  showResult
+  showResult,
 }: UseCameraProps) => {
-  const { camera } = useThree();
-  const orbitControlsRef = useRef<any>();
-  const frozenCameraState = useRef<CameraState | null>(null);
-  const prevSelectedVehicle = useRef(selectedVehicle);
-  const prevViewMode = useRef(viewMode);
+  const { camera } = useThree()
+  const orbitControlsRef = useRef<any>()
+  const frozenCameraState = useRef<CameraState | null>(null)
+  const prevSelectedVehicle = useRef(selectedVehicle)
+  const prevViewMode = useRef(viewMode)
 
   useEffect(() => {
     if (prevSelectedVehicle.current !== selectedVehicle) {
-      frozenCameraState.current = null;
-      prevSelectedVehicle.current = selectedVehicle;
+      frozenCameraState.current = null
+      prevSelectedVehicle.current = selectedVehicle
     }
-  }, [selectedVehicle]);
+  }, [selectedVehicle])
 
   useEffect(() => {
     if (prevViewMode.current !== viewMode) {
-      frozenCameraState.current = null;
-      prevViewMode.current = viewMode;
+      frozenCameraState.current = null
+      prevViewMode.current = viewMode
+      
+      // 모드가 바뀔 때 즉시 해당 카메라 포지션으로 이동
+      if (!showIntro && !showResult) {
+        switch (viewMode) {
+          case 'start':
+            camera.position.set(...CAMERA_POSITIONS.start)
+            camera.lookAt(...CAMERA_TARGETS.start)
+            if (orbitControlsRef.current) {
+              orbitControlsRef.current.target.set(...CAMERA_TARGETS.start)
+              orbitControlsRef.current.update()
+            }
+            break
+          case 'approaching':
+            camera.position.set(...CAMERA_POSITIONS.approaching)
+            camera.lookAt(...CAMERA_TARGETS.approaching)
+            if (orbitControlsRef.current) {
+              orbitControlsRef.current.target.set(...CAMERA_TARGETS.approaching)
+              orbitControlsRef.current.update()
+            }
+            break
+        }
+      }
+      console.log(camera.position)
     }
-  }, [viewMode]);
+  }, [viewMode, camera, showIntro, showResult])
 
   useEffect(() => {
     if (showResult) {
-      camera.position.set(...CAMERA_POSITIONS.result);
-      camera.lookAt(...CAMERA_TARGETS.result);
+      camera.position.set(...CAMERA_POSITIONS.result)
+      camera.lookAt(...CAMERA_TARGETS.result)
 
       if (orbitControlsRef.current) {
-        orbitControlsRef.current.target.set(...CAMERA_TARGETS.result);
-        orbitControlsRef.current.update();
+        orbitControlsRef.current.target.set(...CAMERA_TARGETS.result)
+        orbitControlsRef.current.update()
       }
     }
-  }, [showResult, camera]);
+  }, [showResult, camera])
+
+  const isControlsEnabled = () => {
+    if (showIntro) return false
+    if (showResult) return true
+    if (viewMode === 'free') return true
+    if (viewMode === 'firstPerson' && !isAnimationPlaying) return true
+    if (viewMode === 'approaching') return true
+    if (viewMode === 'start') return true
+
+    return false
+  }
 
   useFrame(() => {
-    if (showIntro || showResult) return;
+    if (showIntro || showResult) return
 
     switch (viewMode) {
       case 'start':
-        camera.position.set(...CAMERA_POSITIONS.start);
-        camera.lookAt(...CAMERA_TARGETS.start);
-
-        if (orbitControlsRef.current) {
-          orbitControlsRef.current.target.set(...CAMERA_TARGETS.start);
-        }
-        break;
+        break
 
       case 'firstPerson':
-        const vehiclePos = getVehiclePosition(sceneRef, selectedVehicle);
-        const { position: cameraPosition, lookAtTarget } = calculateFirstPersonCamera(vehiclePos, selectedVehicle);
+        const vehiclePos = getVehiclePosition(sceneRef, selectedVehicle)
+        const { position: cameraPosition, lookAtTarget } = calculateFirstPersonCamera(vehiclePos, selectedVehicle)
 
         if (!isAnimationPlaying && frozenCameraState.current) {
-          camera.position.copy(frozenCameraState.current.position);
-          camera.lookAt(frozenCameraState.current.lookAtTarget);
+          camera.position.copy(frozenCameraState.current.position)
+          camera.lookAt(frozenCameraState.current.lookAtTarget)
           if (orbitControlsRef.current) {
-            orbitControlsRef.current.target.copy(frozenCameraState.current.lookAtTarget);
+            orbitControlsRef.current.target.copy(frozenCameraState.current.lookAtTarget)
           }
         } else {
-          camera.position.copy(cameraPosition);
-          camera.lookAt(lookAtTarget);
+          camera.position.copy(cameraPosition)
+          camera.lookAt(lookAtTarget)
 
           if (orbitControlsRef.current) {
-            orbitControlsRef.current.target.copy(lookAtTarget);
+            orbitControlsRef.current.target.copy(lookAtTarget)
           }
 
           frozenCameraState.current = {
             position: cameraPosition.clone(),
             lookAtTarget: lookAtTarget.clone(),
-          };
+          }
         }
-        break;
+        break
 
       case 'approaching':
-        camera.position.set(...CAMERA_POSITIONS.approaching);
-        camera.lookAt(...CAMERA_TARGETS.approaching);
-
-        if (orbitControlsRef.current) {
-          orbitControlsRef.current.target.set(...CAMERA_TARGETS.approaching);
-        }
-        break;
+        break
 
       case 'free':
-        break;
+        break
     }
-  });
-
-  const isControlsEnabled = () => {
-    return (
-      (viewMode === 'free' && !showIntro) ||
-      (!isAnimationPlaying && viewMode !== 'firstPerson') ||
-      showResult
-    );
-  };
+  })
 
   return {
     orbitControlsRef,
     isControlsEnabled,
-  };
-};
+  }
+}

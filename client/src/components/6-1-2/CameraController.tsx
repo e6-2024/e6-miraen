@@ -37,7 +37,7 @@ export function CameraController({
       enableZoom={isControlsEnabled()}
       enableRotate={isControlsEnabled()}
       minDistance={0}
-      maxDistance={7}
+      maxDistance={viewMode==='approaching' ? 4 : 4}
       minPolarAngle={0}
       maxPolarAngle={Math.PI/2}
     />

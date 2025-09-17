@@ -6,7 +6,6 @@ import Model from '../components/6-1-2/Model'
 import ResultModel from '../components/6-1-2/ResultModel'
 import Scene from '@/components/canvas/Scene'
 import Intro from '@/components/intro/Intro'
-import IntroMouseCameraController from '@/components/intro/IntroMouseCameraController'
 import { LoadingTracker } from '@/components/6-1-2/LoadingTracker'
 import { NarrationSubtitle } from '@/components/6-1-2/NarrationSubtitle'
 import { Controls } from '@/components/6-1-2/Controls'
@@ -132,7 +131,7 @@ export default function Home() {
           setShowNarrationSubtitle(false)
           setNarrationText('')
         },
-        '기차의 속력은 28 m/s, 자동차의 속력은 23 m/s, 자전거를 타는 사람의 속력은 15 m/s, 달리는 사람의 속력은 14 m/s, 말의 속력은 17 m/s이므로 기차, 자동차, 말, 자전거를 탄 사람, 달리는 사람 순으로 빠릅니다.',
+        '기차의 속력은 28 m/s, 자동차의 속력은 20 m/s, 자전거를 타는 사람의 속력은 8 m/s, 달리는 사람의 속력은 6 m/s, 말의 속력은 17 m/s이므로 기차, 자동차, 말, 자전거를 탄 사람, 달리는 사람 순으로 빠릅니다.',
       )
       setShowNarrationSubtitle(true)
     }, 500)
@@ -186,7 +185,7 @@ export default function Home() {
   }
 
   return (
-    <div className='w-screen h-screen bg-[#FBF0C7] relative'>
+    <div className='w-screen h-screen bg-[#78C9C9] relative'>
       <NarrationSubtitle visible={showNarrationSubtitle} text={narrationText} />
 
       <CrayonTextButton
