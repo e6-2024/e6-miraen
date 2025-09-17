@@ -12,6 +12,7 @@ interface UseCameraProps {
   showIntro: boolean
   showResult: boolean
   animationState: AnimationState
+  resetTrigger: boolean
 }
 
 export const useCamera = ({
@@ -22,6 +23,7 @@ export const useCamera = ({
   showIntro,
   showResult,
   animationState,
+  resetTrigger,
 }: UseCameraProps) => {
   const { camera } = useThree()
   const orbitControlsRef = useRef<any>()
@@ -34,7 +36,6 @@ export const useCamera = ({
 
   useEffect(() => {
     if (prevShowResult.current === true && showResult === false) {
-
       setModelReady(false)
       frozenCameraState.current = null
       frameCountAfterTransition.current = 0
@@ -184,6 +185,21 @@ export const useCamera = ({
       }
     }
   }, [showResult, camera])
+
+  useEffect(() => {
+    if (resetTrigger) {
+      frozenCameraState.current = null
+      frameCountAfterTransition.current = 0
+      setModelReady(true)
+      camera.position.set(CAMERA_POSITIONS.start[0], CAMERA_POSITIONS.start[1], CAMERA_POSITIONS.start[2])
+      camera.lookAt(0, 0, 0)
+
+      if (orbitControlsRef.current) {
+        orbitControlsRef.current.target.set(0, 0, 0)
+        orbitControlsRef.current.update()
+      }
+    }
+  }, [resetTrigger, camera])
 
   const isControlsEnabled = () => {
     if (showIntro) return false

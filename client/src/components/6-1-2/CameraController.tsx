@@ -2,7 +2,6 @@ import { OrbitControls } from '@react-three/drei';
 import { ViewMode, VehicleId, AnimationState } from '@/types/6-1-2/types';
 import { useCamera } from '@/hook/6-1-2/useCamera';
 import * as THREE from 'three';
-
 interface CameraControllerProps {
   viewMode: ViewMode;
   selectedVehicle: VehicleId;
@@ -10,7 +9,8 @@ interface CameraControllerProps {
   sceneRef: React.RefObject<THREE.Group>;
   showIntro: boolean;
   showResult: boolean;
-  animationState: AnimationState; 
+  animationState: AnimationState;
+  resetTrigger?: boolean; // 추가
 }
 
 export function CameraController({
@@ -21,6 +21,7 @@ export function CameraController({
   showIntro,
   showResult,
   animationState,
+  resetTrigger,
 }: CameraControllerProps) {
   const { orbitControlsRef, isControlsEnabled } = useCamera({
     viewMode,
@@ -30,6 +31,7 @@ export function CameraController({
     showIntro,
     showResult,
     animationState,
+    resetTrigger,
   });
 
   return (

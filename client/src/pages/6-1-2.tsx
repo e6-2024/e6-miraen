@@ -36,6 +36,7 @@ export default function Home() {
   const [showIntro, setShowIntro] = useState(true)
   const [showNarrationSubtitle, setShowNarrationSubtitle] = useState(false)
   const [narrationText, setNarrationText] = useState('')
+  const [cameraResetTrigger, setCameraResetTrigger] = useState(false)
 
   const modelSceneRef = useRef<THREE.Group>(null)
   const resultSceneRef = useRef<THREE.Group>(null)
@@ -220,11 +221,15 @@ export default function Home() {
       isPlaying: false,
       isPaused: false,
       isCompleted: false,
-      resetTrigger: false,
+      resetTrigger: true,
     })
     setShowResult(false)
     setViewMode('start')
     stopAllAudio()
+    setCameraResetTrigger(true)
+    setTimeout(() => {
+      setCameraResetTrigger(false)
+    }, 100)
   }
 
   return (
@@ -327,10 +332,11 @@ export default function Home() {
             viewMode={viewMode}
             selectedVehicle={selectedVehicle}
             isAnimationPlaying={animationState.isPlaying && !animationState.isPaused}
-            sceneRef={modelSceneRef} // 항상 modelSceneRef만 사용
+            sceneRef={modelSceneRef}
             showIntro={showIntro}
             showResult={showResult}
             animationState={animationState}
+            resetTrigger={cameraResetTrigger}
           />
 
           <Sky
