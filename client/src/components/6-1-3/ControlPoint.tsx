@@ -3,7 +3,6 @@ import * as THREE from 'three'
 import { TransformControls } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 
-// TransformControls로 조절 가능한 점 컴포넌트
 export function ControlPoint({
   position,
   index,
@@ -51,8 +50,6 @@ export function ControlPoint({
     setIsSelected(false)
     setIsDragging(false)
     onDragEnd?.()
-
-    // OrbitControls 다시 활성화 (약간의 지연을 두어 안정성 확보)
     setTimeout(() => {
       if (orbitControlsRef.current) {
         orbitControlsRef.current.enabled = true

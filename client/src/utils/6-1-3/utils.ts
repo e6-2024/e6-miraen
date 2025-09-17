@@ -27,7 +27,7 @@ export const CAMERA_CONFIGS = {
   root: {
     position: [8, -4, 12] as [number, number, number],
     target: [3.48, -2.42, 1.82] as [number, number, number],
-    maxPolarAngle: Math.PI/2 + Math.PI / 3,
+    maxPolarAngle: Math.PI / 2 + Math.PI / 3,
     minPolarAngle: Math.PI / 3,
     minAzimuthAngle: 0,
     maxAzimuthAngle: Math.PI / 2,
@@ -57,18 +57,16 @@ export const CAMERA_CONFIGS = {
 } as const
 
 export const getBasePathPoints = (): THREE.Vector3[] => [
-  new THREE.Vector3(3.48, -2.42, 1.82),
-  new THREE.Vector3(1.62, -1.42, 0.92),
-  new THREE.Vector3(1.62, -1, 0.2),
-  new THREE.Vector3(0, 0, 0),
-  new THREE.Vector3(-0.3, 1.52, -0.1),
-  new THREE.Vector3(-0.3, 3.61, -0.13),
-  new THREE.Vector3(-0.3, 4.61, -0.17),
-  new THREE.Vector3(-0.3, 6.28, -0.21),
-  new THREE.Vector3(-0.3, 7.28, -0.24),
-  new THREE.Vector3(-0.3, 8.28, -0.23),
-  new THREE.Vector3(-0.3, 9.28, 0),
-  new THREE.Vector3(2.15, 10.1, 1.36),
+  new THREE.Vector3(-1.407, -2.368, -2.428),
+  new THREE.Vector3(-0.369, -0.214, -0.498),
+  new THREE.Vector3(-0.252, 1.52, -0.191),
+  new THREE.Vector3(-0.303, 2.91, -0.136),
+  new THREE.Vector3(-0.302, 4.396, -0.173),
+  new THREE.Vector3(-0.295, 6.28, -0.306),
+  new THREE.Vector3(-0.244, 7.28, -0.337),
+  new THREE.Vector3(-0.19, 8.28, -0.179),
+  new THREE.Vector3(-0.17, 8.917, -0.325),
+  new THREE.Vector3(-0.283, 9.417, -0.125),
 ]
 
 export const getNarrationTexts = () => ({

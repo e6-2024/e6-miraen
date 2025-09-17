@@ -295,39 +295,20 @@ export default function Page() {
                     lineWidth={1.5}
                     isPlaying={isAnimationPlaying}
                     speed={0.3}
-                    pathPoints={pathPoints} // Use dynamic path points
+                    pathPoints={pathPoints}
                     showPath={showPath}
                     onComplete={handleAnimationComplete}
                     loop={true}
                     trailCount={8}
                     trailSpacing={0.12}
                   />
+                  <WaterPathEditor
+                    pathPoints={pathPoints}
+                    onPathChange={handlePathChange}
+                    visible={isPathEditorVisible}
+                    orbitControlsRef={orbitControlsRef}
+                  />
                 </group>
-              )}
-
-              {/* Water Path Editor - 회전 그룹 밖에서 독립적으로 */}
-              {isDeveloperMode && (
-                <WaterPathEditor
-                  pathPoints={pathPoints.map(p => {
-                    // 회전 변환 적용
-                    const rotated = p.clone()
-                    rotated.applyEuler(new THREE.Euler(0, (Math.PI * 4) / 3, 0))
-                    rotated.y += -2 // y 오프셋 적용
-                    return rotated
-                  })}
-                  onPathChange={(newPoints) => {
-                    // 역변환 적용
-                    const unrotatedPoints = newPoints.map(p => {
-                      const unrotated = p.clone()
-                      unrotated.y -= -2 // y 오프셋 제거
-                      unrotated.applyEuler(new THREE.Euler(0, -(Math.PI * 4) / 3, 0))
-                      return unrotated
-                    })
-                    handlePathChange(unrotatedPoints)
-                  }}
-                  visible={isPathEditorVisible}
-                  orbitControlsRef={orbitControlsRef}
-                />
               )}
 
               <RootWaterAbsorption

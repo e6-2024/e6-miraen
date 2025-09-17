@@ -55,20 +55,10 @@ function FlowArrow({
 
       {/* 화살표 머리 (원뿔) - Z축 방향 앞쪽 */}
       <mesh position={[0, 0, 0]}>
-        <coneGeometry args={[0.03, 0.05, 8]} />
+        <coneGeometry args={[0.03, 0.09, 8]} />
         <meshStandardMaterial
-          color='#2196f3'
-          emissive='#2196f3'
-          emissiveIntensity={0.6}
-          transparent
-          opacity={opacity}
+          color='#00b3ff'
         />
-      </mesh>
-
-      {/* 발광 효과를 위한 추가 구체 */}
-      <mesh position={[0, 0, 0]}>
-        <sphereGeometry args={[0.02, 8, 8]} />
-        <meshBasicMaterial color='#81d4fa' transparent opacity={opacity * 0.9} />
       </mesh>
     </group>
   )
@@ -83,8 +73,8 @@ export function WaterFlowAnimation({
   showPath = true,
   onComplete,
   loop = false,
-  trailCount = 8, // 기본 8개로 증가
-  trailSpacing = 0.08, // 트레일 간격
+  trailCount = 20, // 기본 8개로 증가
+  trailSpacing = 0.01, // 트레일 간격
 }: WaterFlowProps) {
   const [currentProgress, setCurrentProgress] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
@@ -190,18 +180,15 @@ export function WaterFlowAnimation({
       {showPath && (
         <>
           {/* 메인 경로 라인 */}
-          <Line points={pathLinePoints} color='#81c784' lineWidth={lineWidth} transparent opacity={0.4} />
+          <Line points={pathLinePoints} color='#00b3ff' lineWidth={lineWidth} transparent opacity={0.4} />
 
           {/* 점선 경로 (물의 흐름 표시) */}
           <Line
             points={pathLinePoints}
-            color='#4fc3f7'
-            lineWidth={lineWidth * 0.5}
+            color='#00b3ff'
+            lineWidth={lineWidth * 1.0}
             transparent
-            opacity={0.4}
-            dashed
-            dashSize={0.03}
-            gapSize={0.02}
+            opacity={1.0}
           />
         </>
       )}
