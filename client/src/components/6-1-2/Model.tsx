@@ -26,10 +26,8 @@ export default function Model({
   const [hasCompletedOnce, setHasCompletedOnce] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
 
-  // 리셋 트리거 감지 - 모든 상태를 초기화
   useEffect(() => {
     if (resetTrigger) {
-      console.log('Reset triggered - initializing animation')
       setHasCompletedOnce(false)
       setIsInitialized(false)
       animationTimeRef.current = 0
@@ -47,15 +45,13 @@ export default function Model({
     }
   }, [resetTrigger, actions])
 
-  // 초기 애니메이션 설정
   useEffect(() => {
     if (actions && !isInitialized) {
-      console.log('Initializing animations')
       Object.values(actions).forEach((action) => {
         if (action) {
           action.reset()
           action.time = 0
-          action.setLoop(2201, 1) // LoopOnce
+          action.setLoop(2201, 1)
           action.clampWhenFinished = true
           action.paused = true
           action.play()
@@ -66,17 +62,13 @@ export default function Model({
     }
   }, [actions, isInitialized])
 
-  // 애니메이션 속도 제어
   useEffect(() => {
     if (actions && isInitialized) {
       Object.values(actions).forEach((action) => {
         if (action) {
           if (animationSpeed === 0) {
-            // 일시정지
             action.paused = true
           } else if (animationSpeed > 0 && !hasCompletedOnce) {
-            // 재생
-            console.log('Starting animation with speed:', animationSpeed)
             action.paused = false
             action.timeScale = animationSpeed
             action.play()
@@ -86,7 +78,6 @@ export default function Model({
     }
   }, [actions, animationSpeed, isInitialized, hasCompletedOnce])
 
-  // 애니메이션 진행 상황 추적
   useFrame((state, delta) => {
     if (animationSpeed > 0 && actions && isInitialized && !hasCompletedOnce) {
       animationTimeRef.current += delta * animationSpeed
@@ -95,9 +86,7 @@ export default function Model({
         if (action && action.getClip()) {
           const clipDuration = action.getClip().duration
 
-          // 애니메이션이 완료되면
           if (animationTimeRef.current >= clipDuration && !hasCompletedOnce) {
-            console.log('Animation completed')
             setHasCompletedOnce(true)
             action.time = clipDuration
             action.paused = true
