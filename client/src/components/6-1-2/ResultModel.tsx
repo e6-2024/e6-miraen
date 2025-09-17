@@ -13,12 +13,10 @@ export default function ResultModel({
   receiveShadow = true,
   ...props
 }: ResultModelProps) {
-  // 두 개의 GLTF 파일을 로드
   const objectsModel = useGLTF('models/6-1-2/ResultsObjects/Result_Objects.gltf')
   const numbersModel = useGLTF('models/6-1-2/ResultsNumbers/Result_Numbers.gltf')
 
   useEffect(() => {
-    // 객체 모델에 그림자 설정 적용
     if (objectsModel.scene) {
       objectsModel.scene.traverse((child) => {
         if (child instanceof Mesh) {
@@ -42,7 +40,6 @@ export default function ResultModel({
       })
     }
 
-    // 숫자 모델에 그림자 설정 적용
     if (numbersModel.scene) {
       numbersModel.scene.traverse((child) => {
         if (child instanceof Mesh) {
@@ -75,6 +72,5 @@ export default function ResultModel({
   )
 }
 
-// 프리로드를 위한 설정
 useGLTF.preload('models/6-1-2/ResultsObjects/Result_Objects.gltf')
 useGLTF.preload('models/6-1-2/ResultsNumbers/Result_Numbers.gltf')
