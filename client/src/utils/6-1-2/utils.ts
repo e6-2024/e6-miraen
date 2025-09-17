@@ -2,16 +2,16 @@ import * as THREE from 'three'
 import { Vehicle, VehicleId, VehicleCameraConfig } from '@/types/6-1-2/types'
 
 export const VEHICLE_SPEEDS = {
-  train: 3000,
-  car: 70,
-  horse: 60,
-  bicycle: 30,
-  runner: 20,
+  train: 28,
+  car: 20,
+  horse: 17,
+  bicycle: 8,
+  runner: 6,
 }
 
 export const VEHICLES: Vehicle[] = [
-  { id: 'train', name: '기차', speed: VEHICLE_SPEEDS.train, meshName: 'RB_Handlebar', audioPath: '/sounds/6-1-2/train.mp3' },
-  { id: 'car', name: '자동차', speed: VEHICLE_SPEEDS.car, meshName: 'RB_Handlebar', audioPath: '/sounds/6-1-2/car.mp3' },
+  { id: 'train', name: '기차', speed: VEHICLE_SPEEDS.train, meshName: 'Ch33_Body', audioPath: '/sounds/6-1-2/train.mp3' },
+  { id: 'car', name: '자동차', speed: VEHICLE_SPEEDS.car, meshName: 'Wheel001_Non_Metal_0_1', audioPath: '/sounds/6-1-2/car.mp3' },
   { id: 'horse', name: '말', speed: VEHICLE_SPEEDS.horse, meshName: 'Horse_fur', audioPath: '/sounds/6-1-2/horse.mp3' },
   {
     id: 'bicycle',
@@ -31,12 +31,12 @@ export const VEHICLES: Vehicle[] = [
 
 export const CAMERA_CONFIGS: Record<VehicleId, VehicleCameraConfig> = {
   train: {
-    offset: { x: -0.06, y: 0.08, z: -1.45 },
+    offset: { x: 0.03, y: 0.15, z: -0.25 },
     lookAheadDistance: 1.0,
   },
   car: {
-    offset: { x: -0.12, y: 0.2, z: -0.72 },
-    lookAheadDistance: 1.5,
+    offset: { x: -0.1, y: 0.105, z: 0 },
+    lookAheadDistance: 1.0,
   },
   horse: {
     offset: { x: 0, y: 0.32, z: -0.6 },
