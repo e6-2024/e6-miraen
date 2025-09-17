@@ -112,27 +112,17 @@ export default function Model({
 
   useEffect(() => {
     if (scene) {
-      // 🔍 모든 mesh name 출력
-      console.log('=== Animation Model Mesh Names ===')
       scene.traverse((child) => {
         if (child instanceof Mesh) {
-          console.log('Mesh name:', child.name, '| Type:', child.type)
           child.castShadow = castShadow
           child.receiveShadow = receiveShadow
 
-          // 디버깅: 기차만 확인
-          if (child.name === 'cap1') {
-            console.log('Train mesh found:', child.name)
-            // 임시로 기차는 그림자 받지 않기
-            child.receiveShadow = false
-          }
 
           if (child.material) {
             if (Array.isArray(child.material)) {
               child.material.forEach((mat) => {
                 if (mat.isMeshStandardMaterial || mat.isMeshPhongMaterial || mat.isMeshLambertMaterial) {
-                  // 임시로 double side 설정
-                  mat.side = 1 // DoubleSide
+                  mat.side = 1 
                   mat.needsUpdate = true
                 }
               })
@@ -142,14 +132,13 @@ export default function Model({
                 child.material.isMeshPhongMaterial ||
                 child.material.isMeshLambertMaterial
               ) {
-                child.material.side = 2 // DoubleSide
+                child.material.side = 2 
                 child.material.needsUpdate = true
               }
             }
           }
         }
       })
-      console.log('=== End of Animation Model Mesh Names ===')
     }
   }, [scene, castShadow, receiveShadow])
   return (

@@ -69,12 +69,17 @@ export const findVehicleById = (id: VehicleId): Vehicle | undefined => {
 }
 
 export const getVehiclePosition = (sceneRef: React.RefObject<THREE.Group>, vehicleId: VehicleId): THREE.Vector3 => {
-  if (!sceneRef.current) return new THREE.Vector3(0, 0, 0)
+  if (!sceneRef.current) {
+    return new THREE.Vector3(0, 0, 0)
+  }
 
   const vehicle = findVehicleById(vehicleId)
-  if (!vehicle) return new THREE.Vector3(0, 0, 0)
+  if (!vehicle) {
+    return new THREE.Vector3(0, 0, 0)
+  }
 
   let vehicleObject: THREE.Object3D | null = null
+  
   sceneRef.current.traverse((child) => {
     if (child instanceof THREE.Mesh && child.name === vehicle.meshName) {
       vehicleObject = child
@@ -86,6 +91,7 @@ export const getVehiclePosition = (sceneRef: React.RefObject<THREE.Group>, vehic
     vehicleObject.getWorldPosition(position)
     return position
   }
+
   return new THREE.Vector3(0, 0, 0)
 }
 

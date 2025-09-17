@@ -37,9 +37,14 @@ export default function Home() {
   const [showNarrationSubtitle, setShowNarrationSubtitle] = useState(false)
   const [narrationText, setNarrationText] = useState('')
 
-  const sceneRef = useRef<THREE.Group>(null)
-  const { playClickSound, playNarrationAudio, playVehicleAudio, stopCurrentAudio, stopAllAudio } = useAudio()
+  const modelSceneRef = useRef<THREE.Group>(null)
+  const resultSceneRef = useRef<THREE.Group>(null)
 
+  const getCurrentSceneRef = () => {
+    return showResult ? resultSceneRef : modelSceneRef
+  }
+
+  const { playClickSound, playNarrationAudio, playVehicleAudio, stopCurrentAudio, stopAllAudio } = useAudio()
   const { bgmEnabled, setBgmReady, toggleBgm } = useBgm(mounted)
 
   const handleLoadingComplete = () => {
@@ -74,6 +79,12 @@ export default function Home() {
         isPlaying: true,
         isPaused: false,
       }))
+
+      if (viewMode === 'firstPerson') {
+        setTimeout(() => {
+          playVehicleAudio(selectedVehicle)
+        }, 50)
+      }
     } else {
       setAnimationState((prev) => ({
         ...prev,
@@ -90,7 +101,25 @@ export default function Home() {
     }
   }
 
-  // 수정된 리셋 함수 - viewMode를 변경하지 않음
+  // viewMode나 animationState가 변경될 때 firstPerson 오디오 체크
+  useEffect(() => {
+    if (viewMode === 'firstPerson' && animationState.isPlaying && !animationState.isPaused && !showResult) {
+      // firstPerson 모드이고 애니메이션이 재생 중일 때 오디오 재생
+      playVehicleAudio(selectedVehicle)
+    } else if (viewMode !== 'firstPerson' || !animationState.isPlaying || animationState.isPaused) {
+      // firstPerson이 아니거나 애니메이션이 중지된 경우 오디오 중지
+      stopCurrentAudio()
+    }
+  }, [
+    viewMode,
+    animationState.isPlaying,
+    animationState.isPaused,
+    selectedVehicle,
+    showResult,
+    playVehicleAudio,
+    stopCurrentAudio,
+  ])
+
   const handleResetAnimation = () => {
     stopAllAudio()
     setShowNarrationSubtitle(false)
@@ -103,7 +132,6 @@ export default function Home() {
       resetTrigger: true,
     })
     setShowResult(false)
-    // setViewMode('start') 제거 - 현재 viewMode 유지
 
     setTimeout(() => {
       setAnimationState((prev) => ({ ...prev, resetTrigger: false }))
@@ -145,17 +173,27 @@ export default function Home() {
     setShowNarrationSubtitle(false)
     setNarrationText('')
     stopAllAudio()
+
+    setAnimationState({
+      isPlaying: false,
+      isPaused: false,
+      isCompleted: false,
+      resetTrigger: true,
+    })
+
+    setTimeout(() => {
+      setAnimationState((prev) => ({ ...prev, resetTrigger: false }))
+    }, 100)
   }
 
   const handleViewChange = (mode: ViewMode) => {
-    if (mode !== 'firstPerson') {
-      stopCurrentAudio()
-    }
-
     setViewMode(mode)
-
     if (mode === 'firstPerson' && animationState.isPlaying && !animationState.isPaused) {
-      playVehicleAudio(selectedVehicle)
+      setTimeout(() => {
+        playVehicleAudio(selectedVehicle)
+      }, 50)
+    } else if (mode !== 'firstPerson') {
+      stopCurrentAudio()
     }
   }
 
@@ -163,7 +201,10 @@ export default function Home() {
     setSelectedVehicle(vehicleId)
 
     if (viewMode === 'firstPerson' && animationState.isPlaying && !animationState.isPaused) {
-      playVehicleAudio(vehicleId)
+      stopCurrentAudio()
+      setTimeout(() => {
+        playVehicleAudio(vehicleId)
+      }, 50)
     }
   }
 
@@ -190,12 +231,7 @@ export default function Home() {
     <div className='w-screen h-screen bg-[#78C9C9] relative'>
       <NarrationSubtitle visible={showNarrationSubtitle} text={narrationText} />
 
-      {/* VehicleInfo 컴포넌트 추가 */}
-      <VehicleInfo
-        viewMode={viewMode}
-        selectedVehicle={selectedVehicle}
-        animationState={animationState}
-      />
+      <VehicleInfo viewMode={viewMode} selectedVehicle={selectedVehicle} animationState={animationState} />
 
       <CrayonTextButton
         ariaLabel={'첫 화면으로'}
@@ -230,8 +266,6 @@ export default function Home() {
         iconSize={40}
         innerCircleVisible={true}
       />
-
-      {/* <BackButton showIntro={showIntro} onClick={handleBackToIntro} /> */}
 
       {!showIntro && (
         <Controls
@@ -273,27 +307,27 @@ export default function Home() {
             <shadowMaterial transparent opacity={0.3} />
           </mesh>
 
-          <group ref={sceneRef}>
-            {showResult ? (
-              <ResultModel scale={0.1} position={[0, 0, 2]} castShadow={true} receiveShadow={true} />
-            ) : (
-              <Model
-                scale={0.1}
-                position={[0, 0, 0]}
-                animationSpeed={animationState.isPlaying && !animationState.isPaused ? 1.0 : 0}
-                onAnimationComplete={handleAnimationComplete}
-                resetTrigger={animationState.resetTrigger}
-                castShadow={true}
-                receiveShadow={true}
-              />
-            )}
+          <group ref={modelSceneRef} visible={!showResult}>
+            <Model
+              scale={0.1}
+              position={[0, 0, 0]}
+              animationSpeed={animationState.isPlaying && !animationState.isPaused ? 1.0 : 0}
+              onAnimationComplete={handleAnimationComplete}
+              resetTrigger={animationState.resetTrigger}
+              castShadow={true}
+              receiveShadow={true}
+            />
+          </group>
+
+          <group ref={resultSceneRef} visible={showResult}>
+            <ResultModel scale={0.1} position={[0, 0, 2]} castShadow={true} receiveShadow={true} />
           </group>
 
           <CameraController
             viewMode={viewMode}
             selectedVehicle={selectedVehicle}
             isAnimationPlaying={animationState.isPlaying && !animationState.isPaused}
-            sceneRef={sceneRef}
+            sceneRef={modelSceneRef} // 항상 modelSceneRef만 사용
             showIntro={showIntro}
             showResult={showResult}
             animationState={animationState}
