@@ -52,6 +52,12 @@ export function Controls({
   const showPanel = viewMode === 'firstPerson'
   const prefersReduced = useReducedMotion()
 
+  // 각 시점에서의 리셋 핸들러 (시점 변경 없이 애니메이션만 리셋)
+  const handleResetInCurrentView = () => {
+    onResetAnimation();
+    // viewMode는 변경하지 않음
+  }
+
   return (
     <>
       {showResult ? (
@@ -84,7 +90,7 @@ export function Controls({
             {(isPlaying || isPaused || isCompleted) && (
               <CrayonTextButton
                 text='처음으로'
-                onClick={onResetAnimation}
+                onClick={handleResetInCurrentView}
                 width={150}
                 height={70}
                 bg='#6B7280'
@@ -109,7 +115,7 @@ export function Controls({
           <div className='absolute flex flex-col top-6 left-6 z-10 gap-3'>
             {
               <CrayonTextBox color='#F3921C' bg='#FFF' animated={true}>
-                <h3 className='text-sm font-bold text-gray-700 mb-3'>관찰 시점을 고르세요.</h3>
+                <h3 className='text-base font-bold text-gray-700 mb-3'>관찰 시점을 고르세요.</h3>
                 <div className='flex flex-col'>
                   {VIEW_BUTTONS.map((button, idx) => (
                     <CrayonTextButton
@@ -143,7 +149,7 @@ export function Controls({
                     ease: [0.8, 1, 0.8, 1], 
                   }}>
                   <CrayonTextBox color='#10B981' bg='#FFF' animated={true}>
-                    <h4 className='text-sm font-bold text-gray-700 mb-3'>관찰하기</h4>
+                    <h4 className='text-base font-bold text-gray-700 mb-3'>관찰하기</h4>
                     <div className='grid grid-cols-1 gap-2 min-w-[160px]'>
                       {VEHICLES.map((vehicle) => (
                         <CrayonTextButton

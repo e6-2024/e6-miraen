@@ -11,6 +11,7 @@ import { NarrationSubtitle } from '@/components/6-1-2/NarrationSubtitle'
 import { Controls } from '@/components/6-1-2/Controls'
 import { CameraController } from '@/components/6-1-2/CameraController'
 import { BackButton } from '@/components/6-1-2/BackButton'
+import { VehicleInfo } from '@/components/6-1-2/VehicleInfo'
 import { CrayonTextButton } from '@/components/common/CrayonUIButton'
 import { TiltOnMouse } from '@/components/common/Tilt'
 
@@ -89,6 +90,7 @@ export default function Home() {
     }
   }
 
+  // 수정된 리셋 함수 - viewMode를 변경하지 않음
   const handleResetAnimation = () => {
     stopAllAudio()
     setShowNarrationSubtitle(false)
@@ -101,7 +103,7 @@ export default function Home() {
       resetTrigger: true,
     })
     setShowResult(false)
-    setViewMode('start')
+    // setViewMode('start') 제거 - 현재 viewMode 유지
 
     setTimeout(() => {
       setAnimationState((prev) => ({ ...prev, resetTrigger: false }))
@@ -187,6 +189,13 @@ export default function Home() {
   return (
     <div className='w-screen h-screen bg-[#78C9C9] relative'>
       <NarrationSubtitle visible={showNarrationSubtitle} text={narrationText} />
+
+      {/* VehicleInfo 컴포넌트 추가 */}
+      <VehicleInfo
+        viewMode={viewMode}
+        selectedVehicle={selectedVehicle}
+        animationState={animationState}
+      />
 
       <CrayonTextButton
         ariaLabel={'첫 화면으로'}
@@ -287,6 +296,7 @@ export default function Home() {
             sceneRef={sceneRef}
             showIntro={showIntro}
             showResult={showResult}
+            animationState={animationState}
           />
 
           <Sky
