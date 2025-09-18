@@ -33,10 +33,10 @@ const CLOUD_PRESETS = (() => {
   const count = 5
   const arr = []
   for (let i = 0; i < count; i++) {
-    const x = -30 +(rng() * 2 - 1) * 80 
+    const x = -30 + (rng() * 2 - 1) * 80
     const z = (rng() * 2 - 1) * 80
-    const y = 40 + rng() * 25 
-    const scale = 1 + rng() * 2 
+    const y = 40 + rng() * 25
+    const scale = 1 + rng() * 2
     const opacity = rng() * 0.5
     const seed = Math.floor(rng() * 1e6)
     const volume = Math.floor(scale * 10)
@@ -59,7 +59,6 @@ const CLOUD_PRESETS = (() => {
 
 function Lights() {
   const dirLightRef = useRef<THREE.DirectionalLight>(null!)
-  useHelper(dirLightRef, THREE.DirectionalLightHelper, 5, 'hotpink')
 
   return (
     <>
@@ -403,22 +402,25 @@ export default function Home() {
             mieCoefficient={0.05}
             mieDirectionalG={0.99}
           />
-          <Clouds key='clouds-fixed' material={THREE.MeshBasicMaterial} rotation={[0,Math.PI/2 + Math.PI/4,0]}>
-            {CLOUD_PRESETS.map((c) => (
-              <Cloud
-                key={c.key}
-                seed={c.seed}
-                segments={c.segments}
-                bounds={c.bounds}
-                volume={c.volume}
-                color={c.color}
-                opacity={c.opacity}
-                position={c.position}
-                scale={c.scale}
-                fade={90}
-              />
-            ))}
-          </Clouds>
+
+          {!showResult && (
+            <Clouds key='clouds-fixed' material={THREE.MeshBasicMaterial} rotation={[0, Math.PI / 2 + Math.PI / 4, 0]}>
+              {CLOUD_PRESETS.map((c) => (
+                <Cloud
+                  key={c.key}
+                  seed={c.seed}
+                  segments={c.segments}
+                  bounds={c.bounds}
+                  volume={c.volume}
+                  color={c.color}
+                  opacity={c.opacity}
+                  position={c.position}
+                  scale={c.scale}
+                  fade={90}
+                />
+              ))}
+            </Clouds>
+          )}
         </TiltOnMouse>
         <Environment preset={'apartment'} environmentIntensity={0.75} environmentRotation={[0, Math.PI / 2, 0]} />
       </Scene>

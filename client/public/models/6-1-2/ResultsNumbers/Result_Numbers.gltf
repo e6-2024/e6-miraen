@@ -5,7 +5,6 @@
 	},
 	"extensionsUsed":[
 		"KHR_draco_mesh_compression",
-		"KHR_materials_emissive_strength",
 		"KHR_materials_specular"
 	],
 	"extensionsRequired":[
@@ -16,13 +15,13 @@
 		{
 			"name":"Scene",
 			"nodes":[
-				0
+				0,
+				1
 			]
 		}
 	],
 	"nodes":[
 		{
-			"mesh":0,
 			"name":"typeMesh2",
 			"rotation":[
 				0,
@@ -40,20 +39,37 @@
 				1.753499984741211,
 				25.7230224609375
 			]
+		},
+		{
+			"mesh":0,
+			"name":"typeMesh2.001",
+			"rotation":[
+				0,
+				-0.7071068286895752,
+				0.7071068286895752,
+				5.3385093679025886e-08
+			],
+			"scale":[
+				0.22570998966693878,
+				0.22570998966693878,
+				0.22570998966693878
+			],
+			"translation":[
+				-1.1950900554656982,
+				1.753499984741211,
+				25.7230224609375
+			]
 		}
 	],
 	"materials":[
 		{
 			"doubleSided":true,
 			"emissiveFactor":[
-				0.015207973106435835,
-				0.02217348542284305,
-				1
+				0.014600005963444795,
+				0.021287060101137456,
+				0.9600231313708889
 			],
 			"extensions":{
-				"KHR_materials_emissive_strength":{
-					"emissiveStrength":1.2000289440166512
-				},
 				"KHR_materials_specular":{
 					"specularColorFactor":[
 						2.0,
@@ -62,7 +78,7 @@
 					]
 				}
 			},
-			"name":"phong11.002",
+			"name":"phong11.001",
 			"pbrMetallicRoughness":{
 				"baseColorFactor":[
 					0.015540692023932934,
@@ -77,9 +93,9 @@
 		{
 			"doubleSided":true,
 			"emissiveFactor":[
-				0.699999988079071,
-				0.026097084882479304,
-				0.32790830470990606
+				0.9799999666213992,
+				0.036535918835471026,
+				0.4590716224215434
 			],
 			"extensions":{
 				"KHR_materials_specular":{
@@ -90,7 +106,7 @@
 					]
 				}
 			},
-			"name":"phong10.002",
+			"name":"phong10.001",
 			"pbrMetallicRoughness":{
 				"baseColorFactor":[
 					1,
@@ -105,7 +121,7 @@
 	],
 	"meshes":[
 		{
-			"name":"Mesh.002",
+			"name":"Mesh.001",
 			"primitives":[
 				{
 					"attributes":{
@@ -183,50 +199,50 @@
 		},
 		{
 			"componentType":5126,
-			"count":13905,
+			"count":12457,
 			"max":[
-				51.866355895996094,
-				303.1949462890625,
-				17.372528076171875
+				50.81398010253906,
+				303.6982421875,
+				14.96728515625
 			],
 			"min":[
-				-57.35358810424805,
-				96.67630004882812,
-				5.90275764465332
+				-58.112083435058594,
+				64.72278594970703,
+				5.886599063873291
 			],
 			"type":"VEC3"
 		},
 		{
 			"componentType":5126,
-			"count":13905,
+			"count":12457,
 			"type":"VEC3"
 		},
 		{
 			"componentType":5126,
-			"count":13905,
+			"count":12457,
 			"type":"VEC2"
 		},
 		{
 			"componentType":5123,
-			"count":53940,
+			"count":47922,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":54985,
+			"byteLength":53344,
 			"byteOffset":0
 		},
 		{
 			"buffer":0,
-			"byteLength":61767,
-			"byteOffset":54988
+			"byteLength":50855,
+			"byteOffset":53344
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":116756,
+			"byteLength":104200,
 			"uri":"Result_Numbers.bin"
 		}
 	]
