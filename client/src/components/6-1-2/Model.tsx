@@ -2,6 +2,7 @@ import { useGLTF, useAnimations } from '@react-three/drei'
 import { GroupProps, useFrame } from '@react-three/fiber'
 import { useEffect, useRef, useState } from 'react'
 import { Group, Mesh, AnimationAction } from 'three'
+import * as THREE from 'three'
 
 interface ModelProps extends GroupProps {
   animationSpeed?: number
@@ -44,6 +45,34 @@ export default function Model({
       }
     }
   }, [resetTrigger, actions])
+
+  useEffect(() => {
+    if (!scene) return
+
+    scene.traverse((child) => {
+      if (!(child instanceof THREE.Mesh)) return
+      child.castShadow = castShadow
+      child.receiveShadow = receiveShadow
+
+      //Crabapple 메쉬만 컷아웃 섀도우 적용
+      if (child.name.startsWith('Crabapple')) {
+        const mats: THREE.Material[] = Array.isArray(child.material) ? child.material : [child.material]
+        mats.forEach((mat) => {
+          const m = mat as THREE.MeshStandardMaterial
+          m.transparent = true
+          m.alphaTest = 0.5
+          m.depthWrite = true 
+          m.needsUpdate = true
+          const depthMat = new THREE.MeshDepthMaterial({
+            depthPacking: THREE.RGBADepthPacking,
+            map: m.map,
+            alphaTest: m.alphaTest,
+          })
+          child.customDepthMaterial = depthMat
+        })
+      }
+    })
+  }, [scene, castShadow, receiveShadow])
 
   useEffect(() => {
     if (actions && !isInitialized) {
@@ -99,37 +128,6 @@ export default function Model({
     }
   })
 
-  useEffect(() => {
-    if (scene) {
-      scene.traverse((child) => {
-        if (child instanceof Mesh) {
-          child.castShadow = castShadow
-          child.receiveShadow = receiveShadow
-
-
-          if (child.material) {
-            if (Array.isArray(child.material)) {
-              child.material.forEach((mat) => {
-                if (mat.isMeshStandardMaterial || mat.isMeshPhongMaterial || mat.isMeshLambertMaterial) {
-                  mat.side = 1 
-                  mat.needsUpdate = true
-                }
-              })
-            } else {
-              if (
-                child.material.isMeshStandardMaterial ||
-                child.material.isMeshPhongMaterial ||
-                child.material.isMeshLambertMaterial
-              ) {
-                child.material.side = 2 
-                child.material.needsUpdate = true
-              }
-            }
-          }
-        }
-      })
-    }
-  }, [scene, castShadow, receiveShadow])
   return (
     <group ref={group} {...props}>
       <primitive object={scene} />

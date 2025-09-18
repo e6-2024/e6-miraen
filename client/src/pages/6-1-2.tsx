@@ -1,4 +1,4 @@
-import { Environment, Sky } from '@react-three/drei'
+import { Environment, Sky, Clouds, Cloud } from '@react-three/drei'
 import { useState, useRef, useEffect } from 'react'
 import * as THREE from 'three'
 
@@ -20,29 +20,67 @@ import { useAudio } from '@/hook/6-1-2/useAudio'
 import { useBgm } from '@/hook/6-1-2/useBgm'
 import { useHelper } from '@react-three/drei'
 
+function makeRng(seed = 123456789) {
+  let s = seed >>> 0
+  return () => {
+    s = (1664525 * s + 1013904223) >>> 0
+    return s / 0xffffffff
+  }
+}
+
+const CLOUD_PRESETS = (() => {
+  const rng = makeRng(42)
+  const count = 5
+  const arr = []
+  for (let i = 0; i < count; i++) {
+    const x = -30 +(rng() * 2 - 1) * 80 
+    const z = (rng() * 2 - 1) * 80
+    const y = 40 + rng() * 25 
+    const scale = 1 + rng() * 2 
+    const opacity = rng() * 0.5
+    const seed = Math.floor(rng() * 1e6)
+    const volume = Math.floor(scale * 10)
+    const bounds = [12 + scale * 6, 4 + scale * 2, 12 + scale * 6] as [number, number, number]
+
+    arr.push({
+      key: `cloud-${i}`,
+      position: [x, y, z] as [number, number, number],
+      scale,
+      opacity,
+      seed,
+      volume,
+      bounds,
+      color: '#fff',
+      segments: 40,
+    })
+  }
+  return arr
+})()
+
 function Lights() {
   const dirLightRef = useRef<THREE.DirectionalLight>(null!)
   useHelper(dirLightRef, THREE.DirectionalLightHelper, 5, 'hotpink')
 
   return (
     <>
+      <ambientLight intensity={0.2} color='#ff8c42' />
       <directionalLight
         ref={dirLightRef}
-        position={[10, 19, 8]}
+        position={[10, 12, 8]}
         intensity={0.2}
         castShadow
-        color='#FFF8DC'
+        color='#ff6b35'
         shadow-mapSize-width={4096}
         shadow-mapSize-height={4096}
-        shadow-camera-far={100}
-        shadow-camera-left={-100}
-        shadow-camera-right={800}
-        shadow-camera-top={100}
-        shadow-camera-bottom={-100}
-        shadow-bias={-0.001}
+        shadow-camera-near={1}
+        shadow-camera-far={80}
+        shadow-camera-left={-30}
+        shadow-camera-right={30}
+        shadow-camera-top={30}
+        shadow-camera-bottom={-30}
+        shadow-bias={-0.0003}
         shadow-normalBias={0.02}
       />
-      <directionalLight position={[-20, 30, 20]} intensity={0.1} color='#E6F3FF' />
     </>
   )
 }
@@ -315,14 +353,17 @@ export default function Home() {
         />
       )}
 
-      <Scene camera={{ position: [2.078, 1.235, -24.222], fov: 50, far: 100 }}>
+      <Scene
+        camera={{ position: [2.078, 0.5, -24.222], fov: 50, far: 100 }}
+        dpr={[1, 2]}
+        shadows={{ type: THREE.PCFSoftShadowMap }}>
         <LoadingTracker onLoadingComplete={handleLoadingComplete} />
-        <TiltOnMouse enabled={showIntro} maxDeg={5}>
+        <TiltOnMouse enabled={showIntro} maxDeg={0.7}>
           <Lights />
 
           <mesh position={[0, -0.17, 0.0]} scale={20.0} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
             <planeGeometry args={[100, 100]} />
-            <shadowMaterial transparent opacity={0.3} side={THREE.DoubleSide} />
+            <shadowMaterial transparent opacity={0.3} />
           </mesh>
 
           <group ref={modelSceneRef} visible={!showResult}>
@@ -354,16 +395,32 @@ export default function Home() {
 
           <Sky
             distance={45000}
-            sunPosition={[-1, 0.09, -1]}
-            inclination={0.49}
+            sunPosition={[100, 120, 80]}
+            inclination={0.001}
             azimuth={0.25}
-            rayleigh={1.2}
-            turbidity={1}
-            mieCoefficient={0.008}
-            mieDirectionalG={0.85}
+            rayleigh={0.4}
+            turbidity={8}
+            mieCoefficient={0.05}
+            mieDirectionalG={0.99}
           />
+          <Clouds key='clouds-fixed' material={THREE.MeshBasicMaterial} rotation={[0,Math.PI/2 + Math.PI/4,0]}>
+            {CLOUD_PRESETS.map((c) => (
+              <Cloud
+                key={c.key}
+                seed={c.seed}
+                segments={c.segments}
+                bounds={c.bounds}
+                volume={c.volume}
+                color={c.color}
+                opacity={c.opacity}
+                position={c.position}
+                scale={c.scale}
+                fade={90}
+              />
+            ))}
+          </Clouds>
         </TiltOnMouse>
-        <Environment preset={'apartment'} environmentIntensity={1.0} environmentRotation={[0, Math.PI / 2, 0]} />
+        <Environment preset={'apartment'} environmentIntensity={0.75} environmentRotation={[0, Math.PI / 2, 0]} />
       </Scene>
 
       {isLoaded && showIntro && (

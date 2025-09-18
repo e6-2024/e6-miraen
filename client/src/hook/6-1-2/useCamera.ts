@@ -35,6 +35,18 @@ export const useCamera = ({
   const frameCountAfterTransition = useRef(0)
 
   useEffect(() => {
+    if (showIntro) {
+      camera.position.set(...CAMERA_POSITIONS.start)
+      camera.lookAt(...CAMERA_TARGETS.start)
+      
+      if (orbitControlsRef.current) {
+        orbitControlsRef.current.target.set(...CAMERA_TARGETS.start)
+        orbitControlsRef.current.update()
+      }
+    }
+  }, [showIntro, camera])
+
+  useEffect(() => {
     if (prevShowResult.current === true && showResult === false) {
       setModelReady(false)
       frozenCameraState.current = null
@@ -79,6 +91,7 @@ export const useCamera = ({
     }
     prevShowResult.current = showResult
   }, [showResult, viewMode, selectedVehicle, camera])
+
   useEffect(() => {
     if (animationState.resetTrigger) {
       frozenCameraState.current = null
@@ -120,7 +133,6 @@ export const useCamera = ({
     }
   }, [animationState.resetTrigger, viewMode, selectedVehicle, camera])
 
-  // 선택된 vehicle이 변경될 때
   useEffect(() => {
     if (prevSelectedVehicle.current !== selectedVehicle) {
       frozenCameraState.current = null
@@ -128,7 +140,6 @@ export const useCamera = ({
     }
   }, [selectedVehicle])
 
-  // viewMode가 변경될 때
   useEffect(() => {
     if (prevViewMode.current !== viewMode) {
       frozenCameraState.current = null
@@ -173,7 +184,6 @@ export const useCamera = ({
     }
   }, [viewMode, camera, showIntro, showResult, selectedVehicle])
 
-  // Result 화면으로 전환 시
   useEffect(() => {
     if (showResult) {
       camera.position.set(...CAMERA_POSITIONS.result)
@@ -191,15 +201,40 @@ export const useCamera = ({
       frozenCameraState.current = null
       frameCountAfterTransition.current = 0
       setModelReady(true)
-      camera.position.set(CAMERA_POSITIONS.start[0], CAMERA_POSITIONS.start[1], CAMERA_POSITIONS.start[2])
-      camera.lookAt(0, 0, 0)
-
-      if (orbitControlsRef.current) {
-        orbitControlsRef.current.target.set(0, 0, 0)
-        orbitControlsRef.current.update()
+      
+      switch (viewMode) {
+        case 'start':
+          camera.position.set(...CAMERA_POSITIONS.start)
+          camera.lookAt(...CAMERA_TARGETS.start)
+          if (orbitControlsRef.current) {
+            orbitControlsRef.current.target.set(...CAMERA_TARGETS.start)
+            orbitControlsRef.current.update()
+          }
+          break
+        case 'approaching':
+          camera.position.set(...CAMERA_POSITIONS.approaching)
+          camera.lookAt(...CAMERA_TARGETS.approaching)
+          if (orbitControlsRef.current) {
+            orbitControlsRef.current.target.set(...CAMERA_TARGETS.approaching)
+            orbitControlsRef.current.update()
+          }
+          break
+        case 'firstPerson':
+          const initialPos = new THREE.Vector3(0, 0, 0)
+          const { position: initialCameraPosition, lookAtTarget: initialLookAtTarget } = calculateFirstPersonCamera(
+            initialPos,
+            selectedVehicle,
+          )
+          camera.position.copy(initialCameraPosition)
+          camera.lookAt(initialLookAtTarget)
+          if (orbitControlsRef.current) {
+            orbitControlsRef.current.target.copy(initialLookAtTarget)
+            orbitControlsRef.current.update()
+          }
+          break
       }
     }
-  }, [resetTrigger, camera])
+  }, [resetTrigger, camera, viewMode, selectedVehicle])
 
   const isControlsEnabled = () => {
     if (showIntro) return false
@@ -215,11 +250,9 @@ export const useCamera = ({
   useFrame(() => {
     if (showIntro || showResult) return
 
-    // Result에서 돌아온 직후 몇 프레임은 스킵
     if (!modelReady && viewMode === 'firstPerson') {
       frameCountAfterTransition.current++
       if (frameCountAfterTransition.current < 10) {
-        // 처음 10프레임 동안은 초기 위치 유지
         const initialPos = new THREE.Vector3(0, 0, 0)
         const { position: initialCameraPosition, lookAtTarget: initialLookAtTarget } = calculateFirstPersonCamera(
           initialPos,
@@ -243,9 +276,7 @@ export const useCamera = ({
       case 'firstPerson':
         const vehiclePos = getVehiclePosition(sceneRef, selectedVehicle)
 
-        // 위치가 (0,0,0)이면 스킵
         if (!modelReady || (vehiclePos.x === 0 && vehiclePos.y === 0 && vehiclePos.z === 0)) {
-          // 초기 위치 유지
           if (!frozenCameraState.current) {
             const initialPos = new THREE.Vector3(0, 0, 0)
             const { position: initialCameraPosition, lookAtTarget: initialLookAtTarget } = calculateFirstPersonCamera(
