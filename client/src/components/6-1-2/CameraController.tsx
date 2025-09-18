@@ -10,7 +10,7 @@ interface CameraControllerProps {
   showIntro: boolean;
   showResult: boolean;
   animationState: AnimationState;
-  resetTrigger?: boolean; // 추가
+  resetTrigger?: boolean;
 }
 
 export function CameraController({
@@ -42,7 +42,7 @@ export function CameraController({
       enableZoom={isControlsEnabled()}
       enableRotate={isControlsEnabled()}
       minDistance={0}
-      maxDistance={viewMode==='approaching' ? 4 : 4}
+      maxDistance={4}
       minPolarAngle={0}
       maxPolarAngle={Math.PI/2}
     />

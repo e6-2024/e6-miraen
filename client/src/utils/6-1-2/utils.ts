@@ -53,14 +53,14 @@ export const CAMERA_CONFIGS: Record<VehicleId, VehicleCameraConfig> = {
 }
 
 export const CAMERA_POSITIONS = {
-  start: [2.078, 1.235, -4.222] as [number, number, number],
-  approaching: [1.0, 0.8, 39.7] as [number, number, number],
+  start: [2.078, 1.235, -24.222] as [number, number, number],
+  approaching: [1.0, 0.8, 19.7] as [number, number, number],
   result: [2.078, 1.235, -4.222] as [number, number, number],
 }
 
 export const CAMERA_TARGETS = {
-  start: [0, 0, 0] as [number, number, number],
-  approaching: [1.0, 0, 37] as [number, number, number],
+  start: [0, 0, -20] as [number, number, number],
+  approaching: [1.0, 0, 17] as [number, number, number],
   result: [0, 0, 0] as [number, number, number],
 }
 

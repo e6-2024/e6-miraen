@@ -18,6 +18,34 @@ import { TiltOnMouse } from '@/components/common/Tilt'
 import { ViewMode, VehicleId, AnimationState } from '@/types/6-1-2/types'
 import { useAudio } from '@/hook/6-1-2/useAudio'
 import { useBgm } from '@/hook/6-1-2/useBgm'
+import { useHelper } from '@react-three/drei'
+
+function Lights() {
+  const dirLightRef = useRef<THREE.DirectionalLight>(null!)
+  useHelper(dirLightRef, THREE.DirectionalLightHelper, 5, 'hotpink')
+
+  return (
+    <>
+      <directionalLight
+        ref={dirLightRef}
+        position={[10, 19, 8]}
+        intensity={0.2}
+        castShadow
+        color='#FFF8DC'
+        shadow-mapSize-width={4096}
+        shadow-mapSize-height={4096}
+        shadow-camera-far={100}
+        shadow-camera-left={-100}
+        shadow-camera-right={800}
+        shadow-camera-top={100}
+        shadow-camera-bottom={-100}
+        shadow-bias={-0.001}
+        shadow-normalBias={0.02}
+      />
+      <directionalLight position={[-20, 30, 20]} intensity={0.1} color='#E6F3FF' />
+    </>
+  )
+}
 
 export default function Home() {
   const [mounted, setMounted] = useState(false)
@@ -287,35 +315,20 @@ export default function Home() {
         />
       )}
 
-      <Scene camera={{ position: [2.078, 1.235, -4.222], fov: 50, far: 500 }} shadows='soft'>
+      <Scene camera={{ position: [2.078, 1.235, -24.222], fov: 50, far: 100 }}>
         <LoadingTracker onLoadingComplete={handleLoadingComplete} />
         <TiltOnMouse enabled={showIntro} maxDeg={5}>
-          <directionalLight
-            position={[5, 20, 5]}
-            intensity={1.2}
-            castShadow
-            color='#FFF8DC'
-            shadow-mapSize-width={4096}
-            shadow-mapSize-height={4096}
-            shadow-camera-far={100}
-            shadow-camera-left={-50}
-            shadow-camera-right={50}
-            shadow-camera-top={50}
-            shadow-camera-bottom={-50}
-            shadow-bias={-0.001}
-            shadow-normalBias={0.02}
-          />
-          <directionalLight position={[-20, 30, 20]} intensity={0.8} color='#E6F3FF' />
+          <Lights />
 
-          <mesh position={[0, -0.285, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-            <planeGeometry args={[130, 130]} />
-            <shadowMaterial transparent opacity={0.3} />
+          <mesh position={[0, -0.17, 0.0]} scale={20.0} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+            <planeGeometry args={[100, 100]} />
+            <shadowMaterial transparent opacity={0.3} side={THREE.DoubleSide} />
           </mesh>
 
           <group ref={modelSceneRef} visible={!showResult}>
             <Model
               scale={0.1}
-              position={[0, 0, 0]}
+              position={[0, 0.1, -20]}
               animationSpeed={animationState.isPlaying && !animationState.isPaused ? 1.0 : 0}
               onAnimationComplete={handleAnimationComplete}
               resetTrigger={animationState.resetTrigger}
@@ -350,7 +363,7 @@ export default function Home() {
             mieDirectionalG={0.85}
           />
         </TiltOnMouse>
-        <Environment preset={'apartment'} />
+        <Environment preset={'apartment'} environmentIntensity={1.0} environmentRotation={[0, Math.PI / 2, 0]} />
       </Scene>
 
       {isLoaded && showIntro && (
