@@ -45,7 +45,7 @@ function ViewBasedControls({ currentView, orbitControlsRef }: { currentView: Vie
       ref={orbitControlsRef}
       target={currentConfig.target}
       enableZoom={true}
-      enablePan={false}
+      enablePan={true}
       enableRotate={true}
       minDistance={currentConfig.minDistance}
       maxDistance={currentConfig.maxDistance}
