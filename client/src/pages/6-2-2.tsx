@@ -88,7 +88,7 @@ function ExperimentInstructions({
 }) {
   const getInstructionText = () => {
     if (!experimentStarted) {
-      return '실험을 시작해보세요!'
+      return '오른쪽 아크릴 통에 산소를 공급해 보세요.'
     }
     if (experimentFinished) {
       return '실험이 완료되었습니다. 다시 실험해보세요!'
@@ -97,7 +97,7 @@ function ExperimentInstructions({
   }
 
   return (
-    <div className='absolute top-5 left-1/2 transform -translate-x-1/2'>
+    <div className='absolute font-light top-5 left-1/2 transform -translate-x-1/2'>
       <CrayonTextBox 
         color='#01A7A2' 
         bg='#FFF'

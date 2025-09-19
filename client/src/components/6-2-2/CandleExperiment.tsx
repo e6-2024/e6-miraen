@@ -18,7 +18,7 @@ export function CandleExperiment({
   experimentFinished,
   onExperimentFinished 
 }: CandleExperimentProps) {
-  const { scene } = useGLTF('/models/6-2-2/candle.gltf')
+  const { scene } = useGLTF('/models/6-2-2/Whole_Scene.glb')
   const { camera, gl } = useThree()
 
   const rightCandleRef = useRef<THREE.Object3D>(null)
@@ -209,7 +209,7 @@ export function CandleExperiment({
 
       <OrbitControls
         enabled={!experimentStarted}
-        maxDistance={15}
+        maxDistance={30}
         minDistance={3}
       />
     </group>
