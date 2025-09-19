@@ -169,7 +169,6 @@ export function CandleExperiment({
     }, 3000)
   }
 
-  // 촛불 덮기 처리
   const handleCoverCandles = () => {
     if (experimentPhase !== 'readyToCover') return
 
@@ -186,8 +185,11 @@ export function CandleExperiment({
 
       timeoutRef.current = setTimeout(() => {
         setExperimentPhase('rightOut')
+        onPhaseChange('rightOut')
+
+        // 임시: 더 짧은 페이드 시간으로 테스트
         let startTime = Date.now()
-        const fadeDuration = EXPERIMENT_CONFIG.fadeDuration
+        const fadeDuration = 1000 // 1초로 단축
 
         intervalRef.current = setInterval(() => {
           const elapsed = Date.now() - startTime
@@ -196,28 +198,23 @@ export function CandleExperiment({
 
           setRightFlameOpacity(remaining)
           setRightFlameScale(remaining)
+          console.log(progress)
 
-          if (progress >= 1) {
-            if (intervalRef.current) {
-              clearInterval(intervalRef.current)
-              intervalRef.current = null
-            }
+          if (progress == 1) {
             setExperimentPhase('finished')
+            onPhaseChange('finished')
             onExperimentFinished()
           }
         }, 16)
-      }, EXPERIMENT_CONFIG.burnDuration)
-    }, 2000)
+      }, 1000)
+    }, 1000)
   }
-
-  // 부모 컴포넌트에서 덮기 버튼 클릭 시 호출되는 함수
   const handleCoverFromParent = useCallback(() => {
     if (experimentPhase === 'readyToCover') {
       handleCoverCandles()
     }
   }, [experimentPhase])
 
-  // 전역 함수로 노출 (부모 컴포넌트에서 호출용)
   useEffect(() => {
     ;(window as any).handleCoverCandles = handleCoverFromParent
     return () => {

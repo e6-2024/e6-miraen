@@ -203,7 +203,7 @@ export default function Page() {
     setShowIntro(true)
     setExperimentStarted(false)
     setExperimentFinished(false)
-    setCurrentPhase('waiting')
+    setCurrentPhase('selectingCup')
     setExperimentKey((prev) => prev + 1)
     stopNarration()
   }, [stopNarration])
@@ -218,7 +218,7 @@ export default function Page() {
   const handleResetExperiment = useCallback(() => {
     setExperimentStarted(false)
     setExperimentFinished(false)
-    setCurrentPhase('waiting')
+    setCurrentPhase('selectingCup')
     setExperimentKey((prev) => prev + 1)
     playSound('/sounds/6-2-2/experiment-reset.mp3')
   }, [playSound])
