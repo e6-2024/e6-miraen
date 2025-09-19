@@ -6,6 +6,20 @@ import Experiment from '@/components/6-2-2/Experiment'
 import Scene from '@/components/canvas/Scene'
 import Intro from '@/components/intro/Intro'
 
+type ButtonStyle = { bg: string; border: string; text: string }
+
+type ParticleTheme = {
+  goal: ButtonStyle
+  guide: ButtonStyle
+  start: ButtonStyle
+}
+
+const particleTheme: ParticleTheme = {
+  goal: { bg: '#9B1CDF', border: '#DFB2FA', text: '#FFFFFF' },
+  guide: { bg: '#9B1CDF', border: '#DFB2FA', text: '#FFFFFF' },
+  start: { bg: '#01A7A2', border: '#78C9C9', text: '#FFFFFF' },
+}
+
 // 로딩 상태를 추적하는 컴포넌트
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
   const { progress, active } = useProgress()
@@ -155,15 +169,16 @@ export default function Home() {
         </div>
       )}
 
-      {/* Intro 오버레이 - 로딩 완료 후 표시 */}
       {isLoaded && showIntro && (
         <Intro 
           onEnter={handleEnterExperience}
-          title="물질의 연소"
+          title="양초가 타는 시간 비교하기"
           description={[
-            "난로의 불을 유지하려면 장작을 계속해서 넣어야 합니다. 물질이 타려면 어떤 조건이 필요한지 알아봅시다."
+            "물질이 타려면 무엇이 필요한지 알아봅시다."
           ]}
-          simbolSvgPath="/img/icon/물질의연소.svg"
+          backgroundSvg="/img/cover/6-2-2.svg"
+          buttonTheme={particleTheme}
+          descriptionSound='/sounds/6-2-2/narration/6-2-2-Goal.MP3'
         />
       )}
     </div>

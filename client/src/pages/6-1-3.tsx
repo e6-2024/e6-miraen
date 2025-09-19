@@ -323,7 +323,7 @@ export default function Page() {
                   />
 
                   <SpeechBubble
-                    position={[0.5, 3, 0.5]}
+                    position={[0.5, 2, -1.0]}
                     text='줄기 보기'
                     onBubbleClick={() => handleViewChange('stem')}
                     pointColor='#228B22'
@@ -331,7 +331,7 @@ export default function Page() {
                   />
 
                   <SpeechBubble
-                    position={[2, 9.5, 1.5]}
+                    position={[0.5, 5, -4]}
                     text='잎 보기'
                     onBubbleClick={() => handleViewChange('leaf')}
                     pointColor='#32CD32'
