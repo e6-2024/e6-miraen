@@ -1,55 +1,50 @@
-// Experiment.tsx
-
 import { useEffect, useRef, useState } from 'react'
-import { useGLTF, useCursor, Environment } from '@react-three/drei'
+import { useGLTF, useCursor, Environment, OrbitControls } from '@react-three/drei'
 import { useThree } from '@react-three/fiber'
 import * as THREE from 'three'
-import CandleLight from './CandleLight'
-import Flame from './Flame'
+import { CandleLight } from './CandleLight'
+import { Flame } from './Flame'
+import { ExperimentPhase } from '@/types/6-2-2/types'
+import { EXPERIMENT_CONFIG } from '@/utils/6-2-2/utils'
 
-interface ExperimentProps {
-  setUiText: (text: string) => void
-  lightCandle: boolean
-  setLightCandle: (value: boolean) => void
+interface CandleExperimentProps {
+  experimentStarted: boolean
+  experimentFinished: boolean
+  onExperimentFinished: () => void
 }
 
-export default function Experiment({ setUiText, lightCandle, setLightCandle }: ExperimentProps) {
+export function CandleExperiment({ 
+  experimentStarted, 
+  experimentFinished,
+  onExperimentFinished 
+}: CandleExperimentProps) {
   const { scene } = useGLTF('/models/6-2-2/candle.gltf')
   const { camera, gl } = useThree()
 
-  // 촛불 참조들
   const rightCandleRef = useRef<THREE.Object3D>(null)
   const leftCandleRef = useRef<THREE.Object3D>(null)
 
-  // 촛불 상태
   const [showFlame, setShowFlame] = useState(false)
   const [leftFlameOpacity, setLeftFlameOpacity] = useState(1)
   const [rightFlameOpacity, setRightFlameOpacity] = useState(1)
   const [rightFlameScale, setRightFlameScale] = useState(1)
-
   const [hovered, setHovered] = useState(false)
-  useCursor(hovered)
+  const [experimentPhase, setExperimentPhase] = useState<ExperimentPhase>('waiting')
 
-  // 타이머 참조 추가 (정리용)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  // 컴포넌트 언마운트 시 타이머 정리
+  useCursor(hovered)
+
   useEffect(() => {
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-      }
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-      }
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+      if (intervalRef.current) clearInterval(intervalRef.current)
     }
   }, [])
 
-  // lightCandle이 false로 변경될 때 상태 초기화
   useEffect(() => {
-    if (!lightCandle) {
-      // 모든 타이머 정리
+    if (!experimentStarted) {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current)
         timeoutRef.current = null
@@ -59,26 +54,26 @@ export default function Experiment({ setUiText, lightCandle, setLightCandle }: E
         intervalRef.current = null
       }
       
-      // 상태 초기화
       setShowFlame(false)
       setLeftFlameOpacity(1)
       setRightFlameOpacity(1)
       setRightFlameScale(1)
+      setExperimentPhase('waiting')
     }
-  }, [lightCandle])
+  }, [experimentStarted])
 
-  // 버튼으로 촛불 켜기
   useEffect(() => {
-    if (lightCandle && !showFlame) {
+    if (experimentStarted && !showFlame && experimentPhase === 'waiting') {
       setShowFlame(true)
       setLeftFlameOpacity(1)
       setRightFlameOpacity(1)
       setRightFlameScale(1)
-      setUiText('촛불이 켜졌습니다! 2초 후 오른쪽 촛불이 사라집니다.')
+      setExperimentPhase('burning')
       
       timeoutRef.current = setTimeout(() => {
+        setExperimentPhase('rightOut')
         let startTime = Date.now()
-        const fadeDuration = 2000
+        const fadeDuration = EXPERIMENT_CONFIG.fadeDuration
         
         intervalRef.current = setInterval(() => {
           const elapsed = Date.now() - startTime
@@ -86,31 +81,25 @@ export default function Experiment({ setUiText, lightCandle, setLightCandle }: E
           const remaining = 1 - progress
           
           setRightFlameOpacity(remaining)
-          setRightFlameScale(remaining) // scale도 함께 줄이기
+          setRightFlameScale(remaining)
           
           if (progress >= 1) {
             if (intervalRef.current) {
               clearInterval(intervalRef.current)
               intervalRef.current = null
             }
-            setUiText('왼쪽 촛불이 꺼졌습니다!')
+            setExperimentPhase('finished')
+            onExperimentFinished()
           }
         }, 16)
-      }, 2000)
+      }, EXPERIMENT_CONFIG.burnDuration)
     }
-  }, [lightCandle, showFlame, setUiText])
+  }, [experimentStarted, showFlame, experimentPhase, onExperimentFinished])
 
   useEffect(() => {
-    console.log('Scene children:', scene.children.length)
-    
-    // 아무것도 제거하지 않고 원본 인덱스로 촛불 참조
-    rightCandleRef.current = scene.children[3]  // 원본 인덱스
-    leftCandleRef.current = scene.children[4]   // 원본 인덱스
+    rightCandleRef.current = scene.children[3]
+    leftCandleRef.current = scene.children[4]
 
-    console.log('rightCandle:', rightCandleRef.current)
-    console.log('leftCandle:', leftCandleRef.current)
-
-    // 모든 mesh에 그림자 설정 적용
     scene.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         child.castShadow = true
@@ -120,10 +109,9 @@ export default function Experiment({ setUiText, lightCandle, setLightCandle }: E
 
     scene.position.set(0, -1, 0)
 
-    // 초기 메시지
-    setUiText('버튼을 클릭해서 촛불을 켜보세요!')
-
     const handleDown = (e: PointerEvent) => {
+      if (!experimentStarted || experimentPhase !== 'burning') return
+
       const bounds = gl.domElement.getBoundingClientRect()
       const x = ((e.clientX - bounds.left) / bounds.width) * 2 - 1
       const y = -((e.clientY - bounds.top) / bounds.height) * 2 + 1
@@ -132,17 +120,11 @@ export default function Experiment({ setUiText, lightCandle, setLightCandle }: E
       const raycaster = new THREE.Raycaster()
       raycaster.setFromCamera(pointer, camera)
 
-      // 촛불 클릭 감지 (오른쪽 촛불이 보일 때만)
       const hitLC = leftCandleRef.current && raycaster.intersectObject(leftCandleRef.current, true).length > 0
       const hitRC = rightCandleRef.current && raycaster.intersectObject(rightCandleRef.current, true).length > 0
 
       if (hitLC || hitRC) {
         if (showFlame) {
-          // 촛불 끄기 (서서히)
-          setUiText('촛불이 꺼지고 있습니다...')
-          setLightCandle(false)
-          
-          // 왼쪽 촛불 서서히 끄기
           const leftFadeInterval = setInterval(() => {
             setLeftFlameOpacity(prev => {
               const newOpacity = prev - 0.02
@@ -154,7 +136,6 @@ export default function Experiment({ setUiText, lightCandle, setLightCandle }: E
             })
           }, 100)
 
-          // 오른쪽 촛불도 조금 늦게 서서히 끄기
           setTimeout(() => {
             const rightFadeInterval = setInterval(() => {
               setRightFlameOpacity(prev => {
@@ -162,7 +143,6 @@ export default function Experiment({ setUiText, lightCandle, setLightCandle }: E
                 if (newOpacity <= 0) {
                   clearInterval(rightFadeInterval)
                   setShowFlame(false)
-                  setUiText('촛불이 꺼졌습니다. 버튼을 클릭해서 다시 켜보세요!')
                   return 0
                 }
                 return newOpacity
@@ -174,7 +154,6 @@ export default function Experiment({ setUiText, lightCandle, setLightCandle }: E
     }
 
     const handleMove = (e: PointerEvent) => {
-      // 호버 효과를 위한 레이캐스팅
       const bounds = gl.domElement.getBoundingClientRect()
       const x = ((e.clientX - bounds.left) / bounds.width) * 2 - 1
       const y = -((e.clientY - bounds.top) / bounds.height) * 2 + 1
@@ -183,7 +162,6 @@ export default function Experiment({ setUiText, lightCandle, setLightCandle }: E
       const raycaster = new THREE.Raycaster()
       raycaster.setFromCamera(pointer, camera)
 
-      // 촛불 클릭 감지 (rightCandleVisible 조건 제거)
       const hitLC = leftCandleRef.current && raycaster.intersectObject(leftCandleRef.current, true).length > 0
       const hitRC = rightCandleRef.current && raycaster.intersectObject(rightCandleRef.current, true).length > 0
 
@@ -197,7 +175,9 @@ export default function Experiment({ setUiText, lightCandle, setLightCandle }: E
       window.removeEventListener('pointerdown', handleDown)
       window.removeEventListener('pointermove', handleMove)
     }
-  }, [camera, gl, scene, showFlame, setLightCandle, setUiText])
+  }, [camera, gl, scene, showFlame, experimentStarted, experimentPhase])
+
+
 
   return (
     <group>
@@ -208,17 +188,30 @@ export default function Experiment({ setUiText, lightCandle, setLightCandle }: E
         <meshStandardMaterial color="lightgray" />
       </mesh>
       
-      <Environment preset='city'/>
+      <Environment preset='city' />
       
       {showFlame && (
         <>
-          <Flame position={[0.41, -0.9, 0]} opacity={rightFlameOpacity}/>
-          <CandleLight position={[0.41, -0.9, 0]} opacity={rightFlameOpacity} />
-          {/* 왼쪽 촛불 */}
-          <Flame position={[-0.57, -0.9, 0]} opacity={leftFlameOpacity} scale={rightFlameScale}/>
-          <CandleLight position={[-0.57, -0.9, 0]} opacity={leftFlameOpacity} />
+          <Flame 
+            position={EXPERIMENT_CONFIG.flamePositions.right} 
+            opacity={rightFlameOpacity} 
+            scale={rightFlameScale}
+          />
+          <CandleLight position={EXPERIMENT_CONFIG.flamePositions.right} opacity={rightFlameOpacity} />
+          
+          <Flame 
+            position={EXPERIMENT_CONFIG.flamePositions.left} 
+            opacity={leftFlameOpacity} 
+          />
+          <CandleLight position={EXPERIMENT_CONFIG.flamePositions.left} opacity={leftFlameOpacity} />
         </>
       )}
+
+      <OrbitControls
+        enabled={!experimentStarted}
+        maxDistance={15}
+        minDistance={3}
+      />
     </group>
   )
 }
