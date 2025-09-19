@@ -69,20 +69,21 @@ function ExperimentStatus({
       </div>
     )
   }
-
-  return (
-    <div className='absolute bottom-5 left-1/2 transform -translate-x-1/2'>
-      <CrayonTextButton
-        text='다시 실험하기'
-        onClick={onReset}
-        width={180}
-        height={60}
-        bg='#9B1CDF'
-        color='#DFB2FA'
-        textcolor='#FFFFFF'
-      />
-    </div>
-  )
+  else if (currentPhase === 'finished') {
+    return (
+      <div className='absolute bottom-5 left-1/2 transform -translate-x-1/2'>
+        <CrayonTextButton
+          text='다시 실험하기'
+          onClick={onReset}
+          width={180}
+          height={60}
+          bg='#9B1CDF'
+          color='#DFB2FA'
+          textcolor='#FFFFFF'
+        />
+      </div>
+    )
+  }
 }
 
 function ExperimentInstructions({
