@@ -10,10 +10,14 @@ type GLTFResult = GLTF & {
     Plane002: THREE.Mesh
     Plane002_1: THREE.Mesh
     SOIL_Mat_0001: THREE.Mesh
-    TREE_A10_Mat_0001: THREE.Mesh
-    TREE_A10_Mat_0002_1: THREE.Mesh
-    TREE_A10_Mat_0002_2: THREE.Mesh
-    TREE_A10_Mat_0002_3: THREE.Mesh
+    // updated tree parts
+    TREE_A10_Mat_0003: THREE.Mesh
+    TREE_A10_Mat_0003_1: THREE.Mesh
+    TREE_A10_Mat_0003_2: THREE.Mesh
+    TREE_A10_Mat_0001_1: THREE.Mesh
+    TREE_A10_Mat_0001_2: THREE.Mesh
+    // new water pipe
+    polySurface2001: THREE.Mesh
   }
   materials: {
     ['BroomSnakeweed_Cluster_Low_Mat.002']: THREE.Material
@@ -23,7 +27,9 @@ type GLTFResult = GLTF & {
     ['A10_Mat.002']: THREE.Material
     ['Material.007']: THREE.Material
     ['Material.008']: THREE.Material
-    ['material']: THREE.Material
+    material: THREE.Material
+    Material: THREE.Material
+    ['Water_Pipe.001']: THREE.Material
   }
 }
 
@@ -52,58 +58,42 @@ export function Model(props: JSX.IntrinsicElements['group']) {
 
       {/* 바닥/플레인 */}
       <group position={[0.191, -0.636, -0.333]} rotation={[0, -1.529, 0]} scale={8.736}>
-        <mesh
-          castShadow
-          receiveShadow
-          geometry={nodes.Plane002.geometry}
-          material={materials['Material.001']}
-        />
-        <mesh
-          castShadow
-          receiveShadow
-          geometry={nodes.Plane002_1.geometry}
-          material={materials['Material.006']}
-        />
+        <mesh castShadow receiveShadow geometry={nodes.Plane002.geometry} material={materials['Material.001']} />
+        <mesh castShadow receiveShadow geometry={nodes.Plane002_1.geometry} material={materials['Material.006']} />
       </group>
 
-      {/* 나무 */}
+      {/* 나무 (업데이트된 노드들) */}
       <group position={[0.149, 2.98, -0.219]} scale={0.01}>
-        <mesh
-          castShadow
-          receiveShadow
-          geometry={nodes.TREE_A10_Mat_0001.geometry}
-          material={materials['A10_Mat.002']}
-          position={[0, -34.143, 0]}
-        />
+        {/* 세트 1: 0003 */}
         <group position={[0, -34.143, 0]}>
-          <mesh
-            castShadow
-            receiveShadow
-            geometry={nodes.TREE_A10_Mat_0002_1.geometry}
-            material={materials['A10_Mat.002']}
-          />
-          <mesh
-            castShadow
-            receiveShadow
-            geometry={nodes.TREE_A10_Mat_0002_2.geometry}
-            material={materials['Material.007']}
-          />
-          <mesh
-            castShadow
-            receiveShadow
-            geometry={nodes.TREE_A10_Mat_0002_3.geometry}
-            material={materials['Material.008']}
-          />
+          <mesh castShadow receiveShadow geometry={nodes.TREE_A10_Mat_0003.geometry} material={materials['A10_Mat.002']} />
+          <mesh castShadow receiveShadow geometry={nodes.TREE_A10_Mat_0003_1.geometry} material={materials['Material.007']} />
+          <mesh castShadow receiveShadow geometry={nodes.TREE_A10_Mat_0003_2.geometry} material={materials['Material.008']} />
+        </group>
+        {/* 세트 2: 0001_1 / 0001_2 */}
+        <group position={[0, -34.143, 0]}>
+          <mesh castShadow receiveShadow geometry={nodes.TREE_A10_Mat_0001_1.geometry} material={materials['A10_Mat.002']} />
+          <mesh castShadow receiveShadow geometry={nodes.TREE_A10_Mat_0001_2.geometry} material={materials.Material} />
         </group>
       </group>
 
-      {/* 흙 (새 스펙에 맞춘 단일 메쉬) */}
+      {/* 흙 */}
       <mesh
         castShadow
         receiveShadow
         geometry={nodes.SOIL_Mat_0001.geometry}
-        material={materials['material']}
+        material={materials.material}
         position={[0, -0.494, 0]}
+        scale={0.01}
+      />
+
+      {/* 물 파이프 */}
+      <mesh
+        castShadow
+        receiveShadow
+        geometry={nodes.polySurface2001.geometry}
+        material={materials['Water_Pipe.001']}
+        rotation={[Math.PI / 2, 0, 0]}
         scale={0.01}
       />
     </group>

@@ -223,16 +223,6 @@ export default function Page() {
     <div className='w-screen h-screen bg-white flex flex-col overflow-hidden relative'>
       <LoadingTracker onLoadingComplete={handleLoadingComplete} />
 
-      {/* Developer Controls */}
-      {isDeveloperMode && (
-        <DeveloperControls
-          pathPoints={pathPoints}
-          onPathChange={handlePathChange}
-          isEditorVisible={isPathEditorVisible}
-          onToggleEditor={togglePathEditor}
-        />
-      )}
-
       <CrayonTextButton
         ariaLabel={'첫 화면으로'}
         icon={'home'}
