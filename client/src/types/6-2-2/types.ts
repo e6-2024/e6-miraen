@@ -1,4 +1,16 @@
-export type ExperimentPhase = 'waiting' | 'burning' | 'rightOut' | 'finished'
+export type ExperimentPhase = 
+  | 'waiting' 
+  | 'selectingCup' 
+  | 'oxygenCanAppearing' 
+  | 'oxygenSupply' 
+  | 'oxygenSupplying'
+  | 'oxygenCanDisappearing'
+  | 'cameraTrackOut'
+  | 'readyToCover'
+  | 'covering'
+  | 'burning' 
+  | 'rightOut' 
+  | 'finished'
 
 export interface CandleState {
   leftFlameOpacity: number
@@ -14,4 +26,7 @@ export interface ExperimentConfig {
     left: [number, number, number]
     right: [number, number, number]
   }
+  oxygenCanPosition: [number, number, number]
+  rightCupPosition: [number, number, number]
+  leftCupPosition: [number, number, number]
 }
