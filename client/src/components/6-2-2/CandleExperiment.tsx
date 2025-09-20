@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useGLTF, useCursor, Environment, OrbitControls } from '@react-three/drei'
-import { useThree } from '@react-three/fiber'
+import { useThree, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { CandleLight } from './CandleLight'
 import { Flame } from './Flame'
 import { ExperimentPhase } from '@/types/6-2-2/types'
 import { EXPERIMENT_CONFIG } from '@/utils/6-2-2/utils'
+import { playClip, setClipsToEnd, startPartialClip, tickPartialGuards, PartialGuard } from '@/utils/6-2-2/animUtils'
 
 interface CandleExperimentProps {
   experimentStarted: boolean
@@ -28,6 +29,7 @@ export function CandleExperiment({
   const oxygenSprayRef = useRef<THREE.Object3D>(null)
   const oxygenButtonRef = useRef<THREE.Object3D>(null)
   const mixerRef = useRef<THREE.AnimationMixer | null>(null)
+  const partialGuardsRef = useRef<PartialGuard[]>([])
 
   const [showFlame, setShowFlame] = useState(false)
   const [leftFlameOpacity, setLeftFlameOpacity] = useState(1)
@@ -35,7 +37,6 @@ export function CandleExperiment({
   const [rightFlameScale, setRightFlameScale] = useState(1)
   const [hovered, setHovered] = useState(false)
   const [experimentPhase, setExperimentPhase] = useState<ExperimentPhase>('waiting')
-  const [rightCupHighlighted, setRightCupHighlighted] = useState(false)
   const [oxygenButtonActive, setOxygenButtonActive] = useState(false)
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -43,18 +44,16 @@ export function CandleExperiment({
 
   useCursor(hovered)
 
-  // Animation mixer 설정
   useEffect(() => {
     if (animations && animations.length > 0) {
       mixerRef.current = new THREE.AnimationMixer(scene)
-
-      animations.forEach((clip, index) => {
+      animations.forEach((clip) => {
         const action = mixerRef.current!.clipAction(clip)
         action.setLoop(THREE.LoopOnce, 1)
         action.clampWhenFinished = true
       })
+      setClipsToEnd(mixerRef.current, animations, [4, 5])
     }
-
     return () => {
       if (mixerRef.current) {
         mixerRef.current.stopAllAction()
@@ -63,97 +62,78 @@ export function CandleExperiment({
     }
   }, [animations, scene])
 
-  // 애니메이션 업데이트
   useEffect(() => {
     const clock = new THREE.Clock()
-
     const animate = () => {
-      if (mixerRef.current) {
-        mixerRef.current.update(clock.getDelta())
-      }
+      if (mixerRef.current) mixerRef.current.update(clock.getDelta())
       requestAnimationFrame(animate)
     }
-
     animate()
   }, [])
 
-  // 애니메이션 재생 함수
-  const playAnimation = (index: number) => {
-    if (mixerRef.current && animations[index]) {
-      const action = mixerRef.current.clipAction(animations[index])
-      action.reset()
-      action.play()
-    }
-  }
-
-  // 실험 초기화
   useEffect(() => {
     if (!experimentStarted) {
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
       if (intervalRef.current) clearInterval(intervalRef.current)
-
       setShowFlame(false)
       setLeftFlameOpacity(1)
       setRightFlameOpacity(1)
       setRightFlameScale(1)
       setExperimentPhase('waiting')
-      setRightCupHighlighted(false)
       setOxygenButtonActive(false)
-
+      setHovered(false)
       camera.position.set(...EXPERIMENT_CONFIG.cameraPositions.initial)
+      setClipsToEnd(mixerRef.current, animations, [4, 5])
     }
-  }, [experimentStarted, camera])
+  }, [experimentStarted, camera, animations])
 
-  // 실험 시작 시 첫 번째 단계로 이동
   useEffect(() => {
     if (experimentStarted && experimentPhase === 'waiting') {
       setExperimentPhase('selectingCup')
-      setRightCupHighlighted(true)
       onPhaseChange('selectingCup')
     }
   }, [experimentStarted, experimentPhase, onPhaseChange])
 
-  // 오른쪽 아크릴 통 클릭 처리
+  useEffect(() => {
+    if (experimentPhase === 'selectingCup') {
+      setClipsToEnd(mixerRef.current, animations, [4, 5])
+    }
+  }, [experimentPhase, animations])
+
   const handleRightCupClick = () => {
     if (experimentPhase !== 'selectingCup') return
-
-    setRightCupHighlighted(false)
     setExperimentPhase('oxygenCanAppearing')
     onPhaseChange('oxygenCanAppearing')
 
-    playAnimation(4)
-    playAnimation(5)
+    const g1 = startPartialClip(mixerRef.current, animations, 2, 0.0, 0.5) // 2번 0~50%
+    const g2 = startPartialClip(mixerRef.current, animations, 4, 0.5, 2 / 3) // 4번 50%~66%
+
+    partialGuardsRef.current = [g1, g2].filter(Boolean) as PartialGuard[]
 
     timeoutRef.current = setTimeout(() => {
       setExperimentPhase('oxygenSupply')
       setOxygenButtonActive(true)
       onPhaseChange('oxygenSupply')
+      partialGuardsRef.current = [] // 한 번만 실행
     }, 2000)
   }
 
-  // 산소캔 버튼 클릭 처리
   const handleOxygenButtonClick = () => {
     if (experimentPhase !== 'oxygenSupply') return
-
     setOxygenButtonActive(false)
     setExperimentPhase('oxygenSupplying')
     onPhaseChange('oxygenSupplying')
-
-    playAnimation(2)
-    playAnimation(4)
-
+    playClip(mixerRef.current, animations, 2)
+    playClip(mixerRef.current, animations, 4)
     timeoutRef.current = setTimeout(() => {
       setExperimentPhase('oxygenCanDisappearing')
       onPhaseChange('oxygenCanDisappearing')
-
       timeoutRef.current = setTimeout(() => {
         setExperimentPhase('cameraTrackOut')
         onPhaseChange('cameraTrackOut')
-
         const startPos = camera.position.clone()
         const targetPos = new THREE.Vector3(...EXPERIMENT_CONFIG.cameraPositions.trackOut)
         let progress = 0
-
         const trackOut = () => {
           progress += 0.02
           if (progress <= 1) {
@@ -171,36 +151,26 @@ export function CandleExperiment({
 
   const handleCoverCandles = () => {
     if (experimentPhase !== 'readyToCover') return
-
     setExperimentPhase('covering')
     onPhaseChange('covering')
-
-    playAnimation(1)
-    playAnimation(2)
-
+    playClip(mixerRef.current, animations, 1)
+    playClip(mixerRef.current, animations, 2)
     timeoutRef.current = setTimeout(() => {
       setExperimentPhase('burning')
       setShowFlame(true)
       onPhaseChange('burning')
-
       timeoutRef.current = setTimeout(() => {
         setExperimentPhase('rightOut')
         onPhaseChange('rightOut')
-
-        // 임시: 더 짧은 페이드 시간으로 테스트
         let startTime = Date.now()
-        const fadeDuration = 1000 // 1초로 단축
-
+        const fadeDuration = 1000
         intervalRef.current = setInterval(() => {
           const elapsed = Date.now() - startTime
           const progress = Math.min(elapsed / fadeDuration, 1)
           const remaining = 1 - progress
-
           setRightFlameOpacity(remaining)
           setRightFlameScale(remaining)
-          console.log(progress)
-
-          if (progress == 1) {
+          if (progress === 1) {
             setExperimentPhase('finished')
             onPhaseChange('finished')
             onExperimentFinished()
@@ -209,6 +179,7 @@ export function CandleExperiment({
       }, 1000)
     }, 1000)
   }
+
   const handleCoverFromParent = useCallback(() => {
     if (experimentPhase === 'readyToCover') {
       handleCoverCandles()
@@ -226,6 +197,38 @@ export function CandleExperiment({
     scene.traverse((child) => {
       if (child.name === 'Acryl_Cup') {
         rightCupRef.current = child
+        child.traverse((obj) => {
+          if ((obj as THREE.Mesh).isMesh) {
+            const mesh = obj as THREE.Mesh
+            if (Array.isArray(mesh.material)) {
+              mesh.material = mesh.material.map((m: any) => {
+                const c = m.clone()
+                if (!c.userData.__orig) {
+                  c.userData.__orig = {
+                    transparent: c.transparent,
+                    opacity: c.opacity ?? 1,
+                    depthWrite: c.depthWrite,
+                    depthTest: c.depthTest,
+                    side: c.side,
+                  }
+                }
+                return c
+              })
+            } else if (mesh.material) {
+              const c: any = (mesh.material as THREE.Material).clone()
+              if (!c.userData.__orig) {
+                c.userData.__orig = {
+                  transparent: c.transparent,
+                  opacity: c.opacity ?? 1,
+                  depthWrite: c.depthWrite,
+                  depthTest: c.depthTest,
+                  side: c.side,
+                }
+              }
+              mesh.material = c
+            }
+          }
+        })
       } else if (child.name === 'Acryl_Cup1') {
         leftCupRef.current = child
       } else if (child.name === 'Oxygen_spray') {
@@ -233,13 +236,11 @@ export function CandleExperiment({
       } else if (child.name === 'Oxygen_spray_button') {
         oxygenButtonRef.current = child
       }
-
       if (child instanceof THREE.Mesh) {
         child.castShadow = true
         child.receiveShadow = true
       }
     })
-
     scene.position.set(0, -1, 0)
 
     const handlePointerDown = (e: PointerEvent) => {
@@ -247,7 +248,6 @@ export function CandleExperiment({
       const x = ((e.clientX - bounds.left) / bounds.width) * 2 - 1
       const y = -((e.clientY - bounds.top) / bounds.height) * 2 + 1
       const pointer = new THREE.Vector2(x, y)
-
       const raycaster = new THREE.Raycaster()
       raycaster.setFromCamera(pointer, camera)
 
@@ -273,12 +273,10 @@ export function CandleExperiment({
       const x = ((e.clientX - bounds.left) / bounds.width) * 2 - 1
       const y = -((e.clientY - bounds.top) / bounds.height) * 2 + 1
       const pointer = new THREE.Vector2(x, y)
-
       const raycaster = new THREE.Raycaster()
       raycaster.setFromCamera(pointer, camera)
 
       let shouldHover = false
-
       if (experimentPhase === 'selectingCup' && rightCupRef.current) {
         shouldHover = raycaster.intersectObject(rightCupRef.current, true).length > 0
       } else if (experimentPhase === 'oxygenSupply' && oxygenButtonRef.current) {
@@ -297,6 +295,50 @@ export function CandleExperiment({
     }
   }, [camera, gl, scene, experimentPhase])
 
+  useFrame((state) => {
+    const t = state.clock.getElapsedTime()
+
+    const applyBlink = (mesh: THREE.Mesh, v: number) => {
+      const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+      mats.forEach((m: any) => {
+        if (!m) return
+        const o = m.userData?.__orig
+        if (!o) return
+        m.opacity = THREE.MathUtils.clamp((o.opacity ?? 1) * v, 0, 1)
+        m.needsUpdate = true
+      })
+    }
+
+    const restore = (mesh: THREE.Mesh) => {
+      const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+      mats.forEach((m: any) => {
+        const o = m?.userData?.__orig
+        if (!o) return
+        m.transparent = o.transparent
+        m.opacity = o.opacity
+        m.depthWrite = o.depthWrite
+        m.depthTest = o.depthTest
+        m.side = o.side
+        m.needsUpdate = true
+      })
+    }
+
+    if (experimentPhase === 'selectingCup' && hovered && rightCupRef.current) {
+      const blink = 0.8 + Math.sin(t * 6) * 0.2
+      rightCupRef.current.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) applyBlink(child as THREE.Mesh, blink)
+      })
+    } else if (rightCupRef.current) {
+      rightCupRef.current.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) restore(child as THREE.Mesh)
+      })
+    }
+
+    if (partialGuardsRef.current.length) {
+      tickPartialGuards(partialGuardsRef.current)
+    }
+  })
+
   return (
     <group>
       <primitive object={scene} scale={5.0} position={[0, 0, 0]} />
@@ -307,6 +349,7 @@ export function CandleExperiment({
       </mesh>
 
       <Environment preset='city' />
+
       {showFlame && (
         <>
           <Flame
@@ -315,7 +358,6 @@ export function CandleExperiment({
             scale={rightFlameScale}
           />
           <CandleLight position={EXPERIMENT_CONFIG.flamePositions.right} opacity={rightFlameOpacity} />
-
           <Flame position={EXPERIMENT_CONFIG.flamePositions.left} opacity={leftFlameOpacity} />
           <CandleLight position={EXPERIMENT_CONFIG.flamePositions.left} opacity={leftFlameOpacity} />
         </>

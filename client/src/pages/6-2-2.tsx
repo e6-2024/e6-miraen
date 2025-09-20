@@ -307,9 +307,6 @@ export default function Page() {
       <div className='flex-1'>
         <Scene shadows camera={{ position: EXPERIMENT_CONFIG.cameraPositions.initial, fov: 50 }}>
           <color attach='background' args={['lightblue']} />
-
-          <CameraLogger />
-
           <ambientLight intensity={0.3} />
           <directionalLight
             position={[10, 10, 5]}
