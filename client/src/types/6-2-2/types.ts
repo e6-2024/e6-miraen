@@ -1,18 +1,20 @@
-export type ExperimentPhase = 
-  | 'selectingCup' 
-  | 'oxygenCanAppearing' 
-  | 'oxygenSupply' 
+export type ExperimentPhase =
+  | 'selectingCup'
+  | 'oxygenCanAppearing'
+  | 'oxygenSupply'
   | 'oxygenSupplying'
   | 'oxygenCanDisappearing'
   | 'cameraTrackOut'
   | 'readyToCover'
   | 'covering'
-  | 'burning' 
-  | 'rightOut' 
+  | 'burning'
+  | 'leftOut'
+  | 'rightOut'
   | 'finished'
 
 export interface CandleState {
   leftFlameOpacity: number
+  leftFlameScale: number
   rightFlameOpacity: number
   rightFlameScale: number
   showFlame: boolean

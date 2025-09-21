@@ -40,6 +40,8 @@ export function CandleExperiment({
 
   const [showFlame, setShowFlame] = useState(false)
   const [leftFlameOpacity, setLeftFlameOpacity] = useState(1)
+  const [leftFlameScale, setLeftFlameScale] = useState(1)
+
   const [rightFlameOpacity, setRightFlameOpacity] = useState(1)
   const [rightFlameScale, setRightFlameScale] = useState(1)
   const [hovered, setHovered] = useState(false)
@@ -92,6 +94,8 @@ export function CandleExperiment({
       if (intervalRef.current) clearInterval(intervalRef.current)
       setShowFlame(false)
       setLeftFlameOpacity(1)
+      setLeftFlameScale(1)
+
       setRightFlameOpacity(1)
       setRightFlameScale(1)
       setExperimentPhase('selectingCup')
@@ -257,8 +261,8 @@ export function CandleExperiment({
       onPhaseChange('burning')
 
       timeoutRef.current = setTimeout(() => {
-        setExperimentPhase('rightOut')
-        onPhaseChange('rightOut')
+        setExperimentPhase('leftOut')
+        onPhaseChange('leftOut')
 
         let startTime = Date.now()
         const fadeDuration = 1000
@@ -267,14 +271,34 @@ export function CandleExperiment({
           const elapsed = Date.now() - startTime
           const progress = Math.min(elapsed / fadeDuration, 1)
           const remaining = 1 - progress
-          setRightFlameOpacity(remaining)
-          setRightFlameScale(remaining)
+          setLeftFlameOpacity(remaining)
+          setLeftFlameScale(remaining)
 
           if (progress === 1) {
             if (intervalRef.current) clearInterval(intervalRef.current)
-            setExperimentPhase('finished')
-            onPhaseChange('finished')
-            onExperimentFinished()
+
+            timeoutRef.current = setTimeout(() => {
+              setExperimentPhase('rightOut')
+              onPhaseChange('rightOut')
+
+              let rightStartTime = Date.now()
+              const rightFadeDuration = 1000
+
+              intervalRef.current = setInterval(() => {
+                const rightElapsed = Date.now() - rightStartTime
+                const rightProgress = Math.min(rightElapsed / rightFadeDuration, 1)
+                const rightRemaining = 1 - rightProgress
+                setRightFlameOpacity(rightRemaining)
+                setRightFlameScale(rightRemaining)
+
+                if (rightProgress === 1) {
+                  if (intervalRef.current) clearInterval(intervalRef.current)
+                  setExperimentPhase('finished')
+                  onPhaseChange('finished')
+                  onExperimentFinished()
+                }
+              }, 16)
+            }, 15000)
           }
         }, 16)
       }, 15000)
@@ -393,11 +417,6 @@ export function CandleExperiment({
     <group>
       <primitive object={currentModel.scene} scale={5.0} position={[0, 0, 0]} />
 
-      <mesh position={[0, -1.05, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={10} receiveShadow>
-        <planeGeometry args={[64, 64]} />
-        <meshStandardMaterial color='lightgray' />
-      </mesh>
-
       <Environment preset='city' />
 
       {showFlame && (
@@ -408,12 +427,20 @@ export function CandleExperiment({
             scale={rightFlameScale}
           />
           <CandleLight position={EXPERIMENT_CONFIG.flamePositions.right} opacity={rightFlameOpacity} />
-          <Flame position={EXPERIMENT_CONFIG.flamePositions.left} opacity={leftFlameOpacity} />
+          <Flame position={EXPERIMENT_CONFIG.flamePositions.left} opacity={leftFlameOpacity} scale={leftFlameScale} />
           <CandleLight position={EXPERIMENT_CONFIG.flamePositions.left} opacity={leftFlameOpacity} />
         </>
       )}
 
-      <OrbitControls enabled={experimentPhase === 'selectingCup'} maxDistance={40} minDistance={3} />
+      <OrbitControls
+        enabled={experimentPhase !== 'selectingCup'}
+        maxDistance={40}
+        minDistance={3}
+        minAzimuthAngle={-Math.PI / 6}
+        maxAzimuthAngle={Math.PI / 6}
+        minPolarAngle={0}
+        maxPolarAngle={Math.PI / 2}
+      />
     </group>
   )
 }

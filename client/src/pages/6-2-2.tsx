@@ -47,12 +47,14 @@ function ExperimentStatus({
   currentPhase,
   onReset,
   onCoverCandles,
+  showPopup,
 }: {
   experimentStarted: boolean
   experimentFinished: boolean
   currentPhase: ExperimentPhase
   onReset: () => void
   onCoverCandles: () => void
+  showPopup: () => void
 }) {
   if (currentPhase === 'readyToCover') {
     return (
@@ -70,7 +72,7 @@ function ExperimentStatus({
     )
   } else if (currentPhase === 'finished') {
     return (
-      <div className='absolute bottom-5 left-1/2 transform -translate-x-1/2'>
+      <div className='absolute flex gap-2 bottom-5 left-1/2 transform -translate-x-1/2'>
         <CrayonTextButton
           text='다시 실험하기'
           onClick={onReset}
@@ -78,6 +80,15 @@ function ExperimentStatus({
           height={60}
           bg='#9B1CDF'
           color='#DFB2FA'
+          textcolor='#FFFFFF'
+        />
+        <CrayonTextButton
+          text='정리하기'
+          onClick={showPopup}
+          width={180}
+          height={60}
+          bg='#01A7A2'
+          color='#78C9C9'
           textcolor='#FFFFFF'
         />
       </div>
@@ -100,6 +111,10 @@ function ExperimentInstructions({
         return '오른쪽 아크릴 통에 산소를 공급해 보세요.'
       case 'oxygenSupply':
         return '산소 캔의 버튼을 눌러 산소를 공급해 보세요.'
+      case 'leftOut':
+        return '산소를 공급하지 않은 촛불은 먼저 꺼집니다.'
+      case 'rightOut':
+        return '산소를 공급한 촛불은 더 오래 탑니다.'
     }
   }
 
@@ -120,6 +135,7 @@ export default function Page() {
   const [experimentFinished, setExperimentFinished] = useState(false)
   const [currentPhase, setCurrentPhase] = useState<ExperimentPhase>('selectingCup')
   const [experimentKey, setExperimentKey] = useState(0)
+  const [showPopup, setShowPopup] = useState(false)
 
   const { playSound, playNarration, stopNarration } = useAudio()
 
@@ -184,7 +200,7 @@ export default function Page() {
   }, [stopNarration])
 
   const handleResetExperiment = useCallback(() => {
-    setExperimentStarted(false)
+    setExperimentStarted(true)
     setExperimentFinished(false)
     setCurrentPhase('selectingCup')
     playNarration('/sounds/6-2-2/narration/6-2-2-A.MP3')
@@ -215,16 +231,24 @@ export default function Page() {
         case 'burning':
           playNarration('/sounds/6-2-2/6-2-2-2_match-lighting-candle-81020.mp3')
           break
-        case 'finished':
+        case 'leftOut':
           playNarration('/sounds/6-2-2/narration/6-2-2-C.MP3')
           break
+        case 'rightOut':
+          playNarration('/sounds/6-2-2/narration/6-2-2-D.MP3')
       }
     },
     [playSound, playNarration],
   )
 
+  const handleShowPopup = useCallback(() => {
+    setShowPopup(true)
+    playNarration('/sounds/6-2-2/narration/6-2-2-E.MP3')
+  }, [])
+
+
   return (
-    <div className='w-screen h-screen bg-gradient-to-b from-blue-200 to-blue-300 flex flex-col overflow-hidden relative'>
+    <div className='w-screen h-screen bg-[#E79CC2] flex flex-col overflow-hidden relative'>
       <LoadingTracker onLoadingComplete={handleLoadingComplete} />
 
       <CrayonTextButton
@@ -264,7 +288,6 @@ export default function Page() {
 
       <div className='flex-1'>
         <Scene shadows camera={{ position: EXPERIMENT_CONFIG.cameraPositions.initial, fov: 50 }}>
-          <color attach='background' args={['lightblue']} />
           <ambientLight intensity={0.3} />
           <directionalLight
             position={[10, 10, 5]}
@@ -295,21 +318,26 @@ export default function Page() {
         </Scene>
       </div>
 
-      {!showIntro && isLoaded && (currentPhase === 'selectingCup' || currentPhase === 'oxygenSupply') && (
-        <AnimatePresence>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.5 }}>
-            <ExperimentInstructions
-              experimentStarted={experimentStarted}
-              experimentFinished={experimentFinished}
-              currentPhase={currentPhase}
-            />
-          </motion.div>
-        </AnimatePresence>
-      )}
+      {!showIntro &&
+        isLoaded &&
+        (currentPhase === 'selectingCup' ||
+          currentPhase === 'oxygenSupply' ||
+          currentPhase === 'leftOut' ||
+          currentPhase === 'rightOut') && (
+          <AnimatePresence>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}>
+              <ExperimentInstructions
+                experimentStarted={experimentStarted}
+                experimentFinished={experimentFinished}
+                currentPhase={currentPhase}
+              />
+            </motion.div>
+          </AnimatePresence>
+        )}
       {!showIntro && isLoaded && (
         <ExperimentStatus
           experimentStarted={experimentStarted}
@@ -317,7 +345,40 @@ export default function Page() {
           currentPhase={currentPhase}
           onReset={handleResetExperiment}
           onCoverCandles={handleCoverCandles}
+          showPopup={handleShowPopup}
         />
+      )}
+
+      {showPopup && (
+        <AnimatePresence>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50'>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}>
+              <CrayonTextBox color={particleTheme.goal.bg} bg={'#FFF'} width={400} animated={true}>
+                <p className='font-bold text-[#333] text-xl p-4'>물질이 타려면 산소가 필요합니다.</p>
+                <div className='text-center pt-4'>
+                  <CrayonTextButton
+                    onClick={() => {
+                      setShowPopup(false)
+                      playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3', 0.5)
+                    }}
+                    textcolor='#fff'
+                    text='확인'
+                    color={particleTheme.goal.border}
+                    bg={particleTheme.goal.bg}
+                    innerCircleVisible={false}></CrayonTextButton>
+                </div>
+              </CrayonTextBox>
+            </motion.div>
+          </motion.div>
+        </AnimatePresence>
       )}
 
       {isLoaded && showIntro && (

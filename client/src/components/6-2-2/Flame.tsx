@@ -29,7 +29,7 @@ export function Flame({ position = [0, 1.2, 0], opacity = 1, scale = 1 }: FlameP
     <mesh 
       position={position} 
       rotation={[0, -Math.PI / 4, 0]} 
-      scale={[0.1 * scale, 0.1 * scale, 0.1 * scale]}
+      scale={[0.2 * scale, 0.2 * scale, 0.2 * scale]}
     >
       <sphereGeometry args={[0.5, 32, 32]} />
       <shaderMaterial
