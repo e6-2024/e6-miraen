@@ -12,6 +12,7 @@ interface CandleExperimentProps {
   experimentFinished: boolean
   onExperimentFinished: () => void
   onPhaseChange: (phase: ExperimentPhase) => void
+  showIntro: boolean
 }
 
 interface GLBModel {
@@ -24,6 +25,7 @@ export function CandleExperiment({
   experimentFinished,
   onExperimentFinished,
   onPhaseChange,
+  showIntro,
 }: CandleExperimentProps) {
   // Load all GLB files
   const model0 = useGLTF('/models/6-2-2/0.glb') as GLBModel
@@ -102,15 +104,17 @@ export function CandleExperiment({
       setHovered(false)
       setCurrentModel(model0)
       camera.position.set(...EXPERIMENT_CONFIG.cameraPositions.initial)
+      camera.lookAt(0, 0, 0)
     }
   }, [experimentStarted, camera, model0])
 
   // Start experiment
   useEffect(() => {
     if (experimentStarted && experimentPhase === 'selectingCup') {
-      // Already in selectingCup phase, just ensure we're using the right model
       setCurrentModel(model0)
       onPhaseChange('selectingCup')
+      camera.position.set(...EXPERIMENT_CONFIG.cameraPositions.initial)
+      camera.lookAt(0, 0, 0)
     }
   }, [experimentStarted, experimentPhase, onPhaseChange, model0])
 
@@ -321,6 +325,7 @@ export function CandleExperiment({
   // Mouse interaction handlers
   useEffect(() => {
     const handlePointerDown = (e: PointerEvent) => {
+      if (showIntro) return
       const bounds = gl.domElement.getBoundingClientRect()
       const x = ((e.clientX - bounds.left) / bounds.width) * 2 - 1
       const y = -((e.clientY - bounds.top) / bounds.height) * 2 + 1
@@ -346,6 +351,7 @@ export function CandleExperiment({
     }
 
     const handlePointerMove = (e: PointerEvent) => {
+      if (showIntro) return
       const bounds = gl.domElement.getBoundingClientRect()
       const x = ((e.clientX - bounds.left) / bounds.width) * 2 - 1
       const y = -((e.clientY - bounds.top) / bounds.height) * 2 + 1
@@ -370,7 +376,7 @@ export function CandleExperiment({
       window.removeEventListener('pointerdown', handlePointerDown)
       window.removeEventListener('pointermove', handlePointerMove)
     }
-  }, [camera, gl, currentModel, experimentPhase])
+  }, [camera, gl, currentModel, experimentPhase, showIntro])
 
   // Hover effect animation
   useFrame((state) => {

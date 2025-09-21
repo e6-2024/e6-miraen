@@ -312,6 +312,7 @@ export default function Page() {
                 experimentFinished={experimentFinished}
                 onExperimentFinished={handleExperimentFinished}
                 onPhaseChange={handlePhaseChange}
+                showIntro={showIntro}
               />
             </group>
           </TiltOnMouse>
