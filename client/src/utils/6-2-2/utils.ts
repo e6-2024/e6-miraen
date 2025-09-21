@@ -5,7 +5,7 @@ export const EXPERIMENT_CONFIG = {
   fadeDuration: 2000,
   flamePositions: {
     left: [-10.8, -0.45, -2.5] as [number, number, number],
-    right: [-3.9, -0.45, -2.5] as [number, number, number]
+    right: [-3.9, -0.45, -2.42] as [number, number, number]
   },
   cameraPositions: {
     initial: [-0.53, 1.02, 19.4] as [number, number, number],
