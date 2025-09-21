@@ -1,5 +1,4 @@
 export type ExperimentPhase = 
-  | 'waiting' 
   | 'selectingCup' 
   | 'oxygenCanAppearing' 
   | 'oxygenSupply' 
