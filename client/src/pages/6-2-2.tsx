@@ -14,6 +14,7 @@ import { ExperimentPhase } from '@/types/6-2-2/types'
 import CameraLogger from '@/hook/CameraLogger'
 import { ExperimentConfig } from '@/types/6-2-2/types'
 import { EXPERIMENT_CONFIG } from '@/utils/6-2-2/utils'
+import { stopSound } from '@/utils/5-2-1/audioManger'
 
 type ButtonStyle = { bg: string; border: string; text: string }
 
@@ -197,7 +198,8 @@ export default function Page() {
     setCurrentPhase('selectingCup')
     setExperimentKey((prev) => prev + 1)
     stopNarration()
-  }, [stopNarration])
+    stopSound()
+  }, [stopNarration, stopSound, currentPhase])
 
   const handleResetExperiment = useCallback(() => {
     setExperimentStarted(true)
@@ -226,7 +228,7 @@ export default function Page() {
           playNarration('/sounds/6-2-2/narration/6-2-2-A.MP3')
           break
         case 'oxygenSupply':
-          playSound('/sounds/6-2-2/narration/6-2-2-B.MP3')
+          playNarration('/sounds/6-2-2/narration/6-2-2-B.MP3')
           break
         case 'oxygenSupplying':
           playSound('/sounds/6-2-2/6-2-2-4.MP3')
