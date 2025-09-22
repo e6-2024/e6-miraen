@@ -94,12 +94,12 @@ export function LeafEvaporation({ isActive, leafPosition }: LeafEvaporationProps
   const groupRef = useRef<THREE.Group>(null)
 
   const particles = useMemo(() => {
-    const particleCount = 40
+    const particleCount = 100
     const particles = []
 
     for (let i = 0; i < particleCount; i++) {
       const angle = (i / particleCount) * Math.PI * 2
-      const radius = 0.3 + Math.random() * 0.8
+      const radius = Math.random() * 0.1
 
       particles.push({
         id: i,
@@ -110,13 +110,13 @@ export function LeafEvaporation({ isActive, leafPosition }: LeafEvaporationProps
         ),
         targetPosition: new THREE.Vector3(
           leafPosition.x + Math.cos(angle) * (radius + 1),
-          leafPosition.y + 4 + Math.random() * 2,
+          leafPosition.y + Math.random() * 2,
           leafPosition.z + Math.sin(angle) * (radius + 1),
         ),
         currentPosition: new THREE.Vector3(),
         progress: Math.random() * 0.6,
-        speed: 0.15 + Math.random() * 0.15,
-        scale: 0.04 + Math.random() * 0.06,
+        speed: 0.05 + Math.random() * 0.15,
+        scale: Math.random() * 0.06,
       })
     }
     return particles
@@ -138,7 +138,7 @@ export function LeafEvaporation({ isActive, leafPosition }: LeafEvaporationProps
       particle.currentPosition.copy(particle.startPosition).lerp(particle.targetPosition, eased)
 
       const scale = particle.scale * (1 + eased * 3)
-      const opacity = 0.9 * (1 - eased)
+      const opacity = 0.3 * (1 - eased)
 
       const mesh = groupRef.current?.children[index] as THREE.Mesh
       if (mesh) {
@@ -158,7 +158,7 @@ export function LeafEvaporation({ isActive, leafPosition }: LeafEvaporationProps
           <meshStandardMaterial
             color='#E3F2FD'
             transparent
-            opacity={0.6}
+            opacity={0.0}
             metalness={0}
             roughness={0.9}
             emissive='#BBDEFB'
@@ -180,14 +180,14 @@ export function StemWaterMovement({ isActive, pathPoints }: StemWaterMovementPro
   const groupRef = useRef<THREE.Group>(null)
 
   const particles = useMemo(() => {
-    const particleCount = 120
+    const particleCount = 10
     const particles = []
 
     for (let i = 0; i < particleCount; i++) {
       particles.push({
         id: i,
         progress: (i / particleCount) * 1.2,
-        speed: 0.05 + Math.random() * 0.15,
+        speed: Math.random() * 0.03,
         scale: 0.08 + Math.random() * 0.06,
         currentPosition: new THREE.Vector3(),
         opacity: 0.9 + Math.random() * 0.1,

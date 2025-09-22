@@ -4,12 +4,9 @@ import { Environment, useProgress, OrbitControls, Sky, Cloud, Clouds } from '@re
 import * as THREE from 'three'
 
 import { Model } from '../components/6-1-3/Model'
-import { WaterFlowAnimation } from '../components/6-1-3/WaterFlowAnimation'
 import { SpeechBubble } from '../components/6-1-3/SpeechBubble'
 import { RootWaterAbsorption, LeafEvaporation, StemWaterMovement } from '../components/6-1-3/WaterFlowEffects'
 import { SubtitleBox, InfoPanel, WaterFlowButton, ViewControls } from '../components/6-1-3/PlantUI'
-import { WaterPathEditor } from '../components/6-1-3/WaterPathEditor'
-import { DeveloperControls } from '../components/6-1-3/DeveloperControls'
 import Scene from '../components/canvas/Scene'
 import Intro from '../components/intro/Intro'
 import { CrayonTextButton } from '@/components/common/CrayonUIButton'
@@ -64,19 +61,14 @@ export default function Page() {
   useEffect(() => setMounted(true), [])
 
   const [currentView, setCurrentView] = useState<ViewType>('default')
-  const [isAnimationPlaying, setIsAnimationPlaying] = useState(false)
-  const [showPath, setShowPath] = useState(true)
-  const [isLoaded, setIsLoaded] = useState(false)
-  const [showIntro, setShowIntro] = useState(true)
   const [showSubtitle, setShowSubtitle] = useState(false)
   const [subtitleText, setSubtitleText] = useState('')
   const [showInfoPanel, setShowInfoPanel] = useState(false)
   const [infoPanelType, setInfoPanelType] = useState<InfoPanelType>('root')
+  const [isLoaded, setIsLoaded] = useState(false)
+  const [showIntro, setShowIntro] = useState(true)
 
-  // Developer controls state
   const [pathPoints, setPathPoints] = useState<THREE.Vector3[]>(() => getBasePathPoints())
-  const [isPathEditorVisible, setIsPathEditorVisible] = useState(false)
-  const [isDeveloperMode, setIsDeveloperMode] = useState(false)
 
   const orbitControlsRef = useRef<any>(null)
   const narrationTexts = useMemo(() => getNarrationTexts(), [])
@@ -86,31 +78,6 @@ export default function Page() {
   const [bgmReady, setBgmReady] = useState(false)
 
   const { playSound, playNarration, playBackgroundSound, stopBackgroundSound } = usePlantAudio()
-
-  // Check for developer mode (you can use localStorage or URL params)
-  useEffect(() => {
-    if (!mounted) return
-    
-    // Enable developer mode with URL parameter or localStorage
-    const urlParams = new URLSearchParams(window.location.search)
-    const devMode = urlParams.get('dev') === 'true' || localStorage.getItem('devMode') === 'true'
-    setIsDeveloperMode(devMode)
-    
-    // Keyboard shortcut for toggling dev mode (Ctrl/Cmd + D)
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
-        e.preventDefault()
-        setIsDeveloperMode(prev => {
-          const newValue = !prev
-          localStorage.setItem('devMode', newValue.toString())
-          return newValue
-        })
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [mounted])
 
   useEffect(() => {
     if (!mounted) return
@@ -162,7 +129,6 @@ export default function Page() {
         playNarration(view as 'root' | 'stem' | 'leaf' | 'water')
         showSubtitleWithDelay(view as keyof typeof narrationTexts)
       } else {
-        setIsAnimationPlaying(false)
         setShowSubtitle(false)
       }
 
@@ -179,13 +145,11 @@ export default function Page() {
 
   const handleWaterFlowClick = useCallback(() => {
     handleViewChange('water')
-    setIsAnimationPlaying(true)
   }, [handleViewChange])
 
   const handleBackToIntro = useCallback(() => {
     setShowIntro(true)
     setCurrentView('default')
-    setIsAnimationPlaying(false)
     stopBackgroundSound()
   }, [stopBackgroundSound])
 
@@ -202,19 +166,6 @@ export default function Page() {
 
   const handleCloseInfoPanel = useCallback(() => {
     setShowInfoPanel(false)
-  }, [])
-
-  const handleAnimationComplete = useCallback(() => {
-    console.log('물 이동 애니메이션 완료!')
-  }, [])
-
-  // Developer controls handlers
-  const handlePathChange = useCallback((newPoints: THREE.Vector3[]) => {
-    setPathPoints(newPoints)
-  }, [])
-
-  const togglePathEditor = useCallback(() => {
-    setIsPathEditorVisible(prev => !prev)
   }, [])
 
   const hasContent = !showIntro
@@ -276,30 +227,7 @@ export default function Page() {
 
           <TiltOnMouse enabled={showIntro} maxDeg={5}>
             <group rotation={[0, Math.PI + Math.PI / 2, 0]} position={[0, -2, 0]}>
-              <Model />
-
-              {isAnimationPlaying && (
-                <group rotation={[0, (Math.PI * 4) / 3, 0]}>
-                  <WaterFlowAnimation
-                    arrowSize={2}
-                    lineWidth={1.5}
-                    isPlaying={isAnimationPlaying}
-                    speed={0.3}
-                    pathPoints={pathPoints}
-                    showPath={showPath}
-                    onComplete={handleAnimationComplete}
-                    loop={true}
-                    trailCount={8}
-                    trailSpacing={0.12}
-                  />
-                  <WaterPathEditor
-                    pathPoints={pathPoints}
-                    onPathChange={handlePathChange}
-                    visible={isPathEditorVisible}
-                    orbitControlsRef={orbitControlsRef}
-                  />
-                </group>
-              )}
+              <Model showWaterPipes={currentView === 'water'} />
 
               <RootWaterAbsorption
                 isActive={currentView === 'root'}
@@ -310,8 +238,7 @@ export default function Page() {
                 <StemWaterMovement isActive={currentView === 'stem'} pathPoints={pathPoints} />
               </group>
 
-              <LeafEvaporation isActive={currentView === 'leaf'} leafPosition={new THREE.Vector3(2.15, 10.1, -1.36)} />
-
+              <LeafEvaporation isActive={currentView === 'leaf'} leafPosition={new THREE.Vector3(-2.0, 6.01, -3.4)} />
               {!showIntro && currentView === 'default' && (
                 <>
                   <SpeechBubble

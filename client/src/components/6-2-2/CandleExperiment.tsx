@@ -126,7 +126,17 @@ export function CandleExperiment({
   useEffect(() => {
     currentModel.scene.traverse((child) => {
       if (child.name === 'Plane') {
-        child.scale.multiplyScalar(2.0)
+        child.scale.multiplyScalar(8.0)
+        if ((child as THREE.Mesh).isMesh) {
+          const mesh = child as THREE.Mesh
+          if (Array.isArray(mesh.material)) {
+            mesh.material.forEach((mat: any) => {
+              if (mat.color) mat.color.set(0x6C9696)
+            })
+          } else if ((mesh.material as any).color) {
+            (mesh.material as any).color.set(0x6C9696)
+          }
+        }
       }
       if (child.name === 'Acryl_Cup1') {
         rightCupRef.current = child

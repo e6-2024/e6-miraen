@@ -15,8 +15,8 @@ export const CAMERA_CONFIGS = {
     maxDistance: 40,
   },
   leaf: {
-    position: [4, 10, 6] as [number, number, number],
-    target: [2.15, 8.1, 1.36] as [number, number, number],
+    position: [3.2, 3.9, -1.3] as [number, number, number],
+    target: [3.5, 3.8, -2.8] as [number, number, number],
     maxPolarAngle: Math.PI / 2,
     minPolarAngle: 0,
     minAzimuthAngle: -Infinity,
