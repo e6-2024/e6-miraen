@@ -86,8 +86,8 @@ export function CandleExperiment({
       requestAnimationFrame(animate)
     }
     animate()
-    console.log(experimentPhase)
   }, [])
+  console.log(experimentPhase)
 
   // Reset experiment
   useEffect(() => {
@@ -250,7 +250,7 @@ export function CandleExperiment({
         }
         trackOut()
       }, 1000)
-    }, 3000)
+    }, 6000)
   }
 
   const handleCoverCandles = () => {

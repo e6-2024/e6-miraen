@@ -228,6 +228,8 @@ export default function Page() {
         case 'oxygenSupply':
           playSound('/sounds/6-2-2/narration/6-2-2-B.MP3')
           break
+        case 'oxygenSupplying':
+          playSound('/sounds/6-2-2/6-2-2-4.MP3')
         case 'burning':
           playNarration('/sounds/6-2-2/6-2-2-2_match-lighting-candle-81020.mp3')
           break
