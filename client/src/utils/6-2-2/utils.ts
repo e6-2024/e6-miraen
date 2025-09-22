@@ -9,7 +9,7 @@ export const EXPERIMENT_CONFIG = {
   },
   cameraPositions: {
     initial: [-0.53, 1.02, 19.4] as [number, number, number],
-    trackOut: [-1.95, 2, 25.04] as [number, number, number]
+    trackOut: [-7.77, -0.44, 25.21] as [number, number, number]
   }
 }
 

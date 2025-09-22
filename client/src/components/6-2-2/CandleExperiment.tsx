@@ -6,6 +6,7 @@ import { CandleLight } from './CandleLight'
 import { Flame } from './Flame'
 import { ExperimentPhase } from '@/types/6-2-2/types'
 import { EXPERIMENT_CONFIG } from '@/utils/6-2-2/utils'
+import CameraLogger from '@/hook/CameraLogger'
 
 interface CandleExperimentProps {
   experimentStarted: boolean
@@ -27,7 +28,6 @@ export function CandleExperiment({
   onPhaseChange,
   showIntro,
 }: CandleExperimentProps) {
-  // Load all GLB files
   const model0 = useGLTF('/models/6-2-2/0.glb') as GLBModel
   const model1 = useGLTF('/models/6-2-2/1.glb') as GLBModel
   const model2 = useGLTF('/models/6-2-2/2.glb') as GLBModel
@@ -38,7 +38,9 @@ export function CandleExperiment({
   const rightCupRef = useRef<THREE.Object3D>(null)
   const leftCupRef = useRef<THREE.Object3D>(null)
   const oxygenButtonRef = useRef<THREE.Object3D>(null)
+  const oxygenCanRef = useRef<THREE.Object3D>(null)
   const mixerRef = useRef<THREE.AnimationMixer | null>(null)
+  const orbitControlsRef = useRef<any>(null)
 
   const [showFlame, setShowFlame] = useState(false)
   const [leftFlameOpacity, setLeftFlameOpacity] = useState(1)
@@ -49,13 +51,13 @@ export function CandleExperiment({
   const [hovered, setHovered] = useState(false)
   const [experimentPhase, setExperimentPhase] = useState<ExperimentPhase>('selectingCup')
   const [currentModel, setCurrentModel] = useState<GLBModel>(model0)
+  const [oxygenCanOpacity, setOxygenCanOpacity] = useState(1)
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
   useCursor(hovered)
 
-  // Setup animation mixer for current model
   useEffect(() => {
     if (currentModel.animations && currentModel.animations.length > 0) {
       if (mixerRef.current) {
@@ -63,7 +65,6 @@ export function CandleExperiment({
       }
       mixerRef.current = new THREE.AnimationMixer(currentModel.scene)
 
-      // Play all animations in the current model
       currentModel.animations.forEach((clip) => {
         const action = mixerRef.current!.clipAction(clip)
         action.setLoop(THREE.LoopOnce, 1)
@@ -78,7 +79,6 @@ export function CandleExperiment({
     }
   }, [currentModel])
 
-  // Animation loop
   useEffect(() => {
     const clock = new THREE.Clock()
     const animate = () => {
@@ -87,9 +87,7 @@ export function CandleExperiment({
     }
     animate()
   }, [])
-  console.log(experimentPhase)
 
-  // Reset experiment
   useEffect(() => {
     if (!experimentStarted) {
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
@@ -103,12 +101,13 @@ export function CandleExperiment({
       setExperimentPhase('selectingCup')
       setHovered(false)
       setCurrentModel(model0)
+      setOxygenCanOpacity(1)
+      oxygenCanRef.current = null
       camera.position.set(...EXPERIMENT_CONFIG.cameraPositions.initial)
       camera.lookAt(0, 0, 0)
     }
   }, [experimentStarted, camera, model0])
 
-  // Start experiment
   useEffect(() => {
     if (experimentStarted && experimentPhase === 'selectingCup') {
       setCurrentModel(model0)
@@ -116,14 +115,21 @@ export function CandleExperiment({
       camera.position.set(...EXPERIMENT_CONFIG.cameraPositions.initial)
       camera.lookAt(0, 0, 0)
     }
-  }, [experimentStarted, experimentPhase, onPhaseChange, model0])
+  }, [experimentStarted, experimentPhase, onPhaseChange, model0, currentModel])
 
-  // Find interactive objects in current model
+  useEffect(() => {
+    if (currentModel === model0 || currentModel === model1) {
+      setOxygenCanOpacity(1)
+    }
+  }, [currentModel, model0, model1])
+
   useEffect(() => {
     currentModel.scene.traverse((child) => {
+      if (child.name === 'Plane') {
+        child.scale.multiplyScalar(2.0)
+      }
       if (child.name === 'Acryl_Cup1') {
         rightCupRef.current = child
-        // Clone materials for right cup
         child.traverse((obj) => {
           if ((obj as THREE.Mesh).isMesh) {
             const mesh = obj as THREE.Mesh
@@ -158,7 +164,6 @@ export function CandleExperiment({
         })
       } else if (child.name === 'Acryl_Cup') {
         leftCupRef.current = child
-        // Clone materials for left cup
         child.traverse((obj) => {
           if ((obj as THREE.Mesh).isMesh) {
             const mesh = obj as THREE.Mesh
@@ -191,12 +196,79 @@ export function CandleExperiment({
             }
           }
         })
-      } else if (
-        child.name === 'Oxygen_spray_button' ||
-        child.name.includes('button') ||
-        child.name.includes('Button')
-      ) {
+      } else if (child.name === 'Oxygen_spray_button') {
         oxygenButtonRef.current = child
+        child.traverse((obj) => {
+          if ((obj as THREE.Mesh).isMesh) {
+            const mesh = obj as THREE.Mesh
+            if (Array.isArray(mesh.material)) {
+              mesh.material = mesh.material.map((m: any) => {
+                const c = m.clone()
+                c.transparent = true
+                if (!c.userData.__orig) {
+                  c.userData.__orig = {
+                    transparent: c.transparent,
+                    opacity: c.opacity ?? 1,
+                    depthWrite: c.depthWrite,
+                    depthTest: c.depthTest,
+                    side: c.side,
+                  }
+                }
+                return c
+              })
+            } else if (mesh.material) {
+              const c: any = (mesh.material as THREE.Material).clone()
+              c.transparent = true
+              if (!c.userData.__orig) {
+                c.userData.__orig = {
+                  transparent: c.transparent,
+                  opacity: c.opacity ?? 1,
+                  depthWrite: c.depthWrite,
+                  depthTest: c.depthTest,
+                  side: c.side,
+                }
+              }
+              mesh.material = c
+            }
+          }
+        })
+      } else if (child.name === 'Oxygen_spray') {
+        oxygenCanRef.current = child
+        if (currentModel === model3) {
+          child.visible = false
+        }
+        child.traverse((obj) => {
+          if ((obj as THREE.Mesh).isMesh) {
+            const mesh = obj as THREE.Mesh
+            if (Array.isArray(mesh.material)) {
+              mesh.material = mesh.material.map((m: any) => {
+                const c = m.clone()
+                if (!c.userData.__orig) {
+                  c.userData.__orig = {
+                    transparent: c.transparent,
+                    opacity: c.opacity ?? 1,
+                    depthWrite: c.depthWrite,
+                    depthTest: c.depthTest,
+                    side: c.side,
+                  }
+                }
+                return c
+              })
+            } else if (mesh.material) {
+              const c: any = (mesh.material as THREE.Material).clone()
+              if (!c.userData.__orig) {
+                c.userData.__orig = {
+                  transparent: c.transparent,
+                  opacity: c.opacity ?? 1,
+                  depthWrite: c.depthWrite,
+                  depthTest: c.depthTest,
+                  side: c.side,
+                }
+              }
+              mesh.material = c
+            }
+          }
+        })
       }
 
       if (child instanceof THREE.Mesh) {
@@ -225,32 +297,60 @@ export function CandleExperiment({
     setExperimentPhase('oxygenSupplying')
     setCurrentModel(model2)
     onPhaseChange('oxygenSupplying')
+    setOxygenCanOpacity(1)
 
     timeoutRef.current = setTimeout(() => {
       setExperimentPhase('oxygenCanDisappearing')
       onPhaseChange('oxygenCanDisappearing')
 
-      timeoutRef.current = setTimeout(() => {
-        setExperimentPhase('cameraTrackOut')
-        onPhaseChange('cameraTrackOut')
+      let startTime = Date.now()
+      const fadeDuration = 1000
 
-        const startPos = camera.position.clone()
-        const targetPos = new THREE.Vector3(...EXPERIMENT_CONFIG.cameraPositions.trackOut)
-        let progress = 0
+      intervalRef.current = setInterval(() => {
+        const elapsed = Date.now() - startTime
+        const progress = Math.min(elapsed / fadeDuration, 1)
+        const remaining = 1 - progress
+        setOxygenCanOpacity(remaining)
 
-        const trackOut = () => {
-          progress += 0.02
-          if (progress <= 1) {
-            camera.position.lerpVectors(startPos, targetPos, progress)
-            requestAnimationFrame(trackOut)
-          } else {
-            setExperimentPhase('readyToCover')
-            onPhaseChange('readyToCover')
-          }
+        if (progress === 1) {
+          if (intervalRef.current) clearInterval(intervalRef.current)
+
+          timeoutRef.current = setTimeout(() => {
+            setExperimentPhase('cameraTrackOut')
+            onPhaseChange('cameraTrackOut')
+
+            const startPos = camera.position.clone()
+            const targetPos = new THREE.Vector3(...EXPERIMENT_CONFIG.cameraPositions.trackOut)
+
+            const startLookAt = new THREE.Vector3(0, 0, 0)
+            const targetLookAt = new THREE.Vector3(-5.8, -0.45, -2.5)
+
+            let cameraProgress = 0
+
+            const trackOut = () => {
+              cameraProgress += 0.02
+              if (cameraProgress <= 1) {
+                camera.position.lerpVectors(startPos, targetPos, cameraProgress)
+
+                const currentLookAt = new THREE.Vector3()
+                currentLookAt.lerpVectors(startLookAt, targetLookAt, cameraProgress)
+
+                if (orbitControlsRef.current) {
+                  orbitControlsRef.current.target.copy(currentLookAt)
+                  orbitControlsRef.current.update()
+                }
+
+                requestAnimationFrame(trackOut)
+              } else {
+                setExperimentPhase('readyToCover')
+                onPhaseChange('readyToCover')
+              }
+            }
+            trackOut()
+          }, 500)
         }
-        trackOut()
-      }, 1000)
-    }, 6000)
+      }, 16)
+    }, 3000)
   }
 
   const handleCoverCandles = () => {
@@ -302,10 +402,10 @@ export function CandleExperiment({
                   onExperimentFinished()
                 }
               }, 16)
-            }, 15000)
+            }, 1000)
           }
         }, 16)
-      }, 15000)
+      }, 1000)
     }, 1000)
   }
 
@@ -322,7 +422,6 @@ export function CandleExperiment({
     }
   }, [handleCoverFromParent])
 
-  // Mouse interaction handlers
   useEffect(() => {
     const handlePointerDown = (e: PointerEvent) => {
       if (showIntro) return
@@ -378,7 +477,6 @@ export function CandleExperiment({
     }
   }, [camera, gl, currentModel, experimentPhase, showIntro])
 
-  // Hover effect animation
   useFrame((state) => {
     const t = state.clock.getElapsedTime()
 
@@ -388,6 +486,7 @@ export function CandleExperiment({
         if (!m) return
         const o = m.userData?.__orig
         if (!o) return
+        m.transparent = true
         m.opacity = THREE.MathUtils.clamp((o.opacity ?? 1) * v, 0, 1)
         m.needsUpdate = true
       })
@@ -407,6 +506,18 @@ export function CandleExperiment({
       })
     }
 
+    const applyOpacity = (mesh: THREE.Mesh, opacity: number) => {
+      const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+      mats.forEach((m: any) => {
+        if (!m) return
+        const o = m.userData?.__orig
+        if (!o) return
+        m.transparent = true
+        m.opacity = THREE.MathUtils.clamp((o.opacity ?? 1) * opacity, 0, 1)
+        m.needsUpdate = true
+      })
+    }
+
     if (experimentPhase === 'selectingCup' && hovered && leftCupRef.current) {
       const blink = 0.8 + Math.sin(t * 6) * 0.2
       leftCupRef.current.traverse((child) => {
@@ -417,6 +528,48 @@ export function CandleExperiment({
         if ((child as THREE.Mesh).isMesh) restore(child as THREE.Mesh)
       })
     }
+
+    if (experimentPhase === 'oxygenSupply' && hovered && oxygenButtonRef.current) {
+      const blink = 0.8 + Math.sin(t * 6) * 0.2
+      oxygenButtonRef.current.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) applyBlink(child as THREE.Mesh, blink)
+      })
+    }
+
+    if (experimentPhase === 'oxygenSupplying' && oxygenCanRef.current) {
+      oxygenCanRef.current.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          const mesh = child as THREE.Mesh
+          const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+          mats.forEach((m: any) => {
+            if (!m) return
+            m.opacity = 1
+            m.visible = true
+            m.needsUpdate = true
+          })
+        }
+      })
+      oxygenButtonRef.current.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          const mesh = child as THREE.Mesh
+          const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+          mats.forEach((m: any) => {
+            if (!m) return
+            m.opacity = 0.3
+            m.visible = true
+            m.needsUpdate = true
+          })
+        }
+      })
+    }
+    
+    if (experimentPhase === 'oxygenCanDisappearing' || experimentPhase === 'readyToCover') {
+      if (oxygenCanRef.current) {
+        oxygenCanRef.current.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) applyOpacity(child as THREE.Mesh, oxygenCanOpacity)
+        })
+      }
+    }
   })
 
   return (
@@ -424,6 +577,8 @@ export function CandleExperiment({
       <primitive object={currentModel.scene} scale={5.0} position={[0, 0, 0]} />
 
       <Environment preset='city' />
+
+      <CameraLogger />
 
       {showFlame && (
         <>
@@ -439,6 +594,7 @@ export function CandleExperiment({
       )}
 
       <OrbitControls
+        ref={orbitControlsRef}
         enabled={experimentPhase !== 'selectingCup'}
         maxDistance={40}
         minDistance={3}
