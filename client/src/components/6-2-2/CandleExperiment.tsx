@@ -402,10 +402,10 @@ export function CandleExperiment({
                   onExperimentFinished()
                 }
               }, 16)
-            }, 1000)
+            }, 15000)
           }
         }, 16)
-      }, 1000)
+      }, 15000)
     }, 1000)
   }
 
