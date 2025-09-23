@@ -52,7 +52,7 @@ type ModelProps = JSX.IntrinsicElements['group'] & {
 }
 
 export function Model({ pipeScrollSpeed = 0.8, pipeDirection = 1, showWaterPipes = false, ...props }: ModelProps) {
-  const { nodes, materials } = useGLTF('/models/6-1-3/Tree.gltf') as GLTFResult
+  const { nodes, materials } = useGLTF('/models/6-1-3/Final_Tree.gltf') as GLTFResult
 
   const waterPipeMat1 = useMemo(() => {
     const src = materials['Water_Pipe.001'] as THREE.MeshStandardMaterial
@@ -134,4 +134,4 @@ export function Model({ pipeScrollSpeed = 0.8, pipeDirection = 1, showWaterPipes
   )
 }
 
-useGLTF.preload('/models/6-1-3/Tree.gltf')
+useGLTF.preload('/models/6-1-3/Final_Tree.gltf')

@@ -12,12 +12,12 @@ export function RootWaterAbsorption({ isActive, rootPosition }: RootWaterAbsorpt
   const groupRef = useRef<THREE.Group>(null)
 
   const particles = useMemo(() => {
-    const particleCount = 80
+    const particleCount = 30
     const particles = []
 
     for (let i = 0; i < particleCount; i++) {
       const angle = (i / particleCount) * Math.PI * 2
-      const radius = 3 + Math.random() * 4
+      const radius = Math.random() * 0.7
       const height = -2 + Math.random() * 4
 
       particles.push({
@@ -59,7 +59,7 @@ export function RootWaterAbsorption({ isActive, rootPosition }: RootWaterAbsorpt
         mesh.position.copy(particle.currentPosition)
         mesh.scale.setScalar(scale)
         const material = mesh.material as THREE.MeshStandardMaterial
-        material.opacity = 1 - eased * 0.5
+        material.opacity = 0.6 - eased * 0.2
       }
     })
   })
@@ -70,13 +70,13 @@ export function RootWaterAbsorption({ isActive, rootPosition }: RootWaterAbsorpt
         <mesh key={particle.id} position={particle.startPosition}>
           <sphereGeometry args={[particle.scale, 12, 12]} />
           <meshStandardMaterial
-            color='#2196f3'
+            color='#E3F2FD'
             transparent
-            opacity={0.9}
-            metalness={0.3}
-            roughness={0.1}
-            emissive='#0066CC'
-            emissiveIntensity={0.1}
+            opacity={0.0}
+            metalness={0}
+            roughness={0.9}
+            emissive='#BBDEFB'
+            emissiveIntensity={0.2}
           />
         </mesh>
       ))}
@@ -94,7 +94,7 @@ export function LeafEvaporation({ isActive, leafPosition }: LeafEvaporationProps
   const groupRef = useRef<THREE.Group>(null)
 
   const particles = useMemo(() => {
-    const particleCount = 100
+    const particleCount = 200
     const particles = []
 
     for (let i = 0; i < particleCount; i++) {
@@ -116,7 +116,7 @@ export function LeafEvaporation({ isActive, leafPosition }: LeafEvaporationProps
         currentPosition: new THREE.Vector3(),
         progress: Math.random() * 0.6,
         speed: 0.05 + Math.random() * 0.15,
-        scale: Math.random() * 0.06,
+        scale: Math.random() * 0.045,
       })
     }
     return particles
@@ -180,17 +180,17 @@ export function StemWaterMovement({ isActive, pathPoints }: StemWaterMovementPro
   const groupRef = useRef<THREE.Group>(null)
 
   const particles = useMemo(() => {
-    const particleCount = 10
+    const particleCount = 80
     const particles = []
 
     for (let i = 0; i < particleCount; i++) {
       particles.push({
         id: i,
         progress: (i / particleCount) * 1.2,
-        speed: Math.random() * 0.03,
-        scale: 0.08 + Math.random() * 0.06,
+        speed: Math.random() * 0.06,
+        scale: 0.1 + Math.random() * 0.02,
         currentPosition: new THREE.Vector3(),
-        opacity: 0.9 + Math.random() * 0.1,
+        opacity: 0.9 + Math.random() * 0.9,
         waveOffset: Math.random() * Math.PI * 2,
         pulsePhase: Math.random() * Math.PI * 2,
       })
@@ -199,17 +199,17 @@ export function StemWaterMovement({ isActive, pathPoints }: StemWaterMovementPro
   }, [])
 
   const pipelineParticles = useMemo(() => {
-    const count = 30
+    const count = 120
     const particles = []
 
     for (let i = 0; i < count; i++) {
       particles.push({
         id: i,
         progress: (i / count) * 0.9,
-        speed: 0.3,
-        scale: 0.12 + Math.random() * 0.08,
+        speed: 0.35,
+        scale: 0.1 + Math.random() * 0.2,
         currentPosition: new THREE.Vector3(),
-        glowIntensity: 0.5 + Math.random() * 0.5,
+        glowIntensity: 0.9 + Math.random() * 0.5,
       })
     }
     return particles
@@ -244,53 +244,15 @@ export function StemWaterMovement({ isActive, pathPoints }: StemWaterMovementPro
 
       if (particle.progress >= 0 && particle.progress <= 1) {
         const position = getPositionOnPath(particle.progress)
-
-        const waveX = Math.sin(time * 2 + particle.waveOffset) * 0.1
-        const waveZ = Math.cos(time * 2 + particle.waveOffset) * 0.1
-
         particle.currentPosition.copy(position)
-        particle.currentPosition.x += waveX
-        particle.currentPosition.z += waveZ
-
         const mesh = groupRef.current?.children[index] as THREE.Mesh
         if (mesh) {
           mesh.position.copy(particle.currentPosition)
-
           const pulseScale = 1 + Math.sin(time * 4 + particle.pulsePhase) * 0.3
           mesh.scale.setScalar(particle.scale * pulseScale)
-
-          const material = mesh.material as THREE.MeshStandardMaterial
-
-          const visibility = Math.sin(particle.progress * Math.PI)
-          material.opacity = particle.opacity * visibility * 0.9
-          material.emissiveIntensity = 0.3 + Math.sin(time * 3 + particle.pulsePhase) * 0.2
-        }
-      }
-    })
-
-    pipelineParticles.forEach((particle, index) => {
-      particle.progress += delta * particle.speed
-
-      if (particle.progress >= 1.1) {
-        particle.progress = -0.1
-      }
-
-      if (particle.progress >= 0 && particle.progress <= 1) {
-        const position = getPositionOnPath(particle.progress)
-        particle.currentPosition.copy(position)
-
-        const meshIndex = particles.length + index
-        const mesh = groupRef.current?.children[meshIndex] as THREE.Mesh
-        if (mesh) {
-          mesh.position.copy(particle.currentPosition)
-
-          const pulseScale = 1 + Math.sin(time * 6 + index) * 0.5
-          mesh.scale.setScalar(particle.scale * pulseScale)
-
           const material = mesh.material as THREE.MeshStandardMaterial
           const visibility = Math.sin(particle.progress * Math.PI)
-          material.opacity = visibility * 0.8
-          material.emissiveIntensity = particle.glowIntensity + Math.sin(time * 5 + index) * 0.4
+          material.opacity = particle.opacity * visibility * 0.5
         }
       }
     })
@@ -298,31 +260,16 @@ export function StemWaterMovement({ isActive, pathPoints }: StemWaterMovementPro
 
   return (
     <group ref={groupRef} visible={isActive}>
-      {particles.map((particle) => (
-        <mesh key={particle.id}>
-          <sphereGeometry args={[particle.scale, 12, 12]} />
-          <meshStandardMaterial
-            color='#4FC3F7'
-            transparent
-            opacity={particle.opacity}
-            metalness={0.4}
-            roughness={0.2}
-            emissive='#03A9F4'
-            emissiveIntensity={0.3}
-          />
-        </mesh>
-      ))}
-
       {pipelineParticles.map((particle) => (
         <mesh key={`pipeline-${particle.id}`}>
           <sphereGeometry args={[particle.scale, 16, 16]} />
           <meshStandardMaterial
-            color='#00E5FF'
+            color='#E3F2FD'
             transparent
-            opacity={0.7}
-            metalness={0.1}
-            roughness={0.1}
-            emissive='#00BCD4'
+            opacity={0.0}
+            metalness={0}
+            roughness={0.9}
+            emissive='#BBDEFB'
             emissiveIntensity={particle.glowIntensity}
           />
         </mesh>

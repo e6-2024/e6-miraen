@@ -26,7 +26,13 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
   return null
 }
 
-function ViewBasedControls({ currentView, orbitControlsRef }: { currentView: ViewType; orbitControlsRef: React.RefObject<any> }) {
+function ViewBasedControls({
+  currentView,
+  orbitControlsRef,
+}: {
+  currentView: ViewType
+  orbitControlsRef: React.RefObject<any>
+}) {
   const { camera } = useThree()
   const currentConfig = CAMERA_CONFIGS[currentView]
 
@@ -137,6 +143,7 @@ export default function Page() {
         setShowInfoPanel(true)
       } else {
         setShowInfoPanel(false)
+        stopBackgroundSound()
       }
       playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3')
     },
@@ -145,6 +152,7 @@ export default function Page() {
 
   const handleWaterFlowClick = useCallback(() => {
     handleViewChange('water')
+    playBackgroundSound()
   }, [handleViewChange])
 
   const handleBackToIntro = useCallback(() => {
@@ -155,7 +163,6 @@ export default function Page() {
 
   const handleEnterExperience = useCallback(() => {
     playSound('/sounds/Enter_Cute.mp3')
-    playBackgroundSound()
     setBgmReady(true)
     setTimeout(() => {
       setShowIntro(false)
@@ -231,10 +238,17 @@ export default function Page() {
 
               <RootWaterAbsorption
                 isActive={currentView === 'root'}
-                rootPosition={new THREE.Vector3(3.48, -2.42, 1.82)}
+                rootPosition={new THREE.Vector3(2.8, -2.44, 0.82)}
               />
 
-              <group position={[0.8, 0, -0.2]}>
+              <RootWaterAbsorption
+                isActive={currentView === 'root'}
+                rootPosition={new THREE.Vector3(0.3, -3.0, -0.35)}
+              />
+
+              <RootWaterAbsorption isActive={currentView === 'root'} rootPosition={new THREE.Vector3(2.43, -1.5, -0)} />
+
+              <group position={[0.7, 0, -0.45]} scale={[1, 1, -1]}>
                 <StemWaterMovement isActive={currentView === 'stem'} pathPoints={pathPoints} />
               </group>
 

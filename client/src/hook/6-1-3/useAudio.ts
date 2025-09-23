@@ -40,7 +40,7 @@ export const usePlantAudio = () => {
       }
 
       const audio = new Audio(audioPath)
-      audio.volume = 0.3
+      audio.volume = 0.7
       audio.loop = true
       backgroundAudioRef.current = audio
 

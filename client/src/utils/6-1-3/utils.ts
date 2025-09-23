@@ -12,7 +12,7 @@ export const CAMERA_CONFIGS = {
     minAzimuthAngle: 0,
     maxAzimuthAngle: Math.PI / 2,
     minDistance: 0,
-    maxDistance: 40,
+    maxDistance: 20,
   },
   leaf: {
     position: [3.2, 3.9, -1.3] as [number, number, number],
@@ -21,18 +21,18 @@ export const CAMERA_CONFIGS = {
     minPolarAngle: 0,
     minAzimuthAngle: -Infinity,
     maxAzimuthAngle: Infinity,
-    minDistance: 0,
-    maxDistance: 40,
+    minDistance: 1,
+    maxDistance: 5,
   },
   root: {
-    position: [8, -4, 12] as [number, number, number],
-    target: [3.48, -2.42, 1.82] as [number, number, number],
+    position: [3, -4.5, 4] as [number, number, number],
+    target: [-4, -3.8, 1.82] as [number, number, number],
     maxPolarAngle: Math.PI / 2 + Math.PI / 3,
     minPolarAngle: Math.PI / 3,
     minAzimuthAngle: 0,
     maxAzimuthAngle: Math.PI / 2,
-    minDistance: 0,
-    maxDistance: 40,
+    minDistance: 4,
+    maxDistance: 10,
   },
   stem: {
     position: [5, 4, 8] as [number, number, number],
@@ -42,7 +42,7 @@ export const CAMERA_CONFIGS = {
     minAzimuthAngle: 0,
     maxAzimuthAngle: Math.PI / 2,
     minDistance: 2,
-    maxDistance: 40,
+    maxDistance: 14,
   },
   water: {
     position: [16, 3, 20] as [number, number, number],
@@ -51,8 +51,8 @@ export const CAMERA_CONFIGS = {
     minPolarAngle: 0,
     minAzimuthAngle: -Infinity,
     maxAzimuthAngle: Infinity,
-    minDistance: 10,
-    maxDistance: 40,
+    minDistance: 2,
+    maxDistance: 20,
   },
 } as const
 
@@ -64,8 +64,8 @@ export const getBasePathPoints = (): THREE.Vector3[] => [
   new THREE.Vector3(-0.302, 4.396, -0.173),
   new THREE.Vector3(-0.295, 6.28, -0.306),
   new THREE.Vector3(-0.244, 7.28, -0.337),
-  new THREE.Vector3(-0.19, 8.28, -0.179),
-  new THREE.Vector3(-0.17, 8.917, -0.325),
+  new THREE.Vector3(-0.29, 8.28, -0.179),
+  new THREE.Vector3(-0.27, 8.917, -0.325),
   new THREE.Vector3(-0.283, 9.417, -0.125),
 ]
 
