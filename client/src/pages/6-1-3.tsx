@@ -217,7 +217,7 @@ export default function Page() {
       />
 
       <div className='flex-1'>
-        <Scene shadows camera={{ position: [16, 3, 20], fov: 50 }}>
+        <Scene shadows camera={{ position: [16, 3, 20], fov: 50, near:0.1, far:200 }}>
           <ambientLight intensity={0.2} />
           <directionalLight
             position={[5, 5, 5]}

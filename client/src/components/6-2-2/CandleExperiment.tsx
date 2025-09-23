@@ -126,17 +126,7 @@ export function CandleExperiment({
   useEffect(() => {
     currentModel.scene.traverse((child) => {
       if (child.name === 'Plane') {
-        child.scale.multiplyScalar(8.0)
-        if ((child as THREE.Mesh).isMesh) {
-          const mesh = child as THREE.Mesh
-          if (Array.isArray(mesh.material)) {
-            mesh.material.forEach((mat: any) => {
-              if (mat.color) mat.color.set(0x6C9696)
-            })
-          } else if ((mesh.material as any).color) {
-            (mesh.material as any).color.set(0x6C9696)
-          }
-        }
+        child.scale.set(200, 20, 20)
       }
       if (child.name === 'Acryl_Cup1') {
         rightCupRef.current = child
@@ -498,6 +488,7 @@ export function CandleExperiment({
         if (!o) return
         m.transparent = true
         m.opacity = THREE.MathUtils.clamp((o.opacity ?? 1) * v, 0, 1)
+        m.depthWrite = false // ★ 추가: 투명 상태에서는 Z버퍼 기록 금지
         m.needsUpdate = true
       })
     }
@@ -524,10 +515,10 @@ export function CandleExperiment({
         if (!o) return
         m.transparent = true
         m.opacity = THREE.MathUtils.clamp((o.opacity ?? 1) * opacity, 0, 1)
+        m.depthWrite = false // ★ 추가
         m.needsUpdate = true
       })
     }
-
     if (experimentPhase === 'selectingCup' && hovered && leftCupRef.current) {
       const blink = 0.8 + Math.sin(t * 6) * 0.2
       leftCupRef.current.traverse((child) => {
@@ -572,7 +563,7 @@ export function CandleExperiment({
         }
       })
     }
-    
+
     if (experimentPhase === 'oxygenCanDisappearing' || experimentPhase === 'readyToCover') {
       if (oxygenCanRef.current) {
         oxygenCanRef.current.traverse((child) => {
