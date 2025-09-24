@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useId } from 'react'
 import {
   Home,
   ArrowRight,
@@ -73,6 +73,16 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
   innerCircleVisible,
   textSize = 18,
 }) => {
+  const uniqueId = useId()
+
+  const maskId = `crayonMask-${uniqueId}`
+  const insetId = `innerStepInset-${uniqueId}`
+  const paperStaticId = `paperTextureStatic-${uniqueId}`
+  const paperAnimatedId = `paperTextureAnimated-${uniqueId}`
+  const borderStaticId = `crayonBorderStatic-${uniqueId}`
+  const borderAnimatedId = `crayonBorderAnimated-${uniqueId}`
+  const strongCrayonId = `strongCrayon-${uniqueId}`
+
   // 포지셔닝 스타일
   const positionStyle: React.CSSProperties = {
     position,
@@ -84,17 +94,12 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
     ...(y !== undefined && { top: y }),
   }
 
-  // 아이콘 매핑 (개선된 버전)
+  // 아이콘 매핑
   const getIconComponent = (iconName: string | React.ComponentType<any>): React.ComponentType<any> | null => {
-    // React 컴포넌트인 경우 바로 반환
     if (typeof iconName === 'function') return iconName
-
     if (typeof iconName === 'string') {
-      // 문자열 정리 (공백 제거, 소문자 변환)
       const key = iconName.trim().toLowerCase()
-
       const iconMap: Record<string, React.ComponentType<any>> = {
-        // 기본 아이콘들
         home: Home,
         'arrow-right': ArrowRight,
         arrowright: ArrowRight,
@@ -128,37 +133,25 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
         volumeoff: VolumeX,
         volumex: VolumeX,
         mute: VolumeX,
-        RefreshCcw: RefreshCcw,
-        'refresh-ccw': RefreshCcw,
         refreshccw: RefreshCcw,
+        'refresh-ccw': RefreshCcw,
         refresh: RefreshCcw,
         replay: RefreshCcw,
         expand: Expand,
         pencilline: PencilLine,
       }
-
-      const foundIcon = iconMap[key]
-
-      // 디버깅을 위한 로그 (개발 중에만 사용)
-      if (!foundIcon && process.env.NODE_ENV === 'development') {
-        console.warn(`아이콘을 찾을 수 없습니다: "${iconName}" (정리된 키: "${key}")`)
-        console.log('사용 가능한 아이콘들:', Object.keys(iconMap))
-      }
-
-      return foundIcon || null
+      return iconMap[key] || null
     }
-
     return null
   }
 
   const IconComponent = icon ? getIconComponent(icon) : null
 
   return (
-    <div style={positionStyle} className='inline-block '>
-      {/* SVG 필터 정의 */}
+    <div style={positionStyle} className='inline-block'>
       <svg width='0' height='0' className='absolute'>
         <defs>
-          <mask id='crayonMask'>
+          <mask id={maskId}>
             <rect
               x='5'
               y='5'
@@ -169,11 +162,27 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
               fill='#fff'
             />
           </mask>
-          <filter id='paperTextureStatic' x='-15%' y='-15%' width='130%' height='130%'>
+          <filter id={insetId} x='-25%' y='-25%' width='150%' height='150%'>
+            <feComponentTransfer in='SourceAlpha' result='alpha'>
+              <feFuncA type='linear' slope='1' />
+            </feComponentTransfer>
+
+            <feMorphology in='alpha' operator='erode' radius='2' result='eroded' />
+            <feComposite in='alpha' in2='eroded' operator='in' result='rim' />
+
+            <feGaussianBlur in='rim' stdDeviation='5' result='rimSoft' />
+
+            <feOffset in='rimSoft' dx='0' dy='0.3' result='highlightShift' />
+            <feFlood floodColor='black' floodOpacity='0.85' result='hlColor' />
+            <feComposite in='hlColor' in2='highlightShift' operator='out' result='highlight' />
+
+          </filter>
+
+          <filter id={paperStaticId} x='-15%' y='-15%' width='130%' height='130%'>
             <feTurbulence baseFrequency='0.02' numOctaves='2' result='noise' />
             <feDisplacementMap in='SourceGraphic' in2='noise' scale='0.8' />
           </filter>
-          <filter id='paperTextureAnimated' x='-15%' y='-15%' width='130%' height='130%'>
+          <filter id={paperAnimatedId} x='-15%' y='-15%' width='130%' height='130%'>
             <feTurbulence baseFrequency='0.022' numOctaves='2' result='noise' seed='2'>
               <animate attributeName='seed' values='2;5;8;11;14;2' dur='12s' repeatCount='indefinite' />
             </feTurbulence>
@@ -181,11 +190,11 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
               <animate attributeName='scale' values='0.6;1.2;0.8;1.0;0.6' dur='8s' repeatCount='indefinite' />
             </feDisplacementMap>
           </filter>
-          <filter id='crayonBorderStatic' x='-15%' y='-15%' width='130%' height='130%'>
+          <filter id={borderStaticId} x='-15%' y='-15%' width='130%' height='130%'>
             <feTurbulence baseFrequency='0.3' numOctaves='2' result='crayonNoise' />
             <feDisplacementMap in='SourceGraphic' in2='crayonNoise' scale='1.0' />
           </filter>
-          <filter id='crayonBorderAnimated' x='-15%' y='-15%' width='130%' height='130%'>
+          <filter id={borderAnimatedId} x='-15%' y='-15%' width='130%' height='130%'>
             <feTurbulence baseFrequency='0.02' numOctaves='3' result='crayonNoise' seed='5'>
               <animate attributeName='seed' values='7;12;18;3;25;7' dur='6s' repeatCount='indefinite' />
             </feTurbulence>
@@ -193,7 +202,7 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
               <animate attributeName='scale' values='0.8;1.4;1.0;1.2;0.8' dur='1s' repeatCount='indefinite' />
             </feDisplacementMap>
           </filter>
-          <filter id='strongCrayon' x='-20%' y='-20%' width='140%' height='140%'>
+          <filter id={strongCrayonId} x='-20%' y='-20%' width='140%' height='140%'>
             <feTurbulence baseFrequency='0.65' numOctaves='3' result='strongNoise' seed='15'>
               <animate attributeName='seed' values='15;22;8;30;35;15' dur='4s' repeatCount='indefinite' />
             </feTurbulence>
@@ -210,36 +219,43 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
         onClick={onClick}
         className={`relative group rounded-full p-0 border-0 bg-transparent ${className}`}
         style={{ width, height, WebkitTapHighlightColor: 'transparent' }}>
-        <svg
-          width={width}
-          height={height}
-          viewBox={`0 0 ${width} ${height}`}
-          className='w-full h-full'>
+        <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className='w-full h-full'>
           <rect
-            x='0'
-            y='0'
+            x={0}
+            y={0}
+            width={width}
+            height={height}
+            rx={height / 2}
+            ry={height / 2}
+            fill={bg}
+            filter={`url(#${paperStaticId})`}
+            className='transition-all duration-300'
+          />
+          <rect
+            x={0}
+            y={0}
             width={width}
             height={height}
             rx={(height) / 2}
             ry={(height) / 2}
             fill={bg}
-            filter='url(#paperTextureStatic)'
-            className='transition-all duration-300'
+            filter={`url(#${insetId})`}
+            mask={`url(#${maskId})`}
           />
           <rect
-            x='5'
-            y='5'
+            x={5}
+            y={5}
             width={width - 10}
             height={height - 10}
             rx={(height - 10) / 2}
             ry={(height - 10) / 2}
             fill={bg}
-            filter='url(#paperTextureAnimated)'
+            filter={`url(#${paperAnimatedId})`}
             className='transition-all duration-300 opacity-0'
           />
           <rect
-            x='12'
-            y='12'
+            x={12}
+            y={12}
             width={width - 24}
             height={height - 24}
             rx={(height - 24) / 2}
@@ -248,13 +264,13 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
             stroke={color}
             strokeWidth='2'
             opacity='0.6'
-            filter='url(#crayonBorderStatic)'
+            filter={`url(#${borderStaticId})`}
             className='transition-all duration-300 group-hover:opacity-0'
           />
           {innerCircleVisible && (
             <rect
-              x='18'
-              y='18'
+              x={18}
+              y={18}
               width={width - 36}
               height={height - 36}
               rx={(height - 36) / 2}
@@ -263,13 +279,13 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
               stroke={color}
               strokeWidth='2'
               opacity='0'
-              filter='url(#crayonBorderAnimated)'
+              filter={`url(#${borderAnimatedId})`}
               className='transition-all duration-300 group-hover:opacity-100'
             />
           )}
           <rect
-            x='12'
-            y='12'
+            x={12}
+            y={12}
             width={width - 24}
             height={height - 24}
             rx={(height - 24) / 2}
@@ -278,7 +294,7 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
             stroke={color}
             strokeWidth='3'
             opacity='0'
-            filter='url(#strongCrayon)'
+            filter={`url(#${strongCrayonId})`}
             className='transition-all duration-300 group-hover:opacity-100'
           />
         </svg>

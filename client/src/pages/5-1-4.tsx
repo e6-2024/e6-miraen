@@ -127,7 +127,7 @@ export default function Page() {
 
   // === BGM ===
   const bgmRef = useRef<HTMLAudioElement | null>(null)
-  const [bgmEnabled, setBgmEnabled] = useState<boolean>(true) 
+  const [bgmEnabled, setBgmEnabled] = useState<boolean>(true)
   const [bgmReady, setBgmReady] = useState(false)
 
   useEffect(() => {
@@ -544,9 +544,7 @@ export default function Page() {
                       color={active ? '#096A2E' : '#666666'}
                       textcolor='#FFFFFF'
                       className={`transition-all duration-300 ${
-                        isModelsLoading
-                          ? 'opacity-50 cursor-not-allowed'
-                          : ' active:scale-90 hover:scale-105'
+                        isModelsLoading ? 'opacity-50 cursor-not-allowed' : ' active:scale-90 hover:scale-105'
                       }`}
                       onClick={() => !isModelsLoading && handleModelTypeChange(type)}
                       innerCircleVisible={false}
@@ -728,11 +726,13 @@ export default function Page() {
             color='#ffffff'
             textcolor='#ffffff'
             bg='rgba(255,255,255,0.10)'
-            className='background-blur z-[200] right-[108px] mix-blend-difference'
-            right={16}
+            className='background-blur z-[200] mix-blend-difference'
+            right={138}
             top={16}
             iconSize={40}
+            innerCircleVisible={true}
           />
+
           <CrayonTextButton
             icon={bgmEnabled ? 'volume2' : 'volumeX'}
             position='absolute'
@@ -743,7 +743,7 @@ export default function Page() {
             color='#fff'
             textcolor='#fff'
             bg='rgba(255,255,255,0.10)'
-            className='backdrop-blur z-[1000] right-[0px] mix-blend-difference'
+            className='backdrop-blur z-[1000] mix-blend-difference'
             right={16}
             top={16}
             iconSize={40}

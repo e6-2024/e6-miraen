@@ -14,6 +14,7 @@ import AudioManager from '@/components/5-1-1/AudioManager'
 import ActivityGuideModal from '@/components/5-1-1/ActivityGuideModal'
 import { CrayonTextBox } from '@/components/common/CrayonTextBox'
 import { CrayonTextButton } from '@/components/common/CrayonUIButton'
+import { TiltOnMouse } from '@/components/common/Tilt'
 
 type ButtonStyle = { bg: string; border: string; text: string }
 
@@ -64,37 +65,6 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
   useEffect(() => {
     if (!active && progress === 100) onLoadingComplete()
   }, [active, progress, onLoadingComplete])
-  return null
-}
-
-function IntroMouseCameraController({ enabled }: { enabled: boolean }) {
-  const { camera } = useThree()
-  const mouseRef = useRef({ x: 0, y: 0 })
-  const targetRef = useRef({ x: 0, y: 0 })
-  const basePositionRef = useRef(new THREE.Vector3())
-
-  useEffect(() => {
-    if (enabled) basePositionRef.current.copy(camera.position)
-  }, [enabled, camera])
-
-  useEffect(() => {
-    if (!enabled) return
-    const handleMouseMove = (event: MouseEvent) => {
-      mouseRef.current.x = (event.clientX / window.innerWidth) * 2 - 1
-      mouseRef.current.y = -(event.clientY / window.innerHeight) * 2 + 1
-    }
-    window.addEventListener('mousemove', handleMouseMove)
-    return () => window.removeEventListener('mousemove', handleMouseMove)
-  }, [enabled])
-
-  useFrame(() => {
-    if (!enabled) return
-    targetRef.current.x += (mouseRef.current.x - targetRef.current.x) * 0.05
-    targetRef.current.y += (mouseRef.current.y - targetRef.current.y) * 0.05
-    const lookAtX = -targetRef.current.x * 3
-    const lookAtY = -targetRef.current.y * 3
-    camera.lookAt(lookAtX, lookAtY, 0)
-  })
   return null
 }
 
@@ -267,68 +237,68 @@ function SceneContent({
   return (
     <>
       <SceneCameraController sceneIndex={sceneIndex} />
-      <IntroMouseCameraController enabled={showIntro} />
+      <TiltOnMouse enabled={showIntro} maxDeg={5}>
+        {!showWater && (
+          <>
+            <fog attach='fog' args={['black', 0, 3000]} />
+            <hemisphereLight intensity={0.5} color='white' groundColor='#f88' />
+            <directionalLight
+              color='orange'
+              intensity={2}
+              scale={3}
+              position={[30, 3, 30]}
+              castShadow
+              shadow-camera-far={100}
+              shadow-mapSize={2048}
+              shadow-bias={-0.0001}
+              shadow-normalBias={0.2}
+            />
+            {sceneIndex === 0 && (
+              <EffectComposer multisampling={2}>
+                <N8AO aoRadius={25} distanceFalloff={1} intensity={3} screenSpaceRadius halfRes />
+                <TiltShift2 />
+              </EffectComposer>
+            )}
+          </>
+        )}
 
-      {!showWater && (
-        <>
-          <fog attach='fog' args={['black', 0, 3000]} />
-          <hemisphereLight intensity={0.5} color='white' groundColor='#f88' />
-          <directionalLight
-            color='orange'
-            intensity={2}
-            scale={3}
-            position={[30, 3, 30]}
-            castShadow
-            shadow-camera-far={100}
-            shadow-mapSize={2048}
-            shadow-bias={-0.0001}
-            shadow-normalBias={0.2}
-          />
-          {sceneIndex === 0 && (
-            <EffectComposer multisampling={2}>
-              <N8AO aoRadius={25} distanceFalloff={1} intensity={3} screenSpaceRadius halfRes />
-              <TiltShift2 />
-            </EffectComposer>
-          )}
-        </>
-      )}
+        <Model
+          path={modelPaths[sceneIndex]}
+          scale={3.7}
+          position={
+            sceneIndex === 1
+              ? [-2.44, -7.5, -1.31]
+              : sceneIndex === 2
+              ? [-2.7, -7, -1.1]
+              : sceneIndex === 3
+              ? [-2, -7, 0]
+              : [1.5, -10, -2.0]
+          }
+          sceneIndex={sceneIndex}
+          shouldAnimate={animationState.isPlaying}
+          animationSpeed={animationSpeeds[sceneIndex as keyof typeof animationSpeeds]}
+          customAnimation={sceneIndex === 3 ? 'fadeAndMove' : null}
+          onAnimationComplete={handleModelAnimationComplete}
+          animationKey={animationState.animationKey}
+        />
 
-      <Model
-        path={modelPaths[sceneIndex]}
-        scale={3.7}
-        position={
-          sceneIndex === 1
-            ? [-2.44, -7.5, -1.31]
-            : sceneIndex === 2
-            ? [-2.7, -7, -1.1]
-            : sceneIndex === 3
-            ? [-2, -7, 0]
-            : [1.5, -10, -2.0]
-        }
-        sceneIndex={sceneIndex}
-        shouldAnimate={animationState.isPlaying}
-        animationSpeed={animationSpeeds[sceneIndex as keyof typeof animationSpeeds]}
-        customAnimation={sceneIndex === 3 ? 'fadeAndMove' : null}
-        onAnimationComplete={handleModelAnimationComplete}
-        animationKey={animationState.animationKey}
-      />
+        {showWater && waterScale > 0.01 && (
+          <group scale={[1, waterScale, 1]}>
+            <Ocean
+              sceneIndex={sceneIndex}
+              textureScale={1.0}
+              textureOpacity={0.7}
+              timeSpeed={0.9}
+              flowSpeed={0.9}
+              waterLevel={waterLevel}
+            />
+            <WaterBox waterLevel={waterLevel} sceneIndex={sceneIndex} />
+            <UnderwaterEnvironment sceneIndex={sceneIndex} />
+          </group>
+        )}
 
-      {showWater && waterScale > 0.01 && (
-        <group scale={[1, waterScale, 1]}>
-          <Ocean
-            sceneIndex={sceneIndex}
-            textureScale={1.0}
-            textureOpacity={0.7}
-            timeSpeed={0.9}
-            flowSpeed={0.9}
-            waterLevel={waterLevel}
-          />
-          <WaterBox waterLevel={waterLevel} sceneIndex={sceneIndex} />
-          <UnderwaterEnvironment sceneIndex={sceneIndex} />
-        </group>
-      )}
-
-      <Environment preset='sunset' background blur={0.6} />
+        <Environment preset='sunset' background blur={0.6} />
+      </TiltOnMouse>
 
       <OrbitControls
         enablePan={false}
@@ -526,29 +496,31 @@ export default function Home() {
             onClick={handleBackToModeSelection}
             width={108}
             height={108}
-            color='#ffffff'
-            textcolor='#ffffff'
-            bg='rgba(255,255,255,0.10)'
-            className='background-blur z-[300] right-[108px] border-white/20 '
-            right={16}
+            color='#A1CC90'
+            textcolor='#fff'
+            bg={DinosaurTheme.goal.bg}
+            className='z-[1000]'
+            right={138}
             top={16}
             iconSize={40}
+            innerCircleVisible={true}
           />
+
           <CrayonTextButton
-            ariaLabel={bgmEnabled ? '배경음악 끄기' : '배경음악 켜기'}
-            icon={(bgmEnabled ? 'volume2' : 'volumeX').toLowerCase()}
+            icon={bgmEnabled ? 'volume2' : 'volumeX'}
             position='absolute'
             iconPosition='left'
             onClick={toggleBgm}
             width={108}
             height={108}
-            color='#ffffff'
-            textcolor='#ffffff'
-            bg='rgba(255,255,255,0.10)'
-            className='background-blur z-[300] right-[0px] border-white/20'
+            color='#A1CC90'
+            textcolor='#fff'
+            bg={DinosaurTheme.goal.bg}
+            className='z-[1000]'
             right={16}
             top={16}
             iconSize={40}
+            innerCircleVisible={true}
           />
         </>
       )}
@@ -587,7 +559,7 @@ export default function Home() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.5, ease: 'easeInOut' }}
-          className='absolute bottom-5 left-1/2 -translate-x-1/2 z-10 font-bold'>
+          className='absolute bottom-8 left-1/2 -translate-x-1/2 z-10 font-light'>
           <CrayonTextBox
             bg='#FFFFFF'
             color='#52AE46'
