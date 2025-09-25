@@ -526,13 +526,12 @@ export default function Home() {
       {isLoaded && showIntro && (
         <Intro
           onEnter={handleEnterExperience}
-          title='용해와 용액'
+          title='진하기가 다른 두 용액에서 같은 물체가 뜨는 정도 관찰하기'
           description={[
-            '색깔로 구별할 수 없는 용액의 진하기는 어떻게 비교할 수 있을까요?',
-            '용액의 상대적인 진하기를 비교해 봅시다.',
+            '색깔로 진하기를 알 수 없는 두 용액에 같은 물체를 넣어 용액의 상대적인 진하기를 비교해 봅시다.',
           ]}
           backgroundSvg='/img/cover/5-1-3.svg'
-          descriptionSound='/sounds/5-1-3/5-1-3-Goal.MP3'
+          descriptionSound='/sounds/5-1-3/narration/5-1-3-Goal.MP3'
         />
       )}
     </div>
