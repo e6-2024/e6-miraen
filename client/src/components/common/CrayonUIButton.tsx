@@ -192,7 +192,7 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
           </filter>
           <filter id={borderStaticId} x='-15%' y='-15%' width='130%' height='130%'>
             <feTurbulence baseFrequency='0.3' numOctaves='2' result='crayonNoise' />
-            <feDisplacementMap in='SourceGraphic' in2='crayonNoise' scale='1.0' />
+            <feDisplacementMap in='SourceGraphic' in2='crayonNoise' scale='0.0' />
           </filter>
           <filter id={borderAnimatedId} x='-15%' y='-15%' width='130%' height='130%'>
             <feTurbulence baseFrequency='0.02' numOctaves='3' result='crayonNoise' seed='5'>
@@ -242,7 +242,7 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
             filter={`url(#${insetId})`}
             mask={`url(#${maskId})`}
           />
-          {/* <rect
+          <rect
             x={5}
             y={5}
             width={width - 10}
@@ -252,8 +252,8 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
             fill={bg}
             filter={`url(#${paperAnimatedId})`}
             className='transition-all duration-300 opacity-0'
-          /> */}
-          {/* <rect
+          />
+          <rect
             x={12}
             y={12}
             width={width - 24}
@@ -266,7 +266,7 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
             opacity='0.6'
             filter={`url(#${borderStaticId})`}
             className='transition-all duration-300'
-          /> */}
+          />
           {/* {innerCircleVisible && (
             <rect
               x={18}

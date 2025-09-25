@@ -25,9 +25,9 @@ type DinosaurTheme = {
 }
 
 const DinosaurTheme: DinosaurTheme = {
-  goal: { bg: '#52AE46', border: '#A1CC90', text: '#FFFFFF' },
-  guide: { bg: '#52AE46', border: '#A1CC90', text: '#FFFFFF' },
-  start: { bg: '#F77F42', border: '#BF4E1D', text: '#FFFFFF' },
+  goal: { bg: '#F4A261', border: '#FBF8F8', text: '#FFFFFF' },
+  guide: { bg: '#F4A261', border: '#FBF8F8', text: '#FFFFFF' },
+  start: { bg: '#E76F51', border: '#f6a07cff', text: '#FFFFFF' },
 }
 
 const modelPaths = [
@@ -496,9 +496,9 @@ export default function Home() {
             onClick={handleBackToModeSelection}
             width={108}
             height={108}
-            color='#A1CC90'
+            color='#FBF6F6'
             textcolor='#fff'
-            bg={DinosaurTheme.goal.bg}
+            bg={DinosaurTheme.start.bg}
             className='z-[1000]'
             right={138}
             top={16}
@@ -513,9 +513,9 @@ export default function Home() {
             onClick={toggleBgm}
             width={108}
             height={108}
-            color='#A1CC90'
+            color='#FBF6F6'
             textcolor='#fff'
-            bg={DinosaurTheme.goal.bg}
+            bg={DinosaurTheme.start.bg}
             className='z-[1000]'
             right={16}
             top={16}
@@ -562,7 +562,7 @@ export default function Home() {
           className='absolute bottom-8 left-1/2 -translate-x-1/2 z-10 font-light'>
           <CrayonTextBox
             bg='#FFFFFF'
-            color='#52AE46'
+            color='#F4A261'
             textcolor='#333'
             padding={14}
             text={sceneDescriptions[sceneIndex]}

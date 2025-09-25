@@ -11,8 +11,8 @@ const VOLUME = {
   sfx: 0.5, // 효과음
 }
 const stepColors = {
-  active: { bg: '#52AE46', border: '#FFF', text: '#FFFFFF' },
-  done: { bg: '#52AE46', border: '#FFF', text: '#FFFFFF' },
+  active: { bg: '#E76F51', border: '#f6a07cff', text: '#FFFFFF' },
+  done: { bg: '#E76F51', border: '#f6a07cff', text: '#FFFFFF' },
   inactive: { bg: '#6B7280', border: '#4B5563', text: '#FFFFFF' },
 }
 
@@ -117,7 +117,7 @@ const NavigationUI = forwardRef<
   return (
     <div className='absolute flex w-full justify-center left-1/2 -translate-x-1/2 items-center top-4  z-[200]'>
       <CrayonTextBox
-        color='#52AE46'
+        color='#E76F51'
         bg='white'
         padding={0}
         className='flex items-center justify-center background-blur'>
@@ -156,11 +156,11 @@ const NavigationUI = forwardRef<
                       />
                     ) : (
                       <svg
-                        className='absolute pointer-events-none left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 drop-shadow'
+                        className='absolute pointer-events-none left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'
                         width='48'
                         height='48'
                         viewBox='2 2 16 16'
-                        fill='currentColor'>
+                        fill='#444'>
                         <path
                           fillRule='evenodd'
                           d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
@@ -182,7 +182,7 @@ const NavigationUI = forwardRef<
                     <svg width='48' height='32' viewBox='0 0 32 16' className='transition-all'>
                       <path
                         d='M0 4 L20 4 L20 1 L32 8 L20 15 L20 12 L0 12 Z'
-                        fill={sceneIndex >= num ? '#000' : '#888'}
+                        fill={sceneIndex >= num ? '#444' : '#888'}
                         className='transition-colors'
                       />
                     </svg>
@@ -204,8 +204,8 @@ const NavigationUI = forwardRef<
         iconSize={30}
         left={10}
         top={10}
-        bg='#52AE46'
-        color='#A1CC90'
+        bg='#E76F51'
+        color='#f6a07cff'
         textcolor='#FFFFFF'
         className='background-blur border-white/20 z-[1300]'
         onClick={handlePlayClick}
