@@ -92,11 +92,10 @@ export const CrayonTextBox: React.FC<CrayonTextBoxProps> = ({
           color: textcolor,
           fontSize,
           fontWeight,
-          filter: animated ? 'url(#paperTextureBoxAnimated)' : 'url(#paperTextureBoxStatic)',
         }}
       >
         {/* 크레파스 오버레이 */}
-        <div
+        {/* <div
           className="absolute inset-0 rounded-xl pointer-events-none"
           style={{
             border: `3px solid ${color}`,
@@ -104,7 +103,7 @@ export const CrayonTextBox: React.FC<CrayonTextBoxProps> = ({
             opacity: 1,
             filter: animated ? 'url(#crayonBorderBoxAnimated)' : 'url(#crayonBorderBoxStatic)',
           }}
-        />
+        /> */}
 
         {/* 내용 */}
         <div

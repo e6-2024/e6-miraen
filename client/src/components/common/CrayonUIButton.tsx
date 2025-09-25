@@ -180,7 +180,7 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
 
           <filter id={paperStaticId} x='-15%' y='-15%' width='130%' height='130%'>
             <feTurbulence baseFrequency='0.02' numOctaves='2' result='noise' />
-            <feDisplacementMap in='SourceGraphic' in2='noise' scale='0.8' />
+            <feDisplacementMap in='SourceGraphic' in2='noise' scale='0' />
           </filter>
           <filter id={paperAnimatedId} x='-15%' y='-15%' width='130%' height='130%'>
             <feTurbulence baseFrequency='0.022' numOctaves='2' result='noise' seed='2'>
@@ -242,7 +242,7 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
             filter={`url(#${insetId})`}
             mask={`url(#${maskId})`}
           />
-          <rect
+          {/* <rect
             x={5}
             y={5}
             width={width - 10}
@@ -252,8 +252,8 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
             fill={bg}
             filter={`url(#${paperAnimatedId})`}
             className='transition-all duration-300 opacity-0'
-          />
-          <rect
+          /> */}
+          {/* <rect
             x={12}
             y={12}
             width={width - 24}
@@ -265,9 +265,9 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
             strokeWidth='2'
             opacity='0.6'
             filter={`url(#${borderStaticId})`}
-            className='transition-all duration-300 group-hover:opacity-0'
-          />
-          {innerCircleVisible && (
+            className='transition-all duration-300'
+          /> */}
+          {/* {innerCircleVisible && (
             <rect
               x={18}
               y={18}
@@ -282,8 +282,8 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
               filter={`url(#${borderAnimatedId})`}
               className='transition-all duration-300 group-hover:opacity-100'
             />
-          )}
-          <rect
+          )} */}
+          {/* <rect
             x={12}
             y={12}
             width={width - 24}
@@ -296,7 +296,7 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
             opacity='0'
             filter={`url(#${strongCrayonId})`}
             className='transition-all duration-300 group-hover:opacity-100'
-          />
+          /> */}
         </svg>
 
         <div className='absolute inset-0 flex items-center justify-center pointer-events-none'>
