@@ -1,4 +1,3 @@
-// components/5-1-3/ExperimentScene.tsx (Refactored)
 import {
   OrbitControls,
   Environment,
@@ -7,7 +6,7 @@ import {
   useGLTF,
   ContactShadows,
   AccumulativeShadows,
-  RandomizedLight
+  RandomizedLight,
 } from '@react-three/drei'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import * as THREE from 'three'
@@ -18,8 +17,10 @@ import { ModelManager } from './ModelManager'
 import { DiscRotationManager } from './DiscRotationManager'
 import { BeakerInteractionManager } from './BeakerInteractionManager'
 import { BeakerHighlightManager } from './BeakerHighlightManager'
+import { GlassStickManager } from './GlassStickManager'
 import { useNodeRefs } from '@/hook/5-1-3/useNodeRefs'
 import { useExperimentState } from '@/hook/5-1-3/useExperimentState'
+import { GLBRenderer } from './GLBRenderer'
 
 interface GLBModel {
   scene: THREE.Object3D
@@ -32,24 +33,17 @@ interface ExperimentSceneProps {
   onBeakerSelected?: (beaker: 'left' | 'right') => void
 }
 
-export function ExperimentScene({ 
-  experimentStarted, 
-  onNarrationComplete, 
-  onBeakerSelected 
-}: ExperimentSceneProps) {
-  // 모델 로드
+export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeakerSelected }: ExperimentSceneProps) {
   const model0 = useGLTF('/models/5-1-3/0.glb') as GLBModel
   const spoonLeftModel = useGLTF('/models/5-1-3/Spoon_left.glb') as GLBModel
   const spoonRightModel = useGLTF('/models/5-1-3/Spoon_right.glb') as GLBModel
 
-  // 상태 관리
   const [perfSucks, degrade] = useState(false)
   const [currentModel, setCurrentModel] = useState<GLBModel | null>(null)
   const [currentSpoonModel, setCurrentSpoonModel] = useState<GLBModel | null>(null)
   const [hoveredBeaker, setHoveredBeaker] = useState<'a' | 'a001' | null>(null)
   const [beakersActive, setBeakersActive] = useState(false)
-  
-  // 실험 상태 관리
+
   const {
     selectedBeaker,
     setSelectedBeaker,
@@ -59,16 +53,23 @@ export function ExperimentScene({
     setRightSugarDropping,
     discRotating,
     setDiscRotating,
+    leftSpoonCount,
+    rightSpoonCount,
+    leftComplete,
+    rightComplete,
+    showGlassStick,
+    glassStickAnimating,
+    setGlassStickAnimating,
     selectingRef,
     lastSelectedSideRef,
     animationFinishedRef,
-    startSugarExperiment
+    startSugarExperiment,
+    handleSpoonComplete,
+    reset,
   } = useExperimentState()
 
-  // 참조 관리
   const { beakerARef, beakerA001Ref, discRef, sphereRef } = useNodeRefs(currentModel, currentSpoonModel)
 
-  // 실험 시작시: 모델 로드 + 5초 후 비커 활성화
   useEffect(() => {
     if (!experimentStarted) return
     setCurrentModel(model0)
@@ -81,7 +82,6 @@ export function ExperimentScene({
     return () => window.clearTimeout(timer)
   }, [experimentStarted, model0, onNarrationComplete])
 
-  // 애니메이션 완료 핸들러
   const handleAnimationFinished = useCallback(() => {
     animationFinishedRef.current = true
   }, [])
@@ -95,18 +95,19 @@ export function ExperimentScene({
     }
 
     return () => window.clearTimeout(unlock)
+  }, [startSugarExperiment, lastSelectedSideRef, selectingRef])
+
+  const handleSugarDissolved = useCallback(
+    (side: 'left' | 'right') => {
+      handleSpoonComplete(side)
+    },
+    [handleSpoonComplete],
+  )
+
+  const handleDiscRotationComplete = useCallback(() => {
+    console.log('Disc rotation complete')
   }, [])
 
-  // 설탕 실험 시작
-  // const startSugarExperiment = (side: 'left' | 'right') => {
-  //   ;(window as any).startDiscRotation?.()
-  //   window.setTimeout(() => {
-  //     if (side === 'left') setLeftSugarDropping(true)
-  //     else setRightSugarDropping(true)
-  //   }, 1000)
-  // }
-
-  // 전역 함수 노출
   useEffect(() => {
     ;(window as any).startLeftSugarExperiment = () => startSugarExperiment('left')
     ;(window as any).startRightSugarExperiment = () => startSugarExperiment('right')
@@ -114,13 +115,12 @@ export function ExperimentScene({
       delete (window as any).startLeftSugarExperiment
       delete (window as any).startRightSugarExperiment
     }
-  }, [])
+  }, [startSugarExperiment])
 
   return (
     <>
       <PerformanceMonitor onDecline={() => degrade(true)} />
-      
-      {/* 환경 조명 */}
+
       <Environment
         frames={perfSucks ? 1 : Infinity}
         preset='studio'
@@ -142,7 +142,6 @@ export function ExperimentScene({
         />
       </Environment>
 
-      {/* 모델 관리 */}
       <ModelManager
         experimentStarted={experimentStarted}
         currentModel={currentModel}
@@ -151,24 +150,26 @@ export function ExperimentScene({
         onSpoonAnimationFinished={handleSpoonAnimationFinished}
       />
 
-      {/* 물 렌더링 */}
       {(currentModel || currentSpoonModel) && (
         <>
+          <GLBRenderer src='/models/5-1-3/sugar.glb' scale={0.5} position={[-0.7, -1, 0]} />
           <RealisticWater position={[-2.15, -0.5, -0.2]} beakerRadius={0.57} waterLevel={0.9} />
           <RealisticWater position={[2.34, -0.5, -0.2]} beakerRadius={0.57} waterLevel={0.9} />
         </>
       )}
 
-      {/* 디스크 회전 관리 */}
       <DiscRotationManager
         discRef={discRef}
         sphereRef={sphereRef}
         discRotating={discRotating}
         setDiscRotating={setDiscRotating}
         animationFinished={animationFinishedRef.current}
+        onRotationComplete={handleDiscRotationComplete}
+        leftSpoonCount={leftSpoonCount}
+        rightSpoonCount={rightSpoonCount}
+        selectedBeaker={selectedBeaker}
       />
 
-      {/* 비커 상호작용 관리 */}
       <BeakerInteractionManager
         beakersActive={beakersActive}
         beakerARef={beakerARef}
@@ -185,7 +186,6 @@ export function ExperimentScene({
         setCurrentSpoonModel={setCurrentSpoonModel}
       />
 
-      {/* 비커 하이라이트 관리 */}
       <BeakerHighlightManager
         beakersActive={beakersActive}
         hoveredBeaker={hoveredBeaker}
@@ -193,16 +193,36 @@ export function ExperimentScene({
         beakerA001Ref={beakerA001Ref}
       />
 
-      {/* 설탕 파티클 */}
+      <GlassStickManager
+        showGlassStick={showGlassStick}
+        glassStickAnimating={glassStickAnimating}
+        setGlassStickAnimating={setGlassStickAnimating}
+        leftComplete={leftComplete}
+        rightComplete={rightComplete}
+      />
+
       {leftSugarDropping && (
-        <SugarParticles shouldDrop={true} sugarAmount={1.0} startPosition={[-2.26, 1.068, -0.22]} beakerId='LEFT' />
+        <SugarParticles
+          shouldDrop={true}
+          sugarAmount={1.0}
+          startPosition={[-2.26, 1.068, -0.22]}
+          beakerId='LEFT'
+          onAllDissolved={() => handleSugarDissolved('left')}
+          spoonCount={leftSpoonCount}
+        />
       )}
       {rightSugarDropping && (
-        <SugarParticles shouldDrop={true} sugarAmount={5.0} startPosition={[2.42, 0.96, -0.22]} beakerId='RIGHT' />
+        <SugarParticles
+          shouldDrop={true}
+          sugarAmount={1.0}
+          startPosition={[2.42, 0.96, -0.22]}
+          beakerId='RIGHT'
+          onAllDissolved={() => handleSugarDissolved('right')}
+          spoonCount={rightSpoonCount}
+        />
       )}
 
-      {/* 컨트롤 및 그림자 */}
-      <OrbitControls 
+      <OrbitControls
         {...ORBIT_CONTROLS_CONFIG}
         onStart={() => {
           ;(window as any).setDragging?.(true)
@@ -212,14 +232,7 @@ export function ExperimentScene({
         }}
       />
       <ContactShadows position={[0, -1, 0]} opacity={0.75} blur={2.0} />
-      <AccumulativeShadows
-        position={[0, -1, 0]}
-        scale={50}
-        color='#000'
-        opacity={0.05}
-        alphaTest={1} 
-        frames={60}
-      >
+      <AccumulativeShadows position={[0, -1, 0]} scale={50} color='#000' opacity={0.05} alphaTest={1} frames={60}>
         <RandomizedLight radius={0.5} ambient={0.21} intensity={1.5} position={[5, 3, 0]} />
       </AccumulativeShadows>
     </>

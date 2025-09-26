@@ -70,7 +70,6 @@ export function BeakerInteractionManager({
         if (hitA.length > 0) {
           next = 'a'
           hasHit = true
-          console.log('Hit beaker A')
         }
       }
       if (!next && beakerA001Ref.current) {
@@ -78,13 +77,11 @@ export function BeakerInteractionManager({
         if (hitA001.length > 0) {
           next = 'a001'
           hasHit = true
-          console.log('Hit beaker A001')
         }
       }
 
       // 호버 상태 업데이트
       if (next !== hoveredBeaker) {
-        console.log('Hover state changed from', hoveredBeaker, 'to', next)
         setHoveredBeaker(next)
       }
 

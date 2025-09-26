@@ -202,16 +202,16 @@ export default function Page() {
                   <button
                     onClick={() => handleStartSugarExperiment(selectedBeaker)}
                     className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors shadow-md
-        ${
-          selectedBeaker === 'left' ? 'bg-cyan-600 hover:bg-cyan-700' : 'bg-emerald-600 hover:bg-emerald-700'
-        } text-white`}>
-                    🥄 설탕 넣기 시작
+                  ${
+                    selectedBeaker === 'left' ? 'bg-cyan-600 hover:bg-cyan-700' : 'bg-emerald-600 hover:bg-emerald-700'
+                  } text-white`}>
+                    설탕 넣기 시작
                   </button>
 
                   <button
                     onClick={() => setSelectedBeaker(null)}
                     className='rounded-lg px-4 py-2 text-sm font-medium text-white bg-gray-500 hover:bg-gray-600 transition-colors shadow-md'>
-                    ✖ 선택 해제
+                    선택 해제
                   </button>
                 </div>
               </CrayonTextBox>
