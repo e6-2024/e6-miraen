@@ -114,8 +114,17 @@ export default function Page() {
     setShowSubtitle(true)
   }, [])
 
+  // 설탕 실험 시작 핸들러
+  const handleStartSugarExperiment = (side: 'left' | 'right') => {
+    if (side === 'left') {
+      ;(window as any).startLeftSugarExperiment?.()
+    } else {
+      ;(window as any).startRightSugarExperiment?.()
+    }
+  }
+
   return (
-    <div className='w-screen h-screen bg-white flex flex-col overflow-hidden relative'>
+    <div className='w-screen h-screen bg-gray flex flex-col overflow-hidden relative'>
       <LoadingTracker onLoadingComplete={handleLoadingComplete} />
 
       {/* 홈 */}
@@ -154,6 +163,35 @@ export default function Page() {
         iconSize={40}
         innerCircleVisible={true}
       />
+
+      {/* 실험 컨트롤 패널 */}
+      {selectedBeaker && (
+        <div className={`absolute top-4 z-10 ${selectedBeaker === 'left' ? 'left-4' : 'right-4'} bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg border border-gray-200 w-64`}>
+          <h3 className={`text-lg font-bold ${selectedBeaker === 'left' ? 'text-blue-800' : 'text-green-800'} mb-3`}>
+            {selectedBeaker === 'left' ? '왼쪽 비커' : '오른쪽 비커'}
+          </h3>
+          
+          <div className={`mb-3 p-3 ${selectedBeaker === 'left' ? 'bg-blue-100' : 'bg-green-100'} rounded-lg`}>
+            <div className={`text-sm ${selectedBeaker === 'left' ? 'text-blue-700' : 'text-green-700'} font-light`}>
+              투입량: <span className='font-bold'>{selectedBeaker === 'left' ? '1스푼' : '5스푼'}</span>
+            </div>
+          </div>
+
+          <button
+            onClick={() => handleStartSugarExperiment(selectedBeaker)}
+            className={`w-full px-4 py-3 ${selectedBeaker === 'left' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-green-500 hover:bg-green-600'} text-white rounded-lg font-light transition-colors text-sm`}
+          >
+            🥄 설탕 넣기 시작
+          </button>
+
+          <button
+            onClick={() => setSelectedBeaker(null)}
+            className='w-full mt-2 px-4 py-2 bg-gray-500 text-white rounded-lg font-light hover:bg-gray-600 transition-colors text-sm'
+          >
+            선택 해제
+          </button>
+        </div>
+      )}
 
       {showSubtitle && (
         <div className='fixed top-5 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-3'>

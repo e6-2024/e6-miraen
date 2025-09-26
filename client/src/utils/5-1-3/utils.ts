@@ -61,15 +61,15 @@ export const BASE_MODEL_CONFIG = {
 }
 
 export const CAMERA_CONFIG = {
-  position: [8, 3, 8] as [number, number, number],
-  fov: 50,
+  position: [0, 1, 20] as [number, number, number],
+  fov: 20,
 }
 
 export const ORBIT_CONTROLS_CONFIG = {
-  minAzimuthAngle: -Math.PI / 4,
-  maxAzimuthAngle: Math.PI / 4,
-  minPolarAngle: Math.PI / 3 + Math.PI / 10,
-  maxPolarAngle: Math.PI / 2,
+//   minAzimuthAngle: -Math.PI / 4,
+//   maxAzimuthAngle: Math.PI / 4,
+//   minPolarAngle: Math.PI / 3 + Math.PI / 10,
+//   maxPolarAngle: Math.PI / 2,
   minDistance: 1,
   maxDistance: 20,
 }

@@ -2,8 +2,8 @@ import { useRef, useEffect, useMemo, useCallback } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
-const GRAVITY = -2.0
-const WATER_LEVEL = 0.8
+const GRAVITY = -3.0
+const WATER_LEVEL = 0
 
 interface Particle {
   pos: THREE.Vector3
@@ -58,8 +58,6 @@ export function SugarParticles({
   // 파티클 초기화 함수
   const initializeParticles = useCallback(() => {
     if (particles.current.length > 0) return // 이미 초기화되었으면 스킵
-
-    console.log(`${beakerId}: 파티클 초기화`)
     const arr: Particle[] = []
     for (let i = 0; i < instanceData.numParticles; i++) {
       const base = new THREE.Vector3(
@@ -94,7 +92,6 @@ export function SugarParticles({
   // 실험 완료 시 컴포넌트 언마운트
   useEffect(() => {
     if (isCompleted) {
-      console.log(`${beakerId}: 실험 완료로 인한 파티클 정리`)
       // 모든 파티클을 removed 상태로 변경
       particles.current.forEach((p) => {
         p.state = 'removed'
@@ -113,8 +110,6 @@ export function SugarParticles({
 
     const currentShouldDrop = shouldDrop
     const prevShouldDrop = lastShouldDrop.current
-
-    console.log(`${beakerId}: shouldDrop 변경 - prev: ${prevShouldDrop}, current: ${currentShouldDrop}, active: ${active.current}`)
 
     if (currentShouldDrop && !prevShouldDrop) {
       // 드롭 시작
@@ -139,10 +134,7 @@ export function SugarParticles({
         p.opacity = 1
         p.scale = 0.5 + Math.random() * 0.4
       })
-      console.log(`${beakerId}: ${particles.current.length}개 파티클이 falling 상태로 변경됨`)
     } else if (!currentShouldDrop && prevShouldDrop) {
-      // 드롭 중지 (다음 스푼을 위한 준비)
-      console.log(`${beakerId}: 설탕 드롭 중지, 다음 스푼 준비`)
       active.current = false
       hasCalledCallback.current = false
       remaining.current = instanceData.numParticles
@@ -161,12 +153,10 @@ export function SugarParticles({
   }, [shouldDrop, beakerId, instanceData.numParticles, initializeParticles, isCompleted])
 
   const handleDissolved = useCallback(() => {
-    console.log(`${beakerId}: 모든 파티클 용해 완료`)
     hasCalledCallback.current = true
 
     setTimeout(() => {
       if (onAllDissolved) {
-        console.log(`${beakerId}: onAllDissolved 콜백 호출`)
         onAllDissolved()
       }
     }, 200)
@@ -312,7 +302,6 @@ export function SugarParticles({
 
     // 모든 파티클이 용해되었을 때 콜백 호출
     if (remainingCount === 0 && active.current && !hasCalledCallback.current && shouldDrop) {
-      console.log(`${beakerId}: 모든 파티클 용해 완료, 콜백 호출`)
       handleDissolved()
     }
 
