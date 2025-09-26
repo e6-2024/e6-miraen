@@ -155,18 +155,34 @@ export default function Page() {
         innerCircleVisible={true}
       />
 
-      {/* 자막 */}
       {showSubtitle && (
-        <div className='fixed top-5 left-1/2 -translate-x-1/2 font-light z-10'>
-          <CrayonTextBox color='#01A7A2' bg='#FFF' textcolor='#333' animated={true}>
-            <strong>
-              {selectedBeaker === null
-                ? '같은 양의 물에 설탕의 양을 다르게 용해하여 진하기가 다른 두 용액을 만들어 보세요.'
-                : selectedBeaker === 'left'
-                ? '왼쪽 비커: 설탕 한 숟가락 용해하기'
-                : '오른쪽 비커: 설탕 다섯 숟가락 용해하기'}
-            </strong>
-          </CrayonTextBox>
+        <div className='fixed top-5 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-3'>
+          {selectedBeaker === null && (
+            <CrayonTextBox color='#01A7A2' bg='#FFF' textcolor='#333' className='font-light'>
+              <p>같은 양의 물에 설탕의 양을 다르게 용해하여 진하기가 다른 두 용액을 만들어 보세요.</p>
+            </CrayonTextBox>
+          )}
+
+          {selectedBeaker !== null && (
+            <CrayonTextButton
+              ariaLabel='선택된 비커 안내'
+              position='relative'
+              text={
+                selectedBeaker === 'left'
+                  ? '왼쪽 비커: 설탕 한 숟가락 용해하기'
+                  : '오른쪽 비커: 설탕 다섯 숟가락 용해하기'
+              }
+              width={360}
+              height={72}
+              color='#01A7A2'
+              textcolor='#fff'
+              bg='rgba(1,167,162,0.85)'
+              className='shadow-lg'
+              iconPosition='left'
+              iconSize={20}
+              innerCircleVisible={true}
+            />
+          )}
         </div>
       )}
 
