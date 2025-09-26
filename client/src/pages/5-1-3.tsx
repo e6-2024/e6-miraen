@@ -115,7 +115,7 @@ export default function Page() {
   }, [])
 
   return (
-    <div className='w-screen h-screen bg-[#FBF0C7] flex flex-col overflow-hidden relative'>
+    <div className='w-screen h-screen bg-white flex flex-col overflow-hidden relative'>
       <LoadingTracker onLoadingComplete={handleLoadingComplete} />
 
       {/* 홈 */}

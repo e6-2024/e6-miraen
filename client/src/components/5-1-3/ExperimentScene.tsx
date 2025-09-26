@@ -1,9 +1,9 @@
-// components/5-1-3/ExperimentScene.tsx
 import { OrbitControls, Environment, Lightformer, PerformanceMonitor, useGLTF } from '@react-three/drei'
 import { useState, useRef, useEffect } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { ORBIT_CONTROLS_CONFIG } from '@/utils/5-1-3/utils'
+import { SugarParticles } from './SugarParticles'
 
 interface GLBModel {
   scene: THREE.Object3D
@@ -17,7 +17,6 @@ interface ExperimentSceneProps {
 }
 
 export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeakerSelected }: ExperimentSceneProps) {
-  // models
   const model0 = useGLTF('/models/5-1-3/0.glb') as GLBModel
   const spoonLeftModel = useGLTF('/models/5-1-3/Spoon_left.glb') as GLBModel
   const spoonRightModel = useGLTF('/models/5-1-3/Spoon_right.glb') as GLBModel
@@ -30,17 +29,28 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
   const [hoveredBeaker, setHoveredBeaker] = useState<'a' | 'a001' | null>(null)
   const [beakersActive, setBeakersActive] = useState(false)
   const [selectedBeaker, setSelectedBeaker] = useState<'left' | 'right' | null>(null)
+  
+  const [leftSugarActive, setLeftSugarActive] = useState(false)
+  const [rightSugarActive, setRightSugarActive] = useState(false)
+  const [leftDiscRotating, setLeftDiscRotating] = useState(false)
+  const [rightDiscRotating, setRightDiscRotating] = useState(false)
 
   const beakerARef = useRef<THREE.Object3D>(null)
   const beakerA001Ref = useRef<THREE.Object3D>(null)
+  const leftPDisc1Ref = useRef<THREE.Object3D>(null)
+  const rightPDisc1Ref = useRef<THREE.Object3D>(null)
+  const leftSphereRef = useRef<THREE.Object3D>(null)
+  const rightSphereRef = useRef<THREE.Object3D>(null)
 
   const mixerRef = useRef<THREE.AnimationMixer | null>(null)
   const spoonMixerRef = useRef<THREE.AnimationMixer | null>(null)
 
   const isDraggingRef = useRef(false)
   const selectingRef = useRef(false)
+  
+  const leftRotationRef = useRef(0)
+  const rightRotationRef = useRef(0)
 
-  // start → set model, enable beakers after narration time
   useEffect(() => {
     if (!experimentStarted) return
     setCurrentModel(model0)
@@ -53,7 +63,6 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
     return () => clearTimeout(timer)
   }, [experimentStarted, model0, onNarrationComplete])
 
-  // play base model clips once
   useEffect(() => {
     if (!currentModel?.animations?.length) return
 
@@ -73,7 +82,6 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
     }
   }, [currentModel])
 
-  // play spoon clips once
   useEffect(() => {
     if (!currentSpoonModel?.animations?.length) return
 
@@ -87,7 +95,6 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
       action.play()
     })
 
-    // 선택 락 해제(간단 타임아웃) — 필요 시 mixer 'finished' 이벤트로 대체 가능
     selectingRef.current = true
     const unlock = setTimeout(() => (selectingRef.current = false), 1500)
 
@@ -97,7 +104,6 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
     }
   }, [currentSpoonModel])
 
-  // find & clone materials for blink/restore
   useEffect(() => {
     if (!currentModel) return
 
@@ -106,6 +112,18 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
         beakerARef.current = child
       } else if (child.name === 'Beaker_a001') {
         beakerA001Ref.current = child
+      } else if (child.name === 'pDisc1') {
+        if (child.position.x < 0) {
+          leftPDisc1Ref.current = child
+        } else {
+          rightPDisc1Ref.current = child
+        }
+      } else if (child.name === 'pSphere1') {
+        if (child.position.x < 0) {
+          leftSphereRef.current = child
+        } else {
+          rightSphereRef.current = child
+        }
       }
 
       if ((child as THREE.Mesh).isMesh) {
@@ -142,7 +160,31 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
     })
   }, [currentModel])
 
-  // pointer raycast (canvas element 리스너) — 드래그 보호 포함
+  const startDiscRotation = (side: 'left' | 'right') => {
+    if (side === 'left') {
+      setLeftDiscRotating(true)
+      leftRotationRef.current = 0
+    } else {
+      setRightDiscRotating(true)
+      rightRotationRef.current = 0
+    }
+  }
+
+  const hideSphere = (side: 'left' | 'right') => {
+    const sphereRef = side === 'left' ? leftSphereRef : rightSphereRef
+    if (sphereRef.current) {
+      sphereRef.current.visible = false
+    }
+  }
+
+  const startSugarParticles = (side: 'left' | 'right') => {
+    if (side === 'left') {
+      setLeftSugarActive(true)
+    } else {
+      setRightSugarActive(true)
+    }
+  }
+
   useEffect(() => {
     const el = gl.domElement
     if (!el) return
@@ -183,6 +225,10 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
           setSelectedBeaker('left')
           setCurrentSpoonModel(spoonLeftModel)
           onBeakerSelected?.('left')
+          
+          startDiscRotation('left')
+          hideSphere('left')
+          setTimeout(() => startSugarParticles('left'), 500)
           return
         }
       }
@@ -192,6 +238,10 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
           setSelectedBeaker('right')
           setCurrentSpoonModel(spoonRightModel)
           onBeakerSelected?.('right')
+          
+          startDiscRotation('right')
+          hideSphere('right')
+          setTimeout(() => startSugarParticles('right'), 500)
           return
         }
       }
@@ -205,10 +255,27 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
     }
   }, [beakersActive, camera, gl, onBeakerSelected, spoonLeftModel, spoonRightModel])
 
-  // mixers + blink in one useFrame
   useFrame((state, delta) => {
     mixerRef.current?.update(delta)
     spoonMixerRef.current?.update(delta)
+
+    if (leftDiscRotating && leftPDisc1Ref.current) {
+      leftRotationRef.current += delta * 3
+      leftPDisc1Ref.current.rotation.x = leftRotationRef.current
+      if (leftRotationRef.current >= Math.PI) {
+        leftPDisc1Ref.current.rotation.x = Math.PI
+        setLeftDiscRotating(false)
+      }
+    }
+
+    if (rightDiscRotating && rightPDisc1Ref.current) {
+      rightRotationRef.current += delta * 3
+      rightPDisc1Ref.current.rotation.x = rightRotationRef.current
+      if (rightRotationRef.current >= Math.PI) {
+        rightPDisc1Ref.current.rotation.x = Math.PI
+        setRightDiscRotating(false)
+      }
+    }
 
     const t = state.clock.getElapsedTime()
     const blinkV = 0.8 + Math.sin(t * 6) * 0.2
@@ -288,10 +355,28 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
       </Environment>
 
       {experimentStarted && currentModel && !currentSpoonModel &&(
-        <primitive object={currentModel.scene} scale={0.5} position={[0, -1, 0]} />
+        <primitive object={currentModel.scene} scale={0.5} position={[-0.7, -1, 0]} />
       )}
 
-      {currentSpoonModel && <primitive object={currentSpoonModel.scene} scale={0.5} position={[0, -1, 0]} />}
+      {currentSpoonModel && <primitive object={currentSpoonModel.scene} scale={0.5} position={[-0.7, -1, 0]} />}
+
+      {leftSugarActive && (
+        <SugarParticles
+          shouldDrop={true}
+          sugarAmount={1.0}
+          startPosition={[-1.9, 1, 0]}
+          beakerId="LEFT"
+        />
+      )}
+
+      {rightSugarActive && (
+        <SugarParticles
+          shouldDrop={true}
+          sugarAmount={5.0}
+          startPosition={[1.9, 1, 0]}
+          beakerId="RIGHT"
+        />
+      )}
 
       <OrbitControls
         {...ORBIT_CONTROLS_CONFIG}
@@ -302,7 +387,6 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
   )
 }
 
-// 미리 로딩
 useGLTF.preload('/models/5-1-3/0.glb')
 useGLTF.preload('/models/5-1-3/Spoon_left.glb')
 useGLTF.preload('/models/5-1-3/Spoon_right.glb')
