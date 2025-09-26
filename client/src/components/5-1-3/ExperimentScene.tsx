@@ -266,6 +266,7 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
         leftPDisc1Ref.current.rotation.x = Math.PI
         setLeftDiscRotating(false)
       }
+      console.log('회전 중')
     }
 
     if (rightDiscRotating && rightPDisc1Ref.current) {
