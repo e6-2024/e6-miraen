@@ -61,7 +61,7 @@ export const BASE_MODEL_CONFIG = {
 }
 
 export const CAMERA_CONFIG = {
-  position: [0, 1, 20] as [number, number, number],
+  position: [0, 5, 20] as [number, number, number],
   fov: 20,
 }
 

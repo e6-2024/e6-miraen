@@ -85,6 +85,32 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
     // 숟가락 GLB에서만 찾음
     discRef.current = findByName(spoon, 'pDisc1')
     sphereRef.current = findByName(spoon, 'Sphere')
+
+    // 머티리얼 원본 속성 저장 (하이라이트 효과를 위해)
+    const saveOriginalMaterial = (root: THREE.Object3D | null) => {
+      if (!root) return
+      root.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          const mesh = child as THREE.Mesh
+          const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+          for (const material of materials as THREE.Material[]) {
+            if (!material.userData.__orig) {
+              material.userData.__orig = {
+                transparent: material.transparent,
+                opacity: material.opacity,
+                depthWrite: material.depthWrite,
+                depthTest: material.depthTest,
+                side: material.side,
+                color: (material as any).color ? (material as any).color.clone() : null,
+              }
+            }
+          }
+        }
+      })
+    }
+
+    saveOriginalMaterial(beakerARef.current)
+    saveOriginalMaterial(beakerA001Ref.current)
   }
 
   // 실험 시작시: 모델 로드 + 5초 후 비커 활성화
@@ -183,6 +209,7 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
       refreshNodeRefs()
     }
   })
+
   const startSugarExperiment = (side: 'left' | 'right') => {
     startDiscRotation()
     window.setTimeout(() => {
@@ -244,19 +271,37 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
     }
 
     const onMove = (e: PointerEvent) => {
-      if (!beakersActive) return
+      if (!beakersActive || isDraggingRef.current) return
       getPointer(e)
 
       let next: 'a' | 'a001' | null = null
+      let hasHit = false
+
+      // 비커 충돌 체크
       if (beakerARef.current) {
-        const hitA = raycaster.intersectObject(beakerARef.current, true).length > 0
-        if (hitA) next = 'a'
+        const hitA = raycaster.intersectObject(beakerARef.current, true)
+        if (hitA.length > 0) {
+          next = 'a'
+          hasHit = true
+        }
       }
       if (!next && beakerA001Ref.current) {
-        const hitA001 = raycaster.intersectObject(beakerA001Ref.current, true).length > 0
-        if (hitA001) next = 'a001'
+        const hitA001 = raycaster.intersectObject(beakerA001Ref.current, true)
+        if (hitA001.length > 0) {
+          next = 'a001'
+          hasHit = true
+        }
       }
+
+      // 호버 상태 업데이트
       setHoveredBeaker(next)
+
+      // 마우스 커서 변경
+      if (hasHit) {
+        el.style.cursor = 'pointer'
+      } else {
+        el.style.cursor = 'auto'
+      }
     }
 
     const onDown = (e: PointerEvent) => {
@@ -285,11 +330,27 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
       }
     }
 
+    // OrbitControls 상태 추적
+    const onControlsStart = () => {
+      isDraggingRef.current = true
+      el.style.cursor = 'grabbing'
+    }
+
+    const onControlsEnd = () => {
+      isDraggingRef.current = false
+      el.style.cursor = 'auto'
+    }
+
     el.addEventListener('pointermove', onMove)
     el.addEventListener('pointerdown', onDown)
+
+    // OrbitControls 이벤트는 다른 방식으로 처리해야 할 수 있음
+    // 대신 직접 상태를 추적
+
     return () => {
       el.removeEventListener('pointermove', onMove)
       el.removeEventListener('pointerdown', onDown)
+      el.style.cursor = 'auto' // 정리 시 커서 리셋
     }
   }, [beakersActive, camera, gl, onBeakerSelected, spoonLeftModel, spoonRightModel])
 
@@ -321,57 +382,74 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
       }
     }
 
-    // 비커 깜빡임(hover)
-    const t = state.clock.getElapsedTime()
-    const blinkV = 0.8 + Math.sin(t * 6) * 0.2
-
-    const setOpacity = (m: any, next: number) => {
-      if (m.opacity !== next) {
-        m.opacity = next
-        m.needsUpdate = true
+    if (beakersActive) {
+      const t = state.clock.getElapsedTime()
+      const pulseIntensity = 0.7 + Math.sin(t * 3) * 0.3
+      const setMaterialProperty = (material: any, property: string, value: any) => {
+        if (material && material[property] !== value) {
+          material[property] = value
+          material.needsUpdate = true
+        }
       }
-    }
 
-    const applyBlink = (mesh: THREE.Mesh, v: number) => {
-      const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
-      for (const m of mats as any[]) {
-        const o = m?.userData?.__orig
-        if (!o) continue
-        m.transparent = true
-        setOpacity(m, THREE.MathUtils.clamp((o.opacity ?? 1) * v, 0, 1))
-        m.depthWrite = false
+      const applyHighlight = (mesh: THREE.Mesh, intensity: number) => {
+        const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+        for (const material of materials as any[]) {
+          const orig = material?.userData?.__orig
+          if (orig) {
+            // 부드러운 투명도 변화
+            material.transparent = true
+            const newOpacity = THREE.MathUtils.clamp((orig.opacity ?? 1) * intensity, 0.4, 0.9)
+            setMaterialProperty(material, 'opacity', newOpacity)
+            material.depthWrite = newOpacity >= 0.95
+          }
+        }
       }
-    }
 
-    const restore = (mesh: THREE.Mesh) => {
-      const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
-      for (const m of mats as any[]) {
-        const o = m?.userData?.__orig
-        if (!o) continue
-        m.transparent = o.transparent
-        setOpacity(m, o.opacity)
-        m.depthWrite = o.depthWrite
-        m.depthTest = o.depthTest
-        m.side = o.side
+      const restore = (mesh: THREE.Mesh) => {
+        const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+        for (const material of materials as any[]) {
+          const orig = material?.userData?.__orig
+          if (orig) {
+            material.transparent = orig.transparent
+            setMaterialProperty(material, 'opacity', orig.opacity ?? 1)
+            material.depthWrite = orig.depthWrite
+            material.depthTest = orig.depthTest
+            material.side = orig.side
+            
+            // emissive 리셋
+            if (material.emissive) {
+              material.emissive.setHex(0x000000)
+            }
+            
+            // 색상 리셋
+            if (material.color && orig.color) {
+              material.color.copy(orig.color)
+            }
+          }
+        }
       }
-    }
 
-    const paint = (root: THREE.Object3D | null, fn: (mesh: THREE.Mesh) => void) => {
-      if (!root) return
-      root.traverse((child) => {
-        if ((child as THREE.Mesh).isMesh) fn(child as THREE.Mesh)
-      })
-    }
+      const applyToObject = (root: THREE.Object3D | null, fn: (mesh: THREE.Mesh) => void) => {
+        if (!root) return
+        root.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            fn(child as THREE.Mesh)
+          }
+        })
+      }
 
-    if (beakersActive && hoveredBeaker === 'a') {
-      paint(beakerARef.current, (m) => applyBlink(m, blinkV))
-      paint(beakerA001Ref.current, restore)
-    } else if (beakersActive && hoveredBeaker === 'a001') {
-      paint(beakerA001Ref.current, (m) => applyBlink(m, blinkV))
-      paint(beakerARef.current, restore)
-    } else {
-      paint(beakerARef.current, restore)
-      paint(beakerA001Ref.current, restore)
+      // 호버 상태에 따른 부드러운 하이라이트 효과 적용
+      if (hoveredBeaker === 'a') {
+        applyToObject(beakerARef.current, (mesh) => applyHighlight(mesh, pulseIntensity))
+        applyToObject(beakerA001Ref.current, restore)
+      } else if (hoveredBeaker === 'a001') {
+        applyToObject(beakerA001Ref.current, (mesh) => applyHighlight(mesh, pulseIntensity))
+        applyToObject(beakerARef.current, restore)
+      } else {
+        applyToObject(beakerARef.current, restore)
+        applyToObject(beakerA001Ref.current, restore)
+      }
     }
   })
 
@@ -424,8 +502,12 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
 
       <OrbitControls
         {...ORBIT_CONTROLS_CONFIG}
-        onStart={() => (isDraggingRef.current = true)}
-        onEnd={() => (isDraggingRef.current = false)}
+        onStart={() => {
+          isDraggingRef.current = true
+        }}
+        onEnd={() => {
+          isDraggingRef.current = false
+        }}
       />
       <ContactShadows position={[0, -1, 0]} opacity={0.75} blur={2.0} />
       <AccumulativeShadows
