@@ -164,65 +164,58 @@ export default function Page() {
         iconSize={40}
         innerCircleVisible={true}
       />
-
-      {selectedBeaker && (
-        <div
-          className={`absolute bottom-4 z-10 ${
-            selectedBeaker === 'left' ? 'left-4' : 'right-4'
-          } bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg border border-gray-200 w-64`}>
-          <h3 className={`text-lg font-bold ${selectedBeaker === 'left' ? 'text-blue-800' : 'text-green-800'} mb-3`}>
-            {selectedBeaker === 'left' ? '왼쪽 비커' : '오른쪽 비커'}
-          </h3>
-
-          <div className={`mb-3 p-3 ${selectedBeaker === 'left' ? 'bg-blue-100' : 'bg-green-100'} rounded-lg`}>
-            <div className={`text-sm ${selectedBeaker === 'left' ? 'text-blue-700' : 'text-green-700'} font-light`}>
-              투입량: <span className='font-bold'>{selectedBeaker === 'left' ? '1스푼' : '5스푼'}</span>
-            </div>
-          </div>
-
-          <button
-            onClick={() => handleStartSugarExperiment(selectedBeaker)}
-            className={`w-full px-4 py-3 ${
-              selectedBeaker === 'left' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-green-500 hover:bg-green-600'
-            } text-white rounded-lg font-light transition-colors text-sm`}>
-            🥄 설탕 넣기 시작
-          </button>
-
-          <button
-            onClick={() => setSelectedBeaker(null)}
-            className='w-full mt-2 px-4 py-2 bg-gray-500 text-white rounded-lg font-light hover:bg-gray-600 transition-colors text-sm'>
-            선택 해제
-          </button>
-        </div>
-      )}
-
       {showSubtitle && (
         <div className='fixed top-5 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-3'>
           {selectedBeaker === null && (
-            <CrayonTextBox color='#01A7A2' bg='#FFF' textcolor='#333' className='font-light'>
-              <p>같은 양의 물에 설탕의 양을 다르게 용해하여 진하기가 다른 두 용액을 만들어 보세요.</p>
-            </CrayonTextBox>
+            <CrayonTextBox
+              color='#01A7A2'
+              bg='#FFF'
+              textcolor='#333'
+              className='font-light'
+              width={600}
+              text='같은 양의 물에 설탕의 양을 다르게 용해하여 진하기가 다른 두 용액을 만들어 보세요.'></CrayonTextBox>
           )}
 
           {selectedBeaker !== null && (
-            <CrayonTextButton
-              ariaLabel='선택된 비커 안내'
-              position='relative'
-              text={
-                selectedBeaker === 'left'
-                  ? '왼쪽 비커: 설탕 한 숟가락 용해하기'
-                  : '오른쪽 비커: 설탕 다섯 숟가락 용해하기'
-              }
-              width={360}
-              height={72}
-              color='#01A7A2'
-              textcolor='#fff'
-              bg='rgba(1,167,162,0.85)'
-              className='shadow-lg'
-              iconPosition='left'
-              iconSize={20}
-              innerCircleVisible={true}
-            />
+            <>
+              <CrayonTextBox className='flex gap-3 items-center'>
+                <CrayonTextButton
+                  ariaLabel='선택된 비커 안내'
+                  position='relative'
+                  text={
+                    selectedBeaker === 'left'
+                      ? '왼쪽 비커: 설탕 한 숟가락 용해하기'
+                      : '오른쪽 비커: 설탕 다섯 숟가락 용해하기'
+                  }
+                  width={360}
+                  height={72}
+                  color='#01A7A2'
+                  textcolor='#fff'
+                  bg='rgba(1,167,162,0.85)'
+                  className='shadow-lg'
+                  iconPosition='left'
+                  iconSize={20}
+                  innerCircleVisible={true}
+                />
+
+                <div className='flex flex-col gap-2'>
+                  <button
+                    onClick={() => handleStartSugarExperiment(selectedBeaker)}
+                    className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors shadow-md
+        ${
+          selectedBeaker === 'left' ? 'bg-cyan-600 hover:bg-cyan-700' : 'bg-emerald-600 hover:bg-emerald-700'
+        } text-white`}>
+                    🥄 설탕 넣기 시작
+                  </button>
+
+                  <button
+                    onClick={() => setSelectedBeaker(null)}
+                    className='rounded-lg px-4 py-2 text-sm font-medium text-white bg-gray-500 hover:bg-gray-600 transition-colors shadow-md'>
+                    ✖ 선택 해제
+                  </button>
+                </div>
+              </CrayonTextBox>
+            </>
           )}
         </div>
       )}
