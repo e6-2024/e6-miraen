@@ -1,5 +1,14 @@
 // components/5-1-3/ExperimentScene.tsx
-import { OrbitControls, Environment, Lightformer, PerformanceMonitor, useGLTF } from '@react-three/drei'
+import {
+  OrbitControls,
+  Environment,
+  Lightformer,
+  PerformanceMonitor,
+  useGLTF,
+  ContactShadows,
+  AccumulativeShadows,
+  RandomizedLight
+} from '@react-three/drei'
 import { useState, useRef, useEffect } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
@@ -306,7 +315,6 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
       discRef.current.rotation.x = Math.min(nextAngle, targetRotationRef.current)
 
       if (nextAngle >= targetRotationRef.current) {
-        // ✅ 정확히 목표 각도에서 멈추기
         discRef.current.rotation.x = targetRotationRef.current
         setDiscRotating(false)
         if (sphereRef.current) sphereRef.current.visible = false
@@ -419,6 +427,17 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
         onStart={() => (isDraggingRef.current = true)}
         onEnd={() => (isDraggingRef.current = false)}
       />
+      <ContactShadows position={[0, -1, 0]} opacity={0.75} blur={2.0} />
+      <AccumulativeShadows
+        position={[0, -1, 0]}
+        scale={50}
+        color='#000'
+        opacity={0.05}
+        alphaTest={1} 
+        frames={60} //처음에 랜더링되는 프레임중 지정된 60만큼 그림자를 만들고 누적해서 최종 그림자이미지를 만든다.
+      >
+        <RandomizedLight radius={0.5} ambient={0.21} intensity={1.5} position={[5, 3, 0]} />
+      </AccumulativeShadows>
     </>
   )
 }

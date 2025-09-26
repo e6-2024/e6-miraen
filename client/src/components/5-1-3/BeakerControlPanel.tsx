@@ -35,7 +35,7 @@ export function BeakerControlPanel({ beaker, tomato, spoon, side, spoonsCount }:
   }
 
   return (
-    <div className={`absolute top-4 z-10 ${bgColor} backdrop-blur-sm rounded-lg p-4 shadow-lg border ${borderColor} w-48 ${sideClass}`}>
+    <div className={`absolute bottom-4 z-10 ${bgColor} backdrop-blur-sm rounded-lg p-4 shadow-lg border ${borderColor} w-48 ${sideClass}`}>
       <h3 className={`text-lg font-bold ${titleColor} mb-3`}>{sideLabel} 비커</h3>
       <div className={`mb-3 p-3 ${labelBgColor} rounded-lg`}>
         <div className={`text-sm ${labelTextColor} font-light`}>

@@ -69,7 +69,7 @@ export const ORBIT_CONTROLS_CONFIG = {
 //   minAzimuthAngle: -Math.PI / 4,
 //   maxAzimuthAngle: Math.PI / 4,
 //   minPolarAngle: Math.PI / 3 + Math.PI / 10,
-//   maxPolarAngle: Math.PI / 2,
+  maxPolarAngle: Math.PI / 2,
   minDistance: 1,
   maxDistance: 20,
 }
