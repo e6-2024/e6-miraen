@@ -1,40 +1,32 @@
+// app/5-1-3/page.tsx
+'use client'
+
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import Scene from '@/components/canvas/Scene'
 import Intro from '@/components/intro/Intro'
 import { LoadingTracker } from '@/components/5-1-3/LoadingTracker'
 import { ExperimentScene } from '@/components/5-1-3/ExperimentScene'
-import { BeakerControlPanel } from '@/components/5-1-3/BeakerControlPanel'
 import { CrayonTextButton } from '@/components/common/CrayonUIButton'
-import { useSpoonBySpoonBeaker } from '@/hook/5-1-3/useSpoonBySpoonBeaker'
-import { useTomatoDrop } from '@/hook/5-1-3/useTomatoDrop'
-import { useSpoonAnimation } from '@/hook/5-1-3/useSpoonAnimation'
-import { EXPERIMENT_CONFIGS, CAMERA_CONFIG, calculateSugarConcentration, playClickSound } from '@/utils/5-1-3/utils'
+import { CrayonTextBox } from '@/components/common/CrayonTextBox'
+import { CAMERA_CONFIG, playClickSound } from '@/utils/5-1-3/utils'
 
 export default function Page() {
   const [mounted, setMounted] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
+  const [experimentStarted, setExperimentStarted] = useState(true)
+  const [showSubtitle, setShowSubtitle] = useState(false)
+  const [selectedBeaker, setSelectedBeaker] = useState<'left' | 'right' | null>(null)
 
   useEffect(() => setMounted(true), [])
 
-  const leftBeaker = useSpoonBySpoonBeaker(EXPERIMENT_CONFIGS.left.beakerId, EXPERIMENT_CONFIGS.left.spoonsCount)
-  const leftTomato = useTomatoDrop('LEFT_TOMATO')
-  const rightBeaker = useSpoonBySpoonBeaker(EXPERIMENT_CONFIGS.right.beakerId, EXPERIMENT_CONFIGS.right.spoonsCount)
-  const rightTomato = useTomatoDrop('RIGHT_TOMATO')
-
-  const leftSpoon = useSpoonAnimation()
-  const rightSpoon = useSpoonAnimation()
-
-  const leftConcentration = calculateSugarConcentration(leftBeaker.totalDissolved)
-  const rightConcentration = calculateSugarConcentration(rightBeaker.totalDissolved)
-
-  // BGM 관련 상태
+  // Audio
   const bgmRef = useRef<HTMLAudioElement | null>(null)
+  const narrationRef = useRef<HTMLAudioElement | null>(null)
   const [bgmEnabled, setBgmEnabled] = useState<boolean>(true)
   const [bgmReady, setBgmReady] = useState(false)
 
-  // BGM 설정 로드
   useEffect(() => {
     if (!mounted) return
     try {
@@ -43,7 +35,6 @@ export default function Page() {
     } catch {}
   }, [mounted])
 
-  // BGM 초기화
   useEffect(() => {
     if (!mounted) return
     const el = new Audio('/sounds/5-1-3/5-1-3-BGM.mp3')
@@ -56,7 +47,6 @@ export default function Page() {
     }
   }, [mounted])
 
-  // BGM 재생/정지 제어
   useEffect(() => {
     if (!mounted || !bgmRef.current) return
     try {
@@ -72,42 +62,16 @@ export default function Page() {
   const toggleBgm = () => setBgmEnabled((v) => !v)
 
   const handleBackToIntro = useCallback(() => {
+    if (narrationRef.current) {
+      narrationRef.current.pause()
+      narrationRef.current = null
+    }
     setShowIntro(true)
+    setExperimentStarted(false)
+    setShowSubtitle(false)
+    setSelectedBeaker(null)
     playClickSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3')
   }, [])
-
-  const handleBackToModeSelection = useCallback(() => {
-    setShowIntro(true)
-    playClickSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3')
-  }, [])
-
-  useEffect(() => {
-    console.log('Left beaker isDropping changed:', leftBeaker.isDropping, 'isAnimating:', leftSpoon.isAnimating)
-    if (leftBeaker.isDropping && !leftSpoon.isAnimating) {
-      console.log('Left spoon animation triggered!')
-      leftSpoon.triggerAnimation()
-    }
-  }, [leftBeaker.isDropping, leftSpoon.isAnimating, leftSpoon.triggerAnimation])
-
-  useEffect(() => {
-    console.log('Right beaker isDropping changed:', rightBeaker.isDropping, 'isAnimating:', rightSpoon.isAnimating)
-    if (rightBeaker.isDropping && !rightSpoon.isAnimating) {
-      console.log('Right spoon animation triggered!')
-      rightSpoon.triggerAnimation()
-    }
-  }, [rightBeaker.isDropping, rightSpoon.isAnimating, rightSpoon.triggerAnimation])
-
-  useEffect(() => {
-    if (leftTomato.isDropped && !leftSpoon.isAnimating) {
-      leftSpoon.triggerAnimation()
-    }
-  }, [leftTomato.isDropped, leftSpoon.isAnimating, leftSpoon.triggerAnimation])
-
-  useEffect(() => {
-    if (rightTomato.isDropped && !rightSpoon.isAnimating) {
-      rightSpoon.triggerAnimation()
-    }
-  }, [rightTomato.isDropped, rightSpoon.isAnimating, rightSpoon.triggerAnimation])
 
   const handleLoadingComplete = useCallback(() => {
     setIsLoaded(true)
@@ -118,12 +82,43 @@ export default function Page() {
     setBgmReady(true)
     setTimeout(() => {
       setShowIntro(false)
+      setExperimentStarted(true)
+      setShowSubtitle(true)
+
+      // 기존 내레이션 정리
+      narrationRef.current?.pause()
+
+      // 내레이션 설정
+      const narration = new Audio('/sounds/5-1-3/narration/5-1-3-A.MP3')
+      narration.volume = 0.8
+      narrationRef.current = narration
+      narration.play().catch(() => {})
     }, 300)
+  }, [])
+
+  // 내레이션 종료 시 자막 끄기 (정합성 ↑)
+  useEffect(() => {
+    const el = narrationRef.current
+    if (!el) return
+    const onEnd = () => setShowSubtitle(false)
+    el.addEventListener('ended', onEnd)
+    return () => el.removeEventListener('ended', onEnd)
+  }, [showIntro, experimentStarted])
+
+  const handleNarrationComplete = useCallback(() => {
+    setShowSubtitle(false)
+  }, [])
+
+  const handleBeakerSelected = useCallback((beaker: 'left' | 'right') => {
+    setSelectedBeaker(beaker)
+    setShowSubtitle(true)
   }, [])
 
   return (
     <div className='w-screen h-screen bg-[#FBF0C7] flex flex-col overflow-hidden relative'>
       <LoadingTracker onLoadingComplete={handleLoadingComplete} />
+
+      {/* 홈 */}
       <CrayonTextButton
         ariaLabel={'첫 화면으로'}
         icon={'home'}
@@ -141,7 +136,8 @@ export default function Page() {
         iconSize={40}
         innerCircleVisible={true}
       />
-      
+
+      {/* BGM */}
       <CrayonTextButton
         icon={bgmEnabled ? 'volume2' : 'volumeX'}
         position='absolute'
@@ -159,43 +155,33 @@ export default function Page() {
         innerCircleVisible={true}
       />
 
-      {/* 컨트롤 패널들 */}
-      {!showIntro && (
-        <>
-          <BeakerControlPanel
-            beaker={leftBeaker}
-            tomato={leftTomato}
-            spoon={leftSpoon}
-            side='left'
-            spoonsCount={EXPERIMENT_CONFIGS.left.spoonsCount}
-          />
-          <BeakerControlPanel
-            beaker={rightBeaker}
-            tomato={rightTomato}
-            spoon={rightSpoon}
-            side='right'
-            spoonsCount={EXPERIMENT_CONFIGS.right.spoonsCount}
-          />
-        </>
+      {/* 자막 */}
+      {showSubtitle && (
+        <div className='fixed top-5 left-1/2 -translate-x-1/2 font-light z-10'>
+          <CrayonTextBox color='#01A7A2' bg='#FFF' textcolor='#333' animated={true}>
+            <strong>
+              {selectedBeaker === null
+                ? '같은 양의 물에 설탕의 양을 다르게 용해하여 진하기가 다른 두 용액을 만들어 보세요.'
+                : selectedBeaker === 'left'
+                ? '왼쪽 비커: 설탕 한 숟가락 용해하기'
+                : '오른쪽 비커: 설탕 다섯 숟가락 용해하기'}
+            </strong>
+          </CrayonTextBox>
+        </div>
       )}
 
-      {/* 3D 씬 */}
+      {/* Canvas */}
       <div className='flex-1'>
         <Scene shadows camera={{ position: CAMERA_CONFIG.position, fov: CAMERA_CONFIG.fov }}>
           <ExperimentScene
-            leftBeaker={leftBeaker}
-            rightBeaker={rightBeaker}
-            leftTomato={leftTomato}
-            rightTomato={rightTomato}
-            leftSpoon={leftSpoon}
-            rightSpoon={rightSpoon}
-            leftConcentration={leftConcentration}
-            rightConcentration={rightConcentration}
+            experimentStarted={experimentStarted}
+            onNarrationComplete={handleNarrationComplete}
+            onBeakerSelected={handleBeakerSelected}
           />
         </Scene>
       </div>
 
-      {/* 인트로 화면 */}
+      {/* Intro */}
       {isLoaded && showIntro && (
         <Intro
           onEnter={handleEnterExperience}

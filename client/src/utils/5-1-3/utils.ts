@@ -61,8 +61,8 @@ export const BASE_MODEL_CONFIG = {
 }
 
 export const CAMERA_CONFIG = {
-  position: [4, 1, 8] as [number, number, number],
-  fov: 20,
+  position: [8, 3, 8] as [number, number, number],
+  fov: 50,
 }
 
 export const ORBIT_CONTROLS_CONFIG = {
