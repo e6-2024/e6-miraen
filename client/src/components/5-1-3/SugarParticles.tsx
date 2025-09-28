@@ -99,22 +99,6 @@ export function SugarParticles({
     }
   }, [isCompleted, beakerId])
 
-  const resetAllParticles = useCallback(() => {
-    console.log(`${beakerId}: 모든 파티클 완전 리셋`)
-    particles.current.forEach((p) => {
-      p.pos.copy(p.initialPos)
-      p.vel.set((Math.random() - 0.5) * 0.05, Math.random() * 0.4 + 0.1, (Math.random() - 0.5) * 0.05)
-      p.age = 0
-      p.delay = Math.random() * 0.4
-      p.state = 'falling'
-      p.radialDir = undefined
-      p.opacity = 1
-      p.scale = 0.5 + Math.random() * 0.4
-    })
-    remaining.current = instanceData.numParticles
-    hasCalledCallback.current = false
-  }, [beakerId, instanceData.numParticles])
-
   useEffect(() => {
     if (isCompleted) return
 
@@ -125,12 +109,23 @@ export function SugarParticles({
       currentSpoonRef.current += 1
       console.log(`${beakerId}: 설탕 드롭 시작! (${currentSpoonRef.current}번째 스푼)`)
       active.current = true
+      remaining.current = instanceData.numParticles
+      hasCalledCallback.current = false
 
       if (particles.current.length === 0) {
         initializeParticles()
-      } else {
-        resetAllParticles()
       }
+
+      particles.current.forEach((p) => {
+        p.pos.copy(p.initialPos)
+        p.vel.set((Math.random() - 0.5) * 0.05, Math.random() * 0.4 + 0.1, (Math.random() - 0.5) * 0.05)
+        p.age = 0
+        p.delay = Math.random() * 0.4
+        p.state = 'falling'
+        p.radialDir = undefined
+        p.opacity = 1
+        p.scale = 0.5 + Math.random() * 0.4
+      })
     } else if (!currentShouldDrop && prevShouldDrop) {
       active.current = false
       hasCalledCallback.current = false
@@ -147,7 +142,7 @@ export function SugarParticles({
     }
 
     lastShouldDrop.current = currentShouldDrop
-  }, [shouldDrop, beakerId, initializeParticles, isCompleted, resetAllParticles])
+  }, [shouldDrop, beakerId, instanceData.numParticles, initializeParticles, isCompleted])
 
   const handleDissolved = useCallback(() => {
     hasCalledCallback.current = true
@@ -282,7 +277,6 @@ export function SugarParticles({
     })
 
     if (remainingCount === 0 && active.current && !hasCalledCallback.current && shouldDrop) {
-      console.log(`${beakerId}: 모든 파티클 용해됨, 콜백 호출`)
       handleDissolved()
     }
 

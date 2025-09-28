@@ -21,11 +21,7 @@ export function useExperimentState() {
     (side: 'left' | 'right') => {
       if (side === 'left' && leftSpoonCount > 0) return
       if (side === 'right' && rightSpoonCount >= 5) return
-
-      setTimeout(() => {
-        ;(window as any).startDiscRotation?.()
-      }, 100)
-
+      ;(window as any).startDiscRotation?.()
       window.setTimeout(() => {
         if (side === 'left' && leftSpoonCount === 0) {
           setLeftSugarDropping(true)
@@ -44,24 +40,22 @@ export function useExperimentState() {
       if (side === 'left') {
         setLeftSugarDropping(false)
         setLeftComplete(true)
-        setTimeout(() => {
-          setShowGlassStick(true)
-          setGlassStickAnimating(true)
-        }, 1000)
+        setShowGlassStick(true)
+        setGlassStickAnimating(true)
       } else {
         setRightSugarDropping(false)
         if (rightSpoonCount >= 5) {
           setRightComplete(true)
-          setTimeout(() => {
-            setShowGlassStick(true)
-            setGlassStickAnimating(true)
-          }, 1000)
+          setShowGlassStick(true)
+          setGlassStickAnimating(true)
         } else {
-          startSugarExperiment('right')
+          setTimeout(() => {
+            startSugarExperiment('right')
+          }, 100)
         }
       }
     },
-    [leftSpoonCount, rightSpoonCount, startSugarExperiment],
+    [rightSpoonCount, startSugarExperiment],
   )
 
   const reset = useCallback(() => {

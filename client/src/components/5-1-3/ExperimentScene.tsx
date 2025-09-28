@@ -105,7 +105,7 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
   )
 
   const handleDiscRotationComplete = useCallback(() => {
-    console.log('Disc rotation complete')
+    ;(window as any).resetSphereOpacity()
   }, [])
 
   useEffect(() => {

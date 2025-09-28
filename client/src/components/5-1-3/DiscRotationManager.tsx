@@ -55,22 +55,6 @@ export function DiscRotationManager({
     initialRotationRef.current = discRef.current.rotation.x
     targetRotationRef.current = initialRotationRef.current + Math.PI
     opacityRef.current = 1
-
-    if (sphereRef.current) {
-      sphereRef.current.visible = true
-      sphereRef.current.traverse((child) => {
-        if ((child as THREE.Mesh).isMesh) {
-          const mesh = child as THREE.Mesh
-          if (mesh.material) {
-            const material = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material
-            if (material && 'opacity' in material) {
-              ;(material as any).transparent = true
-              ;(material as any).opacity = 1
-            }
-          }
-        }
-      })
-    }
   }
 
   useEffect(() => {
@@ -95,7 +79,6 @@ export function DiscRotationManager({
     }
     return () => {
       delete (window as any).startDiscRotation
-      delete (window as any).resetSphereOpacity
     }
   }, [animationFinished])
 
@@ -148,10 +131,16 @@ export function DiscRotationManager({
       }
     }
 
-    const shouldHideDisc = (selectedBeaker === 'left' && leftSpoonCount >= 1) || (selectedBeaker === 'right' && rightSpoonCount >= 5)
+    const shouldHideDisc =
+      (selectedBeaker === 'left' && leftSpoonCount >= 1) || (selectedBeaker === 'right' && rightSpoonCount >= 5)
 
     if (shouldHideDisc && discRef.current && discRef.current.visible) {
-      discRef.current.visible = false
+      hideTimeoutRef.current = window.setTimeout(() => {
+        if (discRef.current) {
+          discRef.current.visible = false
+          console.log('Disc 숨김 완료 (3초 후)')
+        }
+      }, 3000) // 3초 후에 disc 숨기기
     }
   })
 
