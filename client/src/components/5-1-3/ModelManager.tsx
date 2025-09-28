@@ -66,7 +66,6 @@ export function ModelManager({
     }
   }, [currentModel, onAnimationFinished])
 
-  // 스푼 모델 애니메이션 설정
   useEffect(() => {
     if (!currentSpoonModel?.animations?.length) return
 

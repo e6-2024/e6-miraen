@@ -104,8 +104,9 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
     [handleSpoonComplete],
   )
 
+
   const handleDiscRotationComplete = useCallback(() => {
-    ;(window as any).resetSphereOpacity()
+    (window as any).resetSphereOpacity()
   }, [])
 
   useEffect(() => {

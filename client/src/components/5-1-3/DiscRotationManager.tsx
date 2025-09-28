@@ -55,6 +55,7 @@ export function DiscRotationManager({
     initialRotationRef.current = discRef.current.rotation.x
     targetRotationRef.current = initialRotationRef.current + Math.PI
     opacityRef.current = 1
+
   }
 
   useEffect(() => {
@@ -131,16 +132,10 @@ export function DiscRotationManager({
       }
     }
 
-    const shouldHideDisc =
-      (selectedBeaker === 'left' && leftSpoonCount >= 1) || (selectedBeaker === 'right' && rightSpoonCount >= 5)
+    const shouldHideDisc = (selectedBeaker === 'left' && leftSpoonCount >= 1) || (selectedBeaker === 'right' && rightSpoonCount >= 5)
 
     if (shouldHideDisc && discRef.current && discRef.current.visible) {
-      hideTimeoutRef.current = window.setTimeout(() => {
-        if (discRef.current) {
-          discRef.current.visible = false
-          console.log('Disc 숨김 완료 (3초 후)')
-        }
-      }, 3000) // 3초 후에 disc 숨기기
+      discRef.current.visible = false
     }
   })
 

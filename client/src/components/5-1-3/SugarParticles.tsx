@@ -146,8 +146,6 @@ export function SugarParticles({
 
   const handleDissolved = useCallback(() => {
     hasCalledCallback.current = true
-    console.log(`${beakerId}: 모든 파티클 용해 완료!`)
-
     setTimeout(() => {
       if (onAllDissolved) {
         onAllDissolved()
