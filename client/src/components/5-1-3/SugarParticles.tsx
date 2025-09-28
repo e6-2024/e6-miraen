@@ -150,7 +150,7 @@ export function SugarParticles({
       if (onAllDissolved) {
         onAllDissolved()
       }
-    }, 200)
+    }, 0)
   }, [beakerId, onAllDissolved])
 
   useFrame((state, delta) => {

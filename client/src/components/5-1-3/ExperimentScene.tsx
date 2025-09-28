@@ -77,7 +77,7 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
     const timer = window.setTimeout(() => {
       setBeakersActive(true)
       onNarrationComplete?.()
-    }, 5000)
+    }, 500)
 
     return () => window.clearTimeout(timer)
   }, [experimentStarted, model0, onNarrationComplete])
@@ -88,7 +88,7 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
 
   const handleSpoonAnimationFinished = useCallback(() => {
     selectingRef.current = true
-    const unlock = window.setTimeout(() => (selectingRef.current = false), 1500)
+    const unlock = window.setTimeout(() => (selectingRef.current = false), 500)
 
     if (lastSelectedSideRef.current) {
       startSugarExperiment(lastSelectedSideRef.current)
