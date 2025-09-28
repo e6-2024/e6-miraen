@@ -20,16 +20,6 @@ export default function Page() {
   const [showSubtitle, setShowSubtitle] = useState(false)
   const [selectedBeaker, setSelectedBeaker] = useState<'left' | 'right' | null>(null)
 
-  // 실험 단계 상태
-  const [leftDissolved, setLeftDissolved] = useState(false)
-  const [rightDissolved, setRightDissolved] = useState(false)
-  const [tomatoDragPhase, setTomatoDragPhase] = useState(false)
-  const [tomatoDroppedSide, setTomatoDroppedSide] = useState<'left' | 'right' | null>(null)
-  const [showRemoveButton, setShowRemoveButton] = useState(false)
-  const [leftTested, setLeftTested] = useState(false)
-  const [rightTested, setRightTested] = useState(false)
-  const [showSummary, setShowSummary] = useState(false)
-
   useEffect(() => setMounted(true), [])
 
   // Audio
@@ -37,6 +27,9 @@ export default function Page() {
   const narrationRef = useRef<HTMLAudioElement | null>(null)
   const [bgmEnabled, setBgmEnabled] = useState<boolean>(true)
   const [bgmReady, setBgmReady] = useState(false)
+
+  const [leftDissolved, setLeftDissolved] = useState(false)
+  const [rightDissolved, setRightDissolved] = useState(false)
 
   const handlePowderDissolved = useCallback((side: 'left' | 'right') => {
     if (side === 'left') setLeftDissolved(true)
@@ -86,14 +79,6 @@ export default function Page() {
     setExperimentStarted(false)
     setShowSubtitle(false)
     setSelectedBeaker(null)
-    setLeftDissolved(false)
-    setRightDissolved(false)
-    setTomatoDragPhase(false)
-    setTomatoDroppedSide(null)
-    setShowRemoveButton(false)
-    setLeftTested(false)
-    setRightTested(false)
-    setShowSummary(false)
     playClickSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3')
   }, [])
 
@@ -120,7 +105,7 @@ export default function Page() {
     }, 300)
   }, [])
 
-  // 내레이션 종료 시 자막 끄기
+  // 내레이션 종료 시 자막 끄기 (정합성 ↑)
   useEffect(() => {
     const el = narrationRef.current
     if (!el) return
@@ -135,50 +120,6 @@ export default function Page() {
 
   const handleBeakerSelected = useCallback((beaker: 'left' | 'right') => {
     setSelectedBeaker(beaker)
-    setShowSubtitle(true)
-  }, [])
-
-  // 토마토 드래그 페이즈 시작
-  const handleTomatoDragPhaseStart = useCallback(() => {
-    setTomatoDragPhase(true)
-    setShowSubtitle(true)
-    console.log('토마토 드래그 페이즈 시작 - 양쪽 stick wiping 완료됨')
-  }, [])
-
-  // 토마토 드롭 핸들러
-  const handleTomatoDropped = useCallback((beaker: 'left' | 'right') => {
-    setTomatoDroppedSide(beaker)
-    setShowRemoveButton(true)
-    
-    // 해당 비커에 대한 테스트 마크
-    if (beaker === 'left') {
-      setLeftTested(true)
-      // 왼쪽 비커 내레이션
-      const narration = new Audio('/sounds/5-1-3/narration/left-sink.mp3') // 실제 파일 경로로 변경
-      narration.volume = 0.8
-      narrationRef.current = narration
-      narration.play().catch(() => {})
-    } else {
-      setRightTested(true)
-      // 오른쪽 비커 내레이션
-      const narration = new Audio('/sounds/5-1-3/narration/right-float.mp3') // 실제 파일 경로로 변경
-      narration.volume = 0.8
-      narrationRef.current = narration
-      narration.play().catch(() => {})
-    }
-  }, [])
-
-  // 토마토 제거 핸들러
-  const handleTomatoRemoved = useCallback(() => {
-    // 전역 함수 호출
-    ;(window as any).removeTomato?.()
-    setTomatoDroppedSide(null)
-    setShowRemoveButton(false)
-  }, [])
-
-  // 실험 완료 핸들러
-  const handleExperimentComplete = useCallback(() => {
-    setShowSummary(true)
     setShowSubtitle(true)
   }, [])
 
@@ -231,152 +172,62 @@ export default function Page() {
         iconSize={40}
         innerCircleVisible={true}
       />
-
-      {/* 자막 표시 */}
       {showSubtitle && (
         <div className='fixed top-5 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-3'>
-          {/* 초기 설탕 실험 단계 */}
-          {!tomatoDragPhase && selectedBeaker === null && (
+          {selectedBeaker === null && (
             <CrayonTextBox
               color='#01A7A2'
               bg='#FFF'
               textcolor='#333'
               className='font-light'
               width={600}
-              text='같은 양의 물에 설탕의 양을 다르게 용해하여 진하기가 다른 두 용액을 만들어 보세요.'
-            />
+              text='같은 양의 물에 설탕의 양을 다르게 용해하여 진하기가 다른 두 용액을 만들어 보세요.'></CrayonTextBox>
           )}
 
-          {/* 비커 선택 단계 */}
-          {!tomatoDragPhase && selectedBeaker !== null && (
-            <CrayonTextBox className='flex gap-3 items-center'>
-              <CrayonTextButton
-                ariaLabel='선택된 비커 안내'
-                position='relative'
-                text={
-                  selectedBeaker === 'left'
-                    ? '왼쪽 비커: 설탕 한 숟가락 용해하기'
-                    : '오른쪽 비커: 설탕 다섯 숟가락 용해하기'
-                }
-                width={360}
-                height={72}
-                color='#01A7A2'
-                textcolor='#fff'
-                bg='rgba(1,167,162,0.85)'
-                className='shadow-lg'
-                iconPosition='left'
-                iconSize={20}
-                innerCircleVisible={true}
-              />
+          {selectedBeaker !== null && (
+            <>
+              <CrayonTextBox className='flex gap-3 items-center'>
+                <CrayonTextButton
+                  ariaLabel='선택된 비커 안내'
+                  position='relative'
+                  text={
+                    selectedBeaker === 'left'
+                      ? '왼쪽 비커: 설탕 한 숟가락 용해하기'
+                      : '오른쪽 비커: 설탕 다섯 숟가락 용해하기'
+                  }
+                  width={360}
+                  height={72}
+                  color='#01A7A2'
+                  textcolor='#fff'
+                  bg='rgba(1,167,162,0.85)'
+                  className='shadow-lg'
+                  iconPosition='left'
+                  iconSize={20}
+                  innerCircleVisible={true}
+                />
 
-              <div className='flex flex-col gap-2'>
-                <button
-                  onClick={() => handleStartSugarExperiment(selectedBeaker)}
-                  className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors shadow-md
+                <div className='flex flex-col gap-2'>
+                  <button
+                    onClick={() => handleStartSugarExperiment(selectedBeaker)}
+                    className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors shadow-md
                   ${
                     selectedBeaker === 'left' ? 'bg-cyan-600 hover:bg-cyan-700' : 'bg-emerald-600 hover:bg-emerald-700'
                   } text-white`}>
-                  설탕 넣기 시작
-                </button>
+                    설탕 넣기 시작
+                  </button>
 
-                <button
-                  onClick={() => setSelectedBeaker(null)}
-                  className='rounded-lg px-4 py-2 text-sm font-medium text-white bg-gray-500 hover:bg-gray-600 transition-colors shadow-md'>
-                  선택 해제
-                </button>
-              </div>
-            </CrayonTextBox>
-          )}
-
-          {/* 토마토 드래그 단계 */}
-          {tomatoDragPhase && !showSummary && (
-            <CrayonTextBox
-              color='#FF6B6B'
-              bg='#FFF'
-              textcolor='#333'
-              className='font-light'
-              width={600}
-              text='용액에 방울토마토를 드래그하여 넣어보세요.'
-            />
-          )}
-
-          {/* 토마토 실험 결과 표시 */}
-          {tomatoDroppedSide === 'left' && (
-            <CrayonTextBox
-              color='#4ECDC4'
-              bg='#FFF'
-              textcolor='#333'
-              className='font-light'
-              width={600}
-              text='설탕 한 숟가락을 용해한 용액에서 방울토마토가 가라앉습니다.'
-            />
-          )}
-
-          {tomatoDroppedSide === 'right' && (
-            <CrayonTextBox
-              color='#45B7D1'
-              bg='#FFF'
-              textcolor='#333'
-              className='font-light'
-              width={600}
-              text='설탕 다섯 숟가락을 용해한 용액에서 방울토마토가 높이 떠오릅니다.'
-            />
-          )}
-
-          {/* 정리하기 단계 */}
-          {showSummary && (
-            <CrayonTextBox
-              color='#FFD93D'
-              bg='#FFF'
-              textcolor='#333'
-              className='font-light'
-              width={700}
-              text='같은 물체를 넣었을 때 물체가 높이 떠오른 용액이 더 진한 용액입니다.'
-            />
+                  <button
+                    onClick={() => setSelectedBeaker(null)}
+                    className='rounded-lg px-4 py-2 text-sm font-medium text-white bg-gray-500 hover:bg-gray-600 transition-colors shadow-md'>
+                    선택 해제
+                  </button>
+                </div>
+              </CrayonTextBox>
+            </>
           )}
         </div>
       )}
 
-      {/* 방울토마토 꺼내기 버튼 */}
-      {showRemoveButton && (
-        <div className='fixed bottom-20 left-1/2 -translate-x-1/2 z-10'>
-          <CrayonTextButton
-            text='방울토마토 꺼내기'
-            position='relative'
-            width={200}
-            height={60}
-            color='#FF6B6B'
-            textcolor='#fff'
-            bg='rgba(255,107,107,0.9)'
-            className='shadow-lg font-medium'
-            onClick={handleTomatoRemoved}
-            innerCircleVisible={true}
-          />
-        </div>
-      )}
-
-      {/* 정리하기 버튼 */}
-      {showSummary && (
-        <div className='fixed bottom-20 left-1/2 -translate-x-1/2 z-10'>
-          <CrayonTextButton
-            text='정리하기'
-            position='relative'
-            width={200}
-            height={60}
-            color='#FFD93D'
-            textcolor='#333'
-            bg='rgba(255,217,61,0.9)'
-            className='shadow-lg font-bold'
-            onClick={() => {
-              // 정리하기 로직 (예: 다음 단계로 이동)
-              console.log('정리하기 완료')
-            }}
-            innerCircleVisible={true}
-          />
-        </div>
-      )}
-
-      {/* 용해 완료 알림 */}
       <AnimatePresence>
         {leftDissolved && (
           <motion.div
@@ -412,11 +263,6 @@ export default function Page() {
             onNarrationComplete={handleNarrationComplete}
             onBeakerSelected={handleBeakerSelected}
             onPowderDissolved={handlePowderDissolved}
-            onTomatoDragPhaseStart={handleTomatoDragPhaseStart}
-            onTomatoDropped={handleTomatoDropped}
-            onExperimentComplete={handleExperimentComplete}
-            leftDissolved={leftDissolved}
-            rightDissolved={rightDissolved}
           />
         </TiltOnMouse>
       </Scene>

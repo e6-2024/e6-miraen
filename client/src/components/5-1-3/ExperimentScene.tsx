@@ -18,8 +18,6 @@ import { DiscRotationManager } from './DiscRotationManager'
 import { BeakerInteractionManager } from './BeakerInteractionManager'
 import { BeakerHighlightManager } from './BeakerHighlightManager'
 import { GlassStickManager } from './GlassStickManager'
-import { TomatoDragManager } from './TomatoDragManager'
-// import { TomatoWipingManager } from './TomatoWipingManager'  // 임시 주석처리
 import { useNodeRefs } from '@/hook/5-1-3/useNodeRefs'
 import { useExperimentState } from '@/hook/5-1-3/useExperimentState'
 import { GLBRenderer } from './GLBRenderer'
@@ -34,24 +32,9 @@ interface ExperimentSceneProps {
   onNarrationComplete?: () => void
   onBeakerSelected?: (beaker: 'left' | 'right') => void
   onPowderDissolved?: (side: 'left' | 'right') => void
-  onTomatoDragPhaseStart?: () => void
-  onTomatoDropped?: (beaker: 'left' | 'right') => void
-  onExperimentComplete?: () => void
-  leftDissolved: boolean
-  rightDissolved: boolean
 }
 
-export function ExperimentScene({ 
-  experimentStarted, 
-  onNarrationComplete, 
-  onBeakerSelected, 
-  onPowderDissolved,
-  onTomatoDragPhaseStart,
-  onTomatoDropped,
-  onExperimentComplete,
-  leftDissolved,
-  rightDissolved
-}: ExperimentSceneProps) {
+export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeakerSelected }: ExperimentSceneProps) {
   const model0 = useGLTF('/models/5-1-3/0.glb') as GLBModel
   const spoonLeftModel = useGLTF('/models/5-1-3/Spoon_left.glb') as GLBModel
   const spoonRightModel = useGLTF('/models/5-1-3/Spoon_right.glb') as GLBModel
@@ -61,10 +44,6 @@ export function ExperimentScene({
   const [currentSpoonModel, setCurrentSpoonModel] = useState<GLBModel | null>(null)
   const [hoveredBeaker, setHoveredBeaker] = useState<'a' | 'a001' | null>(null)
   const [beakersActive, setBeakersActive] = useState(false)
-  
-  // 토마토 드래그 관련 상태
-  const [showTomatoDrag, setShowTomatoDrag] = useState(false)
-  const [tomatoDroppedSide, setTomatoDroppedSide] = useState<'left' | 'right' | null>(null)
 
   const {
     selectedBeaker,
@@ -104,14 +83,6 @@ export function ExperimentScene({
     return () => window.clearTimeout(timer)
   }, [experimentStarted, model0, onNarrationComplete])
 
-  // 양쪽 용해 완료 시 토마토 드래그 활성화
-  useEffect(() => {
-    if (leftDissolved && rightDissolved && !showTomatoDrag) {
-      setShowTomatoDrag(true)
-      onTomatoDragPhaseStart?.()
-    }
-  }, [leftDissolved, rightDissolved, showTomatoDrag, onTomatoDragPhaseStart])
-
   const handleAnimationFinished = useCallback(() => {
     animationFinishedRef.current = true
   }, [])
@@ -134,25 +105,10 @@ export function ExperimentScene({
     [handleSpoonComplete],
   )
 
+
   const handleDiscRotationComplete = useCallback(() => {
     (window as any).resetSphereOpacity()
   }, [])
-
-  // 토마토 드롭 핸들러
-  const handleTomatoDropped = useCallback((beaker: 'left' | 'right') => {
-    setTomatoDroppedSide(beaker)
-    onTomatoDropped?.(beaker)
-  }, [onTomatoDropped])
-
-  // 토마토 제거 핸들러
-  const handleTomatoRemoved = useCallback(() => {
-    setTomatoDroppedSide(null)
-  }, [])
-
-  // 실험 완료 핸들러
-  const handleBothExperimentsComplete = useCallback(() => {
-    onExperimentComplete?.()
-  }, [onExperimentComplete])
 
   useEffect(() => {
     ;(window as any).startLeftSugarExperiment = () => startSugarExperiment('left')
@@ -249,21 +205,7 @@ export function ExperimentScene({
         setGlassStickAnimating={setGlassStickAnimating}
         leftComplete={leftComplete}
         rightComplete={rightComplete}
-        onDissolved={onPowderDissolved}
       />
-
-      {/* 토마토 드래그 시스템 */}
-      <TomatoDragManager
-        showTomatoDrag={showTomatoDrag}
-        leftDissolved={leftDissolved}
-        rightDissolved={rightDissolved}
-        onTomatoDropped={handleTomatoDropped}
-        onTomatoRemoved={handleTomatoRemoved}
-        onBothExperimentsComplete={handleBothExperimentsComplete}
-        currentModel={currentModel}
-      />
-
-      {/* 토마토 닦기 애니메이션 - TomatoDragManager에 통합됨 */}
 
       {leftSugarDropping && (
         <SugarParticles
