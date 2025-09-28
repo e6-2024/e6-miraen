@@ -31,9 +31,10 @@ interface ExperimentSceneProps {
   experimentStarted: boolean
   onNarrationComplete?: () => void
   onBeakerSelected?: (beaker: 'left' | 'right') => void
+  onPowderDissolved?: (side: 'left' | 'right') => void
 }
 
-export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeakerSelected }: ExperimentSceneProps) {
+export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeakerSelected, onPowderDissolved }: ExperimentSceneProps) {
   const model0 = useGLTF('/models/5-1-3/0.glb') as GLBModel
   const spoonLeftModel = useGLTF('/models/5-1-3/Spoon_left.glb') as GLBModel
   const spoonRightModel = useGLTF('/models/5-1-3/Spoon_right.glb') as GLBModel
@@ -155,7 +156,11 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
         <>
           <GLBRenderer src='/models/5-1-3/sugar.glb' scale={0.5} position={[-0.7, -1, 0]} />
           <RealisticWater position={[-2.15, -0.5, -0.2]} beakerRadius={0.57} waterLevel={0.9} />
-          <RealisticWater position={[2.34, -0.5, -0.2]} beakerRadius={0.57} waterLevel={0.9} />
+          <RealisticWater 
+            position={rightSpoonCount >= 5 ? [2.34, -0.47, -0.2] : [2.34, -0.5, -0.2]} 
+            beakerRadius={0.57} 
+            waterLevel={rightSpoonCount >= 5 ? 0.95 : 0.9} 
+          />
         </>
       )}
 
@@ -200,6 +205,7 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
         setGlassStickAnimating={setGlassStickAnimating}
         leftComplete={leftComplete}
         rightComplete={rightComplete}
+        onDissolved={onPowderDissolved}
       />
 
       {leftSugarDropping && (
@@ -239,7 +245,3 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
     </>
   )
 }
-
-useGLTF.preload('/models/5-1-3/0.glb')
-useGLTF.preload('/models/5-1-3/Spoon_left.glb')
-useGLTF.preload('/models/5-1-3/Spoon_right.glb')

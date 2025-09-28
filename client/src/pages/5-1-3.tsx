@@ -28,6 +28,14 @@ export default function Page() {
   const [bgmEnabled, setBgmEnabled] = useState<boolean>(true)
   const [bgmReady, setBgmReady] = useState(false)
 
+  const [leftDissolved, setLeftDissolved] = useState(false)
+  const [rightDissolved, setRightDissolved] = useState(false)
+
+  const handlePowderDissolved = useCallback((side: 'left' | 'right') => {
+    if (side === 'left') setLeftDissolved(true)
+    else setRightDissolved(true)
+  }, [])
+
   useEffect(() => {
     if (!mounted) return
     try {
@@ -220,6 +228,33 @@ export default function Page() {
         </div>
       )}
 
+      <AnimatePresence>
+        {leftDissolved && (
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 6 }}
+            transition={{ duration: 0.25 }}
+            className='pointer-events-none fixed bottom-32 left-[18%] -translate-x-1/2 z-[150]'>
+            <div className='bg-black/60 text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap'>
+              가루가 다 용해되었어요!
+            </div>
+          </motion.div>
+        )}
+        {rightDissolved && (
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 6 }}
+            transition={{ duration: 0.25 }}
+            className='pointer-events-none fixed bottom-32 right-[18%] translate-x-1/2 z-[150]'>
+            <div className='bg-black/60 text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap'>
+              가루가 다 용해되었어요!
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Canvas */}
       <Scene shadows camera={{ position: CAMERA_CONFIG.position, fov: CAMERA_CONFIG.fov }}>
         <TiltOnMouse enabled={showIntro} maxDeg={5}>
@@ -227,6 +262,7 @@ export default function Page() {
             experimentStarted={experimentStarted}
             onNarrationComplete={handleNarrationComplete}
             onBeakerSelected={handleBeakerSelected}
+            onPowderDissolved={handlePowderDissolved}
           />
         </TiltOnMouse>
       </Scene>

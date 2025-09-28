@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
 const GRAVITY = -3.0
-const WATER_LEVEL = 0
+const WATER_LEVEL = -0.05
 
 interface Particle {
   pos: THREE.Vector3
