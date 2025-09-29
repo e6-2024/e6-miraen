@@ -7,7 +7,7 @@ interface DiscRotationManagerProps {
   sphereRef: React.MutableRefObject<THREE.Object3D | null>
   discRotating: boolean
   setDiscRotating: (rotating: boolean) => void
-  animationFinished: boolean
+  animationFinishedRef: React.MutableRefObject<boolean>
   onRotationComplete?: () => void
   leftSpoonCount: number
   rightSpoonCount: number
@@ -19,7 +19,7 @@ export function DiscRotationManager({
   sphereRef,
   discRotating,
   setDiscRotating,
-  animationFinished,
+  animationFinishedRef,
   onRotationComplete,
   leftSpoonCount,
   rightSpoonCount,
@@ -32,30 +32,33 @@ export function DiscRotationManager({
   const opacityRef = useRef(1)
   const hideTimeoutRef = useRef<number | null>(null)
 
-  const startDiscRotation = () => {
-    if (!animationFinished) {
-      if (waitIntervalRef.current !== null) return
-      if (animationFinished) {
-        if (waitIntervalRef.current !== null) {
-          window.clearInterval(waitIntervalRef.current)
-          waitIntervalRef.current = null
-        }
-        startActualDiscRotation()
-      }
-      return
+  // 리셋 감지: 양쪽 spoon count가 모두 0이면 rotation 초기화
+  useEffect(() => {
+    if (leftSpoonCount === 0 && rightSpoonCount === 0 && discRef.current) {
+      discRef.current.rotation.x = 0
+      rotationRef.current = 0
+      initialRotationRef.current = 0
+      targetRotationRef.current = Math.PI
+      opacityRef.current = 1
     }
+  }, [leftSpoonCount, rightSpoonCount, discRef])
+
+  const startDiscRotation = () => {
     startActualDiscRotation()
   }
 
   const startActualDiscRotation = () => {
-    if (!discRef.current) return
+    if (!discRef.current) {
+      console.log('discRef.current가 없음!')
+      return
+    }
 
+    console.log('실제 disc rotation 시작!, 현재 rotation.x:', discRef.current.rotation.x)
     setDiscRotating(true)
     rotationRef.current = 0
     initialRotationRef.current = discRef.current.rotation.x
     targetRotationRef.current = initialRotationRef.current + Math.PI
     opacityRef.current = 1
-
   }
 
   useEffect(() => {
@@ -81,7 +84,7 @@ export function DiscRotationManager({
     return () => {
       delete (window as any).startDiscRotation
     }
-  }, [animationFinished])
+  }, [animationFinishedRef, sphereRef])
 
   useEffect(() => {
     return () => {
@@ -122,20 +125,27 @@ export function DiscRotationManager({
         discRef.current.rotation.x = targetRotationRef.current
         setDiscRotating(false)
 
-        // if (sphereRef.current) {
-        //   sphereRef.current.visible = false
-        // }
-
         if (onRotationComplete) {
           onRotationComplete()
         }
       }
     }
 
-    const shouldHideDisc = (selectedBeaker === 'left' && leftSpoonCount >= 1) || (selectedBeaker === 'right' && rightSpoonCount >= 5)
-
-    if (shouldHideDisc && discRef.current && discRef.current.visible) {
-      discRef.current.visible = false
+    // 수정된 visibility 로직
+    if (discRef.current) {
+      // 현재 선택된 비커에 따라 숨김 여부 결정
+      const leftShouldHide = selectedBeaker === 'left' && leftSpoonCount >= 1
+      const rightShouldHide = selectedBeaker === 'right' && rightSpoonCount >= 5
+      
+      if (leftShouldHide || rightShouldHide) {
+        discRef.current.visible = false
+      } else if (selectedBeaker !== null) {
+        // 비커가 선택되어 있으면 disc 보이기
+        discRef.current.visible = true
+      } else if (leftSpoonCount === 0 && rightSpoonCount === 0) {
+        // 완전 리셋 상태
+        discRef.current.visible = true
+      }
     }
   })
 

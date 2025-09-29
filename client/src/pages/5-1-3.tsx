@@ -76,7 +76,7 @@ export default function Page() {
     narrationRef.current?.pause()
     narrationRef.current = null
     setShowIntro(true)
-    setExperimentStarted(false)
+    setExperimentStarted(true)
     setShowSubtitle(false)
     setSelectedBeaker(null)
     playClickSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3')
@@ -259,7 +259,7 @@ export default function Page() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
-            className='fixed top-24 left-8 z-[150]'>
+            className='fixed top-32 left-8 z-[150]'>
             <CrayonTextButton
               ariaLabel='왼쪽 비커 설탕 실험'
               position='relative'
@@ -284,7 +284,7 @@ export default function Page() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
             transition={{ duration: 0.3 }}
-            className='fixed top-24 right-8 z-[150]'>
+            className='fixed top-32 right-8 z-[150]'>
             <CrayonTextButton
               ariaLabel='오른쪽 비커 설탕 실험'
               position='relative'
@@ -304,7 +304,7 @@ export default function Page() {
         )}
 
         {leftStickComplete && (
-          <div className='fixed top-48 left-48 font-bold z-[150]'>
+          <div className='fixed top-48 left-48 font-light z-[150]'>
             <TimedFade active={true} showMs={2000} fadeMs={500} depKey={leftStickComplete ? 'L1' : 'L0'}>
               <CrayonTextBox bg='#fff' color='#10B981' textcolor='#333' fontSize='16px'>
                 설탕이 모두 용해되었어요!
@@ -314,7 +314,7 @@ export default function Page() {
         )}
 
         {rightStickComplete && (
-          <div className='fixed top-48 right-48 font-bold z-[150]'>
+          <div className='fixed top-48 right-48 font-light z-[150]'>
             <TimedFade active={true} showMs={2000} fadeMs={500} depKey={leftStickComplete ? 'L1' : 'L0'}>
               <CrayonTextBox bg='#fff' color='#10B981' textcolor='#333' fontSize='16px'>
                 설탕이 모두 용해되었어요!
@@ -324,7 +324,7 @@ export default function Page() {
         )}
 
         {leftTomatoExperimentDone && (
-          <div className='fixed bottom-24 left-8 z-[150] font-bold'>
+          <div className='fixed bottom-24 left-8 z-[150] font-light'>
             <TimedFade active={true} showMs={8000} fadeMs={500} depKey={leftStickComplete ? 'L1' : 'L0'}>
               <CrayonTextBox bg='#fff' color='#10B981' textcolor='#333' fontSize='16px'>
                 설탕 한 숟가락을 용해한 용액에서 방울토마토가 가라앉습니다.
@@ -334,7 +334,7 @@ export default function Page() {
         )}
 
         {rightTomatoExperimentDone && (
-          <div className='fixed bottom-24 right-8 z-[150] font-bold'>
+          <div className='fixed bottom-24 right-8 z-[150] font-light'>
             <TimedFade active={true} showMs={8000} fadeMs={500} depKey={leftStickComplete ? 'L1' : 'L0'}>
               <CrayonTextBox bg='#fff' color='#10B981' textcolor='#333' fontSize='16px'>
                 설탕 다섯 숟가락을 용해한 용액에서 방울토마토가 높이 떠오릅니다.

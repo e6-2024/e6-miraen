@@ -262,7 +262,7 @@ export function ExperimentScene({
         sphereRef={sphereRef}
         discRotating={discRotating}
         setDiscRotating={setDiscRotating}
-        animationFinished={animationFinishedRef.current}
+        animationFinishedRef={animationFinishedRef}
         onRotationComplete={handleDiscRotationComplete}
         leftSpoonCount={leftSpoonCount}
         rightSpoonCount={rightSpoonCount}
