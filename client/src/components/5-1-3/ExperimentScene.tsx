@@ -1,4 +1,3 @@
-// components/5-1-3/ExperimentScene.tsx
 import {
   OrbitControls,
   Environment,
@@ -25,7 +24,7 @@ import { DirectTomato } from './DirectTomato'
 import { useNodeRefs } from '@/hook/5-1-3/useNodeRefs'
 import { useExperimentState } from '@/hook/5-1-3/useExperimentState'
 import { GLBRenderer } from './GLBRenderer'
-import { DropZoneDebug } from './DropZoneDebug'
+import { DropZoneDebug } from './DropZoneDebug' // 사용 안하면 제거 가능
 
 interface GLBModel {
   scene: THREE.Object3D
@@ -36,10 +35,20 @@ interface ExperimentSceneProps {
   experimentStarted: boolean
   onNarrationComplete?: () => void
   onBeakerSelected?: (beaker: 'left' | 'right') => void
-  onPowderDissolved?: (side: 'left' | 'right') => void
+  onStickComplete?: (side: 'left' | 'right') => void
+  onTomatoExperimentComplete?: (side: 'left' | 'right') => void
+  // onReset?: () => void  // ← 더 이상 필요 없음
+  resetToken?: number      // ★ 부모가 올려주는 리셋 신호
 }
 
-export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeakerSelected }: ExperimentSceneProps) {
+export function ExperimentScene({
+  experimentStarted,
+  onNarrationComplete,
+  onBeakerSelected,
+  onStickComplete,
+  onTomatoExperimentComplete,
+  resetToken = 0,
+}: ExperimentSceneProps) {
   const model0 = useGLTF('/models/5-1-3/0.glb') as GLBModel
   const spoonLeftModel = useGLTF('/models/5-1-3/Spoon_left.glb') as GLBModel
   const spoonRightModel = useGLTF('/models/5-1-3/Spoon_right.glb') as GLBModel
@@ -50,14 +59,12 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
   const [hoveredBeaker, setHoveredBeaker] = useState<'a' | 'a001' | null>(null)
   const [beakersActive, setBeakersActive] = useState(false)
 
-  // 토마토 실험 관련 상태
   const [tomatoExperimentActive, setTomatoExperimentActive] = useState(false)
   const [leftTomatoDropped, setLeftTomatoDropped] = useState(false)
   const [rightTomatoDropped, setRightTomatoDropped] = useState(false)
   const [leftTomatoPosition, setLeftTomatoPosition] = useState<[number, number, number]>([0, 0, 0])
   const [rightTomatoPosition, setRightTomatoPosition] = useState<[number, number, number]>([0, 0, 0])
 
-  // 토마토 수건 닦기 애니메이션
   const [showTomatoWiping, setShowTomatoWiping] = useState(false)
   const [tomatoWipingAnimating, setTomatoWipingAnimating] = useState(false)
 
@@ -82,7 +89,7 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
     animationFinishedRef,
     startSugarExperiment,
     handleSpoonComplete,
-    reset,
+    reset, // ★ 내부 상태 리셋 함수
   } = useExperimentState()
 
   const { beakerARef, beakerA001Ref, discRef, sphereRef } = useNodeRefs(currentModel, currentSpoonModel)
@@ -90,30 +97,54 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
   const [leftStickDissolved, setLeftStickDissolved] = useState(false)
   const [rightStickDissolved, setRightStickDissolved] = useState(false)
 
+  // 초기 진입
   useEffect(() => {
     if (!experimentStarted) return
     setCurrentModel(model0)
-
     const timer = window.setTimeout(() => {
       setBeakersActive(true)
       onNarrationComplete?.()
     }, 500)
-
     return () => window.clearTimeout(timer)
   }, [experimentStarted, model0, onNarrationComplete])
 
+  // ★ resetToken이 바뀌면 내부 전체 초기화
+  useEffect(() => {
+    // 1) 훅 내부의 핵심 상태 초기화
+    reset()
+
+    // 2) 토마토/막대/비커/표시 상태 초기화
+    setLeftTomatoDropped(false)
+    setRightTomatoDropped(false)
+    setLeftStickDissolved(false)
+    setRightStickDissolved(false)
+    setTomatoExperimentActive(false)
+    setShowTomatoWiping(false)
+    setTomatoWipingAnimating(false)
+    setBeakersActive(true)
+    setHoveredBeaker(null)
+
+    // 3) 전역 사이드이펙트/참조들 초기화
+    ;(window as any).resetSphereOpacity?.()
+    selectingRef.current = false
+    lastSelectedSideRef.current = null
+    animationFinishedRef.current = false
+
+    // 4) 모델 상태 초기화
+    setCurrentSpoonModel(null)
+    setCurrentModel(model0)
+  }, [resetToken, reset, model0, selectingRef, lastSelectedSideRef, animationFinishedRef])
+
   const handleAnimationFinished = useCallback(() => {
     animationFinishedRef.current = true
-  }, [])
+  }, [animationFinishedRef])
 
   const handleSpoonAnimationFinished = useCallback(() => {
     selectingRef.current = true
     const unlock = window.setTimeout(() => (selectingRef.current = false), 500)
-
     if (lastSelectedSideRef.current) {
       startSugarExperiment(lastSelectedSideRef.current)
     }
-
     return () => window.clearTimeout(unlock)
   }, [startSugarExperiment, lastSelectedSideRef, selectingRef])
 
@@ -125,17 +156,23 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
   )
 
   const handleDiscRotationComplete = useCallback(() => {
-    ;(window as any).resetSphereOpacity()
+    ;(window as any).resetSphereOpacity?.()
   }, [])
 
-  const handleStickDissolved = useCallback((side: 'left' | 'right') => {
-    if (side === 'left') {
-      setLeftStickDissolved(true)
-    } else {
-      setRightStickDissolved(true)
-    }
-  }, [])
+  const handleStickDissolved = useCallback(
+    (side: 'left' | 'right') => {
+      if (side === 'left') {
+        setLeftStickDissolved(true)
+        onStickComplete?.('left')
+      } else {
+        setRightStickDissolved(true)
+        onStickComplete?.('right')
+      }
+    },
+    [onStickComplete],
+  )
 
+  // 두 막대 모두 용해되면 토마토 단계 활성화
   useEffect(() => {
     if (leftStickDissolved && rightStickDissolved && !tomatoExperimentActive) {
       setTomatoExperimentActive(true)
@@ -143,24 +180,24 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
     }
   }, [leftStickDissolved, rightStickDissolved, tomatoExperimentActive])
 
-  const handleTomatoDropped = useCallback((beaker: 'left' | 'right', position: [number, number, number]) => {
-
-    if (beaker === 'left') {
-      setLeftTomatoDropped(true)
-      setLeftTomatoPosition(position)
-    } else {
-      setRightTomatoDropped(true)
-      setRightTomatoPosition(position)
-    }
-  }, [])
+  const handleTomatoDropped = useCallback(
+    (beaker: 'left' | 'right', position: [number, number, number]) => {
+      if (beaker === 'left') {
+        setLeftTomatoDropped(true)
+        setLeftTomatoPosition(position)
+        onTomatoExperimentComplete?.('left')
+      } else {
+        setRightTomatoDropped(true)
+        setRightTomatoPosition(position)
+        onTomatoExperimentComplete?.('right')
+      }
+    },
+    [onTomatoExperimentComplete],
+  )
 
   const handleTomatoPickedUp = useCallback((beaker: 'left' | 'right') => {
-
-    if (beaker === 'left') {
-      setLeftTomatoDropped(false)
-    } else {
-      setRightTomatoDropped(false)
-    }
+    if (beaker === 'left') setLeftTomatoDropped(false)
+    else setRightTomatoDropped(false)
     setShowTomatoWiping(true)
     setTomatoWipingAnimating(true)
   }, [])
@@ -170,6 +207,7 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
     setTomatoWipingAnimating(false)
   }, [])
 
+  // 전역 시작 함수 등록
   useEffect(() => {
     ;(window as any).startLeftSugarExperiment = () => startSugarExperiment('left')
     ;(window as any).startRightSugarExperiment = () => startSugarExperiment('right')
@@ -194,14 +232,7 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
           <Lightformer intensity={0.5} rotation-y={Math.PI / 2} position={[-5, 1, -1]} scale={[50, 2, 1]} />
           <Lightformer intensity={0.5} rotation-y={Math.PI / 2} position={[-5, -1, -1]} scale={[50, 2, 1]} />
         </group>
-        <Lightformer
-          intensity={5}
-          form='ring'
-          color='white'
-          rotation-y={Math.PI / 2}
-          position={[1, 1, 1]}
-          scale={[4, 4, 1]}
-        />
+        <Lightformer intensity={5} form='ring' color='white' rotation-y={Math.PI / 2} position={[1, 1, 1]} scale={[4, 4, 1]} />
       </Environment>
 
       <ModelManager
@@ -211,6 +242,7 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
         onAnimationFinished={handleAnimationFinished}
         onSpoonAnimationFinished={handleSpoonAnimationFinished}
         showTomatoWiping={showTomatoWiping}
+        
       />
 
       {(currentModel || currentSpoonModel) && (
@@ -310,7 +342,7 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
           waterLevel={rightSpoonCount >= 5 ? 0.9 : 0.85}
           beakerPosition={[2.34, rightSpoonCount >= 5 ? -1.1 : -1.2, -0.2]}
           isDropped={true}
-          maxRiseHeight={rightTomatoPosition[1] - 0.97}
+          maxRiseHeight={-0.35}
           isDraggable={true}
           onPickedUp={() => handleTomatoPickedUp('right')}
         />
@@ -347,19 +379,6 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
           ;(window as any).setDragging?.(false)
         }}
       />
-
-      {/* <DropZoneDebug
-        leftRef={beakerARef}
-        rightRef={beakerA001Ref}
-        leftBeakerPosition={[-2.15, -0.5, -0.2]}
-        rightBeakerPosition={[2.34, rightSpoonCount >= 5 ? -0.47 : -0.5, -0.2]}
-        leftWaterLevel={0.9}
-        rightWaterLevel={rightSpoonCount >= 5 ? 0.95 : 0.9}
-        beakerRadiusOverride={0.57} // 필요시 숫자 조절
-        tomatoRadius={0.12}
-        rPad={0.06}
-        yPad={0.22}
-      /> */}
 
       <ContactShadows position={[0, -1, 0]} opacity={0.75} blur={2.0} />
       <AccumulativeShadows position={[0, -1, 0]} scale={50} color='#000' opacity={0.05} alphaTest={1} frames={60}>

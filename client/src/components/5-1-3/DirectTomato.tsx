@@ -37,7 +37,7 @@ export const DirectTomato: React.FC<DirectTomatoProps> = ({
   beakerPosition = [0, -0.6, 0],
   isDropped = false,
   maxRiseHeight,
-  riseSpeed = 1.0,
+  riseSpeed = 0.7,
   riseSpringStiffness = 10,
   riseSpringDamping = 5,
   isDraggable = false,
