@@ -1,8 +1,8 @@
 import * as THREE from 'three'
-import React, { useRef, useEffect } from 'react'
+import React, { useRef, useEffect, useState, useCallback } from 'react'
 import { useGLTF } from '@react-three/drei'
 import { GLTF } from 'three-stdlib'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 
 type GLTFResult = GLTF & {
   nodes: {
@@ -15,16 +15,18 @@ type GLTFResult = GLTF & {
 
 interface DirectTomatoProps {
   startPosition?: [number, number, number]
-  sugarConcentration?: number // 설탕 농도 (g/100ml)
+  sugarConcentration?: number
   beakerRadius?: number
-  waterLevel?: number // 물 높이
+  waterLevel?: number
   beakerPosition?: [number, number, number]
   isDropped?: boolean
-  maxRiseHeight?: number // 튕겨올라가 멈출 높이
-  riseSpeed?: number // (이전용, 이제 스프링으로 대체 가능)
-  riseSpringStiffness?: number // ← 스프링 상수 k
-  riseSpringDamping?: number // ← 감쇠 상수 c
+  maxRiseHeight?: number
+  riseSpeed?: number
+  riseSpringStiffness?: number
+  riseSpringDamping?: number
+  isDraggable?: boolean
   onDrop?: () => void
+  onPickedUp?: () => void
 }
 
 export const DirectTomato: React.FC<DirectTomatoProps> = ({
@@ -35,68 +37,191 @@ export const DirectTomato: React.FC<DirectTomatoProps> = ({
   beakerPosition = [0, -0.6, 0],
   isDropped = false,
   maxRiseHeight,
-  riseSpeed = 1.2,
-  riseSpringStiffness = 20,
+  riseSpeed = 1.0,
+  riseSpringStiffness = 10,
   riseSpringDamping = 5,
+  isDraggable = false,
   onDrop,
+  onPickedUp,
 }) => {
   const { nodes, materials } = useGLTF('models/Sugar/tomato1.glb') as GLTFResult
+  const { camera, gl, controls } = useThree()
   const meshRef = useRef<THREE.Mesh>(null!)
 
-  // 목표 높이
+  const CENTER_GRAB = true
+  const grabOffsetWorld = useRef(new THREE.Vector3())
+  const pivotOffsetWorld = useRef(new THREE.Vector3())
+  const dragPlane = useRef(new THREE.Plane())
+  const dragPlaneZ = useRef<number>(0)
+  const planeNormalXY = useRef(new THREE.Vector3(0, 0, 1))
+  const raycaster = useRef<THREE.Raycaster>(new THREE.Raycaster())
+  const pointer = useRef<THREE.Vector2>(new THREE.Vector2())
+
+  const [isDragging, setIsDragging] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
+
   const apexY = maxRiseHeight ?? startPosition[1]
 
-  // 상태
   const position = useRef(new THREE.Vector3(...startPosition))
   const velocity = useRef(new THREE.Vector3(0, 0, 0))
   const isInWater = useRef(false)
   const hasDropped = useRef(false)
   const hasBouncedUp = useRef(false)
 
-  // 페이지 가시성 관련 상태 추가
   const lastTime = useRef<number | null>(null)
   const isPageVisible = useRef(true)
 
-  // 물리 상수
-  const GRAVITY = -1.5
+  const GRAVITY = -1.8
   const WATER_DRAG = 0.92
   const AIR_DRAG = 0.99
   const BOUNCE_FACTOR = 0.3
-  const MAX_DELTA = 1 / 30 // 최대 delta 값을 30fps로 제한
+  const MAX_DELTA = 1 / 60
 
-  // 토마토 속성
   const tomatoRadius = 0.12
   const tomatoDensity = 0.95
   const waterDensity = 1.0 + sugarConcentration * 0.004
   const densityDifference = waterDensity - tomatoDensity
   const buoyancyForce = densityDifference * 3.5
 
-  // 페이지 가시성 변화 감지
+  const getWorldBBoxCenter = (obj: THREE.Object3D) => {
+    const box = new THREE.Box3().setFromObject(obj)
+    const c = new THREE.Vector3()
+    box.getCenter(c)
+    return c
+  }
+
+  const updatePointer = (event: PointerEvent) => {
+    const rect = gl.domElement.getBoundingClientRect()
+    pointer.current.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
+    pointer.current.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
+  }
+
+  const handlePointerDown = (event: PointerEvent) => {
+    if (!isDraggable || isDragging || !meshRef.current) return
+
+    event.preventDefault()
+    event.stopPropagation()
+
+    updatePointer(event)
+    raycaster.current.setFromCamera(pointer.current, camera)
+    const intersects = raycaster.current.intersectObject(meshRef.current, true)
+    if (intersects.length === 0) return
+
+    setIsDragging(true)
+
+    if (controls) {
+      ;(controls as any).enabled = false
+    }
+
+    const beakerZ = beakerPosition[2]
+    dragPlaneZ.current = beakerZ
+    dragPlane.current.setFromNormalAndCoplanarPoint(
+      planeNormalXY.current,
+      new THREE.Vector3(0, 0, dragPlaneZ.current)
+    )
+
+    const planeHit = new THREE.Vector3()
+    raycaster.current.setFromCamera(pointer.current, camera)
+    if (!raycaster.current.ray.intersectPlane(dragPlane.current, planeHit)) return
+    planeHit.z = dragPlaneZ.current
+
+    const t = meshRef.current
+    const bboxCenter = getWorldBBoxCenter(t)
+    const originWorld = new THREE.Vector3()
+    t.getWorldPosition(originWorld)
+
+    pivotOffsetWorld.current.copy(originWorld).sub(bboxCenter)
+
+    if (CENTER_GRAB) {
+      grabOffsetWorld.current.set(0, 0, 0)
+    } else {
+      grabOffsetWorld.current.copy(bboxCenter).sub(planeHit)
+    }
+
+    gl.domElement.style.cursor = 'grab'
+  }
+
+  const handlePointerMove = (event: PointerEvent) => {
+    if (!isDraggable || !meshRef.current) return
+
+    updatePointer(event)
+    raycaster.current.setFromCamera(pointer.current, camera)
+
+    if (!isDragging) {
+      const intersects = raycaster.current.intersectObject(meshRef.current, true)
+      const newHovered = intersects.length > 0
+      if (newHovered !== isHovered) {
+        setIsHovered(newHovered)
+      }
+      gl.domElement.style.cursor = newHovered ? 'grab' : 'auto'
+      return
+    }
+
+    const planeHit = new THREE.Vector3()
+    const ok = raycaster.current.ray.intersectPlane(dragPlane.current, planeHit)
+    if (!ok) return
+    planeHit.z = dragPlaneZ.current
+
+    const targetCenter = planeHit.add(grabOffsetWorld.current.clone())
+
+    const dx = targetCenter.x - beakerPosition[0]
+    const dz = targetCenter.z - beakerPosition[2]
+    const r = Math.hypot(dx, dz)
+    const maxCenterR = Math.max(0.0, beakerRadius - tomatoRadius)
+    if (r > maxCenterR) {
+      const nx = dx / r
+      const nz = dz / r
+      targetCenter.x = beakerPosition[0] + nx * maxCenterR
+      targetCenter.z = beakerPosition[2] + nz * maxCenterR
+    }
+
+    const targetOrigin = targetCenter.clone().add(pivotOffsetWorld.current)
+    position.current.copy(targetOrigin)
+    velocity.current.set(0, 0, 0)
+  }
+
+  const handlePointerUp = (event: PointerEvent) => {
+    if (!isDragging) return
+
+    setIsDragging(false)
+
+    if (controls) {
+      ;(controls as any).enabled = true
+    }
+
+    gl.domElement.style.cursor = isHovered ? 'grab' : 'auto'
+
+    const currentPos = position.current
+    const waterTop = beakerPosition[1] + waterLevel
+
+    if (currentPos.y > waterTop + 0.5) {
+      onPickedUp?.()
+    } else {
+      velocity.current.set(0, -0.5, 0)
+    }
+  }
+
   useEffect(() => {
     const handleVisibilityChange = () => {
       isPageVisible.current = !document.hidden
       if (!document.hidden) {
-        // 페이지가 다시 보일 때 타이머 리셋
         lastTime.current = null
       }
     }
-
     document.addEventListener('visibilitychange', handleVisibilityChange)
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [])
 
-  // 드롭 토글
   useEffect(() => {
     if (isDropped && !hasDropped.current) {
       hasDropped.current = true
       position.current.set(...startPosition)
       velocity.current.set((Math.random() - 0.5) * 0.3, -0.5, 0.03)
-      lastTime.current = null // 타이머 리셋
+      lastTime.current = null
       onDrop?.()
     } else if (!isDropped && hasDropped.current) {
-      // 리셋
       hasDropped.current = false
       isInWater.current = false
       hasBouncedUp.current = false
@@ -106,45 +231,67 @@ export const DirectTomato: React.FC<DirectTomatoProps> = ({
     }
   }, [isDropped, startPosition, onDrop])
 
-  useFrame((state, delta) => {
+  useEffect(() => {
+    if (!isDraggable || !gl.domElement) return
+    const element = gl.domElement
+
+    element.addEventListener('pointerdown', handlePointerDown, { passive: false })
+    element.addEventListener('pointermove', handlePointerMove, { passive: false })
+    element.addEventListener('pointerup', handlePointerUp, { passive: false })
+
+    return () => {
+      element.removeEventListener('pointerdown', handlePointerDown)
+      element.removeEventListener('pointermove', handlePointerMove)
+      element.removeEventListener('pointerup', handlePointerUp)
+      element.style.cursor = 'auto'
+      if (controls) {
+        ;(controls as any).enabled = true
+      }
+    }
+  }, [isDraggable, isDragging, isHovered])
+
+  useFrame((_, delta) => {
     if (!meshRef.current) return
 
-    // delta 값 제한 - 페이지 전환 시 비정상적으로 큰 값 방지
-    const clampedDelta = Math.min(delta, MAX_DELTA)
+    if (isDraggable) {
+      const material = meshRef.current.material as THREE.MeshPhysicalMaterial
+      if (material && (material as any).emissive) {
+        if (isHovered || isDragging) {
+          material.emissive.setRGB(0.25, 0.12, 0.12)
+        } else {
+          material.emissive.setRGB(0, 0, 0)
+        }
+      }
+    }
 
+    if (isDragging) {
+      meshRef.current.position.copy(position.current)
+      return
+    }
+
+    const clampedDelta = Math.min(delta, MAX_DELTA)
     const pos = position.current
     const vel = velocity.current
 
-    // 드롭 전 고정
     if (!hasDropped.current) {
       meshRef.current.position.set(...startPosition)
       return
     }
 
-    // 이미 스프링 상승 중이면
     if (hasBouncedUp.current) {
-      // spring F = -k * x  - c * v
       const displacement = apexY - pos.y
       const springForce = riseSpringStiffness * displacement
       const dampingForce = -riseSpringDamping * vel.y
-
-      // dv = (spring + damping) * dt
       vel.y += (springForce + dampingForce) * clampedDelta
-      
-
-      // 위치 업데이트
       pos.y += vel.y * clampedDelta
-
       if (Math.abs(displacement) < 0.01 && Math.abs(vel.y) < 0.01) {
         pos.y = apexY
         vel.y = 0
       }
-
       meshRef.current.position.copy(pos)
       return
     }
 
-    // 비커-물 체크
     const dx = pos.x - beakerPosition[0]
     const dz = pos.z - beakerPosition[2]
     const distanceFromCenter = Math.hypot(dx, dz)
@@ -152,7 +299,6 @@ export const DirectTomato: React.FC<DirectTomatoProps> = ({
     const atWaterLevel = pos.y <= beakerPosition[1] + waterLevel - tomatoRadius * 0.5
     const currentlyInWater = insideBeaker && atWaterLevel
 
-    // 중력/부력
     if (currentlyInWater) {
       vel.y += (GRAVITY + buoyancyForce) * clampedDelta
       vel.multiplyScalar(WATER_DRAG)
@@ -160,13 +306,9 @@ export const DirectTomato: React.FC<DirectTomatoProps> = ({
       vel.y += GRAVITY * clampedDelta
       vel.multiplyScalar(AIR_DRAG)
     }
-    
 
-    // 위치 업데이트 - clampedDelta 사용
     pos.addScaledVector(vel, clampedDelta)
-    
 
-    // 벽 충돌
     const effectiveRadius = beakerRadius - tomatoRadius
     if (distanceFromCenter > effectiveRadius) {
       const n = new THREE.Vector3(dx, 0, dz).normalize()
@@ -179,13 +321,11 @@ export const DirectTomato: React.FC<DirectTomatoProps> = ({
       }
     }
 
-    // 바닥 충돌
     if (distanceFromCenter < beakerRadius) {
       const bottomY = beakerPosition[1] - 0.25 + tomatoRadius
       if (pos.y < bottomY) {
         pos.y = bottomY
         vel.y = Math.abs(vel.y) * BOUNCE_FACTOR
-
         if (sugarConcentration! > 20 && !hasBouncedUp.current) {
           hasBouncedUp.current = true
           vel.y = riseSpeed
@@ -211,6 +351,7 @@ export const DirectTomato: React.FC<DirectTomatoProps> = ({
       pos.y = startPosition[1] + 0.5
       vel.y = Math.min(0, vel.y)
     }
+
     meshRef.current.position.copy(pos)
     meshRef.current.rotation.x += vel.y * clampedDelta * 0.5
     meshRef.current.rotation.z += vel.x * clampedDelta * 0.5
@@ -222,9 +363,9 @@ export const DirectTomato: React.FC<DirectTomatoProps> = ({
       castShadow
       receiveShadow
       geometry={nodes.Cherry_tomato2.geometry}
-      rotation={[Math.PI / 2, 0, 0]}
+      rotation={[Math.PI/2, 0, Math.PI/2]}
       material={materials.DefaultMaterial}
-      scale={6 * 0.01}
+      scale={0.09}
     />
   )
 }

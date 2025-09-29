@@ -1,3 +1,4 @@
+// components/5-1-3/ExperimentScene.tsx
 import {
   OrbitControls,
   Environment,
@@ -18,9 +19,13 @@ import { DiscRotationManager } from './DiscRotationManager'
 import { BeakerInteractionManager } from './BeakerInteractionManager'
 import { BeakerHighlightManager } from './BeakerHighlightManager'
 import { GlassStickManager } from './GlassStickManager'
+import { TomatoDragManager } from './TomatoDragManager'
+import { TomatoWipingManager } from './TomatoWipingManager'
+import { DirectTomato } from './DirectTomato'
 import { useNodeRefs } from '@/hook/5-1-3/useNodeRefs'
 import { useExperimentState } from '@/hook/5-1-3/useExperimentState'
 import { GLBRenderer } from './GLBRenderer'
+import { DropZoneDebug } from './DropZoneDebug'
 
 interface GLBModel {
   scene: THREE.Object3D
@@ -44,6 +49,17 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
   const [currentSpoonModel, setCurrentSpoonModel] = useState<GLBModel | null>(null)
   const [hoveredBeaker, setHoveredBeaker] = useState<'a' | 'a001' | null>(null)
   const [beakersActive, setBeakersActive] = useState(false)
+
+  // 토마토 실험 관련 상태
+  const [tomatoExperimentActive, setTomatoExperimentActive] = useState(false)
+  const [leftTomatoDropped, setLeftTomatoDropped] = useState(false)
+  const [rightTomatoDropped, setRightTomatoDropped] = useState(false)
+  const [leftTomatoPosition, setLeftTomatoPosition] = useState<[number, number, number]>([0, 0, 0])
+  const [rightTomatoPosition, setRightTomatoPosition] = useState<[number, number, number]>([0, 0, 0])
+
+  // 토마토 수건 닦기 애니메이션
+  const [showTomatoWiping, setShowTomatoWiping] = useState(false)
+  const [tomatoWipingAnimating, setTomatoWipingAnimating] = useState(false)
 
   const {
     selectedBeaker,
@@ -70,6 +86,9 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
   } = useExperimentState()
 
   const { beakerARef, beakerA001Ref, discRef, sphereRef } = useNodeRefs(currentModel, currentSpoonModel)
+
+  const [leftStickDissolved, setLeftStickDissolved] = useState(false)
+  const [rightStickDissolved, setRightStickDissolved] = useState(false)
 
   useEffect(() => {
     if (!experimentStarted) return
@@ -105,9 +124,50 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
     [handleSpoonComplete],
   )
 
-
   const handleDiscRotationComplete = useCallback(() => {
-    (window as any).resetSphereOpacity()
+    ;(window as any).resetSphereOpacity()
+  }, [])
+
+  const handleStickDissolved = useCallback((side: 'left' | 'right') => {
+    if (side === 'left') {
+      setLeftStickDissolved(true)
+    } else {
+      setRightStickDissolved(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (leftStickDissolved && rightStickDissolved && !tomatoExperimentActive) {
+      setTomatoExperimentActive(true)
+      setBeakersActive(false)
+    }
+  }, [leftStickDissolved, rightStickDissolved, tomatoExperimentActive])
+
+  const handleTomatoDropped = useCallback((beaker: 'left' | 'right', position: [number, number, number]) => {
+
+    if (beaker === 'left') {
+      setLeftTomatoDropped(true)
+      setLeftTomatoPosition(position)
+    } else {
+      setRightTomatoDropped(true)
+      setRightTomatoPosition(position)
+    }
+  }, [])
+
+  const handleTomatoPickedUp = useCallback((beaker: 'left' | 'right') => {
+
+    if (beaker === 'left') {
+      setLeftTomatoDropped(false)
+    } else {
+      setRightTomatoDropped(false)
+    }
+    setShowTomatoWiping(true)
+    setTomatoWipingAnimating(true)
+  }, [])
+
+  const handleWipingComplete = useCallback(() => {
+    setShowTomatoWiping(false)
+    setTomatoWipingAnimating(false)
   }, [])
 
   useEffect(() => {
@@ -150,16 +210,17 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
         currentSpoonModel={currentSpoonModel}
         onAnimationFinished={handleAnimationFinished}
         onSpoonAnimationFinished={handleSpoonAnimationFinished}
+        showTomatoWiping={showTomatoWiping}
       />
 
       {(currentModel || currentSpoonModel) && (
         <>
           <GLBRenderer src='/models/5-1-3/sugar.glb' scale={0.5} position={[-0.7, -1, 0]} />
           <RealisticWater position={[-2.15, -0.5, -0.2]} beakerRadius={0.57} waterLevel={0.9} />
-          <RealisticWater 
-            position={rightSpoonCount >= 5 ? [2.34, -0.47, -0.2] : [2.34, -0.5, -0.2]} 
-            beakerRadius={0.57} 
-            waterLevel={rightSpoonCount >= 5 ? 0.95 : 0.9} 
+          <RealisticWater
+            position={rightSpoonCount >= 5 ? [2.34, -0.47, -0.2] : [2.34, -0.5, -0.2]}
+            beakerRadius={0.57}
+            waterLevel={rightSpoonCount >= 5 ? 0.95 : 0.9}
           />
         </>
       )}
@@ -177,7 +238,7 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
       />
 
       <BeakerInteractionManager
-        beakersActive={beakersActive}
+        beakersActive={beakersActive && !tomatoExperimentActive}
         beakerARef={beakerARef}
         beakerA001Ref={beakerA001Ref}
         hoveredBeaker={hoveredBeaker}
@@ -193,7 +254,7 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
       />
 
       <BeakerHighlightManager
-        beakersActive={beakersActive}
+        beakersActive={beakersActive && !tomatoExperimentActive}
         hoveredBeaker={hoveredBeaker}
         beakerARef={beakerARef}
         beakerA001Ref={beakerA001Ref}
@@ -205,7 +266,55 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
         setGlassStickAnimating={setGlassStickAnimating}
         leftComplete={leftComplete}
         rightComplete={rightComplete}
+        onDissolved={handleStickDissolved}
       />
+
+      <TomatoWipingManager
+        showTomatoWiping={showTomatoWiping}
+        tomatoWipingAnimating={tomatoWipingAnimating}
+        setTomatoWipingAnimating={setTomatoWipingAnimating}
+        onWipingComplete={handleWipingComplete}
+      />
+
+      <TomatoDragManager
+        tomatoActive={tomatoExperimentActive}
+        currentModel={currentModel}
+        currentSpoonModel={currentSpoonModel}
+        beakerARef={beakerARef}
+        beakerA001Ref={beakerA001Ref}
+        onTomatoDropped={handleTomatoDropped}
+        leftTomatoDropped={leftTomatoDropped}
+        rightTomatoDropped={rightTomatoDropped}
+        showTomatoWiping={showTomatoWiping}
+      />
+
+      {leftTomatoDropped && (
+        <DirectTomato
+          startPosition={leftTomatoPosition}
+          sugarConcentration={leftSpoonCount * 2.1}
+          beakerRadius={0.57}
+          waterLevel={0.8}
+          beakerPosition={[-2.15, -1.05, -0.2]}
+          isDropped={true}
+          maxRiseHeight={leftTomatoPosition[1] + 0.1}
+          isDraggable={true}
+          onPickedUp={() => handleTomatoPickedUp('left')}
+        />
+      )}
+
+      {rightTomatoDropped && (
+        <DirectTomato
+          startPosition={rightTomatoPosition}
+          sugarConcentration={rightSpoonCount * 4.2}
+          beakerRadius={0.57}
+          waterLevel={rightSpoonCount >= 5 ? 0.9 : 0.85}
+          beakerPosition={[2.34, rightSpoonCount >= 5 ? -1.1 : -1.2, -0.2]}
+          isDropped={true}
+          maxRiseHeight={rightTomatoPosition[1] - 0.97}
+          isDraggable={true}
+          onPickedUp={() => handleTomatoPickedUp('right')}
+        />
+      )}
 
       {leftSugarDropping && (
         <SugarParticles
@@ -229,6 +338,7 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
       )}
 
       <OrbitControls
+        makeDefault
         {...ORBIT_CONTROLS_CONFIG}
         onStart={() => {
           ;(window as any).setDragging?.(true)
@@ -237,6 +347,20 @@ export function ExperimentScene({ experimentStarted, onNarrationComplete, onBeak
           ;(window as any).setDragging?.(false)
         }}
       />
+
+      {/* <DropZoneDebug
+        leftRef={beakerARef}
+        rightRef={beakerA001Ref}
+        leftBeakerPosition={[-2.15, -0.5, -0.2]}
+        rightBeakerPosition={[2.34, rightSpoonCount >= 5 ? -0.47 : -0.5, -0.2]}
+        leftWaterLevel={0.9}
+        rightWaterLevel={rightSpoonCount >= 5 ? 0.95 : 0.9}
+        beakerRadiusOverride={0.57} // 필요시 숫자 조절
+        tomatoRadius={0.12}
+        rPad={0.06}
+        yPad={0.22}
+      /> */}
+
       <ContactShadows position={[0, -1, 0]} opacity={0.75} blur={2.0} />
       <AccumulativeShadows position={[0, -1, 0]} scale={50} color='#000' opacity={0.05} alphaTest={1} frames={60}>
         <RandomizedLight radius={0.5} ambient={0.21} intensity={1.5} position={[5, 3, 0]} />

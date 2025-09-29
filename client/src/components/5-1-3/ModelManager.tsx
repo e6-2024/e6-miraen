@@ -1,6 +1,5 @@
 // components/5-1-3/ModelManager.tsx
 import React, { useEffect, useRef } from 'react'
-import { useGLTF } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
@@ -15,6 +14,7 @@ interface ModelManagerProps {
   currentSpoonModel: GLBModel | null
   onAnimationFinished: () => void
   onSpoonAnimationFinished: () => void
+  showTomatoWiping: boolean
 }
 
 export function ModelManager({
@@ -22,13 +22,13 @@ export function ModelManager({
   currentModel,
   currentSpoonModel,
   onAnimationFinished,
-  onSpoonAnimationFinished
+  onSpoonAnimationFinished,
+  showTomatoWiping
 }: ModelManagerProps) {
   const mixerRef = useRef<THREE.AnimationMixer | null>(null)
   const spoonMixerRef = useRef<THREE.AnimationMixer | null>(null)
   const animationFinishedRef = useRef(false)
 
-  // 메인 모델 애니메이션 설정
   useEffect(() => {
     if (!currentModel) return
 
@@ -91,8 +91,17 @@ export function ModelManager({
     }
   }, [currentSpoonModel, onSpoonAnimationFinished])
 
-  // 프레임 업데이트
-  useFrame((state, delta) => {
+  useEffect(() => {
+    const apply = (root?: THREE.Object3D | null) => {
+      if (!root) return
+      const g = root.getObjectByName('Sketchfab_model')
+      if (g) g.visible = !showTomatoWiping
+    }
+    apply(currentModel?.scene)
+    apply(currentSpoonModel?.scene)
+  }, [showTomatoWiping, currentModel, currentSpoonModel])
+
+  useFrame((_, delta) => {
     mixerRef.current?.update(delta)
     spoonMixerRef.current?.update(delta)
   })
