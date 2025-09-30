@@ -108,12 +108,8 @@ export function ExperimentScene({
     return () => window.clearTimeout(timer)
   }, [experimentStarted, model0, onNarrationComplete])
 
-  // ★ resetToken이 바뀌면 내부 전체 초기화
   useEffect(() => {
-    // 1) 훅 내부의 핵심 상태 초기화
     reset()
-
-    // 2) 토마토/막대/비커/표시 상태 초기화
     setLeftTomatoDropped(false)
     setRightTomatoDropped(false)
     setLeftStickDissolved(false)
@@ -124,13 +120,11 @@ export function ExperimentScene({
     setBeakersActive(true)
     setHoveredBeaker(null)
 
-    // 3) 전역 사이드이펙트/참조들 초기화
     ;(window as any).resetSphereOpacity?.()
     selectingRef.current = false
     lastSelectedSideRef.current = null
     animationFinishedRef.current = false
 
-    // 4) 모델 상태 초기화
     setCurrentSpoonModel(null)
     setCurrentModel(model0)
   }, [resetToken, reset, model0, selectingRef, lastSelectedSideRef, animationFinishedRef])
@@ -171,8 +165,6 @@ export function ExperimentScene({
     },
     [onStickComplete],
   )
-
-  // 두 막대 모두 용해되면 토마토 단계 활성화
   useEffect(() => {
     if (leftStickDissolved && rightStickDissolved && !tomatoExperimentActive) {
       setTomatoExperimentActive(true)
@@ -342,7 +334,7 @@ export function ExperimentScene({
           waterLevel={rightSpoonCount >= 5 ? 0.9 : 0.85}
           beakerPosition={[2.34, rightSpoonCount >= 5 ? -1.1 : -1.2, -0.2]}
           isDropped={true}
-          maxRiseHeight={-0.35}
+          maxRiseHeight={-0.45}
           isDraggable={true}
           onPickedUp={() => handleTomatoPickedUp('right')}
         />
