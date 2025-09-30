@@ -78,13 +78,10 @@ export default function Page() {
   const toggleBgm = () => setBgmEnabled((v) => !v)
 
   const handleBackToIntro = useCallback(() => {
+    setShowIntro(true)
+    handleResetForIntro()
     narrationRef.current?.pause()
     narrationRef.current = null
-    setShowIntro(true)
-    setExperimentStarted(true)
-    setShowSubtitle(false)
-    setSelectedBeaker(null)
-    setShowChoiceButtons(false)
     playClickSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3')
   }, [])
 
@@ -176,6 +173,29 @@ export default function Page() {
       completionAudioRef.current = null
     }
   }, [showCompletionPopup])
+
+    const handleResetForIntro = useCallback(() => {
+    narrationRef.current?.pause()
+    narrationRef.current = null
+    completionAudioRef.current?.pause()
+    completionAudioRef.current = null
+
+    setShowCompletionPopup(false)
+    setShowSubtitle(true)
+    setSelectedBeaker(null)
+    setLeftStickComplete(false)
+    setRightStickComplete(false)
+    setLeftTomatoExperimentDone(false)
+    setRightTomatoExperimentDone(false)
+    setShowTomatoInstruction(false)
+    setShowChoiceButtons(false)
+    setLastTomatoResult(null)
+    setLeftChoiceUsed(false)
+    setRightChoiceUsed(false)
+    setRunningSide(null)
+
+    setResetToken((t) => t + 1)
+  }, [])
 
   const handleResetAll = useCallback(() => {
     narrationRef.current?.pause()
