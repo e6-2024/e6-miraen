@@ -12,6 +12,20 @@ import { CrayonTextBox } from '@/components/common/CrayonTextBox'
 import { CAMERA_CONFIG, playClickSound } from '@/utils/5-1-3/utils'
 import { TiltOnMouse } from '@/components/common/Tilt'
 import { TimedFade } from '@/components/5-1-3/TimeFade'
+import { useGLTF } from '@react-three/drei'
+
+const MODELS_TO_PRELOAD = [
+  '/models/5-1-3/0.glb',
+  '/models/5-1-3/Spoon_left.glb',
+  '/models/5-1-3/Spoon_right.glb',
+  '/models/5-1-3/Glass_Stick.glb',
+  '/models/5-1-3/Tomato_wiping.glb',
+  '/models/5-1-3/sugar.glb',
+  'models/Sugar/tomato1.glb',
+]
+MODELS_TO_PRELOAD.forEach((path) => {
+  useGLTF.preload(path)
+})
 
 export default function Page() {
   const [mounted, setMounted] = useState(false)
@@ -43,6 +57,8 @@ export default function Page() {
   const [leftChoiceUsed, setLeftChoiceUsed] = useState(false)
   const [rightChoiceUsed, setRightChoiceUsed] = useState(false)
   const [runningSide, setRunningSide] = useState<'left' | 'right' | null>(null)
+  const loadingCompletedRef = useRef(false)
+
   useEffect(() => {
     if (!mounted) return
     try {
@@ -85,7 +101,13 @@ export default function Page() {
     playClickSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3')
   }, [])
 
-  const handleLoadingComplete = useCallback(() => setIsLoaded(true), [])
+  const handleLoadingComplete = useCallback(() => {
+    if (loadingCompletedRef.current) {
+      return
+    }
+    loadingCompletedRef.current = true
+    setIsLoaded(true)
+  }, [])
 
   const handleEnterExperience = useCallback(() => {
     playClickSound()
@@ -174,7 +196,7 @@ export default function Page() {
     }
   }, [showCompletionPopup])
 
-    const handleResetForIntro = useCallback(() => {
+  const handleResetForIntro = useCallback(() => {
     narrationRef.current?.pause()
     narrationRef.current = null
     completionAudioRef.current?.pause()

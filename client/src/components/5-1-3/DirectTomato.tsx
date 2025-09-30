@@ -370,4 +370,3 @@ export const DirectTomato: React.FC<DirectTomatoProps> = ({
   )
 }
 
-useGLTF.preload('models/Sugar/tomato1.glb')

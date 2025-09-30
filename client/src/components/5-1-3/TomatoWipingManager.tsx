@@ -83,4 +83,3 @@ export function TomatoWipingManager({
   )
 }
 
-useGLTF.preload('/models/5-1-3/Tomato_wiping.glb')

@@ -73,4 +73,3 @@ export const BaseModel = (props: JSX.IntrinsicElements['group']) => {
   )
 }
 
-useGLTF.preload('models/Sugar/base.glb')

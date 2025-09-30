@@ -27,4 +27,3 @@ export const Spoon = (props: JSX.IntrinsicElements['group']) => {
   )
 }
 
-useGLTF.preload('models/Sugar/spoon.glb')

@@ -91,4 +91,3 @@ export function GlassStickManager({
   )
 }
 
-useGLTF.preload('/models/5-1-3/sugar.glb')

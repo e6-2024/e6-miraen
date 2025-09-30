@@ -27,4 +27,3 @@ export const Tomato = (props: JSX.IntrinsicElements['group']) => {
   )
 }
 
-useGLTF.preload('models/Sugar/tomato1.glb')
