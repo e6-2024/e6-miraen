@@ -71,9 +71,9 @@ export const DirectTomato: React.FC<DirectTomatoProps> = ({
   const lastTime = useRef<number | null>(null)
   const isPageVisible = useRef(true)
 
-  const GRAVITY = -3.0
-  const WATER_DRAG = 0.92
-  const AIR_DRAG = 0.99
+  const GRAVITY = -5.0
+  const WATER_DRAG = 0.94
+  const AIR_DRAG = 1.0
   const BOUNCE_FACTOR = 0.3
   const MAX_DELTA = 1 / 60
 

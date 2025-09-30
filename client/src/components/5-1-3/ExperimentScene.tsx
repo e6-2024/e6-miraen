@@ -1,3 +1,4 @@
+// components/5-1-3/ExperimentScene.tsx
 import {
   OrbitControls,
   Environment,
@@ -8,14 +9,13 @@ import {
   AccumulativeShadows,
   RandomizedLight,
 } from '@react-three/drei'
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import * as THREE from 'three'
 import { ORBIT_CONTROLS_CONFIG } from '@/utils/5-1-3/utils'
 import { SugarParticles } from './SugarParticles'
 import { RealisticWater } from './RealisticWater'
 import { ModelManager } from './ModelManager'
 import { DiscRotationManager } from './DiscRotationManager'
-import { BeakerInteractionManager } from './BeakerInteractionManager'
 import { BeakerHighlightManager } from './BeakerHighlightManager'
 import { GlassStickManager } from './GlassStickManager'
 import { TomatoDragManager } from './TomatoDragManager'
@@ -24,7 +24,6 @@ import { DirectTomato } from './DirectTomato'
 import { useNodeRefs } from '@/hook/5-1-3/useNodeRefs'
 import { useExperimentState } from '@/hook/5-1-3/useExperimentState'
 import { GLBRenderer } from './GLBRenderer'
-import { DropZoneDebug } from './DropZoneDebug' // 사용 안하면 제거 가능
 
 interface GLBModel {
   scene: THREE.Object3D
@@ -37,8 +36,7 @@ interface ExperimentSceneProps {
   onBeakerSelected?: (beaker: 'left' | 'right') => void
   onStickComplete?: (side: 'left' | 'right') => void
   onTomatoExperimentComplete?: (side: 'left' | 'right') => void
-  // onReset?: () => void  // ← 더 이상 필요 없음
-  resetToken?: number      // ★ 부모가 올려주는 리셋 신호
+  resetToken?: number
 }
 
 export function ExperimentScene({
@@ -72,9 +70,7 @@ export function ExperimentScene({
     selectedBeaker,
     setSelectedBeaker,
     leftSugarDropping,
-    setLeftSugarDropping,
     rightSugarDropping,
-    setRightSugarDropping,
     discRotating,
     setDiscRotating,
     leftSpoonCount,
@@ -89,7 +85,7 @@ export function ExperimentScene({
     animationFinishedRef,
     startSugarExperiment,
     handleSpoonComplete,
-    reset, // ★ 내부 상태 리셋 함수
+    reset,
   } = useExperimentState()
 
   const { beakerARef, beakerA001Ref, discRef, sphereRef } = useNodeRefs(currentModel, currentSpoonModel)
@@ -97,16 +93,58 @@ export function ExperimentScene({
   const [leftStickDissolved, setLeftStickDissolved] = useState(false)
   const [rightStickDissolved, setRightStickDissolved] = useState(false)
 
-  // 초기 진입
+  const bothDone = leftStickDissolved && rightStickDissolved
+  const startedSidesRef = useRef<{ left: boolean; right: boolean }>({ left: false, right: false })
+  const spoonFinishFallbackRef = useRef<number | null>(null)
+
   useEffect(() => {
     if (!experimentStarted) return
     setCurrentModel(model0)
-    const timer = window.setTimeout(() => {
-      setBeakersActive(true)
+    const t = setTimeout(() => {
+      setBeakersActive(false)
       onNarrationComplete?.()
-    }, 500)
-    return () => window.clearTimeout(timer)
+    }, 300)
+    return () => clearTimeout(t)
   }, [experimentStarted, model0, onNarrationComplete])
+
+  useEffect(() => {
+    const scenes: (THREE.Object3D | undefined)[] = [
+      model0?.scene,
+      currentModel?.scene,
+      currentSpoonModel?.scene,
+      spoonLeftModel?.scene,
+      spoonRightModel?.scene,
+    ]
+
+    const bothDone = leftStickDissolved && rightStickDissolved
+    const hideUntilDone = new Set(['Dish', 'Cherry_tomatos', 'Sketchfab_model'])
+    const sugarbowlRegex = /sugar\s*bowl/i
+    const cylinderRegex = /^cylinder$/i
+
+    scenes.forEach((scene) => {
+      if (!scene) return
+      scene.traverse((obj) => {
+        if (!obj.name) return
+        if (hideUntilDone.has(obj.name)) {
+          obj.visible = bothDone
+        }
+        if (sugarbowlRegex.test(obj.name)) {
+          obj.visible = !bothDone
+        }
+        if (cylinderRegex.test(obj.name)) {
+          obj.visible = !bothDone
+        }
+      })
+    })
+  }, [
+    model0,
+    currentModel,
+    currentSpoonModel,
+    spoonLeftModel,
+    spoonRightModel,
+    leftStickDissolved,
+    rightStickDissolved,
+  ])
 
   useEffect(() => {
     reset()
@@ -117,13 +155,17 @@ export function ExperimentScene({
     setTomatoExperimentActive(false)
     setShowTomatoWiping(false)
     setTomatoWipingAnimating(false)
-    setBeakersActive(true)
+    setBeakersActive(false)
     setHoveredBeaker(null)
-
     ;(window as any).resetSphereOpacity?.()
     selectingRef.current = false
     lastSelectedSideRef.current = null
     animationFinishedRef.current = false
+    startedSidesRef.current = { left: false, right: false }
+    if (spoonFinishFallbackRef.current) {
+      clearTimeout(spoonFinishFallbackRef.current)
+      spoonFinishFallbackRef.current = null
+    }
 
     setCurrentSpoonModel(null)
     setCurrentModel(model0)
@@ -135,9 +177,16 @@ export function ExperimentScene({
 
   const handleSpoonAnimationFinished = useCallback(() => {
     selectingRef.current = true
-    const unlock = window.setTimeout(() => (selectingRef.current = false), 500)
-    if (lastSelectedSideRef.current) {
-      startSugarExperiment(lastSelectedSideRef.current)
+    const unlock = window.setTimeout(() => (selectingRef.current = false), 400)
+
+    const side = lastSelectedSideRef.current
+    if (side && !startedSidesRef.current[side]) {
+      startedSidesRef.current[side] = true
+      startSugarExperiment(side)
+      if (spoonFinishFallbackRef.current) {
+        clearTimeout(spoonFinishFallbackRef.current)
+        spoonFinishFallbackRef.current = null
+      }
     }
     return () => window.clearTimeout(unlock)
   }, [startSugarExperiment, lastSelectedSideRef, selectingRef])
@@ -165,6 +214,7 @@ export function ExperimentScene({
     },
     [onStickComplete],
   )
+
   useEffect(() => {
     if (leftStickDissolved && rightStickDissolved && !tomatoExperimentActive) {
       setTomatoExperimentActive(true)
@@ -173,14 +223,14 @@ export function ExperimentScene({
   }, [leftStickDissolved, rightStickDissolved, tomatoExperimentActive])
 
   const handleTomatoDropped = useCallback(
-    (beaker: 'left' | 'right', position: [number, number, number]) => {
+    (beaker: 'left' | 'right', p: [number, number, number]) => {
       if (beaker === 'left') {
         setLeftTomatoDropped(true)
-        setLeftTomatoPosition(position)
+        setLeftTomatoPosition(p)
         onTomatoExperimentComplete?.('left')
       } else {
         setRightTomatoDropped(true)
-        setRightTomatoPosition(position)
+        setRightTomatoPosition(p)
         onTomatoExperimentComplete?.('right')
       }
     },
@@ -199,15 +249,25 @@ export function ExperimentScene({
     setTomatoWipingAnimating(false)
   }, [])
 
-  // 전역 시작 함수 등록
   useEffect(() => {
-    ;(window as any).startLeftSugarExperiment = () => startSugarExperiment('left')
-    ;(window as any).startRightSugarExperiment = () => startSugarExperiment('right')
-    return () => {
-      delete (window as any).startLeftSugarExperiment
-      delete (window as any).startRightSugarExperiment
+    ;(window as any).prepareSugarSide = (side: 'left' | 'right') => {
+      lastSelectedSideRef.current = side
+      setSelectedBeaker(side)
+      setCurrentSpoonModel(side === 'left' ? spoonLeftModel : spoonRightModel)
+      onBeakerSelected?.(side)
+
+      if (spoonFinishFallbackRef.current) clearTimeout(spoonFinishFallbackRef.current)
+      spoonFinishFallbackRef.current = window.setTimeout(() => {
+        if (!startedSidesRef.current[side]) {
+          startedSidesRef.current[side] = true
+          startSugarExperiment(side)
+        }
+      }, 2200)
     }
-  }, [startSugarExperiment])
+    return () => {
+      delete (window as any).prepareSugarSide
+    }
+  }, [spoonLeftModel, spoonRightModel, startSugarExperiment, setSelectedBeaker, lastSelectedSideRef, onBeakerSelected])
 
   return (
     <>
@@ -224,7 +284,14 @@ export function ExperimentScene({
           <Lightformer intensity={0.5} rotation-y={Math.PI / 2} position={[-5, 1, -1]} scale={[50, 2, 1]} />
           <Lightformer intensity={0.5} rotation-y={Math.PI / 2} position={[-5, -1, -1]} scale={[50, 2, 1]} />
         </group>
-        <Lightformer intensity={5} form='ring' color='white' rotation-y={Math.PI / 2} position={[1, 1, 1]} scale={[4, 4, 1]} />
+        <Lightformer
+          intensity={5}
+          form='ring'
+          color='white'
+          rotation-y={Math.PI / 2}
+          position={[1, 1, 1]}
+          scale={[4, 4, 1]}
+        />
       </Environment>
 
       <ModelManager
@@ -234,12 +301,11 @@ export function ExperimentScene({
         onAnimationFinished={handleAnimationFinished}
         onSpoonAnimationFinished={handleSpoonAnimationFinished}
         showTomatoWiping={showTomatoWiping}
-        
       />
 
       {(currentModel || currentSpoonModel) && (
         <>
-          <GLBRenderer src='/models/5-1-3/sugar.glb' scale={0.5} position={[-0.7, -1, 0]} />
+          {!bothDone && <GLBRenderer src='/models/5-1-3/sugar.glb' scale={0.5} position={[-0.7, -1, 0]} />}
           <RealisticWater position={[-2.15, -0.5, -0.2]} beakerRadius={0.57} waterLevel={0.9} />
           <RealisticWater
             position={rightSpoonCount >= 5 ? [2.34, -0.47, -0.2] : [2.34, -0.5, -0.2]}
@@ -259,22 +325,6 @@ export function ExperimentScene({
         leftSpoonCount={leftSpoonCount}
         rightSpoonCount={rightSpoonCount}
         selectedBeaker={selectedBeaker}
-      />
-
-      <BeakerInteractionManager
-        beakersActive={beakersActive && !tomatoExperimentActive}
-        beakerARef={beakerARef}
-        beakerA001Ref={beakerA001Ref}
-        hoveredBeaker={hoveredBeaker}
-        setHoveredBeaker={setHoveredBeaker}
-        selectedBeaker={selectedBeaker}
-        lastSelectedSideRef={lastSelectedSideRef}
-        spoonLeftModel={spoonLeftModel}
-        spoonRightModel={spoonRightModel}
-        selectingRef={selectingRef}
-        onBeakerSelected={onBeakerSelected!}
-        setSelectedBeaker={setSelectedBeaker}
-        setCurrentSpoonModel={setCurrentSpoonModel}
       />
 
       <BeakerHighlightManager
@@ -331,8 +381,8 @@ export function ExperimentScene({
           startPosition={rightTomatoPosition}
           sugarConcentration={rightSpoonCount * 4.2}
           beakerRadius={0.57}
-          waterLevel={rightSpoonCount >= 5 ? 0.9 : 0.85}
-          beakerPosition={[2.34, rightSpoonCount >= 5 ? -1.1 : -1.2, -0.2]}
+          waterLevel={rightSpoonCount >= 4 ? 0.9 : 0.85}
+          beakerPosition={[2.34, rightSpoonCount >= 4 ? -1.1 : -1.2, -0.2]}
           isDropped={true}
           maxRiseHeight={-0.45}
           isDraggable={true}
@@ -364,12 +414,8 @@ export function ExperimentScene({
       <OrbitControls
         makeDefault
         {...ORBIT_CONTROLS_CONFIG}
-        onStart={() => {
-          ;(window as any).setDragging?.(true)
-        }}
-        onEnd={() => {
-          ;(window as any).setDragging?.(false)
-        }}
+        onStart={() => (window as any).setDragging?.(true)}
+        onEnd={() => (window as any).setDragging?.(false)}
       />
 
       <ContactShadows position={[0, -1, 0]} opacity={0.75} blur={2.0} />

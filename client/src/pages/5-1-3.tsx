@@ -1,3 +1,4 @@
+// app/5-1-3/page.tsx
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
@@ -18,9 +19,10 @@ export default function Page() {
   const [showIntro, setShowIntro] = useState(true)
   const [experimentStarted, setExperimentStarted] = useState(true)
   const [showSubtitle, setShowSubtitle] = useState(false)
-  const [selectedBeaker, setSelectedBeaker] = useState<'left' | 'right' | null>(null)
 
-  // ★ 자식에게 리셋 신호를 보내는 토큰
+  const [selectedBeaker, setSelectedBeaker] = useState<'left' | 'right' | null>(null)
+  const [showChoiceButtons, setShowChoiceButtons] = useState(false)
+
   const [resetToken, setResetToken] = useState(0)
 
   useEffect(() => setMounted(true), [])
@@ -37,7 +39,10 @@ export default function Page() {
   const [rightTomatoExperimentDone, setRightTomatoExperimentDone] = useState(false)
   const [showCompletionPopup, setShowCompletionPopup] = useState(false)
   const [showTomatoInstruction, setShowTomatoInstruction] = useState(false)
-
+  const [lastTomatoResult, setLastTomatoResult] = useState<'left' | 'right' | null>(null)
+  const [leftChoiceUsed, setLeftChoiceUsed] = useState(false)
+  const [rightChoiceUsed, setRightChoiceUsed] = useState(false)
+  const [runningSide, setRunningSide] = useState<'left' | 'right' | null>(null)
   useEffect(() => {
     if (!mounted) return
     try {
@@ -79,12 +84,11 @@ export default function Page() {
     setExperimentStarted(true)
     setShowSubtitle(false)
     setSelectedBeaker(null)
+    setShowChoiceButtons(false)
     playClickSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3')
   }, [])
 
-  const handleLoadingComplete = useCallback(() => {
-    setIsLoaded(true)
-  }, [])
+  const handleLoadingComplete = useCallback(() => setIsLoaded(true), [])
 
   const handleEnterExperience = useCallback(() => {
     playClickSound()
@@ -102,17 +106,19 @@ export default function Page() {
     }, 300)
   }, [])
 
+  // A.mp3 종료 후 버튼 표시
   useEffect(() => {
     const el = narrationRef.current
     if (!el) return
-    const onEnd = () => setShowSubtitle(false)
+    const onEnd = () => {
+      setShowSubtitle(false)
+      setShowChoiceButtons(true)
+    }
     el.addEventListener('ended', onEnd)
     return () => el.removeEventListener('ended', onEnd)
   }, [showIntro, experimentStarted])
 
-  const handleNarrationComplete = useCallback(() => {
-    setShowSubtitle(false)
-  }, [])
+  const handleNarrationComplete = useCallback(() => setShowSubtitle(false), [])
 
   const handleBeakerSelected = useCallback((beaker: 'left' | 'right') => {
     setSelectedBeaker(beaker)
@@ -120,11 +126,14 @@ export default function Page() {
   }, [])
 
   const handleStartSugarExperiment = (side: 'left' | 'right') => {
-    if (side === 'left') {
-      ;(window as any).startLeftSugarExperiment?.()
-    } else {
-      ;(window as any).startRightSugarExperiment?.()
-    }
+    if (runningSide && runningSide !== side) return
+
+    if (side === 'left' && leftChoiceUsed) return
+    if (side === 'right' && rightChoiceUsed) return
+    if (side === 'left') setLeftChoiceUsed(true)
+    else setRightChoiceUsed(true)
+    setRunningSide(side)
+    ;(window as any).prepareSugarSide?.(side)
     setSelectedBeaker(null)
   }
 
@@ -134,10 +143,9 @@ export default function Page() {
         const audio = new Audio('/sounds/5-1-3/narration/5-1-3-C.MP3')
         audio.volume = 0.8
         audio.play().catch(() => {})
-
         setShowTomatoInstruction(true)
         setShowSubtitle(true)
-      }, 2000)
+      }, 3000)
     }
   }, [leftStickComplete, rightStickComplete])
 
@@ -169,7 +177,6 @@ export default function Page() {
     }
   }, [showCompletionPopup])
 
-  // ★ 전체 상태 초기화: 페이지 리로드 없이 다시하기
   const handleResetAll = useCallback(() => {
     narrationRef.current?.pause()
     narrationRef.current = null
@@ -184,9 +191,26 @@ export default function Page() {
     setLeftTomatoExperimentDone(false)
     setRightTomatoExperimentDone(false)
     setShowTomatoInstruction(false)
+    setShowChoiceButtons(false)
+    setLastTomatoResult(null)
+    setLeftChoiceUsed(false)
+    setRightChoiceUsed(false)
+    setRunningSide(null)
 
-    // 자식에게 리셋 신호
     setResetToken((t) => t + 1)
+
+    setTimeout(() => {
+      const narration = new Audio('/sounds/5-1-3/narration/5-1-3-A.MP3')
+      narration.volume = 0.8
+      narrationRef.current = narration
+      const onEnd = () => {
+        setShowSubtitle(false)
+        setShowChoiceButtons(true)
+        narration.removeEventListener('ended', onEnd)
+      }
+      narration.addEventListener('ended', onEnd)
+      narration.play().catch(() => {})
+    }, 300)
   }, [])
 
   return (
@@ -194,8 +218,8 @@ export default function Page() {
       <LoadingTracker onLoadingComplete={handleLoadingComplete} />
 
       <CrayonTextButton
-        ariaLabel={'첫 화면으로'}
-        icon={'home'}
+        ariaLabel='첫 화면으로'
+        icon='home'
         position='absolute'
         iconPosition='left'
         onClick={handleBackToIntro}
@@ -208,7 +232,7 @@ export default function Page() {
         right={120}
         top={16}
         iconSize={40}
-        innerCircleVisible={true}
+        innerCircleVisible
       />
 
       <CrayonTextButton
@@ -225,21 +249,21 @@ export default function Page() {
         right={16}
         top={16}
         iconSize={40}
-        innerCircleVisible={true}
+        innerCircleVisible
       />
 
       {showSubtitle && (
         <div className='fixed top-5 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-3'>
-          {selectedBeaker === null && !leftStickComplete && !rightStickComplete && (
+          {!leftStickComplete && !rightStickComplete && !showChoiceButtons && (
             <CrayonTextBox
               color='#01A7A2'
               bg='#FFF'
               textcolor='#333'
               className='font-light'
-              width={400}
-              text='같은 양의 물에 설탕의 양을 다르게 용해하여 진하기가 다른 두 용액을 만들어 보세요.'></CrayonTextBox>
+              width={420}
+              text='같은 양의 물에 설탕의 양을 다르게 용해하여 진하기가 다른 두 용액을 만들어 보세요.'
+            />
           )}
-
           {showTomatoInstruction && !leftTomatoExperimentDone && !rightTomatoExperimentDone && (
             <CrayonTextBox
               color='#01A7A2'
@@ -247,113 +271,122 @@ export default function Page() {
               textcolor='#333'
               className='font-light'
               width={600}
-              text='용액에 방울 토마토를 드래그하여 넣어보세요.'></CrayonTextBox>
+              text='용액에 방울 토마토를 드래그하여 넣어보세요.'
+            />
           )}
         </div>
       )}
 
       <AnimatePresence>
-        {selectedBeaker === 'left' && !leftStickComplete && (
+        {showChoiceButtons && (
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-            className='fixed top-32 left-8 z-[150]'>
-            <CrayonTextButton
-              ariaLabel='왼쪽 비커 설탕 실험'
-              position='relative'
-              text='왼쪽 비커: 설탕 한 숟가락 용해하기'
-              width={320}
-              height={72}
-              color='#0EA5E9'
-              textcolor='#fff'
-              bg='rgba(14,165,233,0.95)'
-              className='shadow-lg'
-              iconPosition='left'
-              iconSize={20}
-              innerCircleVisible={true}
-              onClick={() => handleStartSugarExperiment('left')}
-            />
+            transition={{ duration: 0.25 }}
+            className='fixed top-32 left-4 z-[150]'>
+            {(() => {
+              const disabled = leftChoiceUsed || runningSide === 'right'
+              return (
+                <CrayonTextButton
+                  ariaLabel='왼쪽 비커 설탕 실험'
+                  position='relative'
+                  text='왼쪽 비커: 설탕 한 숟가락 용해하기'
+                  width={320}
+                  height={72}
+                  color='#0EA5E9'
+                  textcolor='#fff'
+                  bg='rgba(14,165,233,0.95)'
+                  iconPosition='left'
+                  iconSize={20}
+                  innerCircleVisible
+                  onClick={() => {
+                    if (disabled) return
+                    handleStartSugarExperiment('left')
+                  }}
+                  aria-disabled={disabled}
+                />
+              )
+            })()}
           </motion.div>
         )}
 
-        {selectedBeaker === 'right' && !rightStickComplete && (
+        {showChoiceButtons && (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
-            transition={{ duration: 0.3 }}
-            className='fixed top-32 right-8 z-[150]'>
-            <CrayonTextButton
-              ariaLabel='오른쪽 비커 설탕 실험'
-              position='relative'
-              text='오른쪽 비커: 설탕 다섯 숟가락 용해하기'
-              width={340}
-              height={72}
-              color='#10B981'
-              textcolor='#fff'
-              bg='rgba(16,185,129,0.95)'
-              className='shadow-lg'
-              iconPosition='left'
-              iconSize={20}
-              innerCircleVisible={true}
-              onClick={() => handleStartSugarExperiment('right')}
-            />
+            transition={{ duration: 0.25 }}
+            className='fixed top-32 right-4 z-[150]'>
+            {(() => {
+              const disabled = rightChoiceUsed || runningSide === 'left'
+              return (
+                <CrayonTextButton
+                  ariaLabel='오른쪽 비커 설탕 실험'
+                  position='relative'
+                  text='오른쪽 비커: 설탕 다섯 숟가락 용해하기'
+                  width={340}
+                  height={72}
+                  color='#10B981'
+                  textcolor='#fff'
+                  bg='rgba(16,185,129,0.95)'
+                  iconPosition='left'
+                  iconSize={20}
+                  innerCircleVisible
+                  onClick={() => {
+                    if (disabled) return
+                    handleStartSugarExperiment('right')
+                  }}
+                  aria-disabled={disabled}
+                />
+              )
+            })()}
           </motion.div>
         )}
 
         {leftStickComplete && (
-          <div className='fixed top-48 left-48 font-light z-[150]'>
-            <TimedFade active={true} showMs={2000} fadeMs={500} depKey={leftStickComplete ? 'L1' : 'L0'}>
-              <CrayonTextBox bg='#fff' color='#10B981' textcolor='#333' fontSize='16px'>
+          <div className='fixed top-52 left-4 font-light z-[150]'>
+            <TimedFade active showMs={2000} fadeMs={500} depKey='L'>
+              <CrayonTextBox bg='#fff' color='#0EA5E9' textcolor='#333' fontSize='14px'>
                 설탕이 모두 용해되었어요!
               </CrayonTextBox>
             </TimedFade>
           </div>
         )}
-
         {rightStickComplete && (
-          <div className='fixed top-48 right-48 font-light z-[150]'>
-            <TimedFade active={true} showMs={2000} fadeMs={500} depKey={leftStickComplete ? 'L1' : 'L0'}>
-              <CrayonTextBox bg='#fff' color='#10B981' textcolor='#333' fontSize='16px'>
+          <div className='fixed top-52 right-4 font-light z-[150]'>
+            <TimedFade active showMs={2000} fadeMs={500} depKey='R'>
+              <CrayonTextBox bg='#fff' color='#10B981' textcolor='#333' fontSize='14px'>
                 설탕이 모두 용해되었어요!
               </CrayonTextBox>
             </TimedFade>
           </div>
         )}
 
-        {leftTomatoExperimentDone && (
-          <div className='fixed bottom-24 left-8 z-[150] font-light'>
-            <TimedFade active={true} showMs={8000} fadeMs={500} depKey={leftStickComplete ? 'L1' : 'L0'}>
+        {(leftTomatoExperimentDone || rightTomatoExperimentDone) && lastTomatoResult && (
+          <div className='fixed bottom-32 left-1/2 -translate-x-1/2 z-[150] font-light'>
+            <TimedFade active showMs={8000} fadeMs={500} depKey={lastTomatoResult === 'left' ? 'LT' : 'RT'}>
               <CrayonTextBox bg='#fff' color='#10B981' textcolor='#333' fontSize='16px'>
-                설탕 한 숟가락을 용해한 용액에서 방울토마토가 가라앉습니다.
-              </CrayonTextBox>
-            </TimedFade>
-          </div>
-        )}
-
-        {rightTomatoExperimentDone && (
-          <div className='fixed bottom-24 right-8 z-[150] font-light'>
-            <TimedFade active={true} showMs={8000} fadeMs={500} depKey={leftStickComplete ? 'L1' : 'L0'}>
-              <CrayonTextBox bg='#fff' color='#10B981' textcolor='#333' fontSize='16px'>
-                설탕 다섯 숟가락을 용해한 용액에서 방울토마토가 높이 떠오릅니다.
+                {lastTomatoResult === 'left'
+                  ? '설탕 한 숟가락을 용해한 용액에서 방울토마토가 가라앉습니다.'
+                  : '설탕 다섯 숟가락을 용해한 용액에서 방울토마토가 높이 떠오릅니다.'}
               </CrayonTextBox>
             </TimedFade>
           </div>
         )}
 
         {(leftTomatoExperimentDone || rightTomatoExperimentDone) && (
-            <div className='fixed top-5 left-1/2 -translate-x-1/2 z-[150]'>
-              <CrayonTextBox
-                color='#8B5CF6'
-                bg='#FFF'
-                textcolor='#333'
-                className='font-light'
-                width={400}
-                text='방울토마토를 드래그하여 꺼내보세요.'></CrayonTextBox>
-            </div>
-          )}
+          <div className='fixed top-5 left-1/2 -translate-x-1/2 z-[150]'>
+            <CrayonTextBox
+              color='#8B5CF6'
+              bg='#FFF'
+              textcolor='#333'
+              className='font-light'
+              width={400}
+              text='방울토마토를 드래그하여 꺼내보세요.'
+            />
+          </div>
+        )}
 
         {leftTomatoExperimentDone && rightTomatoExperimentDone && (
           <div className='absolute bottom-8 left-1/2 -translate-x-1/2 z-[150] flex gap-4'>
@@ -369,7 +402,7 @@ export default function Page() {
               className='shadow-lg'
               iconPosition='left'
               iconSize={20}
-              innerCircleVisible={true}
+              innerCircleVisible
               onClick={() => setShowCompletionPopup(true)}
             />
             <CrayonTextButton
@@ -384,8 +417,8 @@ export default function Page() {
               className='shadow-lg'
               iconPosition='left'
               iconSize={20}
-              innerCircleVisible={true}
-              onClick={handleResetAll} // ★ 변경
+              innerCircleVisible
+              onClick={handleResetAll}
             />
           </div>
         )}
@@ -397,12 +430,13 @@ export default function Page() {
             <h3 className='text-2xl font-bold text-gray-800 mb-4'>실험 완료</h3>
             <p className='text-lg text-gray-700 font-light mb-6 leading-relaxed'>
               같은 물체를 넣었을 때 물체가 높이 떠오른 용액이
-              <br /> 더 진한 용액입니다.
+              <br />더 진한 용액입니다.
             </p>
             <CrayonTextButton
               onClick={() => setShowCompletionPopup(false)}
               bg='#0EA5E9'
               color='rgba(118, 234, 255, 1)'
+              textcolor='#fff'
               text='확인'
             />
           </div>
@@ -418,31 +452,34 @@ export default function Page() {
             onStickComplete={(side) => {
               if (side === 'left') setLeftStickComplete(true)
               else setRightStickComplete(true)
+              setRunningSide((curr) => (curr === side ? null : curr))
             }}
             onTomatoExperimentComplete={(side) => {
               if (side === 'left') {
                 setLeftTomatoExperimentDone(true)
-                const audio = new Audio('/sounds/5-1-3/narration/5-1-3-D.MP3')
-                audio.volume = 0.8
-                audio.play().catch(() => {})
+                setLastTomatoResult('left')
+                const a = new Audio('/sounds/5-1-3/narration/5-1-3-D.MP3')
+                a.volume = 0.8
+                a.play().catch(() => {})
                 setTimeout(() => {
-                  const audioF = new Audio('/sounds/5-1-3/narration/5-1-3-F.MP3')
-                  audioF.volume = 0.8
-                  audioF.play().catch(() => {})
+                  const f = new Audio('/sounds/5-1-3/narration/5-1-3-F.MP3')
+                  f.volume = 0.8
+                  f.play().catch(() => {})
                 }, 7000)
               } else {
                 setRightTomatoExperimentDone(true)
-                const audio = new Audio('/sounds/5-1-3/narration/5-1-3-E.MP3')
-                audio.volume = 0.8
-                audio.play().catch(() => {})
+                setLastTomatoResult('right')
+                const a = new Audio('/sounds/5-1-3/narration/5-1-3-E.MP3')
+                a.volume = 0.8
+                a.play().catch(() => {})
                 setTimeout(() => {
-                  const audioF = new Audio('/sounds/5-1-3/narration/5-1-3-F.MP3')
-                  audioF.volume = 0.8
-                  audioF.play().catch(() => {})
+                  const f = new Audio('/sounds/5-1-3/narration/5-1-3-F.MP3')
+                  f.volume = 0.8
+                  f.play().catch(() => {})
                 }, 7000)
               }
             }}
-            resetToken={resetToken} // ★ 추가
+            resetToken={resetToken}
           />
         </TiltOnMouse>
       </Scene>
