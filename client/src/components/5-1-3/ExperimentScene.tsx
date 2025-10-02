@@ -100,12 +100,14 @@ export function ExperimentScene({
   useEffect(() => {
     if (!experimentStarted) return
     setCurrentModel(model0)
+
     const t = setTimeout(() => {
       setBeakersActive(false)
       onNarrationComplete?.()
     }, 300)
     return () => clearTimeout(t)
   }, [experimentStarted, model0, onNarrationComplete])
+  console.log(currentModel)
 
   useEffect(() => {
     const scenes: (THREE.Object3D | undefined)[] = [

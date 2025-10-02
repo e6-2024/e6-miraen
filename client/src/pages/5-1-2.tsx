@@ -91,7 +91,6 @@ function ModeBasedControls({ mode }: { mode: OpticalMode }) {
   )
 }
 
-// 나레이션 팝업
 function NarrationPopup({
   isVisible,
   text,
@@ -141,8 +140,8 @@ function ModeControls({
   ]
 
   const lensTypes = [
-    { key: 'convex' as const, label: '볼록렌즈' },
-    { key: 'concave' as const, label: '오목렌즈' },
+    { key: 'convex' as const, label: '볼록 렌즈' },
+    { key: 'concave' as const, label: '오목 렌즈' },
   ]
 
   if (activeMode === 'direct') {
@@ -168,7 +167,7 @@ function ModeControls({
 
         {activeMode === 'refraction' && (
           <>
-            <h4 className='text-base font-light'>볼록렌즈와 오목렌즈가 있어요.</h4>
+            <h4 className='text-base font-light'>볼록 렌즈와 오목 렌즈가 있어요.</h4>
             <div className='flex gap-2'>
               {lensTypes.map(({ key, label }) => (
                 <button
@@ -223,7 +222,7 @@ function ExplanationToggleButton({
 
   return (
     <>
-      <div className='absolute bottom-0 right-4' onClick={onClick}>
+      <div className='absolute bottom-4 right-4' onClick={onClick}>
         <CrayonTextButton
           text={titles[mode]}
           width={140}
@@ -249,7 +248,7 @@ function LensButton({
   }
 
   return (
-    <div className='absolute bottom-14 right-4' onClick={onLensClick}>
+    <div className='absolute bottom-20 right-4' onClick={onLensClick}>
       <CrayonTextButton
         text={lensType === 'concave' ? '오목 렌즈 둘러 보기' : lensType === 'convex' ? '볼록 렌즈 둘러 보기' : ''}
         width={200}
@@ -281,7 +280,7 @@ function SubtitleBox({
   if (!isVisible) return null
 
   return (
-    <div className='absolute flex w-full font-bold justify-center left-1/2 -translate-x-1/2 items-center top-1/4 -translate-y-1/2 pointer-events-none'>
+    <div className='absolute flex w-full font-bold justify-center left-1/2 -translate-x-1/2 items-center bottom-12 -translate-y-1/2 pointer-events-none'>
       <CrayonTextBox color='#F3921C' bg='#FFF'>
         {mode === 'direct' ? descriptions[mode] : mode === 'reflection' ? descriptions[mode] : descriptions[lensType]}
       </CrayonTextBox>
@@ -311,6 +310,7 @@ function ExplanationBox({ isVisible, mode, lensType }: { isVisible: boolean; mod
 export default function Page() {
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
+
   const [activeMode, setActiveMode] = useState<OpticalMode | null>('direct')
   const [lensType, setLensType] = useState<LensType>('convex')
   const [laserAngle, setLaserAngle] = useState(45)
@@ -332,6 +332,16 @@ export default function Page() {
       { mode: 'refraction', label: '빛의 굴절 관찰하기', color: '#25e5c2', hoverColor: '#00bcd4' },
     ],
     [],
+  )
+
+  const handleLensTypeChange = useCallback(
+    (next: LensType) => {
+      setLensType(next)
+      setRayStates([false, false, false])
+      setShowSubtitle(false)
+      stopNarration()
+    },
+    [stopNarration],
   )
 
   // === BGM ===
@@ -409,6 +419,13 @@ export default function Page() {
     }
   }, [activeMode, stopNarration])
 
+  useEffect(() => {
+    // 렌즈 타입이 바뀌면 3구 레이저 상태 리셋
+    setRayStates([false, false, false])
+    setShowSubtitle(false)
+    stopNarration()
+  }, [lensType, stopNarration])
+
   const handleModeChange = useCallback(
     (newMode: OpticalMode) => {
       setActiveMode(newMode)
@@ -468,29 +485,30 @@ export default function Page() {
         icon={'home'}
         position='absolute'
         iconPosition='left'
-        onClick={handleBackToIntro}
-        width={108}
-        height={108}
-        color='#ffffff'
-        textcolor='#ffffff'
-        bg='rgba(255,255,255,0.10)'
-        className='background-blur z-[200] right-[108px] mix-blend-difference'
-        right={16}
+        onClick={handleBackToModeSelection}
+        width={96}
+        height={96}
+        color={lightTheme.start.border}
+        textcolor='#fff'
+        bg={lightTheme.start.bg}
+        className='z-[1000]'
+        right={120}
         top={16}
         iconSize={40}
         innerCircleVisible={true}
       />
+
       <CrayonTextButton
         icon={bgmEnabled ? 'volume2' : 'volumeX'}
         position='absolute'
         iconPosition='left'
         onClick={toggleBgm}
-        width={108}
-        height={108}
-        color='#fff'
+        width={96}
+        height={96}
+        color={lightTheme.start.border}
         textcolor='#fff'
-        bg='rgba(255,255,255,0.10)'
-        className='backdrop-blur z-[1000] right-[0px] mix-blend-difference'
+        bg={lightTheme.start.bg}
+        className='z-[1000]'
         right={16}
         top={16}
         iconSize={40}
@@ -578,8 +596,7 @@ export default function Page() {
                   mode={activeMode}
                 />
 
-                {/* <Background/> */}
-                {!showLensPopup && (
+                {rayStates && !showLensPopup && !rayStates.every(Boolean) && (
                   <SpeechBubble
                     position={
                       activeMode === 'direct'
@@ -609,7 +626,7 @@ export default function Page() {
             lensType={lensType}
             laserAngle={laserAngle}
             onModeChange={handleModeChange}
-            onLensTypeChange={setLensType}
+            onLensTypeChange={handleLensTypeChange}
             onAngleChange={setLaserAngle}
           />
 

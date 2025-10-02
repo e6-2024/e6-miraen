@@ -55,9 +55,10 @@ export function LensPopup({ isVisible, lensType, onClose }: LensPopupProps) {
               enableZoom
               enablePan
               enableRotate
+              minAzimuthAngle={0}
+              maxAzimuthAngle={Math.PI}
               minDistance={3}
               maxDistance={15}
-              autoRotate
               rotateSpeed={1}
             />
           </Scene>
