@@ -419,13 +419,6 @@ export default function Page() {
     }
   }, [activeMode, stopNarration])
 
-  useEffect(() => {
-    // 렌즈 타입이 바뀌면 3구 레이저 상태 리셋
-    setRayStates([false, false, false])
-    setShowSubtitle(false)
-    stopNarration()
-  }, [lensType, stopNarration])
-
   const handleModeChange = useCallback(
     (newMode: OpticalMode) => {
       setActiveMode(newMode)
