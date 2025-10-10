@@ -9,13 +9,14 @@ import { useThree } from '@react-three/fiber'
 import { useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
 import UI from '@/components/6-1-4/UI'
-import CameraLogger from '@/hook/CameraLogger'
+import { TiltOnMouse } from '@/components/common/Tilt'
 
 type Season = 'spring' | 'summer' | 'fall' | 'winter'
 const SEASONS: Season[] = ['spring', 'summer', 'fall', 'winter']
 
 interface SpaceSceneProps {
   onEarthClick: (pos: [number, number, number], season: Season) => void
+  showIntro?: boolean
   cameraTarget: [number, number, number] | null
   activeSeason: Season | null
   isLockedToSurface: boolean
@@ -30,6 +31,7 @@ const EPS = 1e-3
 export default function SpaceScene({
   onEarthClick,
   cameraTarget,
+  showIntro = false,
   activeSeason,
   isLockedToSurface,
   onReset,
@@ -114,80 +116,81 @@ export default function SpaceScene({
   return (
     <div className='absolute inset-0'>
       <Scene camera={{ position: [-102, 34, 0], fov: 40 }} shadows>
-        <CameraLogger/>
-        <ambientLight intensity={2.0} />
-        {!isLockedToSurface && (
-          <>
-            <pointLight intensity={3000} castShadow />
-          </>
-        )}
+        <TiltOnMouse enabled={showIntro} maxDeg={10}>
+          <ambientLight intensity={2.0} />
+          {!isLockedToSurface && (
+            <>
+              <pointLight intensity={3000} castShadow />
+            </>
+          )}
 
-        {!isLockedToSurface && (
-          <>
-            <Sun />
-            <Stars />
-          </>
-        )}
+          {!isLockedToSurface && (
+            <>
+              <Sun />
+              <Stars />
+            </>
+          )}
 
-        {SEASONS.map((season, i) => {
-          const ang = (i * Math.PI) / 2
-          const pos: [number, number, number] = [Math.cos(ang) * 30, 0, Math.sin(ang) * 30]
-          return (
-            <group key={season}>
-              {(!isLockedToSurface || activeSeason === season) && (
-                <EarthModel
-                  position={pos}
-                  onClick={
-                    !isLockedToSurface
-                      ? () => {
-                          handleEarthClickLocal(pos, season)
-                          playBG2Sound()
-                        }
-                      : undefined
-                  }
-                  fadeReady={isLockedToSurface && activeSeason === season && isInteracting}
-                  season={season}
-                  isResetting={isResetting}
-                  onRotationComplete={
-                    season === pendingEarthClick?.season && !earthRotationComplete
-                      ? handleEarthRotationComplete
-                      : undefined
-                  }
-                  isSelected={season === pendingEarthClick?.season}
-                  hideAxisAndLabel={isLockedToSurface && activeSeason === season}
-                />
-              )}
+          {SEASONS.map((season, i) => {
+            const ang = (i * Math.PI) / 2
+            const pos: [number, number, number] = [Math.cos(ang) * 30, 0, Math.sin(ang) * 30]
+            return (
+              <group key={season}>
+                {(!isLockedToSurface || activeSeason === season) && (
+                  <EarthModel
+                    position={pos}
+                    onClick={
+                      !isLockedToSurface
+                        ? () => {
+                            handleEarthClickLocal(pos, season)
+                            playBG2Sound()
+                          }
+                        : undefined
+                    }
+                    fadeReady={isLockedToSurface && activeSeason === season && isInteracting}
+                    season={season}
+                    isResetting={isResetting}
+                    onRotationComplete={
+                      season === pendingEarthClick?.season && !earthRotationComplete
+                        ? handleEarthRotationComplete
+                        : undefined
+                    }
+                    isSelected={season === pendingEarthClick?.season}
+                    hideAxisAndLabel={isLockedToSurface && activeSeason === season}
+                  />
+                )}
 
-              <Suspense fallback={null}>
-                <ConstellationModel
-                  activeSeason={activeSeason}
-                  position={pos}
-                  season={activeSeason}
-                  visible={!!pendingEarthClick && activeSeason === season}
-                  isResetting={isResetting}
-                  fadeInDelay={2}
-                  fadeSpeed={1}
-                />
-              </Suspense>
-            </group>
-          )
-        })}
+                <Suspense fallback={null}>
+                  <ConstellationModel
+                    activeSeason={activeSeason}
+                    position={pos}
+                    season={activeSeason}
+                    visible={!!pendingEarthClick && activeSeason === season}
+                    isResetting={isResetting}
+                    fadeInDelay={2}
+                    fadeSpeed={1}
+                  />
+                </Suspense>
+              </group>
+            )
+          })}
 
-        {pendingEarthClick && earthRotationComplete && !isInteracting && (
-          <CameraAnimator
-            target={cameraTarget}
-            angleOffset={(-3 * Math.PI) / 7 - Math.PI / 15}
-            lookAtOffsetY={13}
-            onFinish={onMoveFinished}
-          />
-        )}
+          {pendingEarthClick && earthRotationComplete && !isInteracting && (
+            <CameraAnimator
+              target={cameraTarget}
+              angleOffset={(-3 * Math.PI) / 7 - Math.PI / 15}
+              lookAtOffsetY={13}
+              onFinish={onMoveFinished}
+            />
+          )}
+        </TiltOnMouse>
         {resetState && <ResetAnimator {...resetState} controlsRef={controlsRef} onFinish={onResetFinished} />}
         <OrbitControls
           ref={controlsRef}
           enablePan={false}
           enableZoom
           enableRotate
-          minPolarAngle={isLockedToSurface ? Math.PI/2 : 0}
+          minPolarAngle={isLockedToSurface ? Math.PI / 2 : 0}
           maxPolarAngle={Math.PI}
           minDistance={0}
           maxDistance={isLockedToSurface ? 15 : 120}
@@ -337,11 +340,7 @@ function ResetAnimator({
 }
 
 /** 위에서 내려다보는 각도로 스냅(azimuth/거리 유지, polar만 덮어쓰기) */
-function snapCameraTopDown(
-  controls: any,
-  target: THREE.Vector3,
-  polarRad: number = Math.PI / 3
-) {
+function snapCameraTopDown(controls: any, target: THREE.Vector3, polarRad: number = Math.PI / 3) {
   const cam = controls.object as THREE.PerspectiveCamera
   const t = target ?? controls.target
   // 오프셋을 구면좌표로

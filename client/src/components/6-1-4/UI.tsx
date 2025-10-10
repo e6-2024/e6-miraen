@@ -68,10 +68,30 @@ export function UI({ isLockedToSurface, activeSeason, onReset }: UIProps) {
       console.log('효과음 생성 실패:', error)
     }
   }
+
+   const playNarrationSound = (
+    audioPath: string = '/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3',
+    setAsInstance: boolean = false,
+  ) => {
+    try {
+      const audio = new Audio(audioPath)
+      audio.volume = 1.0
+      audio.play().catch((error) => {
+        console.log('효과음 재생 실패:', error.name)
+      })
+      if (setAsInstance) {
+        stopAll()
+        setAudioInstance(audio)
+      }
+    } catch (error) {
+      console.log('효과음 생성 실패:', error)
+    }
+  }
+
   const playAudio = () => {
     if (activeSeason) {
       const audioPath = seasonExplain[activeSeason].audio
-      playClickSound(audioPath, true)
+      playNarrationSound(audioPath, true)
     }
   }
 
@@ -137,7 +157,7 @@ export function UI({ isLockedToSurface, activeSeason, onReset }: UIProps) {
               text='첫 화면으로'
               color='#ffffff'
               textcolor='#ffffff'
-              bg='rgba(255,255,255,0.10)'
+              bg='#05A8A4'
               className='background-blur border-white/20 z-[1000]'
               innerCircleVisible={false}
             />
@@ -163,7 +183,7 @@ export function UI({ isLockedToSurface, activeSeason, onReset }: UIProps) {
             text={activeSeason==='spring'? '봄철 대표적인 별자리 알아보기': activeSeason==='summer' ? '겨울철 대표적인 별자리 알아보기': activeSeason==='fall' ? '가을철 대표적인 별자리 알아보기':'여름철 대표적인 별자리 알아보기'}
             color='#ffffff'
             textcolor='#ffffff'
-            bg='rgba(255,255,255,0.10)'
+            bg='#05A8A4'
             className='background-blur border-white/20 -translate-x-1/2 z-[1000]'
             innerCircleVisible={false}
             onClick={() => {

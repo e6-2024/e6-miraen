@@ -36,6 +36,11 @@ const activityGuideSlides: ActivityGuideSlide[] = [
     image: '/img/guide/6-1-4/guide5.jpeg',
     audioPath: '/sounds/6-1-4/intro/6-1-4-Intro-5.MP3',
   },
+  {
+    id: 'slide6',
+    image: '/img/guide/6-1-4/guide6.jpeg',
+    audioPath: '/sounds/6-1-4/intro/6-1-4-Intro-6.MP3',
+  },
 ]
 
 const ActivityGuideModal: React.FC<{

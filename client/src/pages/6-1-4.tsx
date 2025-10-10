@@ -5,6 +5,7 @@ import SpaceScene from '@/scenes/SpaceScene'
 import Intro from '@/components/intro/Intro'
 import ActivityGuideModal from '@/components/6-1-4/ActivityGuideModal'
 import { CrayonTextButton } from '@/components/common/CrayonUIButton'
+import { TiltOnMouse } from '@/components/common/Tilt'
 
 type ButtonStyle = { bg: string; border: string; text: string }
 type SpaceTheme = {
@@ -93,8 +94,6 @@ export default function HomePage() {
     setBgmReady(true)
     setTimeout(() => setShowIntro(false), 300)
   }
-  
-  
 
   const resetToIntro = useCallback(() => {
     playClickSound()
@@ -132,14 +131,13 @@ export default function HomePage() {
     <div className='fixed inset-0 bg-black'>
       <SpaceScene
         key={sceneKey}
+        showIntro={showIntro}
         onEarthClick={handleEarthClick}
         cameraTarget={cameraTarget}
         activeSeason={activeSeason}
         isLockedToSurface={isLockedToSurface}
         onReset={handleReset}
       />
-
-      {/* 마운트 이후에만 버튼 렌더 -> SSR/C SR DOM 일치 보장 */}
       {mounted && (
         <>
           <CrayonTextButton
@@ -152,8 +150,8 @@ export default function HomePage() {
             height={96}
             color='rgba(255, 255, 255, 0.85)'
             textcolor='#ffffff'
-            bg='rgba(255,255,255,0.30)'
-            className='background-blur z-[1000] mix-blend-difference'
+            bg={spaceTheme.goal.bg}
+            className='z-[1000]'
             right={120}
             top={16}
             iconSize={40}
@@ -167,8 +165,8 @@ export default function HomePage() {
             height={96}
             color='rgba(255, 255, 255, 0.85)'
             textcolor='#ffffff'
-            bg='rgba(255, 255, 255, 0.30)'
-            className='background-blur z-[1000] mix-blend-difference'
+            bg={spaceTheme.goal.bg}
+            className='z-[1000]'
             right={16}
             top={16}
             iconSize={40}
