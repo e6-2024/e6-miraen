@@ -48,10 +48,9 @@ function SievePreview({ level }: { level: number }) {
 
 function ParticlePreview({ radius, color }: { radius: number; color: string }) {
   return (
-    <div className='mx-auto mb-2'>
-      <Scene camera={{ position: [0, 0, 3], fov: 50 }}>
+    <div className='mx-auto w-24 h-24'>
+      <Scene camera={{ position: [0, 0, 0], fov: 50 }}>
         <ambientLight intensity={0.4} />
-        <directionalLight position={[2, 2, 2]} intensity={0.6} />
         <Environment preset='warehouse' backgroundIntensity={0.1} />
         <mesh castShadow>
           <sphereGeometry args={[radius, 16, 12]} />
@@ -101,7 +100,7 @@ function SieveSelectionPage({ onSelectSieve }: { onSelectSieve: (selectedLevel: 
             <p className='text-sm font-medium text-gray-700'>큰 구슬</p>
           </div>
           <div className='text-center font-light'>
-            <ParticlePreview radius={0.2} color='limegreen' />
+            <ParticlePreview radius={0.15} color='limegreen' />
             <p className='text-sm font-medium text-gray-700'>작은 구슬</p>
           </div>
         </div>
@@ -129,7 +128,7 @@ function SieveSelectionPage({ onSelectSieve }: { onSelectSieve: (selectedLevel: 
         <CrayonTextButton
           text={selectedSieve !== null ? '선택한 체로 실험하기' : '체를 선택해 주세요.'}
           bg={selectedSieve !== null ? particleTheme.start.bg : '#666'}
-          color={selectedSieve !== null ? '#666' : particleTheme.start.bg}
+          color={'#fff'}
           textcolor={'#fff'}
           width={220}
           height={64}
@@ -163,19 +162,17 @@ function SummaryPopup({ onClose }: { onClose: () => void }) {
   return (
     <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
       <CrayonTextBox color='#374151' bg='#fff' padding={32} animated={true}>
-        <h2 className='text-xl font-bold mb-4 text-center text-gray-800'>실험 정리</h2>
-
-        <div className='space-y-4 text-gray-700'>
+        <h2 className='text-2xl font-bold mb-4 text-center text-gray-800'>실험 정리</h2>
+        <div className='space-y-2 text-gray-700'>
           <div className='flex items-start space-x-2'>
-            <span className='text-[#9B1CDF] font-bold'>•</span>
-            <p className='text-s font-bold'>
+            <span className='font-light'>•</span>
+            <p className='text-s font-light'>
               알갱이의 크기가 다른 고체 혼합물은 알갱이의 크기 차이를 이용해 체로 분리할 수 있습니다.
             </p>
           </div>
-
           <div className='flex items-start space-x-2'>
-            <span className='text-[#9B1CDF] font-bold'>•</span>
-            <p className='text-s font-bold'>
+            <span className='font-light'>•</span>
+            <p className='text-s font-light'>
               체를 사용할 때에는 알갱이의 크기와 체의 눈 크기를 비교해 알맞은 것을 골라야 합니다.
             </p>
           </div>
@@ -401,12 +398,12 @@ export default function Home() {
         position='absolute'
         iconPosition='left'
         onClick={toggleBgm}
-        width={108}
-        height={108}
+        width={96}
+        height={96}
         color='#ffffff'
         textcolor='#ffffff'
-        bg='rgba(255,255,255,0.10)'
-        className='background-blur z-[200] right-[0px] mix-blend-difference'
+        bg={particleTheme.start.bg}
+        className='z-[1000]'
         right={16}
         top={16}
         innerCircleVisible={true}
@@ -418,13 +415,13 @@ export default function Home() {
         position='absolute'
         iconPosition='left'
         onClick={handleBackToIntro}
-        width={108}
-        height={108}
+        width={96}
+        height={96}
         color='#ffffff'
         textcolor='#ffffff'
-        bg='rgba(255,255,255,0.10)'
-        className='background-blur z-[200] right-[108px] mix-blend-difference'
-        right={16}
+        bg={particleTheme.start.bg}
+        className='z-[1000]'
+        right={120}
         top={16}
         iconSize={40}
         innerCircleVisible={true}

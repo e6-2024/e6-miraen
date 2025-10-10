@@ -31,9 +31,9 @@ export const PARTICLE_CONFIG = {
   },
   SPAWN: {
     count: 40,
-    batchSize: 7,
-    interval: 200,
-    spread: 2.0,
+    batchSize: 10,
+    interval: 10,
+    spread: 1.2,
     height: 8,
   },
 } as const;
@@ -41,8 +41,8 @@ export const PARTICLE_CONFIG = {
 export const PHYSICS_CONFIG = {
   gravity: [0, -9.81, 0] as [number, number, number],
   tiltLimit: 0.15,
-  sensitivity: 9.5,
-  friction: 0.3,
+  sensitivity: 1.0,
+  friction: 0.2,
   restitution: 0.2,
 } as const;
 
@@ -54,7 +54,7 @@ export const SIEVE_DIMENSIONS = {
 } as const;
 
 export const CONTAINER_DIMENSIONS = {
-  size: 16,
+  size: 20,
   wallThickness: 0.2,
   wallHeight: 2,
   bottomY: -7,
