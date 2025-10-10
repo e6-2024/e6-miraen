@@ -195,7 +195,7 @@ const NavigationUI = forwardRef<
       </CrayonTextBox>
       <CrayonTextButton
         ariaLabel='모드 선택 화면으로 돌아가기'
-        text={isPlayButtonPressed ? '다시하기' : '재생하기'}
+        text={isPlayButtonPressed ? '다시 하기' : '재생하기'}
         position='absolute'
         icon={isPlayButtonPressed ? 'replay' : 'play'}
         iconPosition='left'
