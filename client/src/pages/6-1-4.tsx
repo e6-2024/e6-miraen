@@ -150,10 +150,10 @@ export default function HomePage() {
             onClick={resetToIntro}
             width={96}
             height={96}
-            color='#ffffff'
+            color='rgba(255, 255, 255, 0.85)'
             textcolor='#ffffff'
-            bg={spaceTheme.goal.bg}
-            className='z-[1000]'
+            bg='rgba(255,255,255,0.30)'
+            className='background-blur z-[1000] mix-blend-difference'
             right={120}
             top={16}
             iconSize={40}
@@ -165,10 +165,10 @@ export default function HomePage() {
             onClick={toggleBgm}
             width={96}
             height={96}
-            color='#ffffff'
+            color='rgba(255, 255, 255, 0.85)'
             textcolor='#ffffff'
-            bg={spaceTheme.goal.bg}
-            className='z-[1000]'
+            bg='rgba(255, 255, 255, 0.30)'
+            className='background-blur z-[1000] mix-blend-difference'
             right={16}
             top={16}
             iconSize={40}
