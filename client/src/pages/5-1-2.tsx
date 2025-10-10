@@ -167,14 +167,14 @@ function ModeControls({
 
         {activeMode === 'refraction' && (
           <>
-            <h4 className='text-base font-light'>볼록 렌즈와 오목 렌즈가 있어요.</h4>
+            <h4 className='text-base font-light pb-1.5'>볼록 렌즈와 오목 렌즈가 있어요.</h4>
             <div className='flex gap-2'>
               {lensTypes.map(({ key, label }) => (
                 <button
                   key={key}
                   onClick={() => onLensTypeChange(key)}
-                  className={`px-3 py-1.5 rounded text-xs font-light transition-colors ${
-                    lensType === key ? 'bg-blue-500 text-white' : 'bg-gray-700 text-white hover:bg-gray-600'
+                  className={`px-3 py-1.5 rounded text-base font-light transition-colors ${
+                    lensType === key ? 'bg-[#52AE46] text-white' : 'bg-gray-700 text-white hover:bg-gray-600'
                   }`}>
                   {label}
                 </button>
@@ -194,7 +194,7 @@ function ModeControls({
                 max='85'
                 value={laserAngle}
                 onChange={(e) => onAngleChange(Number(e.target.value))}
-                className='w-48 accent-green-500'
+                className='w-48 accent-[#52AE46]'
               />
             </div>
           </>
@@ -226,6 +226,7 @@ function ExplanationToggleButton({
         <CrayonTextButton
           text={titles[mode]}
           width={140}
+          height={75}
           bg='#F3921C'
           color='#FFDBB0'
           textcolor='#FFFFFF'></CrayonTextButton>
@@ -248,10 +249,11 @@ function LensButton({
   }
 
   return (
-    <div className='absolute bottom-20 right-4' onClick={onLensClick}>
+    <div className='absolute bottom-24 right-4' onClick={onLensClick}>
       <CrayonTextButton
         text={lensType === 'concave' ? '오목 렌즈 둘러 보기' : lensType === 'convex' ? '볼록 렌즈 둘러 보기' : ''}
         width={200}
+        height={75}
         bg='#52AE46'
         color='#A1CC90'
         textcolor='#FFFFFF'></CrayonTextButton>
@@ -271,6 +273,7 @@ function SubtitleBox({
   isVisible: boolean
 }) {
   const descriptions = {
+    default: '버튼을 눌러 3구 레이저를 켜고 빛의 경로를 관찰해보세요.',
     direct: '빛은 곧게 나아갑니다.',
     reflection: '빛은 곧게 나아가다가 거울에 부딪치면 방향이 바뀌어 나아갑니다.',
     convex: '빛은 볼록 렌즈를 통과할 때 렌즈의 가운데 쪽으로 굴절하여 나아갑니다.',
@@ -280,8 +283,8 @@ function SubtitleBox({
   if (!isVisible) return null
 
   return (
-    <div className='absolute flex w-full font-bold justify-center left-1/2 -translate-x-1/2 items-center bottom-12 -translate-y-1/2 pointer-events-none'>
-      <CrayonTextBox color='#F3921C' bg='#FFF'>
+    <div className='absolute flex w-full font-light justify-center left-1/2 -translate-x-1/2 items-center bottom-12 -translate-y-1/2 pointer-events-none'>
+      <CrayonTextBox color='#F3921C' bg='#FFF' fontSize='16px'>
         {mode === 'direct' ? descriptions[mode] : mode === 'reflection' ? descriptions[mode] : descriptions[lensType]}
       </CrayonTextBox>
     </div>
@@ -300,8 +303,20 @@ function ExplanationBox({ isVisible, mode, lensType }: { isVisible: boolean; mod
 
   return (
     <div className='absolute left-1/2 font-light top-1/2 -translate-x-1/2 -translate-y-1/2'>
-      <CrayonTextBox textcolor='#333' color='#F3921C' bg='#F3921C' fontSize='16px' width='300px' animated={false}>
+      <CrayonTextBox textcolor='#333' color='#F3921C' bg='#F3921C' fontSize='20px' width='380px' animated={false}>
         {descriptions[mode]}
+      </CrayonTextBox>
+    </div>
+  )
+}
+
+function ExplanationBox2(){
+  const descriptions = '버튼을 눌러 3구 레이저를 켜고 빛의 경로를 관찰해보세요.'
+
+  return (
+    <div className='absolute flex w-full font-light justify-center left-1/2 -translate-x-1/2 items-center top-16 -translate-y-1/2 pointer-events-none'>
+      <CrayonTextBox color='#F3921C' bg='#FFF' fontSize='16px'>
+        {descriptions}
       </CrayonTextBox>
     </div>
   )
@@ -539,8 +554,6 @@ export default function Page() {
           <Environment preset='city' environmentIntensity={0.2}>
             <color attach='background' args={['#00b7ffff']} />
           </Environment>
-
-          {/* 조명 설정 */}
           <directionalLight
             color='white'
             intensity={1.2}
@@ -560,12 +573,8 @@ export default function Page() {
 
           {hasContent && (
             <>
-              {/* 전체 postion 조정 */}
               <TiltOnMouse enabled={showIntro} maxDeg={5} position={[0, -4, 0]}>
-                {/* 광학 실험실 */}
                 <OpticalLab mode={activeMode} lensType={lensType} rayStates={rayStates} laserAngle={laserAngle} />
-
-                {/* 3D 모델 */}
                 <Model
                   mode={activeMode}
                   onToggle={handleRayToggle}
@@ -588,20 +597,6 @@ export default function Page() {
                   pivotOffset={[0, 0, activeMode === 'reflection' ? 0 : 3]}
                   mode={activeMode}
                 />
-
-                {rayStates && !showLensPopup && !rayStates.every(Boolean) && (
-                  <SpeechBubble
-                    position={
-                      activeMode === 'direct'
-                        ? [-11, 1.5, 0]
-                        : activeMode === 'reflection'
-                        ? [-10, 1, -6]
-                        : [-11, 1.5, 0]
-                    }
-                    html={'버튼을 눌러 3구 레이저를 켜고,\n빛이 나아가는 모습을 관찰해 보세요.'}
-                    visible={!showIntro}
-                  />
-                )}
               </TiltOnMouse>
             </>
           )}
@@ -624,6 +619,7 @@ export default function Page() {
           />
 
           <ExplanationBox isVisible={showExplanation} mode={activeMode} lensType={lensType} />
+          <ExplanationBox2/>
           <LensButton mode={activeMode} lensType={lensType} onLensClick={handleLensClick} />
           <SubtitleBox mode={activeMode} lensType={lensType} rayStates={rayStates} isVisible={showSubtitle} />
 
