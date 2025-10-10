@@ -123,6 +123,9 @@ export default function Page() {
   const [isBackFromMode, setIsBackFromMode] = useState(false)
   const [showActivityGuide, setShowActivityGuide] = useState(false)
 
+  const isExtendActive = action === 'extend'
+  const isFoldActive = action === 'fold'
+
   const orbitControlsRef = useRef<any>(null)
 
   // === BGM ===
@@ -577,24 +580,25 @@ export default function Page() {
                   ariaLabel='팔을 구부릴 때'
                   width={180}
                   height={72}
-                  bg='#D54D50'
-                  color='#E8AAAB'
+                  bg={isExtendActive ? '#D54D50' : '#9E9E9E'}
+                  color={isExtendActive ? '#E8AAAB' : '#666666'}
                   textcolor='#FFFFFF'
-                  className=' active:scale-90 transition-all duration-300'
+                  className={`transition-all duration-300 ${isExtendActive ? 'scale-100' : 'hover:scale-105'}`}
                   onClick={handleExtend}
-                  innerCircleVisible={false}
+                  innerCircleVisible={isExtendActive}
                 />
+
                 <CrayonTextButton
                   text='팔을 펼 때'
                   ariaLabel='팔을 펼 때'
                   width={180}
                   height={72}
-                  bg='#E8AAAB'
-                  color='#D54D50'
+                  bg={isFoldActive ? '#D54D50' : '#9E9E9E'}
+                  color={isFoldActive ? '#E8AAAB' : '#666666'}
                   textcolor='#FFFFFF'
-                  className=' active:scale-90 transition-all duration-300'
+                  className={`transition-all duration-300 ${isFoldActive ? 'scale-100' : 'hover:scale-105'}`}
                   onClick={handleFold}
-                  innerCircleVisible={false}
+                  innerCircleVisible={isFoldActive}
                 />
               </div>
             </CrayonTextBox>
