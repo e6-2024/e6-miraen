@@ -41,7 +41,7 @@ type AnatomyTheme = {
 const anatomyTheme: AnatomyTheme = {
   goal: { bg: '#D54D50', border: '#E8AAAB', text: '#FFFFFF' },
   guide: { bg: '#D54D50', border: '#E8AAAB', text: '#FFFFFF' },
-  start: { bg: '#F77F42', border: '#BF4E1D', text: '#FFFFFF' },
+  start: { bg: '#E8AAAB', border: '#D54D50', text: '#FFFFFF' },
 }
 
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
@@ -489,7 +489,6 @@ export default function Page() {
         )}
       </AnimatePresence>
 
-      {/* 뼈와 근육 컨트롤 */}
       <AnimatePresence>
         {mounted && mode === 'bones' && (
           <motion.div
@@ -505,7 +504,6 @@ export default function Page() {
               padding={14}
               animated={true}
               className='rounded-3xl shadow-2xl border border-gray-100'>
-              {/* 애니메이션 토글 */}
               <div className='flex justify-center gap-3 mb-3'>
                 {(['pose', 'walk'] as AnimationState[]).map((state) => {
                   const active = animState === state
@@ -691,7 +689,6 @@ export default function Page() {
         )}
       </div>
 
-      {/* Intro (텍스트 UI도 안전하게 mounted 이후) */}
       {mounted && isLoaded && showIntro && (
         <Intro
           onEnter={handleEnterExperience}
@@ -712,7 +709,6 @@ export default function Page() {
         />
       )}
 
-      {/* BGM 토글 버튼 (mounted 이후) */}
       {mounted && (
         <>
           <CrayonTextButton
@@ -725,8 +721,8 @@ export default function Page() {
             height={108}
             color='#ffffff'
             textcolor='#ffffff'
-            bg='rgba(255,255,255,0.10)'
-            className='background-blur z-[200] mix-blend-difference'
+            bg={anatomyTheme.goal.bg}
+            className='z-[1000]'
             right={138}
             top={16}
             iconSize={40}
@@ -742,8 +738,8 @@ export default function Page() {
             height={108}
             color='#fff'
             textcolor='#fff'
-            bg='rgba(255,255,255,0.10)'
-            className='backdrop-blur z-[1000] mix-blend-difference'
+            bg={anatomyTheme.goal.bg}
+            className='z-[1000]'
             right={16}
             top={16}
             iconSize={40}
@@ -752,10 +748,8 @@ export default function Page() {
         </>
       )}
 
-      {/* 모달 (mounted 이후) */}
       {mounted && <ActivityGuideModal isOpen={showActivityGuide} onClose={handleCloseActivityGuide} />}
 
-      {/* 나레이션 텍스트 */}
       <AnimatePresence>
         {mounted && showNarrationText && mode === 'bones' && animState === 'walk' && narrationText && (
           <motion.div
