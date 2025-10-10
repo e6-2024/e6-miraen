@@ -48,8 +48,8 @@ function SievePreview({ level }: { level: number }) {
 
 function ParticlePreview({ radius, color }: { radius: number; color: string }) {
   return (
-    <div className='mx-auto w-24 h-24'>
-      <Scene camera={{ position: [0, 0, 0], fov: 50 }}>
+    <div className='mx-auto w-24 h-32'>
+      <Scene camera={{ position: [0, 0, 3.4], fov: 50 }}>
         <ambientLight intensity={0.4} />
         <Environment preset='warehouse' backgroundIntensity={0.1} />
         <mesh castShadow>
@@ -335,6 +335,7 @@ export default function Home() {
 
   const handleBackToIntro = () => {
     setShowIntro(true)
+    setShowSieveSelection(false)
     handleReset()
   }
 
