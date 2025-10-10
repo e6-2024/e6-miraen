@@ -95,7 +95,7 @@ const ActivityGuideModal: React.FC<{
           onClick={(e) => e.stopPropagation()}>
           <CrayonTextBox
             bg='#FFFFFF'
-            color='#4CAF50' // 테두리 색 (그린 톤)
+            color='#05A8A4' // 테두리 색 (그린 톤)
             textcolor='#333333'
             padding={16}
             animated={true}
@@ -172,7 +172,7 @@ const ActivityGuideModal: React.FC<{
                     key={index}
                     className={`w-2 h-2 rounded-full mx-2 transition-all duration-300 ${
                       index === currentSlide
-                        ? 'bg-[#4CAF50] shadow-[0_0_8px_rgba(76,175,80,0.6)] scale-125'
+                        ? 'bg-[#05A8A4] shadow-[0_0_8px_rgba(76,175,80,0.6)] scale-125'
                         : 'bg-gray-300 '
                     }`}
                   />
@@ -188,8 +188,8 @@ const ActivityGuideModal: React.FC<{
                   width={160}
                   height={60}
                   iconSize={30}
-                  bg='#4CAF50'
-                  color='#096A2E'
+                  bg='#05A8A4'
+                  color='#7BCACA'
                   textcolor='#FFFFFF'
                   className='relative  active:scale-95 transition-all duration-300'
                   onClick={handleNext}

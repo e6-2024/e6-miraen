@@ -102,12 +102,13 @@ export function UI({ isLockedToSurface, activeSeason, onReset }: UIProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 1, ease: 'easeInOut' }}
-            className='absolute left-4 top-4 z-10 w-fit h-fit'>
+            className='absolute left-4 top-4 z-10 w-fit h-fit font-light'>
             <CrayonTextBox
               textcolor='#333333'
               color='#fff'
               bg='#fff'
-              padding={4}
+              padding={8}
+              fontSize='16px'
               animated={true}
               text='※이 모델은 태양, 지구, 별자리의 상대적인 크기와 거리를 고려하지 않은 것입니다.'
             />

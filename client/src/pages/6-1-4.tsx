@@ -148,13 +148,13 @@ export default function HomePage() {
             position='absolute'
             iconPosition='left'
             onClick={resetToIntro}
-            width={108}
-            height={108}
+            width={96}
+            height={96}
             color='#ffffff'
             textcolor='#ffffff'
-            bg='rgba(255,255,255,0.10)'
-            className='background-blur z-[300] right-[108px] border-white/20 '
-            right={16}
+            bg={spaceTheme.goal.bg}
+            className='z-[1000]'
+            right={120}
             top={16}
             iconSize={40}
           />
@@ -163,12 +163,12 @@ export default function HomePage() {
             position='absolute'
             iconPosition='left'
             onClick={toggleBgm}
-            width={108}
-            height={108}
+            width={96}
+            height={96}
             color='#ffffff'
             textcolor='#ffffff'
-            bg='rgba(255,255,255,0.10)'
-            className='background-blur right-[0px] border-white/20 z-[1300]'
+            bg={spaceTheme.goal.bg}
+            className='z-[1000]'
             right={16}
             top={16}
             iconSize={40}

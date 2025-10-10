@@ -717,13 +717,13 @@ export default function Page() {
             position='absolute'
             iconPosition='left'
             onClick={handleBackToIntro}
-            width={108}
-            height={108}
+            width={96}
+            height={96}
             color='#ffffff'
             textcolor='#ffffff'
             bg={anatomyTheme.goal.bg}
             className='z-[1000]'
-            right={138}
+            right={120}
             top={16}
             iconSize={40}
             innerCircleVisible={true}
@@ -734,8 +734,8 @@ export default function Page() {
             position='absolute'
             iconPosition='left'
             onClick={toggleBgm}
-            width={108}
-            height={108}
+            width={96}
+            height={96}
             color='#fff'
             textcolor='#fff'
             bg={anatomyTheme.goal.bg}
