@@ -3,7 +3,7 @@ import { Canvas } from '@react-three/fiber'
 import { OrbitControls, ContactShadows, useProgress, Environment } from '@react-three/drei'
 import Scene from '@/components/canvas/Scene'
 import Intro from '@/components/intro/Intro'
-import {BG} from '@/components/6-2-3/BG'
+import { BG } from '@/components/6-2-3/BG'
 import * as THREE from 'three'
 import { AnimatePresence, motion } from 'framer-motion'
 import ConnectedBuzzers from '@/components/6-2-3/ConnectedBuzzers'
@@ -15,6 +15,7 @@ import { CrayonTextBox } from '@/components/common/CrayonTextBox'
 import { audioManager, playNarration, playEffect, stopNarration, stopAll } from '@/utils/6-2-3/audioManager'
 import { NARRATIONS, SOUND_EFFECTS, BACKGROUND_MUSIC, VOLUMES } from '@/utils/6-2-3/narrationConfig'
 import { TiltOnMouse } from '@/components/common/Tilt'
+import ActivityGuideModal from '@/components/6-2-3/ActivityGuideModal'
 
 const BUTTON_THEME = {
   goal: { bg: '#52AE46', border: '#A1CC90', text: '#FFFFFF' },
@@ -125,11 +126,18 @@ export default function Home() {
   const [bgmEnabled, setBgmEnabled] = useState<boolean>(true)
   const [bgmReady, setBgmReady] = useState(false)
   const [showNarrationText, setShowNarrationText] = useState(false)
+  const [showActivityGuide, setShowActivityGuide] = useState(false)
 
   const handleBatteryClick = useCallback(() => {
     setShowNarrationText(true)
     setTimeout(() => setShowNarrationText(false), 4000)
   }, [])
+
+  const handleShowActivityGuide = () => {
+    audioManager.playGeneralButton()
+    setShowActivityGuide(true)
+  }
+  const handleCloseActivityGuide = () => setShowActivityGuide(false)
 
   useEffect(() => {
     if (!mounted) return
@@ -309,13 +317,13 @@ export default function Home() {
         position='absolute'
         iconPosition='left'
         onClick={handleBackToIntro}
-        width={108}
-        height={108}
+        width={96}
+        height={96}
         color='#ffffff'
         textcolor='#ffffff'
-        bg='rgba(255,255,255,0.10)'
-        className='background-blur z-[200] mix-blend-difference'
-        right={138}
+        bg={BUTTON_THEME.start.bg}
+        className='z-[10]'
+        right={120}
         top={16}
         iconSize={40}
         innerCircleVisible={true}
@@ -325,12 +333,12 @@ export default function Home() {
         position='absolute'
         iconPosition='left'
         onClick={toggleBgm}
-        width={108}
-        height={108}
+        width={96}
+        height={96}
         color='#fff'
         textcolor='#fff'
-        bg='rgba(255,255,255,0.10)'
-        className='backdrop-blur z-[1000] mix-blend-difference'
+        bg={BUTTON_THEME.start.bg}
+        className='z-[10]'
         right={16}
         top={16}
         iconSize={40}
@@ -441,13 +449,14 @@ export default function Home() {
       {isLoaded && showIntro && (
         <Intro
           onEnter={() => {}}
-          title='전지의 수에 따른 전기 회로의 특징 비교하기'
+          title={'전지의 수에 따른\n전기 회로의 특징 비교하기'}
           description={['전지 1 개를 연결한 전기 회로와 전지 2 개를 직렬연결한', '전기 회로의 특징을 비교해 봅시다.']}
           backgroundSvg='/img/cover/6-2-3.svg'
           descriptionSound={NARRATIONS.GOAL}
           showModeSelection={true}
           modeButtons={modeButtons}
           onModeSelect={handleModeSelect}
+          onActivityGuide={handleShowActivityGuide}
           showModeButtonsDirectly={isBackFromMode}
           buttonTheme={BUTTON_THEME}
         />
@@ -469,6 +478,7 @@ export default function Home() {
           </motion.div>
         )}
       </AnimatePresence>
+      <ActivityGuideModal isOpen={showActivityGuide} onClose={handleCloseActivityGuide} />
     </div>
   )
 }

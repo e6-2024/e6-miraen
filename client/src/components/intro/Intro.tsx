@@ -116,7 +116,7 @@ export default function Intro<T = string>({
   return (
     <div
       className={`
-        absolute inset-0 z-50 transition-opacity duration-1000 ease-in-out overflow-hidden
+        absolute inset-0 transition-opacity duration-1000 ease-in-out overflow-hidden
         ${isAnimating ? 'opacity-0' : 'opacity-100'}
       `}>
       {/* 데스크톱 */}
@@ -324,7 +324,7 @@ export default function Intro<T = string>({
       </div>
 
       {showGoalPopup && (
-        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-[1100] p-4'>
+        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-[30] p-4'>
           <CrayonTextBox
             bg='#FFFFFF'
             color={buttonTheme.goal.bg}

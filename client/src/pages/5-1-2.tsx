@@ -285,7 +285,7 @@ function SubtitleBox({
   if (!isVisible) return null
 
   return (
-    <div className='absolute flex w-full font-light justify-center left-1/2 -translate-x-1/2 items-center bottom-12 -translate-y-1/2 pointer-events-none'>
+    <div className='absolute flex w-full font-light justify-center left-1/2 -translate-x-1/2 items-center bottom-4 -translate-y-1/2 pointer-events-none'>
       <CrayonTextBox color='#F3921C' bg='#FFF' fontSize='16px'>
         {mode === 'direct' ? descriptions[mode] : mode === 'reflection' ? descriptions[mode] : descriptions[lensType]}
       </CrayonTextBox>
@@ -312,9 +312,9 @@ function ExplanationBox({ isVisible, mode, lensType }: { isVisible: boolean; mod
   )
 }
 
-function ExplanationBox2() {
+function ExplanationBox2({ isVisible }: { isVisible?: boolean }) {
   const descriptions = '버튼을 눌러 3구 레이저를 켜고 빛의 경로를 관찰해보세요.'
-
+  if (!isVisible) return null
   return (
     <div className='absolute flex w-full font-light justify-center left-1/2 -translate-x-1/2 items-center top-16 -translate-y-1/2 pointer-events-none'>
       <CrayonTextBox color='#F3921C' bg='#FFF' fontSize='16px'>
@@ -628,9 +628,8 @@ export default function Page() {
             onLensTypeChange={handleLensTypeChange}
             onAngleChange={setLaserAngle}
           />
-
+          <ExplanationBox2 isVisible={!showSubtitle} />
           <ExplanationBox isVisible={showExplanation} mode={activeMode} lensType={lensType} />
-          <ExplanationBox2 />
           <LensButton mode={activeMode} lensType={lensType} onLensClick={handleLensClick} />
           <SubtitleBox mode={activeMode} lensType={lensType} rayStates={rayStates} isVisible={showSubtitle} />
 

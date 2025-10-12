@@ -39,9 +39,9 @@ type StoveTheme = {
 }
 
 const stoveTheme: StoveTheme = {
-  goal: { bg: '#EB7200', border: '#F4B476', text: '#FFFFFF' },
-  guide: { bg: '#EB7200', border: '#F4B476', text: '#FFFFFF' },
-  start: { bg: '#49DE80', border: '#FFF', text: '#FFFFFF' },
+  goal: { bg: '#52AE46', border: '#A1CC90', text: '#FFFFFF' },
+  guide: { bg: '#52AE46', border: '#A1CC90', text: '#FFFFFF' },
+  start:  { bg: '#EB7200', border: '#F4B476', text: '#FFFFFF' },
 }
 
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
@@ -115,7 +115,7 @@ function TurnOffFireMessage({ visible }: { visible: boolean }) {
         transition={{ duration: 0.3 }}
         className='absolute inset-x-0 top-1/3 flex justify-center z-[20]'>
         <CrayonTextBox color='#222' bg='#FFF' animated={true}>
-          <p className='text-center font-light text-black'>가스레인지의 손잡이를 클릭하여 불을 끄세요.</p>
+          <p className='text-center font-light text-black'>손잡이를 클릭하여 불을 끄세요.</p>
         </CrayonTextBox>
       </motion.div>
     </AnimatePresence>
