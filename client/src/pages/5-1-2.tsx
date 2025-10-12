@@ -28,6 +28,8 @@ import {
 } from '@/utils/5-1-2/utils'
 import { LensPopup } from '@/components/5-1-2/LensPopup'
 import { TiltOnMouse } from '@/components/common/Tilt'
+import ActivityGuideModal from '@/components/5-1-2/ActivityGuideModal'
+import AudioManager from '@/components/5-1-2/AudioManager'
 
 const PostEffects = dynamic(() => import('../components/5-1-2/PostEffects'), { ssr: false })
 
@@ -310,7 +312,7 @@ function ExplanationBox({ isVisible, mode, lensType }: { isVisible: boolean; mod
   )
 }
 
-function ExplanationBox2(){
+function ExplanationBox2() {
   const descriptions = '버튼을 눌러 3구 레이저를 켜고 빛의 경로를 관찰해보세요.'
 
   return (
@@ -339,6 +341,8 @@ export default function Page() {
   const [narrationText, setnarrationText] = useState()
   const [showSubtitle, setShowSubtitle] = useState(false)
   const { playSound, playNarration, stopNarration } = useAudio()
+  const [showActivityGuide, setShowActivityGuide] = useState(false)
+  const audioManager = AudioManager.getInstance()
 
   const modeButtons = useMemo(
     () => [
@@ -358,6 +362,13 @@ export default function Page() {
     },
     [stopNarration],
   )
+
+  const handleShowActivityGuide = () => {
+    audioManager.playGeneralButton()
+    setShowActivityGuide(true)
+  }
+
+  const handleCloseActivityGuide = () => setShowActivityGuide(false)
 
   // === BGM ===
   const bgmRef = useRef<HTMLAudioElement | null>(null)
@@ -619,7 +630,7 @@ export default function Page() {
           />
 
           <ExplanationBox isVisible={showExplanation} mode={activeMode} lensType={lensType} />
-          <ExplanationBox2/>
+          <ExplanationBox2 />
           <LensButton mode={activeMode} lensType={lensType} onLensClick={handleLensClick} />
           <SubtitleBox mode={activeMode} lensType={lensType} rayStates={rayStates} isVisible={showSubtitle} />
 
@@ -649,9 +660,11 @@ export default function Page() {
           modeButtons={modeButtons}
           onModeSelect={handleModeSelect}
           showModeButtonsDirectly={isBackFromMode}
+          onActivityGuide={handleShowActivityGuide}
           buttonTheme={lightTheme}
         />
       )}
+      <ActivityGuideModal isOpen={showActivityGuide} onClose={handleCloseActivityGuide} />
     </div>
   )
 }
