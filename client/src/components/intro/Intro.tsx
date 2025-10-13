@@ -324,7 +324,7 @@ export default function Intro<T = string>({
       </div>
 
       {showGoalPopup && (
-        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-[30] p-4'>
+        <div className='absolute z-[40] inset-0 bg-black/50 flex items-center justify-center p-4'>
           <CrayonTextBox
             bg='#FFFFFF'
             color={buttonTheme.goal.bg}
@@ -356,7 +356,7 @@ export default function Intro<T = string>({
                 bg={buttonTheme.goal.bg}
                 color={buttonTheme.goal.border}
                 textcolor={buttonTheme.goal.text}
-                className='w-full max-w-[320px]  active:scale-95 transition-all duration-300'
+                className='w-full max-w-[320px] active:scale-95 transition-all duration-300'
                 onClick={handleClosePopup}
                 innerCircleVisible={false}
               />

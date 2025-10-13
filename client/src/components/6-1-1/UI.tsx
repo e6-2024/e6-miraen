@@ -94,56 +94,51 @@ export function CleaningProgressUI({
   ]
 
   return (
-    <CrayonTextBox
-      color='#01A7A2'
-      bg='#FFF'
-      className='w-[300px] z-[200] bottom-4 left-4'
-      position='absolute'>
-        <h3 className='text-lg font-bold mb-3 text-gray-800'>청소 진행도</h3>
-        <div className='space-y-3 font-light'>
-          {missionList.map((mission) => {
-            const progress = cleaningProgress[mission.id]
-            const isCompleted = completedMissions[mission.id]
+    <CrayonTextBox color='#01A7A2' bg='#FFF' className='w-[300px] z-[200] bottom-4 left-4' position='absolute'>
+      <h3 className='text-lg font-bold mb-3 text-gray-800'>청소 진행도</h3>
+      <div className='space-y-3 font-light'>
+        {missionList.map((mission) => {
+          const progress = cleaningProgress[mission.id]
+          const isCompleted = completedMissions[mission.id]
 
-            return (
-              <div key={mission.id}>
-                <div className='flex justify-between items-center'>
-                  <span className='text-sm text-gray-700'>{mission.name}</span>
-                  <span className='text-xs text-gray-500'>{isCompleted ? '완료' : `${Math.round(progress)} %`}</span>
-                </div>
-
-                {/* 프로그레스 바 */}
-                <div className='w-full bg-gray-200 rounded-full h-2 overflow-hidden'>
-                  <div
-                    className='h-2 rounded-full transition-all duration-300'
-                    style={{
-                      width: `${progress}%`,
-                      backgroundColor: mission.color,
-                    }}
-                  />
-                </div>
-
-                {/* 완료되면 CrayonTextButton으로 교체 */}
-                {isCompleted && (
-                  <CrayonTextButton
-                    ariaLabel='다시 하기'
-                    text='다시 하기'
-                    width={160}
-                    height={48}
-                    // @ts-ignore
-                    textSize={12}
-                    bg='#F3F4F6' // gray-100
-                    color='#D1D5DB' // gray-300 (border)
-                    textcolor='#374151' // gray-700
-                    className='w-full active:scale-95 transition-all duration-200'
-                    onClick={() => onReset(mission.id)}
-                    innerCircleVisible={false}
-                  />
-                )}
+          return (
+            <div key={mission.id}>
+              <div className='flex justify-between items-center'>
+                <span className='text-sm text-gray-700'>{mission.name}</span>
+                <span className='text-xs text-gray-500'>{isCompleted ? '완료' : `${Math.round(progress)} %`}</span>
               </div>
-            )
-          })}
-        </div>
+
+              {/* 프로그레스 바 */}
+              <div className='w-full bg-gray-200 rounded-full h-2 overflow-hidden'>
+                <div
+                  className='h-2 rounded-full transition-all duration-300'
+                  style={{
+                    width: `${progress}%`,
+                    backgroundColor: mission.color,
+                  }}
+                />
+              </div>
+
+              {isCompleted && (
+                <CrayonTextButton
+                  ariaLabel='다시 하기'
+                  text='다시 하기'
+                  width={120}
+                  height={48}
+                  // @ts-ignore
+                  textSize={12}
+                  bg='#F3F4F6' 
+                  color='#D1D5DB' 
+                  textcolor='#374151' 
+                  className='w-full top-2 active:scale-95 transition-all duration-200'
+                  onClick={() => onReset(mission.id)}
+                  innerCircleVisible={false}
+                />
+              )}
+            </div>
+          )
+        })}
+      </div>
     </CrayonTextBox>
   )
 }
@@ -176,7 +171,7 @@ export function SolutionSelector({
 
   return (
     <motion.div
-      className='absolute top-[380px] left-4 z-10'
+      className='absolute top-[400px] left-0 z-10'
       initial={{ opacity: 0, y: 0 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 0 }}
@@ -195,7 +190,9 @@ export function SolutionSelector({
                   }
                 }}
                 disabled={isDisabled}>
-                {solution.img && <img src={solution.img} alt={solution.name} />}
+                <div className='flex items-center justify-center'>
+                  {<img className='h-[130px]' src={solution.img} alt={solution.name} />}
+                </div>
                 {solution.name}
               </button>
             ))}

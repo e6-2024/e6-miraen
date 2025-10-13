@@ -382,7 +382,7 @@ export default function Home() {
           isAudioManagerStarted={isAudioManagerStarted}
           mousePosition={mousePosition}
           screenSize={screenSize}
-          resetTrigger={resetTrigger} // 리셋 트리거 전달
+          resetTrigger={resetTrigger}
         />
       </Scene>
 

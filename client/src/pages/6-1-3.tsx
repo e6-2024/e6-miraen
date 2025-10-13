@@ -14,6 +14,20 @@ import { TiltOnMouse } from '@/components/common/Tilt'
 import { usePlantAudio } from '@/hook/6-1-3/useAudio'
 import { CAMERA_CONFIGS, getBasePathPoints, getNarrationTexts, ViewType, InfoPanelType } from '@/utils/6-1-3/utils'
 
+type ButtonStyle = { bg: string; border: string; text: string }
+
+type RoomTheme = {
+  goal: ButtonStyle
+  guide: ButtonStyle
+  start: ButtonStyle
+}
+
+const roomTheme: RoomTheme = {
+  goal: { bg: '#05A8A4', border: '#7BCACA', text: '#FFFFFF' },
+  guide: { bg: '#05A8A4', border: '#7BCACA', text: '#FFFFFF' },
+  start: { bg: '#9B1CDF', border: '#DFB2FA', text: '#FFFFFF' },
+}
+
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
   const { progress, active } = useProgress()
 
@@ -187,13 +201,13 @@ export default function Page() {
         position='absolute'
         iconPosition='left'
         onClick={handleBackToIntro}
-        width={108}
-        height={108}
+        width={96}
+        height={96}
         color='#ffffff'
         textcolor='#ffffff'
-        bg='rgba(255,255,255,0.10)'
-        className='background-blur z-[200] mix-blend-difference'
-        right={138}
+        bg={roomTheme.goal.bg}
+        className='z-[200]'
+        right={120}
         top={16}
         iconSize={40}
         innerCircleVisible={true}
@@ -204,12 +218,12 @@ export default function Page() {
         position='absolute'
         iconPosition='left'
         onClick={toggleBgm}
-        width={108}
-        height={108}
+        width={96}
+        height={96}
         color='#fff'
         textcolor='#fff'
-        bg='rgba(255,255,255,0.10)'
-        className='backdrop-blur z-[1000] mix-blend-difference'
+        bg={roomTheme.goal.bg}
+        className='z-[200]'
         right={16}
         top={16}
         iconSize={40}
@@ -217,7 +231,7 @@ export default function Page() {
       />
 
       <div className='flex-1'>
-        <Scene shadows camera={{ position: [16, 3, 20], fov: 50, near:0.1, far:200 }}>
+        <Scene shadows camera={{ position: [14, 3, 20], fov: 50, near: 0.1, far: 200 }}>
           <ambientLight intensity={0.2} />
           <directionalLight
             position={[5, 5, 5]}
@@ -327,10 +341,11 @@ export default function Page() {
       {isLoaded && showIntro && (
         <Intro
           onEnter={handleEnterExperience}
-          title='식물에서의 물의 이동 관찰하기'
+          title='식물에서 물의 이동 관찰하기'
           description={['식물에서 물의 이동을 관찰해 봅시다.']}
           backgroundSvg='/img/cover/6-1-3.svg'
           descriptionSound='/sounds/6-1-3/narration/6-1-3-Goal.MP3'
+          buttonTheme={roomTheme}
         />
       )}
     </div>

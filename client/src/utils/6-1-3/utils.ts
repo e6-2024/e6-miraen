@@ -5,14 +5,14 @@ export type InfoPanelType = 'root' | 'stem' | 'leaf'
 
 export const CAMERA_CONFIGS = {
   default: {
-    position: [16, 3, 20] as [number, number, number],
+    position: [10, 3, 20] as [number, number, number],
     target: [0, 0, 0] as [number, number, number],
     maxPolarAngle: Math.PI / 2,
     minPolarAngle: Math.PI / 2,
     minAzimuthAngle: Math.PI / 7,
     maxAzimuthAngle: Math.PI / 3,
     minDistance: 2,
-    maxDistance: 20,
+    maxDistance: 24,
   },
   leaf: {
     position: [3.2, 3.9, -1.3] as [number, number, number],

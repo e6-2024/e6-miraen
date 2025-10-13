@@ -726,7 +726,7 @@ export default function Page() {
             color='#ffffff'
             textcolor='#ffffff'
             bg={anatomyTheme.goal.bg}
-            className='z-[1000]'
+            className='z-[30]'
             right={120}
             top={16}
             iconSize={40}
@@ -743,7 +743,7 @@ export default function Page() {
             color='#fff'
             textcolor='#fff'
             bg={anatomyTheme.goal.bg}
-            className='z-[1000]'
+            className='z-[30]'
             right={16}
             top={16}
             iconSize={40}

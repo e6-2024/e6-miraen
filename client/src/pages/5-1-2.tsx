@@ -313,7 +313,7 @@ function ExplanationBox({ isVisible, mode, lensType }: { isVisible: boolean; mod
 }
 
 function ExplanationBox2({ isVisible }: { isVisible?: boolean }) {
-  const descriptions = '버튼을 눌러 3구 레이저를 켜고 빛의 경로를 관찰해보세요.'
+  const descriptions = '버튼을 눌러 3구 레이져를 켜고 빛이 나아가는 모습을 관찰해보세요.'
   if (!isVisible) return null
   return (
     <div className='absolute flex w-full font-light justify-center left-1/2 -translate-x-1/2 items-center top-16 -translate-y-1/2 pointer-events-none'>
@@ -510,7 +510,7 @@ export default function Page() {
         color={lightTheme.start.border}
         textcolor='#fff'
         bg={lightTheme.start.bg}
-        className='z-[1000]'
+        className='z-[20]'
         right={120}
         top={16}
         iconSize={40}
@@ -527,7 +527,7 @@ export default function Page() {
         color={lightTheme.start.border}
         textcolor='#fff'
         bg={lightTheme.start.bg}
-        className='z-[1000]'
+        className='z-[20]'
         right={16}
         top={16}
         iconSize={40}

@@ -90,7 +90,7 @@ function SieveSelectionPage({ onSelectSieve }: { onSelectSieve: (selectedLevel: 
   }
 
   return (
-    <div className='fixed inset-0 bg-[#78C9C9] flex items-center justify-center z-50'>
+    <div className='fixed inset-0 bg-[#78C9C9] flex items-center justify-center z-30'>
       <CrayonTextBox color='#374151' bg='#e5e5e5' padding={32} animated={true}>
         <h1 className='text-2xl font-bold text-black mb-2'>
           구슬과 체의 눈 크기를 비교한 뒤, 눈의 크기가 알맞은 체를 골라 구슬 혼합물을 분리해 보세요.
@@ -404,40 +404,6 @@ export default function Home() {
   return (
     <div className='w-screen h-screen bg-[#D5E8E8] relative flex flex-col overflow-hidden '>
       <LoadingTracker onLoadingComplete={handleLoadingComplete} />
-
-      <CrayonTextButton
-        icon={bgmEnabled ? 'volume2' : 'volumeX'}
-        position='absolute'
-        iconPosition='left'
-        onClick={toggleBgm}
-        width={96}
-        height={96}
-        color='#ffffff'
-        textcolor='#ffffff'
-        bg={particleTheme.start.bg}
-        className='z-[1000]'
-        right={16}
-        top={16}
-        innerCircleVisible={true}
-        iconSize={40}
-      />
-      <CrayonTextButton
-        ariaLabel={'첫 화면으로'}
-        icon={'home'}
-        position='absolute'
-        iconPosition='left'
-        onClick={handleBackToIntro}
-        width={96}
-        height={96}
-        color='#ffffff'
-        textcolor='#ffffff'
-        bg={particleTheme.start.bg}
-        className='z-[1000]'
-        right={120}
-        top={16}
-        iconSize={40}
-        innerCircleVisible={true}
-      />
       <div className={`flex-1 ${showSieveSelection ? 'invisible' : 'visible'}`}>
         <Scene
           shadows
@@ -547,7 +513,7 @@ export default function Home() {
       )}
 
       {isLoaded && showIntro && (
-        <div className='absolute inset-0 z-30'>
+        <div className='absolute inset-0'>
           <Intro
             onEnter={handleEnterExperience}
             title='크기가 다른 구슬 혼합물 분리하기'
@@ -564,6 +530,40 @@ export default function Home() {
 
       {showSummaryPopup && <SummaryPopup onClose={handleCloseSummaryPopup} />}
       <ActivityGuideModal isOpen={showActivityGuide} onClose={handleCloseActivityGuide} />
+
+      <CrayonTextButton
+        icon={bgmEnabled ? 'volume2' : 'volumeX'}
+        position='absolute'
+        iconPosition='left'
+        onClick={toggleBgm}
+        width={96}
+        height={96}
+        color='#ffffff'
+        textcolor='#ffffff'
+        bg={particleTheme.start.bg}
+        right={16}
+        top={16}
+        className='z-30'
+        innerCircleVisible={true}
+        iconSize={40}
+      />
+      <CrayonTextButton
+        ariaLabel={'첫 화면으로'}
+        icon={'home'}
+        position='absolute'
+        iconPosition='left'
+        onClick={handleBackToIntro}
+        width={96}
+        height={96}
+        color='#ffffff'
+        textcolor='#ffffff'
+        bg={particleTheme.start.bg}
+        right={120}
+        top={16}
+        iconSize={40}
+        className='z-30'
+        innerCircleVisible={true}
+      />
     </div>
   )
 }
