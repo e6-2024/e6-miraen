@@ -169,13 +169,13 @@ function ModeControls({
 
         {activeMode === 'refraction' && (
           <>
-            <h4 className='text-base font-light pb-1.5'>볼록 렌즈와 오목 렌즈가 있어요.</h4>
+            <h4 className='text-[18px] font-light pb-1.5'>볼록 렌즈와 오목 렌즈가 있어요.</h4>
             <div className='flex gap-2'>
               {lensTypes.map(({ key, label }) => (
                 <button
                   key={key}
                   onClick={() => onLensTypeChange(key)}
-                  className={`px-3 py-1.5 rounded text-base font-light transition-colors ${
+                  className={`px-3 py-1.5 rounded text-[18px] font-light transition-colors ${
                     lensType === key ? 'bg-[#52AE46] text-white' : 'bg-gray-700 text-white hover:bg-gray-600'
                   }`}>
                   {label}
@@ -188,7 +188,7 @@ function ModeControls({
         {/* 반사 모드일 때 각도 조절 */}
         {activeMode === 'reflection' && (
           <>
-            <h4 className='text-base font-light'>레이저 빛의 각도를 조절해보세요.</h4>
+            <h4 className='text-[18px] font-light'>레이저 빛의 각도를 조절해보세요.</h4>
             <div className='flex items-center gap-2'>
               <input
                 type='range'
@@ -286,7 +286,7 @@ function SubtitleBox({
 
   return (
     <div className='absolute flex w-full font-light justify-center left-1/2 -translate-x-1/2 items-center bottom-4 -translate-y-1/2 pointer-events-none'>
-      <CrayonTextBox color='#F3921C' bg='#FFF' fontSize='16px'>
+      <CrayonTextBox color='#F3921C' bg='#FFF' fontSize='18px'>
         {mode === 'direct' ? descriptions[mode] : mode === 'reflection' ? descriptions[mode] : descriptions[lensType]}
       </CrayonTextBox>
     </div>
@@ -317,7 +317,7 @@ function ExplanationBox2({ isVisible }: { isVisible?: boolean }) {
   if (!isVisible) return null
   return (
     <div className='absolute flex w-full font-light justify-center left-1/2 -translate-x-1/2 items-center top-16 -translate-y-1/2 pointer-events-none'>
-      <CrayonTextBox color='#F3921C' bg='#FFF' fontSize='16px'>
+      <CrayonTextBox color='#F3921C' bg='#FFF' fontSize='18px'>
         {descriptions}
       </CrayonTextBox>
     </div>
