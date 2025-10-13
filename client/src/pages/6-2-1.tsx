@@ -1,8 +1,7 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { Environment, OrbitControls, useProgress } from '@react-three/drei'
 import { AnimatePresence, motion } from 'framer-motion'
-import * as THREE from 'three'
 
 import Scene from '@/components/canvas/Scene'
 import Intro from '@/components/intro/Intro'
@@ -19,14 +18,11 @@ import ProgressBar from '@/components/6-2-1/ProgressBar'
 import TimeIntervalImages from '@/components/6-2-1/TimeIntervalImages'
 import SummaryPopup from '@/components/6-2-1/SummaryPopup'
 import SubtitleDisplay from '@/components/6-2-1/SubtitleDisplay'
-import NarrationManager from '@/components/6-2-1/NarrationManager'
 
 import { timeData2 } from '@/components/6-2-1/timeData'
 import { useObservation } from '@/hook/6-2-1/useObservation'
 import { useAudio } from '@/hook/6-2-1/useAudio'
 import { CAMERA_CONFIG } from '@/utils/6-2-1/utils'
-import { useNarrationManager } from '@/components/6-2-1/useNarrationManager'
-import { TiltOnMouse } from '@/components/common/Tilt'
 import IntroMouseCameraController from '@/components/intro/IntroMouseCameraController'
 
 type ButtonStyle = { bg: string; border: string; text: string }
@@ -56,64 +52,8 @@ function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }
 }
 
 function TimeIntervalButton({ onClick }: { onClick: () => void }) {
-  const [isHovered, setIsHovered] = useState(false)
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
-
-  const { playNarration, isCurrentlyPlaying, isOtherNarrationPlaying, isAnyNarrationPlaying } =
-    useNarrationManager('time-interval-button')
-
-  const handlePlayNarration = async () => {
-    try {
-      await playNarration(
-        '/sounds/6-2-1/narration/6-2-1-G.MP3',
-        '9 시 30 분부터 15 시 30 분까지 1 시간 간격으로 측정한 관측 자료를 확인해 봅시다.',
-        0.7,
-      )
-    } catch (error) {
-      console.log('나레이션 재생 실패:', error)
-    }
-  }
-
-  const handleMouseEnter = () => {
-    setIsHovered(true)
-
-    if (!isAnyNarrationPlaying()) {
-      timeoutRef.current = setTimeout(() => {
-        handlePlayNarration()
-      }, 200)
-    }
-  }
-
-  const handleMouseLeave = () => {
-    setIsHovered(false)
-
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-      timeoutRef.current = null
-    }
-  }
-
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-      }
-    }
-  }, [])
-
-  const isDisabled = isOtherNarrationPlaying()
-  const isPlaying = isCurrentlyPlaying()
-
   return (
-    <div className='relative' onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-      {isDisabled && isHovered && (
-        <div className='absolute -top-12 left-1/2 transform -translate-x-1/2 whitespace-nowrap z-40'>
-          <div className='bg-orange-500/90 text-white font-light px-3 py-1 rounded-lg text-xs shadow-lg'>
-            다른 설명이 재생 중입니다
-          </div>
-        </div>
-      )}
-
+    <div className='relative'>
       <CrayonTextButton
         text='시간 간격 관측 자료'
         width={190}
@@ -121,83 +61,14 @@ function TimeIntervalButton({ onClick }: { onClick: () => void }) {
         color={lightTheme.goal.border}
         textcolor='#FFF'
         onClick={onClick}
-        className={isPlaying ? 'scale-105' : ''}
       />
-
-      {isPlaying && (
-        <div className='absolute -top-2 -right-2 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center animate-pulse'>
-          <div className='w-2 h-2 bg-white rounded-full animate-ping'></div>
-        </div>
-      )}
-
-      {isDisabled && (
-        <div className='absolute -top-2 -right-2 w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center'>
-          <div className='w-2 h-2 bg-white rounded-full'></div>
-        </div>
-      )}
     </div>
   )
 }
 
 function SummaryButton({ onClick }: { onClick: () => void }) {
-  const [isHovered, setIsHovered] = useState(false)
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
-
-  const { playNarration, isCurrentlyPlaying, isOtherNarrationPlaying, isAnyNarrationPlaying } =
-    useNarrationManager('summary-button')
-
-  const handlePlayNarration = async () => {
-    try {
-      await playNarration(
-        '/sounds/6-2-1/narration/6-2-1-H.MP3',
-        '하루 동안 태양 고도, 그림자 길이, 기온의 관계를 알아봅시다.',
-        0.7,
-      )
-    } catch (error) {
-      console.log('나레이션 재생 실패:', error)
-    }
-  }
-
-  const handleMouseEnter = () => {
-    setIsHovered(true)
-
-    if (!isAnyNarrationPlaying()) {
-      timeoutRef.current = setTimeout(() => {
-        handlePlayNarration()
-      }, 200)
-    }
-  }
-
-  const handleMouseLeave = () => {
-    setIsHovered(false)
-
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-      timeoutRef.current = null
-    }
-  }
-
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-      }
-    }
-  }, [])
-
-  const isDisabled = isOtherNarrationPlaying()
-  const isPlaying = isCurrentlyPlaying()
-
   return (
-    <div className='relative' onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-      {isDisabled && isHovered && (
-        <div className='absolute -top-12 left-1/2 transform -translate-x-1/2 whitespace-nowrap z-40'>
-          <div className='bg-orange-500/90 text-white font-light px-3 py-1 rounded-lg text-xs shadow-lg'>
-            다른 설명이 재생 중입니다
-          </div>
-        </div>
-      )}
-
+    <div className='relative'>
       <CrayonTextButton
         text='정리하기'
         width={190}
@@ -205,20 +76,7 @@ function SummaryButton({ onClick }: { onClick: () => void }) {
         color={lightTheme.goal.border}
         textcolor='#FFF'
         onClick={onClick}
-        className={isPlaying ? 'scale-105' : ''}
       />
-
-      {isPlaying && (
-        <div className='absolute -top-2 -right-2 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center animate-pulse'>
-          <div className='w-2 h-2 bg-white rounded-full animate-ping'></div>
-        </div>
-      )}
-
-      {isDisabled && (
-        <div className='absolute -top-2 -right-2 w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center'>
-          <div className='w-2 h-2 bg-white rounded-full'></div>
-        </div>
-      )}
     </div>
   )
 }
@@ -260,7 +118,6 @@ export default function Page() {
   const [showIntro, setShowIntro] = useState(true)
   const [showTimeIntervalImages, setShowTimeIntervalImages] = useState(false)
   const [showSummaryPopup, setShowSummaryPopup] = useState(false)
-  const [showNarrationText, setShowNarrationText] = useState(true)
 
   // BGM 관리
   const bgmRef = useRef<HTMLAudioElement | null>(null)
@@ -270,9 +127,6 @@ export default function Page() {
   // 관찰 데이터 훅
   const observation = useObservation(timeData2)
   const { playSound, playBackgroundMusic } = useAudio()
-
-  // 메인 페이지 나레이션 관리
-  const { playNarration: playMainNarration } = useNarrationManager('main-page')
 
   // BGM 초기화 및 관리
   useEffect(() => {
@@ -287,12 +141,6 @@ export default function Page() {
     if (!mounted) return
     const audio = playBackgroundMusic()
     bgmRef.current = audio
-
-    // NarrationManager에 배경음악 참조 설정
-    if (audio) {
-      const narrationManager = NarrationManager.getInstance()
-      narrationManager.setBackgroundMusic(audio)
-    }
 
     return () => {
       if (audio) {
@@ -321,28 +169,10 @@ export default function Page() {
     setShowIntro(false)
     setBgmReady(true)
     playSound('/sounds/Enter_Cute.mp3')
-
-    setTimeout(async () => {
-      try {
-        await playMainNarration(
-          '/sounds/6-2-1/narration/6-2-1-D.MP3',
-          '시간에 따라 변하는 태양 고도, 그림자 길이, 기온을 살펴봅시다.',
-          0.7,
-        )
-      } catch (error) {
-        console.log('인트로 나레이션 재생 실패:', error)
-      }
-
-      setShowNarrationText(true)
-      setTimeout(() => setShowNarrationText(false), 4000)
-    }, 1000)
-  }, [playSound, playMainNarration])
+    // UI 설명용 내레이션 제거됨
+  }, [playSound])
 
   const handleBackToIntro = useCallback(() => {
-    // 모든 나레이션 중지
-    const narrationManager = NarrationManager.getInstance()
-    narrationManager.stopCurrentNarration()
-
     setShowIntro(true)
     setShowTimeIntervalImages(false)
     setShowSummaryPopup(false)
@@ -358,10 +188,6 @@ export default function Page() {
   }, [playSound])
 
   const handleShowSummary = useCallback(() => {
-    // 현재 재생 중인 나레이션 중지
-    const narrationManager = NarrationManager.getInstance()
-    narrationManager.stopCurrentNarration()
-
     setShowSummaryPopup(true)
     playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3')
   }, [playSound])
@@ -408,6 +234,7 @@ export default function Page() {
         iconSize={40}
         innerCircleVisible={true}
       />
+
       {/* 뒤로가기 버튼 */}
       {!showIntro && (
         <AnimatePresence>
@@ -439,57 +266,57 @@ export default function Page() {
       <div className='flex-1'>
         <Scene shadows camera={{ position: CAMERA_CONFIG.position, fov: 50 }}>
           <IntroMouseCameraController enabled={showIntro} />
-            <Environment
-              files='/img/cover/hdri.JPG'
-              background={true}
-              ground={{ height: 5, radius: 20, scale: 90 }}
-              backgroundBlurriness={0.8}
-              backgroundIntensity={0.7}
-              environmentIntensity={0.8}
-              backgroundRotation={[0, observation.sunPosition.azimuthRad, 0]}
+          <Environment
+            files='/img/cover/hdri.JPG'
+            background={true}
+            ground={{ height: 5, radius: 20, scale: 90 }}
+            backgroundBlurriness={0.8}
+            backgroundIntensity={0.7}
+            environmentIntensity={0.8}
+            backgroundRotation={[0, observation.sunPosition.azimuthRad, 0]}
+          />
+
+          {/* 조명 */}
+          <ambientLight intensity={0.6} />
+          <SunLight sunPosition={observation.sunPosition} />
+
+          {/* 3D 모델들 */}
+          {!showIntro && <CompassBillboard />}
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+            <planeGeometry args={[100, 100]} />
+            <shadowMaterial transparent opacity={0.5} />
+          </mesh>
+
+          {/* 막대 */}
+          <mesh position={[0, 1.25, 0]} castShadow receiveShadow>
+            <cylinderGeometry args={[0.1, 0.1, 2.5, 32]} />
+            <meshStandardMaterial color='black' envMapIntensity={0} />
+          </mesh>
+
+          {/* 관측선 */}
+          {observation.showObservationLines && !showTimeIntervalImages && (
+            <AngleLines
+              azimuth={observation.currentData.azimuth}
+              altitude={observation.currentData.altitude}
+              shadowLength={observation.currentData.shadowLength}
+              sunPosition={observation.sunPosition}
             />
+          )}
 
-            {/* 조명 */}
-            <ambientLight intensity={0.6} />
-            <SunLight sunPosition={observation.sunPosition} />
+          {/* 온도계 */}
+          {!observation.showObservationLines && !showTimeIntervalImages && !showSummaryPopup && !showIntro && (
+            <ThermometerDisplay temperature={observation.currentData.temperature} position={[0.6, 3.5, 0]} />
+          )}
 
-            {/* 3D 모델들 */}
-            {!showIntro && <CompassBillboard />}
-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-              <planeGeometry args={[100, 100]} />
-              <shadowMaterial transparent opacity={0.5} />
-            </mesh>
-
-            {/* 막대 */}
-            <mesh position={[0, 1.25, 0]} castShadow receiveShadow>
-              <cylinderGeometry args={[0.1, 0.1, 2.5, 32]} />
-              <meshStandardMaterial color='black' envMapIntensity={0} />
-            </mesh>
-
-            {/* 관측선 */}
-            {observation.showObservationLines && !showTimeIntervalImages && (
-              <AngleLines
-                azimuth={observation.currentData.azimuth}
-                altitude={observation.currentData.altitude}
-                shadowLength={observation.currentData.shadowLength}
-                sunPosition={observation.sunPosition}
-              />
-            )}
-
-            {/* 온도계 */}
-            {!observation.showObservationLines && !showTimeIntervalImages && !showSummaryPopup && !showIntro && (
-              <ThermometerDisplay temperature={observation.currentData.temperature} position={[0.6, 3.5, 0]} />
-            )}
-
-            <OrbitControls
-              enabled={!showIntro && !showTimeIntervalImages}
-              minDistance={CAMERA_CONFIG.minDistance}
-              maxDistance={CAMERA_CONFIG.maxDistance}
-              minPolarAngle={CAMERA_CONFIG.minPolarAngle}
-              maxPolarAngle={CAMERA_CONFIG.maxPolarAngle}
-              enableDamping={true}
-              dampingFactor={0.05}
-            />
+          <OrbitControls
+            enabled={!showIntro && !showTimeIntervalImages}
+            minDistance={CAMERA_CONFIG.minDistance}
+            maxDistance={CAMERA_CONFIG.maxDistance}
+            minPolarAngle={CAMERA_CONFIG.minPolarAngle}
+            maxPolarAngle={CAMERA_CONFIG.maxPolarAngle}
+            enableDamping={true}
+            dampingFactor={0.05}
+          />
         </Scene>
       </div>
 
@@ -554,7 +381,7 @@ export default function Page() {
       {/* 정리하기 팝업 */}
       <SummaryPopup isOpen={showSummaryPopup} onClose={() => setShowSummaryPopup(false)} />
 
-      {/* 자막 표시 */}
+      {/* 자막 표시 (본편 내레이션용 UI는 유지) */}
       <SubtitleDisplay />
 
       {/* 인트로 화면 */}

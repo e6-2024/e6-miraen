@@ -499,7 +499,7 @@ export default function Home() {
             color='#A1CC90'
             textcolor='#fff'
             bg={DinosaurTheme.goal.bg}
-            className='z-[10]'
+            className='z-[50]'
             right={120}
             top={16}
             iconSize={40}
@@ -516,7 +516,7 @@ export default function Home() {
             color='#A1CC90'
             textcolor='#fff'
             bg={DinosaurTheme.goal.bg}
-            className='z-[10]'
+            className='z-[50]'
             right={16}
             top={16}
             iconSize={40}
