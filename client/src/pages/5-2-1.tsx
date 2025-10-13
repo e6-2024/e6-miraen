@@ -12,6 +12,8 @@ import { SIEVE_CONFIG, PHYSICS_CONFIG } from '@/utils/5-2-1/sieveConfig'
 import { CrayonTextBox } from '@/components/common/CrayonTextBox'
 import { CrayonTextButton } from '@/components/common/CrayonUIButton'
 import { TiltOnMouse } from '@/components/common/Tilt'
+import ActivityGuideModal from '@/components/5-2-1/ActivityGuideModal'
+import AudioManager from '@/components/5-2-1/AudioManager'
 
 type ButtonStyle = { bg: string; border: string; text: string }
 
@@ -264,6 +266,8 @@ export default function Home() {
   const [overlayLevel, setOverlayLevel] = useState<number | null>(null)
   const [hasSpawned, setHasSpawned] = useState(false)
   const [highlightSpawn, setHighlightSpawn] = useState(false)
+  const [showActivityGuide, setShowActivityGuide] = useState(false)
+  const audioManager = AudioManager.getInstance()
 
   useEffect(() => {
     if (!mounted) return
@@ -389,6 +393,13 @@ export default function Home() {
   const handleCloseSummaryPopup = () => {
     setShowSummaryPopup(false)
   }
+
+  const handleShowActivityGuide = () => {
+    audioManager.playGeneralButton()
+    setShowActivityGuide(true)
+  }
+
+  const handleCloseActivityGuide = () => setShowActivityGuide(false)
 
   return (
     <div className='w-screen h-screen bg-[#D5E8E8] relative flex flex-col overflow-hidden '>
@@ -542,6 +553,7 @@ export default function Home() {
             title='크기가 다른 구슬 혼합물 분리하기'
             description={['알갱이의 크기가 다른 고체 혼합물은 어떻게 분리할 수 있는지 알아봅시다.']}
             backgroundSvg='/img/cover/5-2-1.svg'
+            onActivityGuide={handleShowActivityGuide}
             descriptionSound={NARRATIONS.GOAL}
             buttonTheme={particleTheme}
           />
@@ -551,6 +563,7 @@ export default function Home() {
       {showSieveSelection && <SieveSelectionPage onSelectSieve={handleSelectSieve} />}
 
       {showSummaryPopup && <SummaryPopup onClose={handleCloseSummaryPopup} />}
+      <ActivityGuideModal isOpen={showActivityGuide} onClose={handleCloseActivityGuide} />
     </div>
   )
 }
