@@ -184,7 +184,7 @@ export function SolutionSelector({
       <div className='absolute bottom-4 left-4 z-10'>
         <CrayonTextBox textcolor='#333' textAlign='center' bg='#FFFFFF' color='#01A7A2' padding={20} animated={true}>
           <div className='text-lg font-bold mb-3 text-center text-gray-800'>용액 선택</div>
-          <div className='flex w-[380px] gap-3 text-black whitespace-nowrap'>
+          <div className='flex w-[380px] font-light gap-3 text-black whitespace-nowrap'>
             {solutions.map((solution) => (
               <button
                 key={solution.id}
