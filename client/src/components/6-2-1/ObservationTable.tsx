@@ -9,33 +9,6 @@ function ObservationTable({ currentData }) {
   const { playNarration, isCurrentlyPlaying, isOtherNarrationPlaying, isAnyNarrationPlaying } =
     useNarrationManager('observation-table')
 
-  const handlePlayNarration = async () => {
-    try {
-      await playNarration('/sounds/6-2-1/narration/6-2-1-E.MP3', '실시간으로 변하는 관측 자료를 나타냅니다.', 0.7)
-    } catch (error) {
-      console.log('나레이션 재생 실패:', error)
-    }
-  }
-
-  const handleMouseEnter = () => {
-    setIsHovered(true)
-
-    if (!isAnyNarrationPlaying()) {
-      timeoutRef.current = setTimeout(() => {
-        handlePlayNarration()
-      }, 200)
-    }
-  }
-
-  const handleMouseLeave = () => {
-    setIsHovered(false)
-
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-      timeoutRef.current = null
-    }
-  }
-
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
@@ -65,9 +38,7 @@ function ObservationTable({ currentData }) {
       <div
         className={`rounded-xl shadow-2xl z-[50] transition-all duration-200 ${
           isPlaying ? 'ring-2 ring-blue-400 ring-opacity-50 scale-105' : ''
-        }`}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}>
+        }`}>
         {isPlaying && (
           <div className='absolute z-[20] -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center animate-pulse'>
             <div className='w-2 h-2 bg-white rounded-full animate-ping'></div>

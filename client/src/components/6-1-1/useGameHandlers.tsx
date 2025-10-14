@@ -17,6 +17,19 @@ export const useGameHandlers = (gameState: GameState, gameActions: GameActions) 
 
     audio.stopAllAudio()
 
+    // 용액 선택 시 사운드 재생
+    const path = sprayAudioBySolution[solutionId] ?? '/sounds/6-1-1/6-1-1-2_spray.MP3'
+    
+    // slime-splatter 사운드는 1초 후에 재생
+    if (path.includes('slime-splatter')) {
+      setTimeout(() => {
+        audio.playSound(path, 0.5)
+      }, 1000)
+    } else {
+      // 유리 세정제는 바로 재생
+      audio.playSound(path, 0.5)
+    }
+
     gameActions.setSelectedSolution(solutionId)
     gameActions.setShowMessage('')
     gameActions.setWrongMessageShown(false)
@@ -162,6 +175,18 @@ export const useGameHandlers = (gameState: GameState, gameActions: GameActions) 
               ...prev,
               [gameState.currentMission!]: false,
             }))
+
+            // 오답 후 다시 선택 단계로 돌아갈 때도 동일한 내레이션 재생
+            const narrationFiles = {
+              splash01: '/sounds/6-1-1/narration/6-1-1-A-1.MP3',
+              splash02: '/sounds/6-1-1/narration/6-1-1-C-1.MP3',
+              splash03: '/sounds/6-1-1/narration/6-1-1-E-1.MP3',
+              splash04: '/sounds/6-1-1/narration/6-1-1-G-1.MP3',
+            }
+            
+            setTimeout(() => {
+              audio.playNarration(narrationFiles[gameState.currentMission!])
+            }, 500)
           }, 3000)
         }, 2000)
       }
@@ -186,11 +211,12 @@ export const useGameHandlers = (gameState: GameState, gameActions: GameActions) 
     gameActions.setSprayEffects((prev) => ({ ...prev, [gameState.currentMission!]: false }))
 
     setTimeout(() => {
+      // handleMissionClick과 동일한 내레이션 파일 사용 (-1 버전)
       const narrationFiles = {
-        splash01: '/sounds/6-1-1/narration/6-1-1-A.MP3',
-        splash02: '/sounds/6-1-1/narration/6-1-1-C.MP3',
-        splash03: '/sounds/6-1-1/narration/6-1-1-E.MP3',
-        splash04: '/sounds/6-1-1/narration/6-1-1-G.MP3',
+        splash01: '/sounds/6-1-1/narration/6-1-1-A-1.MP3',
+        splash02: '/sounds/6-1-1/narration/6-1-1-C-1.MP3',
+        splash03: '/sounds/6-1-1/narration/6-1-1-E-1.MP3',
+        splash04: '/sounds/6-1-1/narration/6-1-1-G-1.MP3',
       }
 
       gameActions.setShowMessage(missions[gameState.currentMission!].selectMessage)
