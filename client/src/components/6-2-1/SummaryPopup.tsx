@@ -11,34 +11,66 @@ const SummaryPopup = ({ isOpen, onClose }) => {
     temperature: false,
   })
 
+  const isPlayingRef = useRef(false)
+
+  const playNarrationSequence = async (narrations) => {
+    isPlayingRef.current = true
+    for (const narration of narrations) {
+      if (!isPlayingRef.current) break
+      try {
+        await playNarration(narration.path, '', 0.7)
+        await new Promise(resolve => setTimeout(resolve, 6500))
+      } catch (error) {
+        console.log('나레이션 재생 실패:', error)
+        break
+      }
+    }
+    isPlayingRef.current = false
+  }
+
   const toggleGraph = async (graphType) => {
+    isPlayingRef.current = false
+    stopNarration()
+    
     const wasActive = activeGraphs[graphType]
 
-    setActiveGraphs((prev) => ({
-      ...prev,
-      [graphType]: !prev[graphType],
-    }))
+    const newActiveGraphs = {
+      ...activeGraphs,
+      [graphType]: !wasActive,
+    }
+
+    setActiveGraphs(newActiveGraphs)
     
     if (!wasActive) {
-      let audioPath = ''
-      
-      switch (graphType) {
-        case 'altitude':
-          audioPath = '/sounds/6-2-1/narration/6-2-1-B.MP3'
-          break
-        case 'shadowLength':
-          audioPath = '/sounds/6-2-1/narration/6-2-1-A.MP3'
-          break
-        case 'temperature':
-          audioPath = '/sounds/6-2-1/narration/6-2-1-C.MP3'
-          break
-      }
-
-      if (audioPath) {
-        try {
-          await playNarration(audioPath,'',0.7)
-        } catch (error) {
-          console.log('나레이션 재생 실패:', error)
+      if (graphType === 'altitude') {
+        const narrations = []
+        
+        narrations.push({ path: '/sounds/6-2-1/narration/6-2-1-B.MP3' })
+        
+        if (newActiveGraphs.shadowLength) {
+          narrations.push({ path: '/sounds/6-2-1/narration/6-2-1-A.MP3' })
+        }
+        
+        if (newActiveGraphs.temperature) {
+          narrations.push({ path: '/sounds/6-2-1/narration/6-2-1-C.MP3' })
+        }
+        
+        await playNarrationSequence(narrations)
+      } else if (graphType === 'shadowLength') {
+        if (newActiveGraphs.altitude && newActiveGraphs.shadowLength) {
+          try {
+            await playNarration('/sounds/6-2-1/narration/6-2-1-A.MP3', '', 0.7)
+          } catch (error) {
+            console.log('나레이션 재생 실패:', error)
+          }
+        }
+      } else if (graphType === 'temperature') {
+        if (newActiveGraphs.altitude && newActiveGraphs.temperature) {
+          try {
+            await playNarration('/sounds/6-2-1/narration/6-2-1-C.MP3', '', 0.7)
+          } catch (error) {
+            console.log('나레이션 재생 실패:', error)
+          }
         }
       }
     } else {
@@ -47,15 +79,34 @@ const SummaryPopup = ({ isOpen, onClose }) => {
   }
 
   const handleClose = () => {
+    isPlayingRef.current = false
     stopNarration()
+    setActiveGraphs({
+      altitude: false,
+      shadowLength: false,
+      temperature: false,
+    })
     onClose()
   }
 
   useEffect(() => {
     return () => {
+      isPlayingRef.current = false
       stopNarration()
     }
   }, [stopNarration])
+
+  useEffect(() => {
+    if (!isOpen) {
+      isPlayingRef.current = false
+      stopNarration()
+      setActiveGraphs({
+        altitude: false,
+        shadowLength: false,
+        temperature: false,
+      })
+    }
+  }, [isOpen, stopNarration])
 
   const getExplanationText = () => {
     const explanations = []
@@ -64,11 +115,11 @@ const SummaryPopup = ({ isOpen, onClose }) => {
       explanations.push('태양 고도가 높아지면 기온은 높아집니다.')
     }
 
-    if (activeGraphs.shadowLength) {
+    if (activeGraphs.altitude && activeGraphs.shadowLength) {
       explanations.push('태양 고도가 높아지면 그림자 길이는 짧아지고, 태양 고도가 낮아지면 그림자 길이는 길어집니다.')
     }
 
-    if (activeGraphs.temperature) {
+    if (activeGraphs.altitude && activeGraphs.temperature) {
       explanations.push('기온이 가장 높은 시각은 태양 고도가 가장 높은 시각보다 늦습니다.')
     }
 
@@ -80,12 +131,11 @@ const SummaryPopup = ({ isOpen, onClose }) => {
   return (
     <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
       <CrayonTextBox
-      bg='#fff'
-      color='#01A7A2'
-      textcolor='#333'
-      animated={false}>
+        bg='#fff'
+        color='#01A7A2'
+        textcolor='#333'
+        animated={false}>
         <div className='rounded-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto'>
-          {/* 헤더 */}
           <div className='flex justify-between items-center mb-6'>
             <h2 className='text-2xl font-bold text-gray-800'>정리하기</h2>
             <button
@@ -95,12 +145,9 @@ const SummaryPopup = ({ isOpen, onClose }) => {
             </button>
           </div>
 
-          {/* 그래프 영역 */}
           <div className='relative flex justify-center items-center mb-6'>
-            {/* 기본 좌표 이미지 (항상 표시) */}
             <img src='/img/graph/graph0.png' alt='기본 좌표' className='w-[50%] h-auto' />
 
-            {/* 태양 고도 그래프 */}
             {activeGraphs.altitude && (
               <img
                 src='/img/graph/graph1.png'
@@ -109,7 +156,6 @@ const SummaryPopup = ({ isOpen, onClose }) => {
               />
             )}
 
-            {/* 그림자 길이 그래프 */}
             {activeGraphs.shadowLength && (
               <img
                 src='/img/graph/graph2.png'
@@ -118,7 +164,6 @@ const SummaryPopup = ({ isOpen, onClose }) => {
               />
             )}
 
-            {/* 기온 그래프 */}
             {activeGraphs.temperature && (
               <img
                 src='/img/graph/graph3.png'
@@ -128,7 +173,6 @@ const SummaryPopup = ({ isOpen, onClose }) => {
             )}
           </div>
 
-          {/* 그래프 선택 버튼들 */}
           <div className='flex flex-wrap gap-3 justify-center mb-6'>
             <button
               onClick={() => toggleGraph('altitude')}
@@ -161,7 +205,6 @@ const SummaryPopup = ({ isOpen, onClose }) => {
             </button>
           </div>
 
-          {/* 설명 텍스트 영역 */}
           <div className='bg-green-50 rounded-lg p-4 min-h-[100px]'>
             {getExplanationText().length > 0 ? (
               <div className='space-y-3'>
@@ -181,7 +224,6 @@ const SummaryPopup = ({ isOpen, onClose }) => {
             )}
           </div>
 
-          {/* 하단 정보 */}
           <div className='mt-6 text-center'>
             <p className='text-sm font-light text-gray-600'>
               각 그래프를 선택하여 태양의 위치와 그림자, 기온의 관계를 알아보세요.

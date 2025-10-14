@@ -1,146 +1,89 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { TimeData, SunPosition, ObservationState } from '@/types/6-2-1/types';
-import { calculateSunPosition, formatTimeData, getTimeIntervalData } from '@/utils/6-2-1/utils';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { TimeData, SunPosition } from '@/types/6-2-1/types';
+import { calculateSunPosition } from '@/utils/6-2-1/utils';
 
-export const useObservation = (rawTimeData: TimeData[]) => {
-  const [state, setState] = useState<ObservationState>({
-    currentTimeIndex: 0,
-    isPlaying: false,
-    progress: 0,
-    showObservationLines: false,
-    showThermometer: true,
-    selectedTimeData: null,
-    isTimeIntervalMode: false,
-  });
-  
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+export function useObservation(timeData: TimeData[]) {
+  const [currentTimeIndex, setCurrentTimeIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [showObservationLines, setShowObservationLines] = useState(false);
+  const [selectedTimeData, setSelectedTimeData] = useState<TimeData | null>(null);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1.5);
 
-  // 포맷된 시간 데이터
-  const timeData = formatTimeData(rawTimeData);
-  const intervalData = getTimeIntervalData(timeData);
+  const currentData = useMemo(() => {
+    if (selectedTimeData) return selectedTimeData;
+    return timeData[currentTimeIndex];
+  }, [currentTimeIndex, selectedTimeData, timeData]);
 
-  // 현재 표시할 데이터 결정
-  const getCurrentData = useCallback((): TimeData => {
-    if (state.selectedTimeData) return state.selectedTimeData;
-    return timeData[state.currentTimeIndex] || timeData[0];
-  }, [state.currentTimeIndex, state.selectedTimeData, timeData]);
+  const sunPosition = useMemo((): SunPosition => {
+    return calculateSunPosition(currentData.azimuth, currentData.altitude);
+  }, [currentData.azimuth, currentData.altitude]);
 
-  const currentData = getCurrentData();
+  const progress = useMemo(() => {
+    if (selectedTimeData) {
+      const index = timeData.findIndex(d => d.time === selectedTimeData.time);
+      return ((index + 1) / timeData.length) * 100;
+    }
+    return ((currentTimeIndex + 1) / timeData.length) * 100;
+  }, [currentTimeIndex, selectedTimeData, timeData]);
 
-  // 태양 위치 계산
-  const sunPosition: SunPosition = calculateSunPosition(
-    currentData.azimuth,
-    currentData.altitude
-  );
+  useEffect(() => {
+    if (!isPlaying || selectedTimeData) return;
 
-  // 재생/일시정지 토글
+    const baseInterval = 100;
+    const interval = baseInterval / playbackSpeed;
+
+    const timer = setInterval(() => {
+      setCurrentTimeIndex((prev) => {
+        if (prev >= timeData.length - 1) {
+          setIsPlaying(false);
+          return prev;
+        }
+        return prev + 1;
+      });
+    }, interval);
+
+    return () => clearInterval(timer);
+  }, [isPlaying, selectedTimeData, timeData.length, playbackSpeed]);
+
   const togglePlayback = useCallback(() => {
-    setState(prev => ({ ...prev, isPlaying: !prev.isPlaying }));
+    setIsPlaying((prev) => !prev);
   }, []);
 
-  // 진행률 클릭 처리
-  const handleProgressClick = useCallback((clickX: number, barWidth: number) => {
-    if (state.isTimeIntervalMode) return;
-    
-    const clickRatio = clickX / barWidth;
-    const newIndex = Math.round(clickRatio * (timeData.length - 1));
-    const clampedIndex = Math.max(0, Math.min(newIndex, timeData.length - 1));
-    
-    setState(prev => ({
-      ...prev,
-      currentTimeIndex: clampedIndex,
-      progress: (clampedIndex / (timeData.length - 1)) * 100,
-    }));
-  }, [state.isTimeIntervalMode, timeData.length]);
-
-  // 특정 시간 데이터 선택
   const selectTimeData = useCallback((data: TimeData | null) => {
-    setState(prev => ({
-      ...prev,
-      selectedTimeData: data,
-      isPlaying: false,
-      isTimeIntervalMode: !!data,
-    }));
-  }, []);
-
-  // 관측선 표시 토글
-  const setShowObservationLines = useCallback((show: boolean) => {
-    setState(prev => ({ ...prev, showObservationLines: show }));
-  }, []);
-
-  // 온도계 표시 토글
-  const setShowThermometer = useCallback((show: boolean) => {
-    setState(prev => ({ ...prev, showThermometer: show }));
-  }, []);
-
-  // 시간 인덱스 설정
-  const setCurrentTimeIndex = useCallback((index: number) => {
-    setState(prev => ({ ...prev, currentTimeIndex: index }));
-  }, []);
-
-  // 자동 재생 효과
-  useEffect(() => {
-    if (state.isPlaying && !state.isTimeIntervalMode) {
-      intervalRef.current = setInterval(() => {
-        setState(prev => {
-          const nextIndex = (prev.currentTimeIndex + 1) % timeData.length;
-          return {
-            ...prev,
-            currentTimeIndex: nextIndex,
-            progress: (nextIndex / (timeData.length - 1)) * 100,
-          };
-        });
-      }, 500);
-    } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
+    setSelectedTimeData(data);
+    if (data) {
+      setIsPlaying(false);
+      const index = timeData.findIndex(d => d.time === data.time);
+      if (index !== -1) {
+        setCurrentTimeIndex(index);
       }
     }
+  }, [timeData]);
 
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
-  }, [state.isPlaying, state.isTimeIntervalMode, timeData.length]);
+  const handleProgressClick = useCallback((clickX: number, barWidth: number) => {
+    const clickPercent = clickX / barWidth;
+    const newIndex = Math.floor(clickPercent * timeData.length);
+    const clampedIndex = Math.max(0, Math.min(newIndex, timeData.length - 1));
+    setCurrentTimeIndex(clampedIndex);
+    setSelectedTimeData(null);
+  }, [timeData.length]);
 
-  // 진행률 업데이트
-  useEffect(() => {
-    if (!state.isTimeIntervalMode && !state.selectedTimeData) {
-      setState(prev => ({
-        ...prev,
-        progress: (prev.currentTimeIndex / (timeData.length - 1)) * 100,
-      }));
-    }
-  }, [state.currentTimeIndex, state.isTimeIntervalMode, state.selectedTimeData, timeData.length]);
-
-  // 정리
-  const cleanup = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
+  const toggleSpeed = useCallback(() => {
+    setPlaybackSpeed(prev => prev === 1.5 ? 2 : 1.5);
   }, []);
 
   return {
-    // State
-    ...state,
     currentData,
     sunPosition,
-    
-    // Data
+    progress,
+    isPlaying,
     timeData,
-    intervalData,
-    
-    // Actions
-    togglePlayback,
-    handleProgressClick,
-    selectTimeData,
+    showObservationLines,
+    playbackSpeed,
     setShowObservationLines,
-    setShowThermometer,
-    setCurrentTimeIndex,
-    cleanup,
+    togglePlayback,
+    selectTimeData,
+    handleProgressClick,
+    toggleSpeed,
   };
-};
+}

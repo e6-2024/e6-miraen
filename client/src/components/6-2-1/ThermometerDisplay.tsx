@@ -26,7 +26,7 @@ function ThermometerDisplay({
 
   return (
     <Billboard>
-      <Html position={position} center distanceFactor={3.5} transform occlude>
+      <Html position={position} center distanceFactor={3.5} transform>
         <div className="relative">
           <CrayonTextBox bg="#fff" color="#01A7A2" textcolor="#333" animated={true}>
             <div

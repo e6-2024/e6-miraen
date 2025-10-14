@@ -6,9 +6,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import Scene from '@/components/canvas/Scene'
 import Intro from '@/components/intro/Intro'
 import { CrayonTextButton } from '@/components/common/CrayonUIButton'
-import { CrayonTextBox } from '@/components/common/CrayonTextBox'
 
-import Model from '@/components/6-2-1/Model'
 import SunLight from '@/components/6-2-1/SunLight'
 import AngleLines from '@/components/6-2-1/AngleLines'
 import CompassBillboard from '@/components/6-2-1/CompassBillboard'
@@ -24,6 +22,9 @@ import { useObservation } from '@/hook/6-2-1/useObservation'
 import { useAudio } from '@/hook/6-2-1/useAudio'
 import { CAMERA_CONFIG } from '@/utils/6-2-1/utils'
 import IntroMouseCameraController from '@/components/intro/IntroMouseCameraController'
+import { Light } from 'three'
+import AudioManager from '@/components/6-2-1/AudioManager'
+import ActivityGuideModal from '@/components/6-2-1/ActivityGuideModal'
 
 type ButtonStyle = { bg: string; border: string; text: string }
 
@@ -118,6 +119,8 @@ export default function Page() {
   const [showIntro, setShowIntro] = useState(true)
   const [showTimeIntervalImages, setShowTimeIntervalImages] = useState(false)
   const [showSummaryPopup, setShowSummaryPopup] = useState(false)
+  const audioManager = AudioManager.getInstance()
+  const [showActivityGuide, setShowActivityGuide] = useState(false)
 
   // BGM 관리
   const bgmRef = useRef<HTMLAudioElement | null>(null)
@@ -169,7 +172,6 @@ export default function Page() {
     setShowIntro(false)
     setBgmReady(true)
     playSound('/sounds/Enter_Cute.mp3')
-    // UI 설명용 내레이션 제거됨
   }, [playSound])
 
   const handleBackToIntro = useCallback(() => {
@@ -197,6 +199,18 @@ export default function Page() {
     playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3')
   }, [observation, playSound])
 
+  const handleToggleSpeed = useCallback(() => {
+    observation.toggleSpeed()
+    playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3')
+  }, [observation, playSound])
+
+  const handleShowActivityGuide = () => {
+    audioManager.playGeneralButton()
+    setShowActivityGuide(true)
+  }
+
+  const handleCloseActivityGuide = () => setShowActivityGuide(false)
+
   return (
     <div className='w-screen h-screen bg-gradient-to-b from-sky-200 to-sky-400 flex flex-col overflow-hidden relative'>
       <LoadingTracker onLoadingComplete={handleLoadingComplete} />
@@ -206,13 +220,13 @@ export default function Page() {
         position='absolute'
         iconPosition='left'
         onClick={handleBackToIntro}
-        width={108}
-        height={108}
+        width={96}
+        height={96}
         color='#ffffff'
         textcolor='#ffffff'
-        bg='rgba(255,255,255,0.10)'
-        className='backdrop-blur z-[200] mix-blend-difference'
-        right={138}
+        bg={lightTheme.start.bg}
+        className='z-[20]'
+        right={120}
         top={16}
         iconSize={40}
         innerCircleVisible={true}
@@ -223,12 +237,12 @@ export default function Page() {
         position='absolute'
         iconPosition='left'
         onClick={toggleBgm}
-        width={108}
-        height={108}
+        width={96}
+        height={96}
         color='#fff'
         textcolor='#fff'
-        bg='rgba(255,255,255,0.10)'
-        className='backdrop-blur z-[1000] mix-blend-difference'
+        bg={lightTheme.start.bg}
+        className='z-[20]'
         right={16}
         top={16}
         iconSize={40}
@@ -303,8 +317,8 @@ export default function Page() {
             />
           )}
 
-          {/* 온도계 */}
-          {!observation.showObservationLines && !showTimeIntervalImages && !showSummaryPopup && !showIntro && (
+          {/* 온도계 - 항상 표시 */}
+          {!showTimeIntervalImages && !showSummaryPopup && !showIntro && (
             <ThermometerDisplay temperature={observation.currentData.temperature} position={[0.6, 3.5, 0]} />
           )}
 
@@ -332,10 +346,12 @@ export default function Page() {
               setIsPlaying={observation.togglePlayback}
               timeData={observation.timeData}
               onProgressClick={observation.handleProgressClick}
+              playbackSpeed={observation.playbackSpeed}
+              onSpeedToggle={handleToggleSpeed}
             />
           )}
 
-          {/* 컨트롤 패널 */}
+          {/* 컨트롤 패널 - 배속 버튼 제거 */}
           {!showTimeIntervalImages && (
             <ControlPanel
               showObservationLines={observation.showObservationLines}
@@ -381,7 +397,7 @@ export default function Page() {
       {/* 정리하기 팝업 */}
       <SummaryPopup isOpen={showSummaryPopup} onClose={() => setShowSummaryPopup(false)} />
 
-      {/* 자막 표시 (본편 내레이션용 UI는 유지) */}
+      {/* 자막 표시 */}
       <SubtitleDisplay />
 
       {/* 인트로 화면 */}
@@ -392,9 +408,11 @@ export default function Page() {
           description={['하루 동안 태양 고도, 그림자 길이, 기온의 변화를 살펴보고 이들의 관계를 알아봅시다.']}
           backgroundSvg='/img/cover/6-2-1.svg'
           descriptionSound='/sounds/6-2-1/narration/6-2-1-Goal.MP3'
+          onActivityGuide={handleShowActivityGuide}
           buttonTheme={lightTheme}
         />
       )}
+      <ActivityGuideModal isOpen={showActivityGuide} onClose={handleCloseActivityGuide} />
     </div>
   )
 }
