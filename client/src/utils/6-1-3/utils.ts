@@ -42,7 +42,7 @@ export const CAMERA_CONFIGS = {
     minAzimuthAngle: Math.PI / 10,
     maxAzimuthAngle: Math.PI / 2 - Math.PI / 10,
     minDistance: 2,
-    maxDistance: 14,
+    maxDistance: 24,
   },
   water: {
     position: [16, 3, 20] as [number, number, number],
@@ -52,7 +52,7 @@ export const CAMERA_CONFIGS = {
     minAzimuthAngle: Math.PI / 10,
     maxAzimuthAngle: Math.PI / 2 - Math.PI / 10,
     minDistance: 2,
-    maxDistance: 14,
+    maxDistance: 24,
   },
 } as const
 
