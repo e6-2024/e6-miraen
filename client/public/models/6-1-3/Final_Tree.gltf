@@ -185,9 +185,9 @@
 				0.009999999776482582
 			],
 			"translation":[
-				0.27997395396232605,
-				0,
-				-0.21173757314682007
+				-1.482500672340393,
+				5.480456829071045,
+				-3.098947525024414
 			]
 		}
 	],
@@ -302,19 +302,13 @@
 				0.18859918415546417,
 				0.18859918415546417
 			],
-			"emissiveTexture":{
-				"index":15
-			},
 			"name":"lambert2SG.001",
 			"normalTexture":{
-				"index":16
-			},
-			"occlusionTexture":{
-				"index":17
+				"index":15
 			},
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
-					"index":18
+					"index":16
 				},
 				"metallicFactor":0,
 				"metallicRoughnessTexture":{
@@ -329,23 +323,17 @@
 				0.18859918415546417,
 				0.18859918415546417
 			],
-			"emissiveTexture":{
-				"index":19
-			},
 			"name":"lambert2SG.002",
 			"normalTexture":{
-				"index":20
-			},
-			"occlusionTexture":{
-				"index":21
+				"index":18
 			},
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
-					"index":22
+					"index":19
 				},
 				"metallicFactor":0,
 				"metallicRoughnessTexture":{
-					"index":21
+					"index":20
 				}
 			}
 		},
@@ -358,15 +346,15 @@
 			],
 			"name":"lambert2SG.003",
 			"normalTexture":{
-				"index":23
+				"index":21
 			},
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
-					"index":24
+					"index":22
 				},
 				"metallicFactor":0,
 				"metallicRoughnessTexture":{
-					"index":25
+					"index":23
 				}
 			}
 		},
@@ -377,23 +365,17 @@
 				0.18859918415546417,
 				0.18859918415546417
 			],
-			"emissiveTexture":{
-				"index":26
-			},
 			"name":"lambert2SG",
 			"normalTexture":{
-				"index":27
-			},
-			"occlusionTexture":{
-				"index":28
+				"index":24
 			},
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
-					"index":29
+					"index":25
 				},
 				"metallicFactor":0,
 				"metallicRoughnessTexture":{
-					"index":28
+					"index":26
 				}
 			}
 		},
@@ -401,11 +383,11 @@
 			"doubleSided":true,
 			"name":"material",
 			"normalTexture":{
-				"index":30
+				"index":27
 			},
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
-					"index":31
+					"index":28
 				},
 				"metallicFactor":0,
 				"roughnessFactor":0.8862401247024536
@@ -420,7 +402,7 @@
 				1
 			],
 			"emissiveTexture":{
-				"index":32
+				"index":29
 			},
 			"extensions":{
 				"KHR_materials_specular":{
@@ -434,7 +416,7 @@
 			"name":"Water_Pipe.001",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
-					"index":33
+					"index":30
 				},
 				"metallicFactor":0,
 				"roughnessFactor":0.5527864098548889
@@ -457,7 +439,7 @@
 						]
 					}
 				},
-				"index":34
+				"index":31
 			},
 			"extensions":{
 				"KHR_materials_specular":{
@@ -479,7 +461,7 @@
 							]
 						}
 					},
-					"index":35
+					"index":32
 				},
 				"metallicFactor":0,
 				"roughnessFactor":0.5527864098548889
@@ -494,7 +476,7 @@
 				1
 			],
 			"emissiveTexture":{
-				"index":36
+				"index":33
 			},
 			"extensions":{
 				"KHR_materials_specular":{
@@ -508,7 +490,7 @@
 			"name":"Water_Pipe.003",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
-					"index":37
+					"index":34
 				},
 				"metallicFactor":0,
 				"roughnessFactor":0.5527864098548889
@@ -529,10 +511,10 @@
 			"name":"Material.017",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
-					"index":38
+					"index":35
 				},
 				"metallicRoughnessTexture":{
-					"index":39
+					"index":36
 				},
 				"roughnessFactor":0.8781818151473999
 			}
@@ -545,7 +527,7 @@
 				1
 			],
 			"emissiveTexture":{
-				"index":40
+				"index":37
 			},
 			"extensions":{
 				"KHR_materials_specular":{
@@ -558,11 +540,11 @@
 			},
 			"name":"lambert2SG.016",
 			"normalTexture":{
-				"index":41
+				"index":38
 			},
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
-					"index":42
+					"index":39
 				},
 				"metallicFactor":0,
 				"roughnessFactor":0.5
@@ -869,6 +851,14 @@
 		},
 		{
 			"sampler":1,
+			"source":16
+		},
+		{
+			"sampler":1,
+			"source":17
+		},
+		{
+			"sampler":1,
 			"source":15
 		},
 		{
@@ -889,27 +879,7 @@
 		},
 		{
 			"sampler":1,
-			"source":15
-		},
-		{
-			"sampler":1,
 			"source":17
-		},
-		{
-			"sampler":1,
-			"source":15
-		},
-		{
-			"sampler":1,
-			"source":16
-		},
-		{
-			"sampler":1,
-			"source":17
-		},
-		{
-			"sampler":1,
-			"source":15
 		},
 		{
 			"sampler":1,
@@ -953,15 +923,15 @@
 		},
 		{
 			"sampler":1,
-			"source":15
+			"source":24
 		},
 		{
 			"sampler":1,
-			"source":16
+			"source":25
 		},
 		{
 			"sampler":1,
-			"source":15
+			"source":24
 		}
 	],
 	"images":[
@@ -1042,18 +1012,18 @@
 		},
 		{
 			"mimeType":"image/png",
-			"name":"lambert2SG_baseColor",
-			"uri":"lambert2SG_baseColor.png"
+			"name":"lambert2SG_normal-1",
+			"uri":"lambert2SG_normal-1.png"
 		},
 		{
 			"mimeType":"image/png",
-			"name":"lambert2SG_normal",
-			"uri":"lambert2SG_normal.png"
+			"name":"lambert2SG_baseColor-1",
+			"uri":"lambert2SG_baseColor-1.png"
 		},
 		{
 			"mimeType":"image/png",
-			"name":"lambert2SG_metallicRoughness",
-			"uri":"lambert2SG_metallicRoughness.png"
+			"name":"lambert2SG_metallicRoughness-1",
+			"uri":"lambert2SG_metallicRoughness-1.png"
 		},
 		{
 			"mimeType":"image/png",
@@ -1084,6 +1054,16 @@
 			"mimeType":"image/png",
 			"name":"Material.002_metallicRoughness",
 			"uri":"Material_002_metallicRoughness.png"
+		},
+		{
+			"mimeType":"image/png",
+			"name":"lambert2SG_baseColor",
+			"uri":"lambert2SG_baseColor.png"
+		},
+		{
+			"mimeType":"image/png",
+			"name":"lambert2SG_normal",
+			"uri":"lambert2SG_normal.png"
 		}
 	],
 	"accessors":[
@@ -1686,35 +1666,35 @@
 		{
 			"bufferView":71,
 			"componentType":5126,
-			"count":425,
+			"count":325,
 			"max":[
-				-109.17997741699219,
-				-132.74099731445312,
-				-458.2059020996094
+				72.2400131225586,
+				155.7772216796875,
+				90.08744812011719
 			],
 			"min":[
-				-252.57955932617188,
-				-356.80029296875,
-				-630.2938232421875
+				-76.52500915527344,
+				-68.30250549316406,
+				-82.24810791015625
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":72,
 			"componentType":5126,
-			"count":425,
+			"count":325,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":73,
 			"componentType":5126,
-			"count":425,
+			"count":325,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":74,
 			"componentType":5123,
-			"count":1020,
+			"count":780,
 			"type":"SCALAR"
 		},
 		{
@@ -1722,14 +1702,14 @@
 			"componentType":5126,
 			"count":1121,
 			"max":[
-				-174.2631072998047,
-				-304.1236877441406,
-				-548.1299438476562
+				2.43365478515625,
+				-15.402740478515625,
+				-0.084228515625
 			],
 			"min":[
-				-181.778076171875,
-				-310.6719055175781,
-				-556.563720703125
+				-5.0813140869140625,
+				-21.950958251953125,
+				-8.51800537109375
 			],
 			"type":"VEC3"
 		},
@@ -2181,50 +2161,50 @@
 		},
 		{
 			"buffer":0,
-			"byteLength":5100,
+			"byteLength":3900,
 			"byteOffset":4699720,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":5100,
-			"byteOffset":4704820,
+			"byteLength":3900,
+			"byteOffset":4703620,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":3400,
-			"byteOffset":4709920,
+			"byteLength":2600,
+			"byteOffset":4707520,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":2040,
-			"byteOffset":4713320,
+			"byteLength":1560,
+			"byteOffset":4710120,
 			"target":34963
 		},
 		{
 			"buffer":0,
 			"byteLength":13452,
-			"byteOffset":4715360,
+			"byteOffset":4711680,
 			"target":34962
 		},
 		{
 			"buffer":0,
 			"byteLength":13452,
-			"byteOffset":4728812,
+			"byteOffset":4725132,
 			"target":34962
 		},
 		{
 			"buffer":0,
 			"byteLength":8968,
-			"byteOffset":4742264,
+			"byteOffset":4738584,
 			"target":34962
 		},
 		{
 			"buffer":0,
 			"byteLength":3234,
-			"byteOffset":4751232,
+			"byteOffset":4747552,
 			"target":34963
 		}
 	],
@@ -2242,8 +2222,8 @@
 	],
 	"buffers":[
 		{
-			"byteLength":4754468,
-			"uri":"Final_Tree2.bin"
+			"byteLength":4750788,
+			"uri":"Final_Tree3.bin"
 		}
 	]
 }
