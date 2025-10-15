@@ -30,18 +30,18 @@
 			"mesh":0,
 			"name":"GRASS_BroomSnakeweed_Cluster_Low_Mat_0",
 			"translation":[
-				7.981686115264893,
-				-8.281303405761719,
-				-16.94760513305664
+				0,
+				-8.28131103515625,
+				0
 			]
 		},
 		{
 			"mesh":1,
 			"name":"GRASS_RoughGrass_Low_Mat_0",
 			"translation":[
-				-20.52045440673828,
+				-20.520450592041016,
 				1.52587890625e-05,
-				14.96690559387207
+				14.966904640197754
 			]
 		},
 		{
@@ -56,9 +56,9 @@
 				0.009999998845160007
 			],
 			"translation":[
-				-0.13375210762023926,
+				0.14622186124324799,
 				-1.155686616897583,
-				0.06909999996423721
+				-0.14263758063316345
 			]
 		},
 		{
@@ -85,18 +85,18 @@
 			"mesh":3,
 			"name":"TREE_A10_Mat_0.001",
 			"translation":[
-				7.981685638427734,
+				0,
 				-34.142669677734375,
-				-16.947608947753906
+				-3.814697265625e-06
 			]
 		},
 		{
 			"mesh":4,
 			"name":"w",
 			"translation":[
-				7.981685638427734,
+				0,
 				-34.142669677734375,
-				-16.947608947753906
+				-3.814697265625e-06
 			]
 		},
 		{
@@ -111,9 +111,9 @@
 				0.009999998845160007
 			],
 			"translation":[
-				0.14873825013637543,
+				0.42871221899986267,
 				2.9795291423797607,
-				-0.21910996735095978
+				-0.43084752559661865
 			]
 		},
 		{
@@ -131,9 +131,9 @@
 				0.012583456933498383
 			],
 			"translation":[
-				-1.6132216453552246,
+				-1.3332476615905762,
 				5.391175270080566,
-				-2.9182422161102295
+				-3.1299798488616943
 			]
 		},
 		{
@@ -145,9 +145,9 @@
 				0.010000001639127731
 			],
 			"translation":[
-				0.07981686294078827,
-				-0.49353253841400146,
-				-0.16947606205940247
+				0.27997395396232605,
+				-0.49353259801864624,
+				-0.21173757314682007
 			]
 		},
 		{
@@ -165,9 +165,9 @@
 				0.009999999776482582
 			],
 			"translation":[
-				0.07981686294078827,
+				0.27997395396232605,
 				0,
-				-0.16947606205940247
+				-0.21173757314682007
 			]
 		},
 		{
@@ -183,6 +183,11 @@
 				0.009999999776482582,
 				0.009999999776482582,
 				0.009999999776482582
+			],
+			"translation":[
+				0.27997395396232605,
+				0,
+				-0.21173757314682007
 			]
 		}
 	],
@@ -351,19 +356,13 @@
 				0.18859918415546417,
 				0.18859918415546417
 			],
-			"emissiveTexture":{
-				"index":23
-			},
 			"name":"lambert2SG.003",
 			"normalTexture":{
-				"index":24
-			},
-			"occlusionTexture":{
-				"index":25
+				"index":23
 			},
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
-					"index":26
+					"index":24
 				},
 				"metallicFactor":0,
 				"metallicRoughnessTexture":{
@@ -379,22 +378,22 @@
 				0.18859918415546417
 			],
 			"emissiveTexture":{
-				"index":27
+				"index":26
 			},
 			"name":"lambert2SG",
 			"normalTexture":{
-				"index":28
+				"index":27
 			},
 			"occlusionTexture":{
-				"index":29
+				"index":28
 			},
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
-					"index":30
+					"index":29
 				},
 				"metallicFactor":0,
 				"metallicRoughnessTexture":{
-					"index":29
+					"index":28
 				}
 			}
 		},
@@ -402,11 +401,11 @@
 			"doubleSided":true,
 			"name":"material",
 			"normalTexture":{
-				"index":31
+				"index":30
 			},
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
-					"index":32
+					"index":31
 				},
 				"metallicFactor":0,
 				"roughnessFactor":0.8862401247024536
@@ -421,7 +420,7 @@
 				1
 			],
 			"emissiveTexture":{
-				"index":33
+				"index":32
 			},
 			"extensions":{
 				"KHR_materials_specular":{
@@ -435,7 +434,7 @@
 			"name":"Water_Pipe.001",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
-					"index":34
+					"index":33
 				},
 				"metallicFactor":0,
 				"roughnessFactor":0.5527864098548889
@@ -458,7 +457,7 @@
 						]
 					}
 				},
-				"index":35
+				"index":34
 			},
 			"extensions":{
 				"KHR_materials_specular":{
@@ -480,7 +479,7 @@
 							]
 						}
 					},
-					"index":36
+					"index":35
 				},
 				"metallicFactor":0,
 				"roughnessFactor":0.5527864098548889
@@ -495,7 +494,7 @@
 				1
 			],
 			"emissiveTexture":{
-				"index":37
+				"index":36
 			},
 			"extensions":{
 				"KHR_materials_specular":{
@@ -509,7 +508,7 @@
 			"name":"Water_Pipe.003",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
-					"index":38
+					"index":37
 				},
 				"metallicFactor":0,
 				"roughnessFactor":0.5527864098548889
@@ -530,10 +529,10 @@
 			"name":"Material.017",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
-					"index":39
+					"index":38
 				},
 				"metallicRoughnessTexture":{
-					"index":40
+					"index":39
 				},
 				"roughnessFactor":0.8781818151473999
 			}
@@ -546,7 +545,7 @@
 				1
 			],
 			"emissiveTexture":{
-				"index":41
+				"index":40
 			},
 			"extensions":{
 				"KHR_materials_specular":{
@@ -559,11 +558,11 @@
 			},
 			"name":"lambert2SG.016",
 			"normalTexture":{
-				"index":42
+				"index":41
 			},
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
-					"index":43
+					"index":42
 				},
 				"metallicFactor":0,
 				"roughnessFactor":0.5
@@ -886,19 +885,15 @@
 		},
 		{
 			"sampler":1,
-			"source":15
-		},
-		{
-			"sampler":1,
 			"source":16
 		},
 		{
 			"sampler":1,
-			"source":17
+			"source":15
 		},
 		{
 			"sampler":1,
-			"source":15
+			"source":17
 		},
 		{
 			"sampler":1,
@@ -1699,7 +1694,7 @@
 			],
 			"min":[
 				-252.57955932617188,
-				-357.787109375,
+				-356.80029296875,
 				-630.2938232421875
 			],
 			"type":"VEC3"
