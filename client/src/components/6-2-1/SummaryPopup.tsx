@@ -11,25 +11,7 @@ const SummaryPopup = ({ isOpen, onClose }) => {
     temperature: false,
   })
 
-  const isPlayingRef = useRef(false)
-
-  const playNarrationSequence = async (narrations) => {
-    isPlayingRef.current = true
-    for (const narration of narrations) {
-      if (!isPlayingRef.current) break
-      try {
-        await playNarration(narration.path, '', 0.7)
-        await new Promise(resolve => setTimeout(resolve, 6500))
-      } catch (error) {
-        console.log('나레이션 재생 실패:', error)
-        break
-      }
-    }
-    isPlayingRef.current = false
-  }
-
   const toggleGraph = async (graphType) => {
-    isPlayingRef.current = false
     stopNarration()
     
     const wasActive = activeGraphs[graphType]
@@ -40,46 +22,9 @@ const SummaryPopup = ({ isOpen, onClose }) => {
     }
 
     setActiveGraphs(newActiveGraphs)
-    
-    if (!wasActive) {
-      if (graphType === 'altitude') {
-        const narrations = []
-        
-        narrations.push({ path: '/sounds/6-2-1/narration/6-2-1-B.MP3' })
-        
-        if (newActiveGraphs.shadowLength) {
-          narrations.push({ path: '/sounds/6-2-1/narration/6-2-1-A.MP3' })
-        }
-        
-        if (newActiveGraphs.temperature) {
-          narrations.push({ path: '/sounds/6-2-1/narration/6-2-1-C.MP3' })
-        }
-        
-        await playNarrationSequence(narrations)
-      } else if (graphType === 'shadowLength') {
-        if (newActiveGraphs.altitude && newActiveGraphs.shadowLength) {
-          try {
-            await playNarration('/sounds/6-2-1/narration/6-2-1-A.MP3', '', 0.7)
-          } catch (error) {
-            console.log('나레이션 재생 실패:', error)
-          }
-        }
-      } else if (graphType === 'temperature') {
-        if (newActiveGraphs.altitude && newActiveGraphs.temperature) {
-          try {
-            await playNarration('/sounds/6-2-1/narration/6-2-1-C.MP3', '', 0.7)
-          } catch (error) {
-            console.log('나레이션 재생 실패:', error)
-          }
-        }
-      }
-    } else {
-      stopNarration()
-    }
   }
 
   const handleClose = () => {
-    isPlayingRef.current = false
     stopNarration()
     setActiveGraphs({
       altitude: false,
@@ -89,24 +34,16 @@ const SummaryPopup = ({ isOpen, onClose }) => {
     onClose()
   }
 
-  useEffect(() => {
-    return () => {
-      isPlayingRef.current = false
-      stopNarration()
-    }
-  }, [stopNarration])
 
   useEffect(() => {
     if (!isOpen) {
-      isPlayingRef.current = false
-      stopNarration()
       setActiveGraphs({
         altitude: false,
         shadowLength: false,
         temperature: false,
       })
     }
-  }, [isOpen, stopNarration])
+  }, [isOpen])
 
   const getExplanationText = () => {
     const explanations = []
