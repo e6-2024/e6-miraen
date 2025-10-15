@@ -14,32 +14,32 @@ const activityGuideSlides: ActivityGuideSlide[] = [
   {
     id: 'slide1',
     image: '/img/guide/6-2-1/guide1.jpeg',
-    audioPath: '/sounds/6-2-1/narration/6-2-1-A.MP3',
+    audioPath: '/sounds/6-2-1/intro/6-2-1-Intro-1.MP3',
   },
   {
     id: 'slide2',
     image: '/img/guide/6-2-1/guide2.jpeg',
-    audioPath: '/sounds/6-2-1/narration/6-2-1-B.MP3',
+    audioPath: '/sounds/6-2-1/intro/6-2-1-Intro-2.MP3',
   },
   {
     id: 'slide3',
     image: '/img/guide/6-2-1/guide3.jpeg',
-    audioPath: '/sounds/6-2-1/narration/6-2-1-C.MP3',
+    audioPath: '/sounds/6-2-1/intro/6-2-1-Intro-3.MP3',
   },
   {
     id: 'slide4',
     image: '/img/guide/6-2-1/guide4.jpeg',
-    audioPath: '/sounds/6-2-1/narration/6-2-1-D.MP3',
+    audioPath: '/sounds/6-2-1/intro/6-2-1-Intro-4.MP3',
   },
   {
     id: 'slide5',
     image: '/img/guide/6-2-1/guide5.jpeg',
-    audioPath: '/sounds/6-2-1/narration/6-2-1-E.MP3',
+    audioPath: '/sounds/6-2-1/intro/6-2-1-Intro-5.MP3',
   },
   {
     id: 'slide6',
     image: '/img/guide/6-2-1/guide6.jpeg',
-    audioPath: '/sounds/6-2-1/narration/6-2-1-F.MP3',
+    audioPath: '/sounds/6-2-1/intro/6-2-1-Intro-6.MP3',
   },
 ]
 
