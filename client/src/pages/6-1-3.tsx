@@ -13,6 +13,8 @@ import { CrayonTextButton } from '@/components/common/CrayonUIButton'
 import { TiltOnMouse } from '@/components/common/Tilt'
 import { usePlantAudio } from '@/hook/6-1-3/useAudio'
 import { CAMERA_CONFIGS, getBasePathPoints, getNarrationTexts, ViewType, InfoPanelType } from '@/utils/6-1-3/utils'
+import ActivityGuideModal from '@/components/6-1-3/ActivityGuideModal'
+import AudioManager from '@/components/6-1-3/AudioManager'
 
 type ButtonStyle = { bg: string; border: string; text: string }
 
@@ -27,6 +29,7 @@ const roomTheme: RoomTheme = {
   guide: { bg: '#05A8A4', border: '#7BCACA', text: '#FFFFFF' },
   start: { bg: '#9B1CDF', border: '#DFB2FA', text: '#FFFFFF' },
 }
+const audioManager = AudioManager.getInstance()
 
 function RootMarker({ position }: { position: THREE.Vector3 }) {
   return (
@@ -107,6 +110,12 @@ export default function Page() {
   const [bgmReady, setBgmReady] = useState(false)
 
   const { playSound, playNarration, playBackgroundSound, stopBackgroundSound, stopAll } = usePlantAudio()
+  const [showActivityGuide, setShowActivityGuide] = useState(false)
+  const handleCloseActivityGuide = useCallback(() => setShowActivityGuide(false), [])
+  const handleShowActivityGuide = () => {
+    audioManager.playGeneralButton()
+    setShowActivityGuide(true)
+  }
 
   useEffect(() => {
     if (!mounted) return
@@ -183,12 +192,6 @@ export default function Page() {
     setCurrentView('default')
 
     stopAll()
-
-    if (bgmRef.current) {
-      bgmRef.current.pause()
-      bgmRef.current.currentTime = 0
-    }
-    setBgmReady(false)
     setShowSubtitle(false)
   }, [stopAll])
 
@@ -366,8 +369,10 @@ export default function Page() {
           backgroundSvg='/img/cover/6-1-3.svg'
           descriptionSound='/sounds/6-1-3/narration/6-1-3-Goal.MP3'
           buttonTheme={roomTheme}
+          onActivityGuide={handleShowActivityGuide}
         />
       )}
+      <ActivityGuideModal isOpen={showActivityGuide} onClose={handleCloseActivityGuide} />
     </div>
   )
 }
