@@ -80,7 +80,7 @@ export const getNarrationFiles = () => ({
   root: '/sounds/6-1-3/narration/6-1-3-B.MP3',
   stem: '/sounds/6-1-3/narration/6-1-3-C.MP3',
   leaf: '/sounds/6-1-3/narration/6-1-3-A.MP3',
-  water: '/sounds/6-1-3/narration/6-1-3-D-1.MP3',
+  water: '/sounds/6-1-3/narration/6-1-3-D-1.mp3',
 })
 
 export const getAudioPath = (type: 'root' | 'stem' | 'leaf' | 'water'): string => {
