@@ -70,13 +70,11 @@ export function DeveloperControls({
   }, [pathPoints, onPathChange])
 
   const handleRemovePoint = useCallback(() => {
-    if (pathPoints.length <= 2) return // 최소 2개 점은 유지
-
+    if (pathPoints.length <= 2) return
     const newPoints = [...pathPoints]
     newPoints.splice(selectedPointIndex, 1)
     onPathChange(newPoints)
 
-    // 선택된 인덱스 조정
     if (selectedPointIndex >= newPoints.length) {
       setSelectedPointIndex(newPoints.length - 1)
     }
@@ -109,7 +107,6 @@ export function DeveloperControls({
     const exportString = JSON.stringify(pathData, null, 2)
     console.log('Water Path Points:', exportString)
 
-    // 클립보드에 복사
     navigator.clipboard
       .writeText(exportString)
       .then(() => {

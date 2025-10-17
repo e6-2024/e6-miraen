@@ -6,7 +6,7 @@ import * as THREE from 'three'
 import { Model } from '../components/6-1-3/Model'
 import { SpeechBubble } from '../components/6-1-3/SpeechBubble'
 import { RootWaterAbsorption, LeafEvaporation, StemWaterMovement } from '../components/6-1-3/WaterFlowEffects'
-import { SubtitleBox, InfoPanel, WaterFlowButton, ViewControls } from '../components/6-1-3/PlantUI'
+import { SubtitleBox, WaterFlowButton, ViewControls } from '../components/6-1-3/PlantUI'
 import Scene from '../components/canvas/Scene'
 import Intro from '../components/intro/Intro'
 import { CrayonTextButton } from '@/components/common/CrayonUIButton'
@@ -26,6 +26,15 @@ const roomTheme: RoomTheme = {
   goal: { bg: '#05A8A4', border: '#7BCACA', text: '#FFFFFF' },
   guide: { bg: '#05A8A4', border: '#7BCACA', text: '#FFFFFF' },
   start: { bg: '#9B1CDF', border: '#DFB2FA', text: '#FFFFFF' },
+}
+
+function RootMarker({ position }: { position: THREE.Vector3 }) {
+  return (
+    <mesh position={position}>
+      <sphereGeometry args={[0.05, 16, 16]} />
+      <meshBasicMaterial color='red' transparent opacity={0.6} />
+    </mesh>
+  )
 }
 
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
@@ -97,7 +106,7 @@ export default function Page() {
   const [bgmEnabled, setBgmEnabled] = useState<boolean>(true)
   const [bgmReady, setBgmReady] = useState(false)
 
-  const { playSound, playNarration, playBackgroundSound, stopBackgroundSound } = usePlantAudio()
+  const { playSound, playNarration, playBackgroundSound, stopBackgroundSound, stopAll } = usePlantAudio()
 
   useEffect(() => {
     if (!mounted) return
@@ -172,8 +181,16 @@ export default function Page() {
   const handleBackToIntro = useCallback(() => {
     setShowIntro(true)
     setCurrentView('default')
-    stopBackgroundSound()
-  }, [stopBackgroundSound])
+
+    stopAll()
+
+    if (bgmRef.current) {
+      bgmRef.current.pause()
+      bgmRef.current.currentTime = 0
+    }
+    setBgmReady(false)
+    setShowSubtitle(false)
+  }, [stopAll])
 
   const handleEnterExperience = useCallback(() => {
     playSound('/sounds/Enter_Cute.mp3')
@@ -248,32 +265,39 @@ export default function Page() {
 
           <TiltOnMouse enabled={showIntro} maxDeg={5}>
             <group rotation={[0, Math.PI + Math.PI / 2, 0]} position={[0, -2, 0]}>
-              <Model showWaterPipes={currentView === 'water'} />
-
+              <Model
+                showWaterPipes={currentView === 'water'}
+                showStempipes={currentView === 'stem'}
+                showLeafArrow={currentView === 'leaf'}
+              />
               <RootWaterAbsorption
                 isActive={currentView === 'root'}
-                rootPosition={new THREE.Vector3(2.8, -2.44, 0.82)}
+                rootPosition={new THREE.Vector3(6.0, -3.3, 1.42)}
               />
 
               <RootWaterAbsorption
                 isActive={currentView === 'root'}
-                rootPosition={new THREE.Vector3(0.3, -3.0, -0.35)}
+                rootPosition={new THREE.Vector3(6.0, -3.4, 1.42)}
               />
 
-              <RootWaterAbsorption isActive={currentView === 'root'} rootPosition={new THREE.Vector3(2.43, -1.5, -0)} />
-
+              <RootWaterAbsorption
+                isActive={currentView === 'root'}
+                rootPosition={new THREE.Vector3(6.28, -3.7, 1.42)}
+                ringRadiusMin={0.2}
+                ringRadiusMax={2.0}
+                swirl={1.0}
+              />
               <group position={[0.7, 0, -0.45]} scale={[1, 1, -1]}>
                 <StemWaterMovement isActive={currentView === 'stem'} pathPoints={pathPoints} />
               </group>
 
-              <LeafEvaporation isActive={currentView === 'leaf'} leafPosition={new THREE.Vector3(-2.0, 6.01, -3.4)} />
+              <LeafEvaporation isActive={currentView === 'leaf'} leafPosition={new THREE.Vector3(-1.7, 5.8, -3.7)} />
               {!showIntro && currentView === 'default' && (
                 <>
                   <SpeechBubble
                     position={[3.5, -2.5, 2]}
                     text='뿌리 보기'
                     onBubbleClick={() => handleViewChange('root')}
-                    pointColor='#8B4513'
                     bubbleOffset={[1, 0.5, 0]}
                   />
 
@@ -281,7 +305,6 @@ export default function Page() {
                     position={[0.5, 2, -1.0]}
                     text='줄기 보기'
                     onBubbleClick={() => handleViewChange('stem')}
-                    pointColor='#228B22'
                     bubbleOffset={[-1, 0.5, 0]}
                   />
 
@@ -289,7 +312,6 @@ export default function Page() {
                     position={[0.5, 5, -4]}
                     text='잎 보기'
                     onBubbleClick={() => handleViewChange('leaf')}
-                    pointColor='#32CD32'
                     bubbleOffset={[0, 0.5, 0]}
                   />
                 </>
@@ -308,7 +330,7 @@ export default function Page() {
             mieDirectionalG={0.85}
           />
 
-          <Clouds material={THREE.MeshBasicMaterial} position={[0, 16, 0]}>
+          <Clouds material={THREE.MeshBasicMaterial} position={[0, 10, 0]}>
             <Cloud
               seed={2}
               position={[0, 5, 0]}
@@ -328,13 +350,11 @@ export default function Page() {
 
       {hasContent && isLoaded && (
         <>
-          <ViewControls currentView={currentView} onViewChange={handleViewChange} />
+          <ViewControls currentView={currentView} onViewChange={handleViewChange} stopAll={stopAll} />
 
           <WaterFlowButton isVisible={currentView === 'default'} onClick={handleWaterFlowClick} />
 
           <SubtitleBox text={subtitleText} isVisible={showSubtitle} />
-
-          <InfoPanel type={infoPanelType} isVisible={showInfoPanel} onClose={handleCloseInfoPanel} />
         </>
       )}
 

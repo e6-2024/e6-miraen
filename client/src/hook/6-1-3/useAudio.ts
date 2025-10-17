@@ -1,9 +1,11 @@
 import { useCallback, useRef } from 'react'
-import { ViewType } from '@/utils/6-1-3/utils'
-import { getAudioPath } from '@/utils/6-1-3/utils'
+import { ViewType, getAudioPath } from '@/utils/6-1-3/utils'
+
+type NarrationType = Extract<ViewType, 'root' | 'stem' | 'leaf' | 'water'>
 
 export const usePlantAudio = () => {
   const backgroundAudioRef = useRef<HTMLAudioElement | null>(null)
+  const narrationAudioRef = useRef<HTMLAudioElement | null>(null)
 
   const playSound = useCallback((audioPath: string, volume: number = 0.7) => {
     try {
@@ -17,18 +19,33 @@ export const usePlantAudio = () => {
     }
   }, [])
 
-  const playNarration = useCallback((type: 'root' | 'stem' | 'leaf' | 'water') => {
+  const playNarration = useCallback((type: NarrationType) => {
     const audioPath = getAudioPath(type)
     if (!audioPath) return
 
     try {
+      if (narrationAudioRef.current) {
+        narrationAudioRef.current.pause()
+        narrationAudioRef.current.currentTime = 0
+      }
       const audio = new Audio(audioPath)
       audio.volume = 0.8
+      narrationAudioRef.current = audio
       audio.play().catch((error) => {
         console.log('나레이션 재생 실패:', error.name)
       })
     } catch (error) {
       console.log('나레이션 생성 실패:', error)
+    }
+  }, [])
+
+  const stopNarration = useCallback(() => {
+    if (!narrationAudioRef.current) return
+    try {
+      narrationAudioRef.current.pause()
+      narrationAudioRef.current.currentTime = 0
+    } finally {
+      narrationAudioRef.current = null
     }
   }, [])
 
@@ -38,12 +55,10 @@ export const usePlantAudio = () => {
         backgroundAudioRef.current.pause()
         backgroundAudioRef.current.currentTime = 0
       }
-
       const audio = new Audio(audioPath)
       audio.volume = 0.7
       audio.loop = true
       backgroundAudioRef.current = audio
-
       audio.play().catch((error) => {
         console.log('배경음 재생 실패:', error.name)
       })
@@ -53,22 +68,31 @@ export const usePlantAudio = () => {
   }, [])
 
   const stopBackgroundSound = useCallback(() => {
-    if (backgroundAudioRef.current) {
+    if (!backgroundAudioRef.current) return
+    try {
       backgroundAudioRef.current.pause()
       backgroundAudioRef.current.currentTime = 0
+    } finally {
       backgroundAudioRef.current = null
     }
   }, [])
 
-  const cleanup = useCallback(() => {
+  const stopAll = useCallback(() => {
     stopBackgroundSound()
-  }, [stopBackgroundSound])
+    stopNarration()
+  }, [stopBackgroundSound, stopNarration])
+
+  const cleanup = useCallback(() => {
+    stopAll()
+  }, [stopAll])
 
   return {
     playSound,
     playNarration,
+    stopNarration,
     playBackgroundSound,
     stopBackgroundSound,
-    cleanup
+    stopAll,
+    cleanup,
   }
 }
