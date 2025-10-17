@@ -44,7 +44,7 @@ export function WaterFlowButton({ isVisible, onClick }: WaterFlowButtonProps) {
 interface ViewControlsProps {
   currentView: ViewType
   onViewChange: (view: ViewType) => void
-  stopAll: () => void         // <- 추가
+  stopAll: () => void
 }
 
 export function ViewControls({ currentView, onViewChange, stopAll }: ViewControlsProps) {
@@ -59,11 +59,39 @@ export function ViewControls({ currentView, onViewChange, stopAll }: ViewControl
           textcolor='#FFFFFF'
           onClick={() => {
             onViewChange('default')
-            stopAll() // 같은 인스턴스의 오디오가 멈춤
+            stopAll()
           }}
         />
       </div>
     )
   }
   return null
+}
+
+interface LeafAnimationProps {
+  isVisible: boolean
+  imagePath?: string
+}
+
+export function LeafAnimation({ 
+  isVisible, 
+  imagePath = '/img/evaporation.webp' 
+}: LeafAnimationProps) {
+  if (!isVisible) return null
+  
+  return (
+    <div className='absolute right-8 top-1/2 -translate-y-1/2 z-50'>
+      <CrayonTextBox 
+        bg='#FFFFFF' 
+        color='#05A8A4' 
+        className='shadow-2xl'
+      >
+        <img 
+          src={imagePath}
+          alt='잎에서 물의 이동'
+          className='w-[400px] h-auto rounded-lg'
+        />
+      </CrayonTextBox>
+    </div>
+  )
 }

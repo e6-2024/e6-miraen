@@ -6,7 +6,7 @@ import * as THREE from 'three'
 import { Model } from '../components/6-1-3/Model'
 import { SpeechBubble } from '../components/6-1-3/SpeechBubble'
 import { RootWaterAbsorption, LeafEvaporation, StemWaterMovement } from '../components/6-1-3/WaterFlowEffects'
-import { SubtitleBox, WaterFlowButton, ViewControls } from '../components/6-1-3/PlantUI'
+import { SubtitleBox, WaterFlowButton, ViewControls, LeafAnimation } from '../components/6-1-3/PlantUI'
 import Scene from '../components/canvas/Scene'
 import Intro from '../components/intro/Intro'
 import { CrayonTextButton } from '@/components/common/CrayonUIButton'
@@ -185,7 +185,7 @@ export default function Page() {
   const handleWaterFlowClick = useCallback(() => {
     handleViewChange('water')
     playBackgroundSound()
-  }, [handleViewChange])
+  }, [handleViewChange, playBackgroundSound])
 
   const handleBackToIntro = useCallback(() => {
     setShowIntro(true)
@@ -358,6 +358,8 @@ export default function Page() {
           <WaterFlowButton isVisible={currentView === 'default'} onClick={handleWaterFlowClick} />
 
           <SubtitleBox text={subtitleText} isVisible={showSubtitle} />
+          
+          <LeafAnimation isVisible={currentView === 'leaf'} />
         </>
       )}
 
