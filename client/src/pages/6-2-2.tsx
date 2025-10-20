@@ -15,6 +15,7 @@ import CameraLogger from '@/hook/CameraLogger'
 import { ExperimentConfig } from '@/types/6-2-2/types'
 import { EXPERIMENT_CONFIG } from '@/utils/6-2-2/utils'
 import { stopSound } from '@/utils/5-2-1/audioManger'
+import { TimeAnimation } from '@/components/6-2-2/TimeAnimation'
 
 type ButtonStyle = { bg: string; border: string; text: string }
 
@@ -347,6 +348,12 @@ export default function Page() {
               />
             </motion.div>
           </AnimatePresence>
+        )}
+      {!showIntro &&
+        isLoaded &&
+        (currentPhase === 'burning' ||
+          currentPhase === 'leftOut') && (
+          <TimeAnimation isAnimating={currentPhase === 'burning' || currentPhase === 'leftOut'} visible={true} />
         )}
       {!showIntro && isLoaded && (
         <ExperimentStatus

@@ -45,7 +45,7 @@ export function CandleExperiment({
   const mixerRef = useRef<THREE.AnimationMixer | null>(null)
   const orbitControlsRef = useRef<any>(null)
 
-  const [showFlame, setShowFlame] = useState(false)
+  const [showFlame, setShowFlame] = useState(true)
   const [leftFlameOpacity, setLeftFlameOpacity] = useState(1)
   const [leftFlameScale, setLeftFlameScale] = useState(1)
 
@@ -600,14 +600,14 @@ export function CandleExperiment({
         experimentPhase === 'leftOut' ||
         experimentPhase === 'finished' ||
         experimentPhase === 'rightOut') && (
-        <SpeechBubble2 position={[-10, 5, 0]} html='산소를 공급하지 않은 아크릴 통' />
+        <SpeechBubble2 position={[-11, 5, 5]} html='산소를 공급하지 않은 아크릴 통' />
       )}
       {(experimentPhase === 'readyToCover' ||
         experimentPhase === 'covering' ||
         experimentPhase === 'burning' ||
         experimentPhase === 'leftOut' ||
         experimentPhase === 'finished' ||
-        experimentPhase === 'rightOut') && <SpeechBubble2 position={[-3, 5, 0]} html='산소를 공급한 아크릴 통' />}
+        experimentPhase === 'rightOut') && <SpeechBubble2 position={[-3.5, 5, 5]} html='산소를 공급한 아크릴 통' />}
 
       <OrbitControls
         ref={orbitControlsRef}
