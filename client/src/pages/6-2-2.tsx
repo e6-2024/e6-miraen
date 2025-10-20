@@ -109,9 +109,11 @@ function ExperimentInstructions({
   const getInstructionText = () => {
     switch (currentPhase) {
       case 'selectingCup':
-        return '오른쪽 아크릴 통에 산소를 공급해 보세요.'
+        return '오른쪽 아크릴 통을 클릭하여 아크릴 통 안에 산소 캔과 연결된 고무관을 넣어 보세요.'
       case 'oxygenSupply':
         return '산소 캔의 버튼을 눌러 산소를 공급해 보세요.'
+      case 'burning':
+        return '시간이 지남에 따라 촛불은 어떻게 되는지 관찰해 보세요.'
       case 'leftOut':
         return '산소를 공급하지 않은 촛불은 먼저 꺼집니다.'
       case 'rightOut':
@@ -205,7 +207,7 @@ export default function Page() {
     setExperimentStarted(true)
     setExperimentFinished(false)
     setCurrentPhase('selectingCup')
-    playNarration('/sounds/6-2-2/narration/6-2-2-A.MP3')
+    playNarration('/sounds/6-2-2/narration/6-2-2-A-1.MP3')
     setExperimentKey((prev) => prev + 1)
   }, [playSound])
 
@@ -225,15 +227,17 @@ export default function Page() {
       setCurrentPhase(phase)
       switch (phase) {
         case 'selectingCup':
-          playNarration('/sounds/6-2-2/narration/6-2-2-A.MP3')
+          playNarration('/sounds/6-2-2/narration/6-2-2-A-1.MP3')
           break
         case 'oxygenSupply':
           playNarration('/sounds/6-2-2/narration/6-2-2-B.MP3')
           break
         case 'oxygenSupplying':
           playSound('/sounds/6-2-2/6-2-2-4.MP3')
+          break
         case 'burning':
-          playNarration('/sounds/6-2-2/6-2-2-2_match-lighting-candle-81020.mp3')
+          playSound('/sounds/6-2-2/6-2-2-2_match-lighting-candle-81020.mp3')
+          playNarration('/sounds/6-2-2/narration/6-2-2-F.MP3')
           break
         case 'leftOut':
           playNarration('/sounds/6-2-2/narration/6-2-2-C.MP3')
@@ -241,6 +245,7 @@ export default function Page() {
         case 'rightOut':
           playNarration('/sounds/6-2-2/narration/6-2-2-D.MP3')
       }
+      console.log('Phase changed to:', phase)
     },
     [playSound, playNarration],
   )
@@ -249,7 +254,6 @@ export default function Page() {
     setShowPopup(true)
     playNarration('/sounds/6-2-2/narration/6-2-2-E.MP3')
   }, [])
-
 
   return (
     <div className='w-screen h-screen bg-[#E79CC2] flex flex-col overflow-hidden relative'>
@@ -261,13 +265,13 @@ export default function Page() {
         position='absolute'
         iconPosition='left'
         onClick={handleBackToIntro}
-        width={108}
-        height={108}
+        width={96}
+        height={96}
         color='#ffffff'
         textcolor='#ffffff'
-        bg='rgba(255,255,255,0.10)'
-        className='backdrop-blur z-[200] mix-blend-difference'
-        right={138}
+        bg={'#D64B98'}
+        className='z-[200]'
+        right={120}
         top={16}
         iconSize={40}
         innerCircleVisible={true}
@@ -278,12 +282,12 @@ export default function Page() {
         position='absolute'
         iconPosition='left'
         onClick={toggleBgm}
-        width={108}
-        height={108}
+        width={96}
+        height={96}
         color='#fff'
         textcolor='#fff'
-        bg='rgba(255,255,255,0.10)'
-        className='backdrop-blur z-[200] mix-blend-difference'
+        bg={'#D64B98'}
+        className='z-[200]'
         right={16}
         top={16}
         iconSize={40}
@@ -327,6 +331,7 @@ export default function Page() {
         isLoaded &&
         (currentPhase === 'selectingCup' ||
           currentPhase === 'oxygenSupply' ||
+          currentPhase === 'burning' ||
           currentPhase === 'leftOut' ||
           currentPhase === 'rightOut') && (
           <AnimatePresence>

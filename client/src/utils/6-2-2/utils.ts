@@ -9,13 +9,13 @@ export const EXPERIMENT_CONFIG = {
   },
   cameraPositions: {
     initial: [-0.53, 1.02, 19.4] as [number, number, number],
-    trackOut: [-7.77, -0.44, 25.21] as [number, number, number]
+    trackOut: [-5.4, -0.04, 25.11] as [number, number, number]
   }
 }
 
 export const getAudioPath = (phase: ExperimentPhase): string => {
   const paths = {
-    selectingCup: '/sounds/6-2-2/narration/6-2-2-A.MP3',
+    selectingCup: '/sounds/6-2-2/narration/6-2-2-A-1.MP3',
     oxygenCanAppearing: '',
     oxygenSupply: '/sounds/6-2-2/narration/6-2-2-B.MP3',
     oxygenSupplying: '',

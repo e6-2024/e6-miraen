@@ -7,6 +7,9 @@ import { Flame } from './Flame'
 import { ExperimentPhase } from '@/types/6-2-2/types'
 import { EXPERIMENT_CONFIG } from '@/utils/6-2-2/utils'
 import CameraLogger from '@/hook/CameraLogger'
+import { SpeechBubble } from '@/components/6-2-2/SpeechBubble'
+import { SpeechBubble2 } from '@/components/6-2-2/SpeechBubble2'
+import { CMSMode } from 'three-stdlib'
 
 interface CandleExperimentProps {
   experimentStarted: boolean
@@ -488,7 +491,7 @@ export function CandleExperiment({
         if (!o) return
         m.transparent = true
         m.opacity = THREE.MathUtils.clamp((o.opacity ?? 1) * v, 0, 1)
-        m.depthWrite = false // ★ 추가: 투명 상태에서는 Z버퍼 기록 금지
+        m.depthWrite = false
         m.needsUpdate = true
       })
     }
@@ -578,9 +581,6 @@ export function CandleExperiment({
       <primitive object={currentModel.scene} scale={5.0} position={[0, 0, 0]} />
 
       <Environment preset='city' />
-
-      <CameraLogger />
-
       {showFlame && (
         <>
           <Flame
@@ -593,6 +593,21 @@ export function CandleExperiment({
           <CandleLight position={EXPERIMENT_CONFIG.flamePositions.left} opacity={leftFlameOpacity} />
         </>
       )}
+      {experimentPhase === 'oxygenSupply' && <SpeechBubble position={[9.9, 9.3, -2]} html='----- 버튼' />}
+      {(experimentPhase === 'readyToCover' ||
+        experimentPhase === 'covering' ||
+        experimentPhase === 'burning' ||
+        experimentPhase === 'leftOut' ||
+        experimentPhase === 'finished' ||
+        experimentPhase === 'rightOut') && (
+        <SpeechBubble2 position={[-10, 5, 0]} html='산소를 공급하지 않은 아크릴 통' />
+      )}
+      {(experimentPhase === 'readyToCover' ||
+        experimentPhase === 'covering' ||
+        experimentPhase === 'burning' ||
+        experimentPhase === 'leftOut' ||
+        experimentPhase === 'finished' ||
+        experimentPhase === 'rightOut') && <SpeechBubble2 position={[-3, 5, 0]} html='산소를 공급한 아크릴 통' />}
 
       <OrbitControls
         ref={orbitControlsRef}
