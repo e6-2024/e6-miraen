@@ -593,7 +593,7 @@ export function CandleExperiment({
           <CandleLight position={EXPERIMENT_CONFIG.flamePositions.left} opacity={leftFlameOpacity} />
         </>
       )}
-      {experimentPhase === 'oxygenSupply' && <SpeechBubble position={[9.9, 9.3, -2]} html='----- 버튼' />}
+      {experimentPhase === 'oxygenSupply' && <SpeechBubble position={[10.2, 9.3, -2]} html='----- 버튼' />}
       {(experimentPhase === 'readyToCover' ||
         experimentPhase === 'covering' ||
         experimentPhase === 'burning' ||
