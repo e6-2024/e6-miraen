@@ -313,7 +313,7 @@ export default function Page() {
         innerCircleVisible
       />
 
-      {showSubtitle && (
+      {!showIntro && showSubtitle && (
         <div className='fixed top-5 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-3'>
           {!leftStickComplete && !rightStickComplete && !showChoiceButtons && (
             <CrayonTextBox
@@ -340,7 +340,7 @@ export default function Page() {
       )}
 
       <AnimatePresence>
-        {showChoiceButtons && (
+        {!showIntro && showChoiceButtons && (
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -373,7 +373,7 @@ export default function Page() {
           </motion.div>
         )}
 
-        {showChoiceButtons && (
+        {!showIntro && showChoiceButtons && (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -406,7 +406,7 @@ export default function Page() {
           </motion.div>
         )}
 
-        {leftStickComplete && (
+        {!showIntro && leftStickComplete && (
           <div className='fixed top-52 left-4 font-light z-[150]'>
             <TimedFade active showMs={2000} fadeMs={500} depKey='L'>
               <CrayonTextBox bg='#fff' color='rgba(100,116,139,0.95)' textcolor='#333' fontSize='18px'>
@@ -415,7 +415,7 @@ export default function Page() {
             </TimedFade>
           </div>
         )}
-        {rightStickComplete && (
+        {!showIntro && rightStickComplete && (
           <div className='fixed top-52 right-4 font-light z-[150]'>
             <TimedFade active showMs={2000} fadeMs={500} depKey='R'>
               <CrayonTextBox bg='#fff' color='rgba(100,116,139,0.95)' textcolor='#333' fontSize='18px'>
@@ -425,7 +425,7 @@ export default function Page() {
           </div>
         )}
 
-        {showResultUI && (
+        {!showIntro && showResultUI && (
           <>
             <div className='fixed bottom-32 left-1/2 -translate-x-1/2 z-[150] font-light'>
               <TimedFade active showMs={8000} fadeMs={500} depKey={resultDepKey}>
@@ -489,7 +489,7 @@ export default function Page() {
         )}
       </AnimatePresence>
 
-      {showCompletionPopup && (
+      {!showIntro && showCompletionPopup && (
         <div className='fixed inset-0 bg-black/50 z-[300] flex text-center items-center justify-center'>
           <div className='bg-white rounded-2xl p-8 shadow-2xl max-w-md'>
             <h3 className='text-2xl font-bold text-gray-800 mb-4'>실험 완료</h3>
