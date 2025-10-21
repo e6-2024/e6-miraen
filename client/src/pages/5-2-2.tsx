@@ -29,6 +29,7 @@ import { CrayonTextButton } from '@/components/common/CrayonUIButton'
 import { CrayonTextBox } from '@/components/common/CrayonTextBox'
 import { useAudio } from '@/hook/5-2-2/useAudio'
 import { ThermalTemperatureGauge } from '@/components/5-2-2/ThermalTemperatureGauge'
+import { SpeechBubble } from '@/components/5-2-2/SpeechBubble'
 
 type ButtonStyle = { bg: string; border: string; text: string }
 
@@ -41,7 +42,7 @@ type StoveTheme = {
 const stoveTheme: StoveTheme = {
   goal: { bg: '#52AE46', border: '#A1CC90', text: '#FFFFFF' },
   guide: { bg: '#52AE46', border: '#A1CC90', text: '#FFFFFF' },
-  start:  { bg: '#EB7200', border: '#F4B476', text: '#FFFFFF' },
+  start: { bg: '#EB7200', border: '#F4B476', text: '#FFFFFF' },
 }
 
 function LoadingTracker({ onLoadingComplete }: { onLoadingComplete: () => void }) {
@@ -79,17 +80,16 @@ function HeatingGauge({
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.3 }}
         className='absolute inset-x-0 top-4 flex justify-center z-[20]'>
-        <CrayonTextBox color='#3BC8FB' bg='#FFF' width={320} animated={true}>
+        <CrayonTextBox color={stoveTheme.start.bg} bg='#FFF' width={320} animated={true}>
           <div className='text-center mb-3'>
-            <h3 className='text-lg font-bold text-gray-800'>{foodName} 가열 중</h3>
-            {isHeatingComplete && <p className='text-sm text-black font-bold'>가열 완료! 불을 꺼주세요</p>}
+            <h3 className='text-lg font-bold text-gray-800'>
+              {foodName} {progress >= 100 ? '가열 완료' : '가열 중'}
+            </h3>
           </div>
 
           <div className='w-full bg-gray-200 rounded-full h-4 overflow-hidden mb-2'>
             <div
-              className={`h-4 rounded-full transition-all duration-300 ${
-                progress >= 100 ? 'bg-[#70C7C6]' : 'bg-[#3BC8FB]'
-              }`}
+              className={'h-4 rounded-full transition-all duration-300 bg-[#EB7200]'}
               style={{ width: `${Math.min(progress, 100)}%` }}
             />
           </div>
@@ -114,7 +114,7 @@ function TurnOffFireMessage({ visible }: { visible: boolean }) {
         exit={{ opacity: 0, scale: 0.9 }}
         transition={{ duration: 0.3 }}
         className='absolute inset-x-0 top-1/3 flex justify-center z-[20]'>
-        <CrayonTextBox color='#222' bg='#FFF' animated={true}>
+        <CrayonTextBox color={stoveTheme.start.border} bg='#FFF' animated={true}>
           <p className='text-center font-light text-black'>손잡이를 클릭하여 불을 끄세요.</p>
         </CrayonTextBox>
       </motion.div>
@@ -143,7 +143,7 @@ function StatusMessage({
 
   return (
     <div className='absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-40'>
-      <CrayonTextBox color='#3BC8FB' bg='#FFF' animated={true}>
+      <CrayonTextBox color={stoveTheme.start.bg} bg='#FFF' animated={true}>
         <p className='text-center font-light'>{message}</p>
       </CrayonTextBox>
     </div>
@@ -173,11 +173,18 @@ function SummaryPopup({
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
         transition={{ duration: 0.3 }}>
-        <CrayonTextBox color='#3BC8FB' bg='#FFF' width={500} animated={true}>
+        <CrayonTextBox color={stoveTheme.start.bg} bg='#FFF' width={500} animated={true}>
           <div className='text-center p-4'>
             <h3 className='text-2xl font-bold mb-4 text-gray-800'>정리하기</h3>
             <p className='text-gray-700 font-light mb-6 leading-relaxed'>{message}</p>
-            <CrayonTextButton text='확인' onClick={onClose} width={120} bg='#3BC8FB' color='#fff' textcolor='#333' />
+            <CrayonTextButton
+              text='확인'
+              onClick={onClose}
+              width={120}
+              bg={stoveTheme.start.bg}
+              color='#fff'
+              textcolor='#fff'
+            />
           </div>
         </CrayonTextBox>
       </motion.div>
@@ -295,7 +302,7 @@ export default function Page() {
 
             if (newProgress >= 100) {
               setIsHeatingComplete(true)
-              setShowTurnOffMessage(true)
+              // setShowTurnOffMessage(true)
               playNarration('/sounds/5-2-2/5-2-2-B.MP3')
 
               if (heatingIntervalRef.current) {
@@ -351,7 +358,7 @@ export default function Page() {
       }
 
       playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3', 0.5)
-      playNarration('/sounds/5-2-2/5-2-2-A.MP3')
+      playNarration('/sounds/5-2-2/5-2-2-A-1.MP3')
     },
     [isHeating, playSound, playNarration, stopNarration, stopCookingSound],
   )
@@ -441,13 +448,13 @@ export default function Page() {
         position='absolute'
         iconPosition='left'
         onClick={handleBackToIntro}
-        width={108}
-        height={108}
+        width={96}
+        height={96}
         color='#ffffff'
         textcolor='#ffffff'
-        bg='rgba(255,255,255,0.10)'
-        className='backdrop-blur z-[200] mix-blend-difference'
-        right={138}
+        bg={stoveTheme.start.bg}
+        className='z-[200]'
+        right={120}
         top={16}
         iconSize={40}
         innerCircleVisible={true}
@@ -458,12 +465,12 @@ export default function Page() {
         position='absolute'
         iconPosition='left'
         onClick={toggleBgm}
-        width={108}
-        height={108}
+        width={96}
+        height={96}
         color='#fff'
         textcolor='#fff'
-        bg='rgba(255,255,255,0.10)'
-        className='backdrop-blur z-[1000] mix-blend-difference'
+        bg={stoveTheme.start.bg}
+        className='z-[200]'
         right={16}
         top={16}
         iconSize={40}
@@ -477,7 +484,7 @@ export default function Page() {
               text={isThermalMode ? '돌아가기' : '열화상 카메라로 보기'}
               onClick={toggleThermalMode}
               width={isThermalMode ? 120 : 200}
-              bg='#49DE80'
+              bg={stoveTheme.start.bg}
               color='#fff'
               textcolor='#FFFFFF'
             />
@@ -487,7 +494,7 @@ export default function Page() {
             text='처음으로'
             onClick={handleResetHeating}
             width={120}
-            bg='#3BC8FB'
+            bg={stoveTheme.goal.bg}
             color='#fff'
             textcolor='#FFFFFF'
           />
@@ -501,7 +508,7 @@ export default function Page() {
         isHeatingComplete={isHeatingComplete}
       />
 
-      <TurnOffFireMessage visible={showTurnOffMessage && isHeatingComplete} />
+      {/* <TurnOffFireMessage visible={showTurnOffMessage && isHeatingComplete} /> */}
 
       {showSummaryButton && !showSummaryMessage && (
         <div className='absolute bottom-5 right-5 z-40'>
@@ -509,7 +516,7 @@ export default function Page() {
             text='정리하기'
             onClick={handleSummaryClick}
             width={140}
-            bg='#3BC8FB'
+            bg={stoveTheme.goal.bg}
             color='#FFF'
             textcolor='#FFFFFF'
           />
@@ -579,6 +586,13 @@ export default function Page() {
             />
             <ContactShadows position={[0, -0.6, 0]} scale={7} blur={1.0} opacity={1.0} far={5} />
             <group position={[0, 0.4, 0]}>
+              <SpeechBubble
+                position={[-0.33, -1.7, 0.45]}
+                html={'손잡이'}
+                visible={!isHeating && !showIntro}
+                delay={0.5}
+              />
+
               <mesh receiveShadow position={[0, -3.1, 0]} rotation={[-Math.PI / 2, 0, 0]} visible={!isThermalMode}>
                 <planeGeometry args={[20, 20]} />
                 <shadowMaterial opacity={0.3} />
