@@ -16,6 +16,8 @@ import { ExperimentConfig } from '@/types/6-2-2/types'
 import { EXPERIMENT_CONFIG } from '@/utils/6-2-2/utils'
 import { stopSound } from '@/utils/5-2-1/audioManger'
 import { TimeAnimation } from '@/components/6-2-2/TimeAnimation'
+import ActivityGuideModal from '@/components/6-2-2/ActivityGuideModal'
+import AudioManager from '@/components/6-2-2/AudioManager'
 
 type ButtonStyle = { bg: string; border: string; text: string }
 
@@ -140,6 +142,8 @@ export default function Page() {
   const [currentPhase, setCurrentPhase] = useState<ExperimentPhase>('selectingCup')
   const [experimentKey, setExperimentKey] = useState(0)
   const [showPopup, setShowPopup] = useState(false)
+  const audioManager = AudioManager.getInstance()
+  const [showActivityGuide, setShowActivityGuide] = useState(false)
 
   const { playSound, playNarration, stopNarration } = useAudio()
 
@@ -184,6 +188,12 @@ export default function Page() {
   const toggleBgm = () => setBgmEnabled((v) => !v)
 
   const handleLoadingComplete = useCallback(() => setIsLoaded(true), [])
+
+  const handleShowActivityGuide = () => {
+    audioManager.playGeneralButton()
+    setShowActivityGuide(true)
+  }
+  const handleCloseActivityGuide = () => setShowActivityGuide(false)
 
   const handleEnterExperience = useCallback(() => {
     playSound('/sounds/Enter_Cute.mp3')
@@ -348,12 +358,9 @@ export default function Page() {
             </motion.div>
           </AnimatePresence>
         )}
-      {!showIntro &&
-        isLoaded &&
-        (currentPhase === 'burning' ||
-          currentPhase === 'leftOut') && (
-          <TimeAnimation isAnimating={currentPhase === 'burning' || currentPhase === 'leftOut'} visible={true} />
-        )}
+      {!showIntro && isLoaded && (currentPhase === 'burning' || currentPhase === 'leftOut') && (
+        <TimeAnimation isAnimating={currentPhase === 'burning' || currentPhase === 'leftOut'} visible={true} />
+      )}
       {!showIntro && isLoaded && (
         <ExperimentStatus
           experimentStarted={experimentStarted}
@@ -404,9 +411,11 @@ export default function Page() {
           description={['물질이 타려면 무엇이 필요한지 알아봅시다.']}
           backgroundSvg='/img/cover/6-2-2.svg'
           buttonTheme={particleTheme}
+          onActivityGuide={handleShowActivityGuide}
           descriptionSound='/sounds/6-2-2/narration/6-2-2-Goal.MP3'
         />
       )}
+      <ActivityGuideModal isOpen={showActivityGuide} onClose={handleCloseActivityGuide} />
     </div>
   )
 }
