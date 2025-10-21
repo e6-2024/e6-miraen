@@ -278,7 +278,7 @@ export function GlassStickManager({
           ref={leftStickRef} 
           object={leftSceneRef.current} 
           scale={0.5} 
-          position={[-2.15, -1.0, -0.2]} 
+          position={[-2.15, -1.3, -0.2]} 
         />
       )}
       {showRightStick && rightSceneRef.current && (
@@ -286,7 +286,7 @@ export function GlassStickManager({
           ref={rightStickRef} 
           object={rightSceneRef.current} 
           scale={0.5} 
-          position={[2.34, -1.0, -0.2]} 
+          position={[2.34, -1.3, -0.2]} 
         />
       )}
     </>

@@ -44,7 +44,7 @@ export const DirectTomato: React.FC<DirectTomatoProps> = ({
   onDrop,
   onPickedUp,
 }) => {
-  const { nodes, materials } = useGLTF('models/Sugar/tomato1.glb') as GLTFResult
+  const { nodes, materials } = useGLTF('/models/5-1-3/tomato1.glb') as GLTFResult
   const { camera, gl, controls } = useThree()
   const meshRef = useRef<THREE.Mesh>(null!)
 
@@ -74,12 +74,12 @@ export const DirectTomato: React.FC<DirectTomatoProps> = ({
   const GRAVITY = -5.0
   const WATER_DRAG = 0.94
   const AIR_DRAG = 1.0
-  const BOUNCE_FACTOR = 0.3
+  const BOUNCE_FACTOR = 0.8
   const MAX_DELTA = 1 / 60
 
   const tomatoRadius = 0.12
   const tomatoDensity = 0.95
-  const waterDensity = 1.0 + sugarConcentration * 0.004
+  const waterDensity = 1.0 + sugarConcentration * 0.001
   const densityDifference = waterDensity - tomatoDensity
   const buoyancyForce = densityDifference * 3.5
 
@@ -197,7 +197,7 @@ export const DirectTomato: React.FC<DirectTomatoProps> = ({
     if (currentPos.y > waterTop + 0.5) {
       onPickedUp?.()
     } else {
-      velocity.current.set(0, -0.5, 0)
+      velocity.current.set(0, 0, 0)
     }
   }
 
@@ -218,7 +218,7 @@ export const DirectTomato: React.FC<DirectTomatoProps> = ({
     if (isDropped && !hasDropped.current) {
       hasDropped.current = true
       position.current.set(...startPosition)
-      velocity.current.set((Math.random() - 0.5) * 0.3, -0.5, 0.03)
+      velocity.current.set(0, -0.5, 0)
       lastTime.current = null
       onDrop?.()
     } else if (!isDropped && hasDropped.current) {
@@ -309,11 +309,11 @@ export const DirectTomato: React.FC<DirectTomatoProps> = ({
 
     pos.addScaledVector(vel, clampedDelta)
 
-    const effectiveRadius = beakerRadius - tomatoRadius
+    const effectiveRadius = beakerRadius - tomatoRadius -0.04
     if (distanceFromCenter > effectiveRadius) {
       const n = new THREE.Vector3(dx, 0, dz).normalize()
-      pos.x = beakerPosition[0] + n.x * effectiveRadius * 0.9
-      pos.z = beakerPosition[2] + n.z * effectiveRadius * 0.9
+      pos.x = beakerPosition[0] + n.x * effectiveRadius * 0.7
+      pos.z = beakerPosition[2] + n.z * effectiveRadius * 0.7
       const radialVel = vel.x * n.x + vel.z * n.z
       if (radialVel > 0) {
         vel.x -= n.x * radialVel * (1 + BOUNCE_FACTOR)

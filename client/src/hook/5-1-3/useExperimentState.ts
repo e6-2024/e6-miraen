@@ -35,7 +35,7 @@ export function useExperimentState() {
             setRightSpoonCount((prev) => prev + 1)
           }, 1000)
         }
-      }, 800)
+      }, 200)
     },
     [leftSpoonCount, rightSpoonCount],
   )

@@ -13,7 +13,7 @@ type GLTFResult = GLTF & {
 }
 
 export const Tomato = (props: JSX.IntrinsicElements['group']) => {
-  const { nodes, materials } = useGLTF('models/Sugar/tomato1.glb') as GLTFResult
+  const { nodes, materials } = useGLTF('/models/5-1-3/tomato1.glb') as GLTFResult
   return (
     <group {...props} dispose={null}>
       <mesh

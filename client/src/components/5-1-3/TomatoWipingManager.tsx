@@ -77,7 +77,7 @@ export function TomatoWipingManager({
       ref={wipingRef}
       object={strippedSceneRef.current ?? tomatoWipingModel.scene}
       scale={0.5}
-      position={[-0.7, -1, 0]}
+      position={[0, 0.25, 0]}
       visible={showTomatoWiping}
     />
   )

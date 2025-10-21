@@ -38,8 +38,8 @@ export function TomatoDragManager({
   showTomatoWiping,
   leftBeakerPosition = [-2.15, -0.5, -0.2],
   rightBeakerPosition = [2.34, -0.5, -0.2],
-  leftWaterLevel = 0.9,
-  rightWaterLevel = 0.9,
+  leftWaterLevel = 0.88,
+  rightWaterLevel = 0.88,
   beakerRadiusOverride,
 }: TomatoDragManagerProps) {
   const { camera, gl, controls, scene } = useThree()
@@ -63,8 +63,8 @@ export function TomatoDragManager({
 
   const TOMATO_R = 0.12
   const R_PAD = 0.09
-  const Y_PAD = 1.0
-  const SLACK = 0.02
+  const Y_PAD = 1.8
+  const ALPHA = 0.0
 
   const grabOffsetWorld = useRef(new THREE.Vector3())
   const pivotOffsetWorld = useRef(new THREE.Vector3())
@@ -299,6 +299,14 @@ export function TomatoDragManager({
     ],
   )
 
+  const getObjectWorldBoundingSphereCenter = (obj: THREE.Object3D) => {
+    obj.updateWorldMatrix(true, true)
+    const box = new THREE.Box3().setFromObject(obj)
+    const sphere = new THREE.Sphere()
+    box.getBoundingSphere(sphere)
+    return sphere.center.clone()
+  }
+
   const onPointerUp = useCallback(
     (e: PointerEvent) => {
       if (!draggingRef.current) return
@@ -312,14 +320,14 @@ export function TomatoDragManager({
       const t = tomatoRef.current
       if (!t) return
 
-      const tomatoCenter = getWorldBBoxCenter(t)
+      const tomatoCenter = getObjectWorldBoundingSphereCenter(t)
 
       const leftGeom = getBeakerGeom(beakerARef, new THREE.Vector3(...leftBeakerPosition), leftWaterLevel)
       const rightGeom = getBeakerGeom(beakerA001Ref, new THREE.Vector3(...rightBeakerPosition), rightWaterLevel)
 
       const insideCircle = (p: THREE.Vector3, g: BeakerGeom) => {
         const r = Math.hypot(p.x - g.center.x, p.z - g.center.z)
-        const thresh = g.innerR - TOMATO_R + SLACK
+        const thresh = g.innerR - TOMATO_R - R_PAD
         return r <= Math.max(0, thresh)
       }
       const insideY = (p: THREE.Vector3, g: BeakerGeom) => p.y >= g.rimY - Y_PAD && p.y <= g.rimY + Y_PAD

@@ -1,4 +1,3 @@
-// app/5-1-3/page.tsx
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
@@ -14,6 +13,20 @@ import { TiltOnMouse } from '@/components/common/Tilt'
 import { TimedFade } from '@/components/5-1-3/TimeFade'
 import { useGLTF } from '@react-three/drei'
 
+type ButtonStyle = { bg: string; border: string; text: string }
+
+type TomatoTheme = {
+  goal: ButtonStyle
+  guide: ButtonStyle
+  start: ButtonStyle
+}
+
+const tomatoTheme: TomatoTheme = {
+  goal: { bg: '#05A8A4', border: '#7BCACA', text: '#FFFFFF' },
+  guide: { bg: '#05A8A4', border: '#7BCACA', text: '#FFFFFF' },
+  start: { bg: '#009BF5', border: '#9ED6E9', text: '#FFFFFF' },
+}
+
 const MODELS_TO_PRELOAD = [
   '/models/5-1-3/0.glb',
   '/models/5-1-3/Spoon_left.glb',
@@ -21,7 +34,7 @@ const MODELS_TO_PRELOAD = [
   '/models/5-1-3/Glass_Stick.glb',
   '/models/5-1-3/Tomato_wiping.glb',
   '/models/5-1-3/sugar.glb',
-  'models/Sugar/tomato1.glb',
+  '/models/5-1-3/tomato1.glb',
 ]
 MODELS_TO_PRELOAD.forEach((path) => {
   useGLTF.preload(path)
@@ -49,6 +62,9 @@ export default function Page() {
 
   const [leftStickComplete, setLeftStickComplete] = useState(false)
   const [rightStickComplete, setRightStickComplete] = useState(false)
+
+  const [showTomatoWiping, setShowTomatoWiping] = useState(false)
+
   const [leftTomatoExperimentDone, setLeftTomatoExperimentDone] = useState(false)
   const [rightTomatoExperimentDone, setRightTomatoExperimentDone] = useState(false)
   const [showCompletionPopup, setShowCompletionPopup] = useState(false)
@@ -58,6 +74,9 @@ export default function Page() {
   const [rightChoiceUsed, setRightChoiceUsed] = useState(false)
   const [runningSide, setRunningSide] = useState<'left' | 'right' | null>(null)
   const loadingCompletedRef = useRef(false)
+
+  const showResultUI = (leftTomatoExperimentDone || rightTomatoExperimentDone) && !!lastTomatoResult
+  const resultDepKey = lastTomatoResult ? (lastTomatoResult === 'left' ? 'LT' : 'RT') : 'NONE'
 
   useEffect(() => {
     if (!mounted) return
@@ -269,8 +288,8 @@ export default function Page() {
         height={96}
         color='#ffffff'
         textcolor='#ffffff'
-        bg='rgba(255,255,255,0.10)'
-        className='background-blur z-[200] mix-blend-difference'
+        bg={tomatoTheme.start.bg}
+        className='z-[200]'
         right={120}
         top={16}
         iconSize={40}
@@ -286,8 +305,8 @@ export default function Page() {
         height={96}
         color='#fff'
         textcolor='#fff'
-        bg='rgba(255,255,255,0.10)'
-        className='backdrop-blur z-[200] mix-blend-difference'
+        bg={tomatoTheme.start.bg}
+        className='z-[200]'
         right={16}
         top={16}
         iconSize={40}
@@ -313,6 +332,7 @@ export default function Page() {
               textcolor='#333'
               className='font-light'
               width={600}
+              fontSize='18px'
               text='용액에 방울 토마토를 드래그하여 넣어보세요.'
             />
           )}
@@ -325,7 +345,6 @@ export default function Page() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.25 }}
             className='fixed top-32 left-4 z-[150]'>
             {(() => {
               const disabled = leftChoiceUsed || runningSide === 'right'
@@ -334,13 +353,14 @@ export default function Page() {
                   ariaLabel='왼쪽 비커 설탕 실험'
                   position='relative'
                   text='왼쪽 비커: 설탕 한 숟가락 용해하기'
-                  width={320}
+                  width={360}
                   height={72}
-                  color='#0EA5E9'
+                  color={leftChoiceUsed ? '#64748B' : '#9ED6E9'}
                   textcolor='#fff'
-                  bg='rgba(14,165,233,0.95)'
+                  bg={leftChoiceUsed ? 'rgba(100,116,139,0.95)' : '#009BF5'}
                   iconPosition='left'
                   iconSize={20}
+                  textSize={20}
                   innerCircleVisible
                   onClick={() => {
                     if (disabled) return
@@ -358,7 +378,6 @@ export default function Page() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
-            transition={{ duration: 0.25 }}
             className='fixed top-32 right-4 z-[150]'>
             {(() => {
               const disabled = rightChoiceUsed || runningSide === 'left'
@@ -367,13 +386,14 @@ export default function Page() {
                   ariaLabel='오른쪽 비커 설탕 실험'
                   position='relative'
                   text='오른쪽 비커: 설탕 다섯 숟가락 용해하기'
-                  width={340}
+                  width={360}
                   height={72}
-                  color='#10B981'
+                  color={rightChoiceUsed ? '#64748B' : '#7BCACA'}
                   textcolor='#fff'
-                  bg='rgba(16,185,129,0.95)'
+                  bg={rightChoiceUsed ? 'rgba(100,116,139,0.95)' : '#05A8A4'}
                   iconPosition='left'
                   iconSize={20}
+                  textSize={20}
                   innerCircleVisible
                   onClick={() => {
                     if (disabled) return
@@ -389,7 +409,7 @@ export default function Page() {
         {leftStickComplete && (
           <div className='fixed top-52 left-4 font-light z-[150]'>
             <TimedFade active showMs={2000} fadeMs={500} depKey='L'>
-              <CrayonTextBox bg='#fff' color='#0EA5E9' textcolor='#333' fontSize='14px'>
+              <CrayonTextBox bg='#fff' color='rgba(100,116,139,0.95)' textcolor='#333' fontSize='18px'>
                 설탕이 모두 용해되었어요!
               </CrayonTextBox>
             </TimedFade>
@@ -398,36 +418,39 @@ export default function Page() {
         {rightStickComplete && (
           <div className='fixed top-52 right-4 font-light z-[150]'>
             <TimedFade active showMs={2000} fadeMs={500} depKey='R'>
-              <CrayonTextBox bg='#fff' color='#10B981' textcolor='#333' fontSize='14px'>
+              <CrayonTextBox bg='#fff' color='rgba(100,116,139,0.95)' textcolor='#333' fontSize='18px'>
                 설탕이 모두 용해되었어요!
               </CrayonTextBox>
             </TimedFade>
           </div>
         )}
 
-        {(leftTomatoExperimentDone || rightTomatoExperimentDone) && lastTomatoResult && (
-          <div className='fixed bottom-32 left-1/2 -translate-x-1/2 z-[150] font-light'>
-            <TimedFade active showMs={8000} fadeMs={500} depKey={lastTomatoResult === 'left' ? 'LT' : 'RT'}>
-              <CrayonTextBox bg='#fff' color='#10B981' textcolor='#333' fontSize='16px'>
-                {lastTomatoResult === 'left'
-                  ? '설탕 한 숟가락을 용해한 용액에서 방울토마토가 가라앉습니다.'
-                  : '설탕 다섯 숟가락을 용해한 용액에서 방울토마토가 높이 떠오릅니다.'}
-              </CrayonTextBox>
-            </TimedFade>
-          </div>
-        )}
-
-        {(leftTomatoExperimentDone || rightTomatoExperimentDone) && (
-          <div className='fixed top-5 left-1/2 -translate-x-1/2 z-[150]'>
-            <CrayonTextBox
-              color='#8B5CF6'
-              bg='#FFF'
-              textcolor='#333'
-              className='font-light'
-              width={400}
-              text='방울토마토를 드래그하여 꺼내보세요.'
-            />
-          </div>
+        {showResultUI && (
+          <>
+            <div className='fixed bottom-32 left-1/2 -translate-x-1/2 z-[150] font-light'>
+              <TimedFade active showMs={8000} fadeMs={500} depKey={resultDepKey}>
+                <CrayonTextBox bg='#fff' color={tomatoTheme.start.bg} textcolor='#333' fontSize='18px'>
+                  {lastTomatoResult === 'left'
+                    ? '설탕 한 숟가락을 용해한 용액에서 방울토마토가 가라앉습니다.'
+                    : '설탕 다섯 숟가락을 용해한 용액에서 방울토마토가 높이 떠오릅니다.'}
+                </CrayonTextBox>
+              </TimedFade>
+            </div>
+              <div className='fixed top-5 left-1/2 -translate-x-1/2 z-[150]'>
+                <TimedFade active showMs={2000} fadeMs={500} depKey={resultDepKey}>
+                  <CrayonTextBox
+                    color={tomatoTheme.start.bg}
+                    bg='#FFF'
+                    textcolor='#333'
+                    className='font-light'
+                    width={400}
+                    padding={12}
+                    fontSize='18px'
+                    text='방울토마토를 드래그하여 꺼내보세요.'
+                  />
+                </TimedFade>
+              </div>
+          </>
         )}
 
         {leftTomatoExperimentDone && rightTomatoExperimentDone && (
@@ -438,9 +461,9 @@ export default function Page() {
               text='정리하기'
               width={160}
               height={64}
-              color='#8B5CF6'
+              color={tomatoTheme.start.border}
               textcolor='#fff'
-              bg='rgba(139,92,246,0.95)'
+              bg={tomatoTheme.start.bg}
               className='shadow-lg'
               iconPosition='left'
               iconSize={20}
@@ -448,14 +471,14 @@ export default function Page() {
               onClick={() => setShowCompletionPopup(true)}
             />
             <CrayonTextButton
-              ariaLabel='다시하기'
+              ariaLabel='다시 하기'
               position='relative'
-              text='다시하기'
+              text='다시 하기'
               width={160}
               height={64}
-              color='#64748B'
+              color='#ffffff20'
               textcolor='#fff'
-              bg='rgba(100,116,139,0.95)'
+              bg='#64748B'
               className='shadow-lg'
               iconPosition='left'
               iconSize={20}
@@ -476,9 +499,9 @@ export default function Page() {
             </p>
             <CrayonTextButton
               onClick={() => setShowCompletionPopup(false)}
-              bg='#0EA5E9'
-              color='rgba(118, 234, 255, 1)'
+              color={tomatoTheme.start.border}
               textcolor='#fff'
+              bg={tomatoTheme.start.bg}
               text='확인'
             />
           </div>
@@ -486,11 +509,16 @@ export default function Page() {
       )}
 
       <Scene shadows camera={{ position: CAMERA_CONFIG.position, fov: CAMERA_CONFIG.fov }}>
+        <group scale={2}>
+          
+        </group>
         <TiltOnMouse enabled={showIntro} maxDeg={5}>
           <ExperimentScene
             experimentStarted={experimentStarted}
             onNarrationComplete={handleNarrationComplete}
             onBeakerSelected={handleBeakerSelected}
+            showTomatoWiping={showTomatoWiping}
+            setShowTomatoWiping={setShowTomatoWiping}
             onStickComplete={(side) => {
               if (side === 'left') setLeftStickComplete(true)
               else setRightStickComplete(true)
@@ -498,27 +526,31 @@ export default function Page() {
             }}
             onTomatoExperimentComplete={(side) => {
               if (side === 'left') {
-                setLeftTomatoExperimentDone(true)
                 setLastTomatoResult('left')
                 const a = new Audio('/sounds/5-1-3/narration/5-1-3-D.MP3')
                 a.volume = 0.8
                 a.play().catch(() => {})
-                setTimeout(() => {
-                  const f = new Audio('/sounds/5-1-3/narration/5-1-3-F.MP3')
-                  f.volume = 0.8
-                  f.play().catch(() => {})
-                }, 7000)
+                setLeftTomatoExperimentDone(true)
+                if (!showTomatoWiping) {
+                  setTimeout(() => {
+                    const f = new Audio('/sounds/5-1-3/narration/5-1-3-F.MP3')
+                    f.volume = 0.8
+                    f.play().catch(() => {})
+                  }, 7000)
+                }
               } else {
-                setRightTomatoExperimentDone(true)
                 setLastTomatoResult('right')
                 const a = new Audio('/sounds/5-1-3/narration/5-1-3-E.MP3')
                 a.volume = 0.8
                 a.play().catch(() => {})
-                setTimeout(() => {
-                  const f = new Audio('/sounds/5-1-3/narration/5-1-3-F.MP3')
-                  f.volume = 0.8
-                  f.play().catch(() => {})
-                }, 7000)
+                setRightTomatoExperimentDone(true)
+                if (!showTomatoWiping) {
+                  setTimeout(() => {
+                    const f = new Audio('/sounds/5-1-3/narration/5-1-3-F.MP3')
+                    f.volume = 0.8
+                    f.play().catch(() => {})
+                  }, 7000)
+                }
               }
             }}
             resetToken={resetToken}
@@ -534,6 +566,7 @@ export default function Page() {
             '색깔로 진하기를 알 수 없는 두 용액에 같은 물체를 넣어 용액의 상대적인 진하기를 비교해 봅시다.',
           ]}
           backgroundSvg='/img/cover/5-1-3.svg'
+          buttonTheme={tomatoTheme}
           descriptionSound='/sounds/5-1-3/narration/5-1-3-Goal.MP3'
         />
       )}

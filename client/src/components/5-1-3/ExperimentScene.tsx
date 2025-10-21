@@ -33,6 +33,8 @@ interface GLBModel {
 interface ExperimentSceneProps {
   experimentStarted: boolean
   onNarrationComplete?: () => void
+  showTomatoWiping?: boolean
+  setShowTomatoWiping?: (v: boolean) => void
   onBeakerSelected?: (beaker: 'left' | 'right') => void
   onStickComplete?: (side: 'left' | 'right') => void
   onTomatoExperimentComplete?: (side: 'left' | 'right') => void
@@ -44,6 +46,8 @@ export function ExperimentScene({
   onNarrationComplete,
   onBeakerSelected,
   onStickComplete,
+  showTomatoWiping,
+  setShowTomatoWiping,
   onTomatoExperimentComplete,
   resetToken = 0,
 }: ExperimentSceneProps) {
@@ -63,7 +67,6 @@ export function ExperimentScene({
   const [leftTomatoPosition, setLeftTomatoPosition] = useState<[number, number, number]>([0, 0, 0])
   const [rightTomatoPosition, setRightTomatoPosition] = useState<[number, number, number]>([0, 0, 0])
 
-  const [showTomatoWiping, setShowTomatoWiping] = useState(false)
   const [tomatoWipingAnimating, setTomatoWipingAnimating] = useState(false)
 
   const {
@@ -308,11 +311,11 @@ export function ExperimentScene({
       {(currentModel || currentSpoonModel) && (
         <>
           {!bothDone && <GLBRenderer src='/models/5-1-3/sugar.glb' scale={0.5} position={[-0.7, -1, 0]} />}
-          <RealisticWater position={[-2.15, -0.5, -0.2]} beakerRadius={0.57} waterLevel={0.9} />
+          <RealisticWater position={[-2.15, -0.5, -0.2]} beakerRadius={0.57} waterLevel={0.87} />
           <RealisticWater
             position={rightSpoonCount >= 5 ? [2.34, -0.47, -0.2] : [2.34, -0.5, -0.2]}
             beakerRadius={0.57}
-            waterLevel={rightSpoonCount >= 5 ? 0.95 : 0.9}
+            waterLevel={rightSpoonCount >= 5 ? 0.92 : 0.87}
           />
         </>
       )}
@@ -368,7 +371,7 @@ export function ExperimentScene({
         <DirectTomato
           startPosition={leftTomatoPosition}
           sugarConcentration={leftSpoonCount * 2.1}
-          beakerRadius={0.57}
+          beakerRadius={0.55}
           waterLevel={0.8}
           beakerPosition={[-2.15, -1.05, -0.2]}
           isDropped={true}
@@ -382,7 +385,7 @@ export function ExperimentScene({
         <DirectTomato
           startPosition={rightTomatoPosition}
           sugarConcentration={rightSpoonCount * 4.2}
-          beakerRadius={0.57}
+          beakerRadius={0.55}
           waterLevel={rightSpoonCount >= 4 ? 0.9 : 0.85}
           beakerPosition={[2.34, rightSpoonCount >= 4 ? -1.1 : -1.2, -0.2]}
           isDropped={true}

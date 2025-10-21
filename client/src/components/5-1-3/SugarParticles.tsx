@@ -227,7 +227,8 @@ export function SugarParticles({
       }
 
       if (p.state === 'sinking') {
-        const dissolveSpeed = 0.08 * (1 + sugarAmount * 0.1)
+        const speedMultiplier = spoonCount ? Math.min(2, 1 + (spoonCount - 1) * 0.3) : 1
+        const dissolveSpeed = 0.08 * (1 + sugarAmount * 0.1) * speedMultiplier
         p.pos.y -= dissolveSpeed * clampedDelta
 
         const radialSpeed = 0.06 * (1 - p.opacity)
@@ -243,7 +244,7 @@ export function SugarParticles({
         p.pos.x += Math.sin(localTime * 10 + seedX) * diffusion * clampedDelta
         p.pos.z += Math.cos(localTime * 8 + seedZ) * diffusion * clampedDelta
 
-        const fadeSpeed = 0.3 * (1 / sugarAmount)
+        const fadeSpeed = 0.3 * (1 / sugarAmount) * speedMultiplier
         p.opacity = Math.max(0, p.opacity - fadeSpeed * clampedDelta)
         p.scale = Math.max(0, p.scale - 0.15 * clampedDelta)
 
