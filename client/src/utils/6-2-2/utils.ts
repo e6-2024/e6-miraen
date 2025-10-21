@@ -23,7 +23,7 @@ export const getAudioPath = (phase: ExperimentPhase): string => {
     cameraTrackOut: '',
     readyToCover: '',
     covering: '',
-    burning: '/sounds/6-2-2/6-2-2-2_match-lighting-candle-81020.mp3',
+    burning: '',
     rightOut: '',
     finished: '/sounds/6-2-2/narration/6-2-2-C.MP3'
   }

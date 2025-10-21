@@ -95,7 +95,7 @@ export function CandleExperiment({
     if (!experimentStarted) {
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
       if (intervalRef.current) clearInterval(intervalRef.current)
-      setShowFlame(false)
+      setShowFlame(true)
       setLeftFlameOpacity(1)
       setLeftFlameScale(1)
 

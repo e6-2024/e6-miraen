@@ -237,7 +237,6 @@ export default function Page() {
           playSound('/sounds/6-2-2/6-2-2-4.MP3')
           break
         case 'burning':
-          playSound('/sounds/6-2-2/6-2-2-2_match-lighting-candle-81020.mp3')
           playNarration('/sounds/6-2-2/narration/6-2-2-F.MP3')
           break
         case 'leftOut':
