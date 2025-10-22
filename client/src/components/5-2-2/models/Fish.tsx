@@ -25,6 +25,7 @@ export function Fish({
 }: FishProps) {
   const { scene } = useGLTF('models/5-2-2/Fish.glb')
   const [originalMaterials, setOriginalMaterials] = useState<Map<THREE.Mesh, THREE.Material>>(new Map())
+  const [isReady, setIsReady] = useState(false)
 
   const [cookedTextures, setCookedTextures] = useState<{
     normal1: THREE.Texture | null
@@ -37,7 +38,6 @@ export function Fish({
   const groupRef = useRef<THREE.Group>(null)
   const [prevThermalMode, setPrevThermalMode] = useState(thermalMode)
 
-  // 모델 바운드 캐싱
   const boundsRef = useRef<{ bottomY: number; topY: number } | null>(null)
 
   const computeBounds = () => {
@@ -64,7 +64,6 @@ export function Fish({
         child.castShadow = true
         child.receiveShadow = true
 
-        // 원본 머티리얼을 살짝 '식재료'스럽게 보정 (Meat와 동일 로직)
         const mat = (child.material as THREE.Material).clone()
         if (mat instanceof THREE.MeshStandardMaterial) {
           mat.metalness = Math.min((mat.metalness ?? 0) * 0.1, 0.1)
@@ -78,7 +77,6 @@ export function Fish({
 
     if (materials.size > 0) setOriginalMaterials(materials)
 
-    // 조리 텍스처 로드
     const loader = new THREE.TextureLoader()
     const loadTexture = (path: string) =>
       new Promise<THREE.Texture>((resolve, reject) => {
@@ -104,16 +102,15 @@ export function Fish({
       })
       .catch((error) => {
         console.warn('Cooked textures loading failed:', error)
+        setIsReady(true)
       })
 
-    // 초기 바운드 계산
     const b = computeBounds()
     if (b) boundsRef.current = b
   }, [scene])
 
   useEffect(() => {
     if (thermalMode) {
-      // 모드 전환 시 기존 셰이더 정리
       if (thermalMode !== prevThermalMode && thermalMaterialRef.current) {
         thermalMaterialRef.current.dispose()
         thermalMaterialRef.current = undefined
@@ -148,22 +145,19 @@ export function Fish({
         }
       })
     } else {
-      // thermal off → 셰이더 정리
       if (thermalMode !== prevThermalMode && thermalMaterialRef.current) {
         thermalMaterialRef.current.dispose()
         thermalMaterialRef.current = undefined
       }
 
-      // 조리 텍스처 블렌딩 (몸통/기타 파츠 2종)
       if (cookedTextures.albedo1 || cookedTextures.albedo2) {
-        const blendFactor = heatingProgress > 0 ? Math.min(heatingProgress / 100, 1.0) : 0.1
+        const blendFactor = heatingProgress > 0 ? Math.min(heatingProgress / 100, 1.0) : 0.075
 
         scene.traverse((child) => {
           if (!(child instanceof THREE.Mesh)) return
           const originalMaterial = originalMaterials.get(child) as THREE.MeshStandardMaterial
           if (!originalMaterial) return
 
-          // 이름은 GLB 내 material.name 기준 (프로젝트와 동일)
           const isBody = originalMaterial.name === 'Mackerel_body.001'
           const isOther = originalMaterial.name === 'Mackerel1.002'
 
@@ -207,8 +201,11 @@ export function Fish({
             child.material = originalMaterial
           }
         })
+
+        if (!isReady) {
+          setIsReady(true)
+        }
       } else {
-        // 원복
         originalMaterials.forEach((material, mesh) => {
           mesh.material = material
         })
@@ -216,9 +213,8 @@ export function Fish({
     }
 
     setPrevThermalMode(thermalMode)
-  }, [thermalMode, scene, originalMaterials, position, isHeating, heatingProgress, cookedTextures])
+  }, [thermalMode, scene, originalMaterials, position, isHeating, heatingProgress, cookedTextures, isReady])
 
-  // 외부 prop 변화 시 유니폼 최신화
   useEffect(() => {
     if (thermalMode && thermalMaterialRef.current) {
       const currentCenter = getCurrentCenterPoint()
@@ -236,7 +232,6 @@ export function Fish({
     }
   }, [heatingTime, isHeating, heatingProgress, thermalMode, position])
 
-  // 프레임 업데이트
   useFrame(({ clock }) => {
     if (thermalMode && thermalMaterialRef.current) {
       thermalMaterialRef.current.uniforms.time.value = clock.getElapsedTime()
@@ -263,7 +258,7 @@ export function Fish({
   }, [])
 
   return (
-    <group ref={groupRef} position={position} {...props}>
+    <group ref={groupRef} position={position} visible={isReady} {...props}>
       <primitive object={scene} />
     </group>
   )

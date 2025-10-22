@@ -27,6 +27,7 @@ export function Meat({
   const [originalMaterials, setOriginalMaterials] = useState<Map<THREE.Mesh, THREE.Material>>(new Map())
   const [cookedTexture, setCookedTexture] = useState<THREE.Texture | null>(null)
   const [cookedNorTexture, setCookedNormal] = useState<THREE.Texture | null>(null)
+  const [isReady, setIsReady] = useState(false)
 
   const thermalMaterialRef = useRef<THREE.ShaderMaterial>()
   const groupRef = useRef<THREE.Group>(null)
@@ -87,6 +88,7 @@ export function Meat({
       undefined,
       (error) => {
         console.warn('Cooked Albedo texture loading failed:', error)
+        setIsReady(true)
       },
     )
 
@@ -147,7 +149,7 @@ export function Meat({
       }
 
       if (cookedTexture) {
-        const blendFactor = heatingProgress > 0 ? Math.min(heatingProgress / 100, 1.0) : 0.1
+        const blendFactor = heatingProgress > 0 ? Math.min(heatingProgress / 100, 1.0) : 0.075
 
         scene.traverse((child) => {
           if (child instanceof THREE.Mesh) {
@@ -191,6 +193,10 @@ export function Meat({
             }
           }
         })
+
+        if (!isReady) {
+          setIsReady(true)
+        }
       } else {
         originalMaterials.forEach((material, mesh) => {
           mesh.material = material
@@ -199,8 +205,7 @@ export function Meat({
     }
 
     setPrevThermalMode(thermalMode)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [thermalMode, scene, originalMaterials, position, isHeating, heatingProgress, cookedTexture])
+  }, [thermalMode, scene, originalMaterials, position, isHeating, heatingProgress, cookedTexture, isReady])
 
   useEffect(() => {
     if (thermalMode && thermalMaterialRef.current) {
@@ -245,7 +250,7 @@ export function Meat({
   }, [])
 
   return (
-    <group ref={groupRef} position={position} {...props}>
+    <group ref={groupRef} position={position} visible={isReady} {...props}>
       <primitive object={scene} />
     </group>
   )
