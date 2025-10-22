@@ -72,7 +72,7 @@ export function BG({
         fragmentShader: thermalFragmentShader,
         uniforms: {
           time: { value: 0 },
-          temperature: { value: 0.05 }, // 매우 낮은 온도 (차가운 파란색)
+          temperature: { value: 0.1 }, // 매우 낮은 온도 (차가운 파란색)
           heatingTime: { value: 0 }, // 가열 시간 항상 0
           baseColor: { value: new THREE.Color(0.5, 0.5, 0.5) },
           centerPoint: { value: centerPoint },

@@ -26,7 +26,7 @@ export function Meat({
   const { scene } = useGLTF('models/5-2-2/Meat.glb')
   const [originalMaterials, setOriginalMaterials] = useState<Map<THREE.Mesh, THREE.Material>>(new Map())
   const [cookedTexture, setCookedTexture] = useState<THREE.Texture | null>(null)
-  const [cookedNormalTexture, setCookedNormal] = useState<THREE.Texture | null>(null)
+  const [cookedNorTexture, setCookedNormal] = useState<THREE.Texture | null>(null)
 
   const thermalMaterialRef = useRef<THREE.ShaderMaterial>()
   const groupRef = useRef<THREE.Group>(null)

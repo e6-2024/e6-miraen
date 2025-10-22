@@ -26,14 +26,14 @@ export const thermalFragmentShader = `
   varying vec3 vWorldPosition;
   
   vec3 thermalColor(float temp) {
-    // 온도에 따른 색상 매핑: black -> blue -> purple -> red -> orange -> yellow -> white
-    if (temp < 0.1) return vec3(0.0, 0.0, 0.0); // Black (very cold)
-    else if (temp < 0.25) return mix(vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), (temp - 0.1) * 6.67); // Black to Deep Blue
-    else if (temp < 0.4) return mix(vec3(0.0, 0.0, 1.0), vec3(0.0, 1.0, 0.0), (temp - 0.25) * 6.67); // Deep Blue to Green
-    else if (temp < 0.55) return mix(vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), (temp - 0.4) * 6.67); // Green to Yellow
-    else if (temp < 0.7) return mix(vec3(1.0, 1.0, 0.0), vec3(1.0, 0.5, 0.0), (temp - 0.55) * 6.67); // Yellow to Orange
-    else if (temp < 0.75) return mix(vec3(1.0, 0.5, 0.0), vec3(1.0, 0.0, 0.0), (temp - 0.7) * 6.67); // Orange to Red
-    else return mix(vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0), (temp - 0.85) * 6.67); // Red to White
+    if (temp < 0.1) return vec3(0.0, 0.0, 0.0); // Black
+    else if (temp < 0.4) return mix(vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), (temp - 0.1) * 6.67); // Black to Blue
+    else if (temp < 0.6) return mix(vec3(0.0, 0.0, 1.0), vec3(0.0, 1.0, 0.0), (temp - 0.25) * 6.67); // Blue to Green
+    else if (temp < 0.65) return mix(vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), (temp - 0.4) * 6.67); // Green to Yellow
+    else if (temp < 0.75) return mix(vec3(1.0, 1.0, 0.0), vec3(1.0, 0.5, 0.0), (temp - 0.55) * 6.67); // Yellow to Orange
+    else if (temp < 0.80) return mix(vec3(1.0, 0.5, 0.0), vec3(1.0, 0.0, 0.0), (temp - 0.7) * 10.0); // Orange to Red
+    else if (temp < 0.92) return vec3(1.0, 0.0, 0.0); // Red 구간 확장
+    else return mix(vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 1.0), (temp - 0.92) * 12.5); // Red to White
   }
     
   float noise(vec2 p) {
@@ -62,26 +62,26 @@ export const thermalFragmentShader = `
     float baseTemp = 0.15;
     
     if (isHeating) {
-      // 가열 진행도 (0 ~ 1, 더 천천히)
-      float heatProgress = min(heatingTime / 5.0, 1.0); // 20초로 더 느리게
+      // 가열 진행도 - 충분히 느리게
+      float heatProgress = min(heatingTime / 10.0, 1.0);
       
-      // 중앙에서부터 퍼져나가는 열 웨이브 - 더 급격한 감소
       float heatWave = heatProgress * 2.0;
+      float distanceFactor = exp(-distanceFromCenter * 2.0);
       
-      // 거리에 따른 온도 감소 (훨씬 더 급격하게)
-      float distanceFactor = exp(-distanceFromCenter * 2.0); // 3.5로 증가해서 더 급격한 감소
+      // 초기에는 약하게, 나중에는 강하게 (제곱 사용)
+      float progressCurve = pow(heatProgress, 1.3); // 초반 느리게, 후반 빠르게
       
-      // 시간에 따른 중앙부 집중 가열 (중앙만 뜨겁게)
-      float centerHeat = distanceFactor * heatProgress * 1.14; // 0.6으로 감소
+      // 중앙부 가열
+      float centerHeat = distanceFactor * progressCurve * 1.5;
       
-      // 전체적인 최소 가열 (더 줄임)
-      float globalHeat = heatProgress * 0.05; // 0.05로 대폭 감소
+      // 전체 가열 - 후반부에 더 강하게
+      float globalHeat = pow(heatProgress, 1.5) * 0.5; // 제곱으로 후반 가속
       
-      // 거리별 최대 온도 제한 (더 엄격하게)
-      float maxTempByDistance = 0.6 + (1.0 - distanceFromCenter) * 0.9; // 0.6으로 감소
+      // 최대 온도 제한 - 최종에는 높은 온도까지 허용
+      float maxTempByDistance = 0.4 + (1.0 - distanceFromCenter) * 0.5 + progressCurve * 0.3;
+      
       baseTemp = 0.15 + globalHeat + centerHeat;
       baseTemp = min(baseTemp, maxTempByDistance);
-
     }
     
     // 노이즈 효과들 적용 (줄임)
@@ -96,7 +96,7 @@ export const thermalFragmentShader = `
     // 강화된 가장자리 냉각 효과
     float viewAngle = abs(dot(vNormal, normalize(vPosition)));
     float edgeCooling = 1.0 - pow(viewAngle, 2.0); // 지수 줄여서 더 넓은 범위에서 냉각
-    baseTemp -= edgeCooling * 0.12; // 냉각 효과 대폭 증가 (0.12)
+    baseTemp -= edgeCooling * 0.45; // 냉각 효과 대폭 증가 (0.12)
     
     // UV 기반 가장자리 냉각 (추가)
     float uvEdgeDistance = min(min(vUv.x, 1.0 - vUv.x), min(vUv.y, 1.0 - vUv.y));

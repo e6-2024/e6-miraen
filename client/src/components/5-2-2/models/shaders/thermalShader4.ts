@@ -27,44 +27,36 @@ export const thermalFragmentShader = `
   uniform vec3 lightDir;
 
   varying vec2 vUv;
-  varying vec3 vNormal;        // view space normal
-  varying vec3 vPosition;      // view space position
-  varying vec3 vWorldPosition; // world space position
+  varying vec3 vNormal;
+  varying vec3 vPosition;
+  varying vec3 vWorldPosition;
 
   vec3 thermalColor(float t) {
-  // t: 0.00~1.00
-  if (t < 0.10) return vec3(0.0); // 검정
+    if (t < 0.10) return vec3(0.0);
 
-  if (t < 0.25) {
-    // 검정 -> 파랑 (폭 0.15)
-    float k = (t - 0.10) / 0.15;
-    return mix(vec3(0.0), vec3(0.0, 0.0, 1.0), k);
+    if (t < 0.25) {
+      float k = (t - 0.10) / 0.15;
+      return mix(vec3(0.0), vec3(0.0, 0.0, 1.0), k);
+    }
+    if (t < 0.30) {
+      float k = (t - 0.25) / 0.05;
+      return mix(vec3(0.0, 0.0, 1.0), vec3(0.0, 1.0, 0.0), k);
+    }
+    if (t < 0.45) {
+      float k = (t - 0.30) / 0.15;
+      return mix(vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), k);
+    }
+    if (t < 0.60) {
+      float k = (t - 0.45) / 0.15;
+      return mix(vec3(1.0, 1.0, 0.0), vec3(1.0, 0.5, 0.0), k);
+    }
+    if (t < 0.8) {
+      float k = (t - 0.60) / 0.15;
+      return mix(vec3(1.0, 0.5, 0.0), vec3(1.0, 0.0, 0.0), k);
+    }
+    float k = (t - 0.75) / 0.25;
+    return mix(vec3(1.0, 0.0, 0.0), vec3(1.0), k);
   }
-  if (t < 0.30) {
-    // 파랑 -> 초록 (폭 0.05)
-    float k = (t - 0.25) / 0.05;
-    return mix(vec3(0.0, 0.0, 1.0), vec3(0.0, 1.0, 0.0), k);
-  }
-  if (t < 0.45) {
-    // 초록 -> 노랑 (폭 0.15)
-    float k = (t - 0.30) / 0.15;
-    return mix(vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), k);
-  }
-  if (t < 0.60) {
-    // 노랑 -> 오렌지 (폭 0.15)
-    float k = (t - 0.45) / 0.15;
-    return mix(vec3(1.0, 1.0, 0.0), vec3(1.0, 0.5, 0.0), k);
-  }
-  if (t < 0.8) {
-    // 오렌지 -> 레드 (폭 0.15)
-    float k = (t - 0.60) / 0.15;
-    return mix(vec3(1.0, 0.5, 0.0), vec3(1.0, 0.0, 0.0), k);
-  }
-  // 레드 -> 화이트 (폭 0.25)
-  float k = (t - 0.75) / 0.25;
-  return mix(vec3(1.0, 0.0, 0.0), vec3(1.0), k);
-}
-
 
   float noise(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
 
@@ -77,7 +69,6 @@ export const thermalFragmentShader = `
   }
 
   void main() {
-    // 기본 텍스처 변동(가열 여부와 무관)
     float baseNoise    = multiNoise(vUv, time) * 0.08;
     float heatNoise    = noise(vUv * 8.0 + time * 1.0) * 0.05;
     float spatialNoise = noise(vWorldPosition.xz * 2.0 + time * 0.3) * 0.06;
@@ -87,19 +78,29 @@ export const thermalFragmentShader = `
 
     if (isHeating) {
       float p = clamp(heatProgress, 0.0, 1.0);
-      float headY = mix(bottomY, topY, min(p * 1.25, 1.0));
-      float band = 0.16 * (topY - bottomY);
+      
+      // 가열 진행을 더 느리게 (지수 곡선 사용)
+      float slowP = pow(p, 1.7);
+      
+      // 가열 높이를 더 천천히 올라가게
+      float headY = mix(bottomY, topY, min(slowP * 0.5, 1.0));
+      
+      // 가열 밴드 폭을 좀 더 넓게
+      float band = 0.22 * (topY - bottomY);
       float belowMask = 1.0 - smoothstep(headY - band, headY + band, vWorldPosition.y);
-      float verticalFalloff = pow(1.0 - h, 1.8);
-
-      float centerHeat = belowMask * verticalFalloff * 1.2;
-      float globalHeat = p * 0.42;
+      
+      // 아래쪽으로 갈수록 더 천천히 가열되도록 (지수 증가)
+      float verticalFalloff = pow(1.0 - h, 1.5);
+      
+      // 중심 가열 강도를 낮춤
+      float centerHeat = belowMask * verticalFalloff * 1.2 * slowP;
+      
+      // 전역 가열 속도를 대폭 낮춤
+      float globalHeat = pow(p, 2.0) * 0.57;
 
       baseTemp = 0.15 + globalHeat + centerHeat;
-
     }
 
-    // 가열 여부와 무관하게 약간의 변동
     baseTemp += baseNoise + heatNoise + spatialNoise;
 
     if (baseTemp > 0.3) {

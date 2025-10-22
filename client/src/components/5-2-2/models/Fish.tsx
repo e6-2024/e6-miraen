@@ -19,7 +19,7 @@ export function Fish({
   isHeating = false,
   heatingTime = 0,
   heatingProgress = 0,
-  heatSourcePosition = [0, 0, 0], // (현재 셰이더에선 centerPoint 사용)
+  heatSourcePosition = [0, 0, 0],
   position = [0, 0, 0],
   ...props
 }: FishProps) {

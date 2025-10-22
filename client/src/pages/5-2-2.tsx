@@ -484,6 +484,7 @@ export default function Page() {
         <div className='absolute top-4 left-4 z-40 flex flex-col gap-0'>
           {!fireOff && (
             <CrayonTextButton
+              key={isThermalMode ? 'thermal' : 'normal'} 
               text={isThermalMode ? '돌아가기' : '열화상 카메라로 보기'}
               onClick={toggleThermalMode}
               width={isThermalMode ? 120 : 200}
@@ -592,7 +593,7 @@ export default function Page() {
               <SpeechBubble
                 position={[-0.33, -1.7, 0.45]}
                 html={'손잡이'}
-                visible={!isHeating && !showIntro &&!isHeatingComplete}
+                visible={!isHeating && !showIntro && !isHeatingComplete}
                 delay={0.5}
               />
 
