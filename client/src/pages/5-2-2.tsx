@@ -278,7 +278,8 @@ export default function Page() {
       const wasHeating = isHeating
       const shouldHeat = rotation > 0
 
-      if (shouldHeat && !wasHeating) {
+      if (shouldHeat && !wasHeating && !isHeatingComplete) {
+        // isHeatingComplete 체크 추가
         setIsHeating(true)
         setHeatingTime(0)
         setHeatingProgress(0)
@@ -286,7 +287,6 @@ export default function Page() {
         setFireOff(false)
 
         playSound('/sounds/5-2-2/5-2-2-2_gas-stove-version.MP3', 0.5)
-
         playSound('/sounds/5-2-2/5-2-2-3_food-cooking.MP3', 0.5, true)
 
         heatingIntervalRef.current = setInterval(() => {
@@ -301,14 +301,18 @@ export default function Page() {
             }
 
             if (newProgress >= 100) {
-              setIsHeatingComplete(true)
-              // setShowTurnOffMessage(true)
-              playNarration('/sounds/5-2-2/5-2-2-B.MP3')
-
               if (heatingIntervalRef.current) {
                 clearInterval(heatingIntervalRef.current)
                 heatingIntervalRef.current = null
               }
+
+              setIsHeatingComplete(true)
+              setIsHeating(false)
+              setFireOff(true)
+              setControllerRotation(0)
+              setResetTrigger((prev) => prev + 1)
+              stopCookingSound()
+
               return 20
             }
 
@@ -316,28 +320,27 @@ export default function Page() {
           })
         }, 100)
       } else if (!shouldHeat && wasHeating) {
-        if (isHeatingComplete) {
-          setIsHeating(false)
-          setFireOff(true)
-          setShowTurnOffMessage(false)
-          stopNarration()
-          stopCookingSound()
-
-          if (heatingIntervalRef.current) {
-            clearInterval(heatingIntervalRef.current)
-            heatingIntervalRef.current = null
-          }
+        if (heatingIntervalRef.current) {
+          clearInterval(heatingIntervalRef.current)
+          heatingIntervalRef.current = null
         }
-      }
 
-      setControllerRotation(rotation)
+        setIsHeating(false)
+        setFireOff(true)
+        setShowTurnOffMessage(false)
+        stopNarration()
+        stopCookingSound()
+      }
+      if (!isHeatingComplete) {
+        setControllerRotation(rotation)
+      }
     },
     [foodOnPan, isHeating, isHeatingComplete, playSound, playNarration, stopNarration, stopCookingSound],
   )
 
   const handleFoodClick = useCallback(
     (food: 'fish' | 'meat') => {
-      if (isHeating) return
+      if (isHeating && !isHeatingComplete) return
 
       setSelectedFood(food)
       setFoodOnPan(food)
@@ -360,7 +363,7 @@ export default function Page() {
       playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3', 0.5)
       playNarration('/sounds/5-2-2/5-2-2-A-1.MP3')
     },
-    [isHeating, playSound, playNarration, stopNarration, stopCookingSound],
+    [isHeating, isHeatingComplete, playSound, playNarration, stopNarration, stopCookingSound],
   )
 
   const handleResetHeating = useCallback(() => {
@@ -532,7 +535,7 @@ export default function Page() {
         </>
       )}
 
-      {!showIntro && (
+      {!showIntro && !isHeatingComplete && (
         <StatusMessage foodOnPan={foodOnPan} isHeating={isHeating} isHeatingComplete={isHeatingComplete} />
       )}
 
@@ -589,7 +592,7 @@ export default function Page() {
               <SpeechBubble
                 position={[-0.33, -1.7, 0.45]}
                 html={'손잡이'}
-                visible={!isHeating && !showIntro}
+                visible={!isHeating && !showIntro &&!isHeatingComplete}
                 delay={0.5}
               />
 
@@ -632,7 +635,7 @@ export default function Page() {
                 foodOnPan={foodOnPan}
                 heatingTime={0}
                 onRotationChange={handleControllerRotation}
-                disabled={!foodOnPan || showIntro || (isHeating && !isHeatingComplete)}
+                disabled={!foodOnPan || showIntro || (isHeating && !isHeatingComplete) || isHeatingComplete}
                 resetTrigger={resetTrigger}
               />
               <Pan

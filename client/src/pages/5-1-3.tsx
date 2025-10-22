@@ -67,6 +67,9 @@ export default function Page() {
 
   const [leftTomatoExperimentDone, setLeftTomatoExperimentDone] = useState(false)
   const [rightTomatoExperimentDone, setRightTomatoExperimentDone] = useState(false)
+  const [leftTomatoDropped, setLeftTomatoDropped] = useState(false)
+  const [rightTomatoDropped, setRightTomatoDropped] = useState(false)
+  const [tomatoWipingAnimating, setTomatoWipingAnimating] = useState(false)
   const [showCompletionPopup, setShowCompletionPopup] = useState(false)
   const [showTomatoInstruction, setShowTomatoInstruction] = useState(false)
   const [lastTomatoResult, setLastTomatoResult] = useState<'left' | 'right' | null>(null)
@@ -74,6 +77,12 @@ export default function Page() {
   const [rightChoiceUsed, setRightChoiceUsed] = useState(false)
   const [runningSide, setRunningSide] = useState<'left' | 'right' | null>(null)
   const loadingCompletedRef = useRef(false)
+  
+  // 토마토 5초 타이머 관련
+  const leftTomatoTimerRef = useRef<number | null>(null)
+  const rightTomatoTimerRef = useRef<number | null>(null)
+  const [showPickupReminder, setShowPickupReminder] = useState(false)
+  const pickupReminderAudioRef = useRef<HTMLAudioElement | null>(null)
 
   const showResultUI = (leftTomatoExperimentDone || rightTomatoExperimentDone) && !!lastTomatoResult
   const resultDepKey = lastTomatoResult ? (lastTomatoResult === 'left' ? 'LT' : 'RT') : 'NONE'
@@ -215,11 +224,43 @@ export default function Page() {
     }
   }, [showCompletionPopup])
 
+  // showTomatoWiping이 true가 되면 타이머 정리 및 오디오 정지
+  useEffect(() => {
+    if (showTomatoWiping) {
+      // 타이머 정리
+      if (leftTomatoTimerRef.current) {
+        clearTimeout(leftTomatoTimerRef.current)
+        leftTomatoTimerRef.current = null
+      }
+      if (rightTomatoTimerRef.current) {
+        clearTimeout(rightTomatoTimerRef.current)
+        rightTomatoTimerRef.current = null
+      }
+      
+      // 오디오 정지 및 자막 숨김
+      pickupReminderAudioRef.current?.pause()
+      pickupReminderAudioRef.current = null
+      setShowPickupReminder(false)
+    }
+  }, [showTomatoWiping])
+
   const handleResetForIntro = useCallback(() => {
     narrationRef.current?.pause()
     narrationRef.current = null
     completionAudioRef.current?.pause()
     completionAudioRef.current = null
+
+    // 타이머 정리
+    if (leftTomatoTimerRef.current) {
+      clearTimeout(leftTomatoTimerRef.current)
+      leftTomatoTimerRef.current = null
+    }
+    if (rightTomatoTimerRef.current) {
+      clearTimeout(rightTomatoTimerRef.current)
+      rightTomatoTimerRef.current = null
+    }
+    pickupReminderAudioRef.current?.pause()
+    pickupReminderAudioRef.current = null
 
     setShowCompletionPopup(false)
     setShowSubtitle(true)
@@ -228,12 +269,16 @@ export default function Page() {
     setRightStickComplete(false)
     setLeftTomatoExperimentDone(false)
     setRightTomatoExperimentDone(false)
+    setLeftTomatoDropped(false)
+    setRightTomatoDropped(false)
+    setTomatoWipingAnimating(false)
     setShowTomatoInstruction(false)
     setShowChoiceButtons(false)
     setLastTomatoResult(null)
     setLeftChoiceUsed(false)
     setRightChoiceUsed(false)
     setRunningSide(null)
+    setShowPickupReminder(false)
 
     setResetToken((t) => t + 1)
   }, [])
@@ -244,6 +289,18 @@ export default function Page() {
     completionAudioRef.current?.pause()
     completionAudioRef.current = null
 
+    // 타이머 정리
+    if (leftTomatoTimerRef.current) {
+      clearTimeout(leftTomatoTimerRef.current)
+      leftTomatoTimerRef.current = null
+    }
+    if (rightTomatoTimerRef.current) {
+      clearTimeout(rightTomatoTimerRef.current)
+      rightTomatoTimerRef.current = null
+    }
+    pickupReminderAudioRef.current?.pause()
+    pickupReminderAudioRef.current = null
+
     setShowCompletionPopup(false)
     setShowSubtitle(true)
     setSelectedBeaker(null)
@@ -251,12 +308,16 @@ export default function Page() {
     setRightStickComplete(false)
     setLeftTomatoExperimentDone(false)
     setRightTomatoExperimentDone(false)
+    setLeftTomatoDropped(false)
+    setRightTomatoDropped(false)
+    setTomatoWipingAnimating(false)
     setShowTomatoInstruction(false)
     setShowChoiceButtons(false)
     setLastTomatoResult(null)
     setLeftChoiceUsed(false)
     setRightChoiceUsed(false)
     setRunningSide(null)
+    setShowPickupReminder(false)
 
     setResetToken((t) => t + 1)
 
@@ -272,6 +333,28 @@ export default function Page() {
       narration.addEventListener('ended', onEnd)
       narration.play().catch(() => {})
     }, 300)
+  }, [])
+
+  const handleTomatoPickedUp = useCallback((beaker: 'left' | 'right') => {
+    // 타이머 취소
+    if (beaker === 'left' && leftTomatoTimerRef.current) {
+      clearTimeout(leftTomatoTimerRef.current)
+      leftTomatoTimerRef.current = null
+    }
+    if (beaker === 'right' && rightTomatoTimerRef.current) {
+      clearTimeout(rightTomatoTimerRef.current)
+      rightTomatoTimerRef.current = null
+    }
+    
+    // 오디오 정지 및 자막 숨김
+    pickupReminderAudioRef.current?.pause()
+    pickupReminderAudioRef.current = null
+    setShowPickupReminder(false)
+    
+    if (beaker === 'left') setLeftTomatoDropped(false)
+    else setRightTomatoDropped(false)
+    setShowTomatoWiping(true)
+    setTomatoWipingAnimating(true)
   }, [])
 
   return (
@@ -436,21 +519,23 @@ export default function Page() {
                 </CrayonTextBox>
               </TimedFade>
             </div>
-              <div className='fixed top-5 left-1/2 -translate-x-1/2 z-[150]'>
-                <TimedFade active showMs={2000} fadeMs={500} depKey={resultDepKey}>
-                  <CrayonTextBox
-                    color={tomatoTheme.start.bg}
-                    bg='#FFF'
-                    textcolor='#333'
-                    className='font-light'
-                    width={400}
-                    padding={12}
-                    fontSize='18px'
-                    text='방울토마토를 드래그하여 꺼내보세요.'
-                  />
-                </TimedFade>
-              </div>
           </>
+        )}
+        
+        {/* 5초 후 리마인더 자막 */}
+        {!showIntro && showPickupReminder && (
+          <div className='fixed top-5 left-1/2 -translate-x-1/2 z-[150]'>
+            <CrayonTextBox
+              color={tomatoTheme.start.bg}
+              bg='#FFF'
+              textcolor='#333'
+              className='font-light'
+              width={400}
+              padding={12}
+              fontSize='18px'
+              text='방울토마토를 드래그하여 꺼내보세요.'
+            />
+          </div>
         )}
 
         {leftTomatoExperimentDone && rightTomatoExperimentDone && (
@@ -524,6 +609,7 @@ export default function Page() {
               else setRightStickComplete(true)
               setRunningSide((curr) => (curr === side ? null : curr))
             }}
+            onTomatoPickedUp={handleTomatoPickedUp}
             onTomatoExperimentComplete={(side) => {
               if (side === 'left') {
                 setLastTomatoResult('left')
@@ -531,26 +617,30 @@ export default function Page() {
                 a.volume = 0.8
                 a.play().catch(() => {})
                 setLeftTomatoExperimentDone(true)
-                if (!showTomatoWiping) {
-                  setTimeout(() => {
-                    const f = new Audio('/sounds/5-1-3/narration/5-1-3-F.MP3')
-                    f.volume = 0.8
-                    f.play().catch(() => {})
-                  }, 7000)
-                }
+                
+                // 5초 타이머 시작
+                leftTomatoTimerRef.current = window.setTimeout(() => {
+                  const f = new Audio('/sounds/5-1-3/narration/5-1-3-F.MP3')
+                  f.volume = 0.8
+                  pickupReminderAudioRef.current = f
+                  f.play().catch(() => {})
+                  setShowPickupReminder(true)
+                }, 5000)
               } else {
                 setLastTomatoResult('right')
                 const a = new Audio('/sounds/5-1-3/narration/5-1-3-E.MP3')
                 a.volume = 0.8
                 a.play().catch(() => {})
                 setRightTomatoExperimentDone(true)
-                if (!showTomatoWiping) {
-                  setTimeout(() => {
-                    const f = new Audio('/sounds/5-1-3/narration/5-1-3-F.MP3')
-                    f.volume = 0.8
-                    f.play().catch(() => {})
-                  }, 7000)
-                }
+                
+                // 5초 타이머 시작
+                rightTomatoTimerRef.current = window.setTimeout(() => {
+                  const f = new Audio('/sounds/5-1-3/narration/5-1-3-F.MP3')
+                  f.volume = 0.8
+                  pickupReminderAudioRef.current = f
+                  f.play().catch(() => {})
+                  setShowPickupReminder(true)
+                }, 5000)
               }
             }}
             resetToken={resetToken}

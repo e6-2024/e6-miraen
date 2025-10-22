@@ -38,6 +38,7 @@ interface ExperimentSceneProps {
   onBeakerSelected?: (beaker: 'left' | 'right') => void
   onStickComplete?: (side: 'left' | 'right') => void
   onTomatoExperimentComplete?: (side: 'left' | 'right') => void
+  onTomatoPickedUp?: (side: 'left' | 'right') => void
   resetToken?: number
 }
 
@@ -49,6 +50,7 @@ export function ExperimentScene({
   showTomatoWiping,
   setShowTomatoWiping,
   onTomatoExperimentComplete,
+  onTomatoPickedUp,
   resetToken = 0,
 }: ExperimentSceneProps) {
   const model0 = useGLTF('/models/5-1-3/0.glb') as GLBModel
@@ -247,7 +249,8 @@ export function ExperimentScene({
     else setRightTomatoDropped(false)
     setShowTomatoWiping(true)
     setTomatoWipingAnimating(true)
-  }, [])
+    onTomatoPickedUp?.(beaker)
+  }, [onTomatoPickedUp])
 
   const handleWipingComplete = useCallback(() => {
     setShowTomatoWiping(false)
