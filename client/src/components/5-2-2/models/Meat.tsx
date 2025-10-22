@@ -26,6 +26,7 @@ export function Meat({
   const { scene } = useGLTF('models/5-2-2/Meat.glb')
   const [originalMaterials, setOriginalMaterials] = useState<Map<THREE.Mesh, THREE.Material>>(new Map())
   const [cookedTexture, setCookedTexture] = useState<THREE.Texture | null>(null)
+  const [cookedNormalTexture, setCookedNormal] = useState<THREE.Texture | null>(null)
 
   const thermalMaterialRef = useRef<THREE.ShaderMaterial>()
   const groupRef = useRef<THREE.Group>(null)
@@ -85,13 +86,23 @@ export function Meat({
       },
       undefined,
       (error) => {
-        console.warn('Cooked texture loading failed:', error)
+        console.warn('Cooked Albedo texture loading failed:', error)
       },
     )
 
+    loader.load(
+      '/textures/5-2-2/CookedSteak1.001_Normal.png',
+      (texture) => {
+        texture.flipY = false
+        setCookedNormal(texture)
+      },
+      undefined,
+      (error) => {
+        console.warn('Cooked Normal texture loading failed:', error)
+      },
+    )
     const b = computeBounds()
     if (b) boundsRef.current = b
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scene])
 
   useEffect(() => {
