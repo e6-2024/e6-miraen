@@ -12,6 +12,8 @@ import { CAMERA_CONFIG, playClickSound } from '@/utils/5-1-3/utils'
 import { TiltOnMouse } from '@/components/common/Tilt'
 import { TimedFade } from '@/components/5-1-3/TimeFade'
 import { useGLTF } from '@react-three/drei'
+import ActivityGuideModal from '@/components/5-1-3/ActivityGuideModal'
+import AudioManager from '@/components/5-1-2/AudioManager'
 
 type ButtonStyle = { bg: string; border: string; text: string }
 
@@ -77,7 +79,10 @@ export default function Page() {
   const [rightChoiceUsed, setRightChoiceUsed] = useState(false)
   const [runningSide, setRunningSide] = useState<'left' | 'right' | null>(null)
   const loadingCompletedRef = useRef(false)
-  
+
+  const [showActivityGuide, setShowActivityGuide] = useState(false)
+  const audioManager = AudioManager.getInstance()
+
   // 토마토 5초 타이머 관련
   const leftTomatoTimerRef = useRef<number | null>(null)
   const rightTomatoTimerRef = useRef<number | null>(null)
@@ -184,6 +189,13 @@ export default function Page() {
     setSelectedBeaker(null)
   }
 
+  const handleShowActivityGuide = () => {
+    audioManager.playGeneralButton()
+    setShowActivityGuide(true)
+  }
+
+  const handleCloseActivityGuide = () => setShowActivityGuide(false)
+
   useEffect(() => {
     if (leftStickComplete && rightStickComplete) {
       setTimeout(() => {
@@ -236,7 +248,7 @@ export default function Page() {
         clearTimeout(rightTomatoTimerRef.current)
         rightTomatoTimerRef.current = null
       }
-      
+
       // 오디오 정지 및 자막 숨김
       pickupReminderAudioRef.current?.pause()
       pickupReminderAudioRef.current = null
@@ -345,12 +357,12 @@ export default function Page() {
       clearTimeout(rightTomatoTimerRef.current)
       rightTomatoTimerRef.current = null
     }
-    
+
     // 오디오 정지 및 자막 숨김
     pickupReminderAudioRef.current?.pause()
     pickupReminderAudioRef.current = null
     setShowPickupReminder(false)
-    
+
     if (beaker === 'left') setLeftTomatoDropped(false)
     else setRightTomatoDropped(false)
     setShowTomatoWiping(true)
@@ -521,7 +533,7 @@ export default function Page() {
             </div>
           </>
         )}
-        
+
         {/* 5초 후 리마인더 자막 */}
         {!showIntro && showPickupReminder && (
           <div className='fixed top-5 left-1/2 -translate-x-1/2 z-[150]'>
@@ -594,9 +606,7 @@ export default function Page() {
       )}
 
       <Scene shadows camera={{ position: CAMERA_CONFIG.position, fov: CAMERA_CONFIG.fov }}>
-        <group scale={2}>
-          
-        </group>
+        <group scale={2}></group>
         <TiltOnMouse enabled={showIntro} maxDeg={5}>
           <ExperimentScene
             experimentStarted={experimentStarted}
@@ -617,7 +627,7 @@ export default function Page() {
                 a.volume = 0.8
                 a.play().catch(() => {})
                 setLeftTomatoExperimentDone(true)
-                
+
                 // 5초 타이머 시작
                 leftTomatoTimerRef.current = window.setTimeout(() => {
                   const f = new Audio('/sounds/5-1-3/narration/5-1-3-F.MP3')
@@ -632,7 +642,7 @@ export default function Page() {
                 a.volume = 0.8
                 a.play().catch(() => {})
                 setRightTomatoExperimentDone(true)
-                
+
                 // 5초 타이머 시작
                 rightTomatoTimerRef.current = window.setTimeout(() => {
                   const f = new Audio('/sounds/5-1-3/narration/5-1-3-F.MP3')
@@ -657,9 +667,11 @@ export default function Page() {
           ]}
           backgroundSvg='/img/cover/5-1-3.svg'
           buttonTheme={tomatoTheme}
+          onActivityGuide={handleShowActivityGuide}
           descriptionSound='/sounds/5-1-3/narration/5-1-3-Goal.MP3'
         />
       )}
+      <ActivityGuideModal isOpen={showActivityGuide} onClose={handleCloseActivityGuide} />
     </div>
   )
 }
