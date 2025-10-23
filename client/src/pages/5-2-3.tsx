@@ -15,6 +15,7 @@ import { TimeAnimation } from '@/components/5-2-3/TimeAnimation'
 import { CameraController } from '@/components/5-2-3/CameraController'
 import { Popup } from '@/components/5-2-3/Popup'
 import { LoadingTracker } from '@/components/5-2-3/LoadingTracker'
+import { PressureClouds } from '@/components/5-2-3/Cloud'
 
 import { useExperiment } from '@/hook/5-2-3/useExperiment'
 import { useAudio } from '@/hook/5-2-3/useAudio'
@@ -308,18 +309,17 @@ export default function Page() {
           enabled: true,
           type: 'PCFSoftShadowMap',
         }}>
-        <CameraLogger />
         <LoadingTracker onLoadingComplete={handleLoadingComplete} />
         <TiltOnMouse enabled={showIntro || showTimeSelectionPopup} maxDeg={10} position={[0, 0, 0]}>
           <ambientLight
             intensity={state.timeOfDay === 'day' ? 0.4 : 0.2}
-            color={state.timeOfDay === 'day' ? '#ffffff' : '#404080'}
+            color={state.timeOfDay === 'day' ? '#ffffff' : '#585867'}
           />
 
           <directionalLight
             position={state.timeOfDay === 'day' ? [15, 20, 10] : [5, 15, 8]}
             intensity={state.timeOfDay === 'day' ? 1.5 : 0.6}
-            color={state.timeOfDay === 'day' ? '#ffeaa7' : '#74b9ff'}
+            color={state.timeOfDay === 'day' ? '#fff' : '#7f7f7f'}
             castShadow
             shadow-mapSize-width={4096}
             shadow-mapSize-height={4096}
@@ -332,21 +332,6 @@ export default function Page() {
             shadow-normalBias={0.02}
             shadow-radius={10}
           />
-
-          <directionalLight
-            position={state.timeOfDay === 'day' ? [-5, 10, 5] : [-3, 8, 3]}
-            intensity={state.timeOfDay === 'day' ? 0.3 : 0.15}
-            color={state.timeOfDay === 'day' ? '#81ecec' : '#6c5ce7'}
-          />
-
-          <pointLight
-            position={[-10, 2, 0]}
-            intensity={state.timeOfDay === 'day' ? 0.8 : 0.3}
-            color={state.timeOfDay === 'day' ? '#74b9ff' : '#00cec9'}
-            distance={30}
-            decay={2}
-          />
-
           {/* 3D 모델 */}
           <Model
             scale={0.2}
@@ -359,7 +344,22 @@ export default function Page() {
             animationEnabled={state.modelAnimationEnabled}
           />
 
-          {/* 카메라 컨트롤 */}
+          {state.showPressureDisplay && (
+            <>
+              <PressureClouds
+                type={pressures.sea}
+                position={[-18, -6.0, -19]}
+                visible={true}
+                timeOfDay={state.timeOfDay}
+              />
+              <PressureClouds
+                type={pressures.land}
+                position={[2, -5.7, -19]}
+                visible={true}
+                timeOfDay={state.timeOfDay}
+              />
+            </>
+          )}
           {cameraTarget ? (
             <CameraController
               targetPosition={cameraTarget.position}
