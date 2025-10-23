@@ -51,67 +51,61 @@ export const thermalFragmentShader = `
   
   void main() {
     // 다양한 노이즈 레이어
-    float baseNoise = multiNoise(vUv, time) * 0.1; // 노이즈 감소
-    float heatNoise = noise(vUv * 20.0 + time * 1.0) * 0.07; // 노이즈 감소
-    float spatialNoise = noise(vWorldPosition.xz * 5.0 + time * 0.3) * 0.07; // 노이즈 감소
+    float baseNoise = multiNoise(vUv, time) * 0.1;
+    float heatNoise = noise(vUv * 20.0 + time * 1.0) * 0.07;
+    float spatialNoise = noise(vWorldPosition.xz * 5.0 + time * 0.3) * 0.07;
     
     // 중앙점으로부터의 거리 계산 (정규화)
-    float distanceFromCenter = length(vWorldPosition - centerPoint) / 1.2; // 거리 스케일 감소로 열 확산 줄임
+    float distanceFromCenter = length(vWorldPosition - centerPoint) / 1.2;
     
     // 기본 온도 (파란색 시작점)
-    float baseTemp = 0.22;
+    float baseTemp = 0.2;
     
     if (isHeating) {
-    // 가열 진행도 (0 ~ 1)
-    float heatProgress = min(heatingTime / 10.0, 1.0);
+      // 가열 진행도 (0 ~ 1)
+      float heatProgress = min(heatingTime / 10.0, 1.0);
+      
+      // 거리에 따른 온도 그라데이션 (매우 급격하게)
+      float distanceFactor = exp(-distanceFromCenter * 10.0);
+      
+      // 초기에는 중앙만 뜨겁고, 시간이 지나면 전체가 뜨거워짐
+      float centerHeat = distanceFactor * heatProgress * 0.8;
+      
+      // 전체적인 베이스 온도 상승 - 중반부터 급격히 증가
+      float earlyHeat = pow(heatProgress, 2.0) * 0.2;
+      float lateHeat = pow(max(heatProgress - 0.5, 0.0) * 2.0, 3.0) * 0.6;
+      float globalHeat = earlyHeat + lateHeat;
+      
+      baseTemp = 0.2 + centerHeat + globalHeat;
+      
+      // 시간에 따라 외곽 온도 제한도 점점 풀림
+      float maxTempByDistance = 0.3 + distanceFactor * 0.4 + heatProgress * 0.6;
+      baseTemp = min(baseTemp, maxTempByDistance);
+    }
     
-    // 거리에 따른 온도 그라데이션 (매우 급격하게)
-    float distanceFactor = exp(-distanceFromCenter * 10.0);
-    
-    // 초기에는 중앙만 뜨겁고, 시간이 지나면 전체가 뜨거워짐
-    float centerHeat = distanceFactor * heatProgress * 0.8;
-    
-    // 전체적인 베이스 온도 상승 - 중반부터 급격히 증가
-    // smoothstep으로 부드럽게 전환
-    float earlyHeat = pow(heatProgress, 2.0) * 0.2; // 초반: 천천히 (최대 0.3)
-    float lateHeat = pow(max(heatProgress - 0.5, 0.0) * 2.0, 3.0) * 0.6; // 중반 이후: 급격히 (최대 0.6)
-    float globalHeat = earlyHeat + lateHeat;
-    
-    baseTemp = 0.22 + centerHeat + globalHeat;
-    
-    // 시간에 따라 외곽 온도 제한도 점점 풀림
-    float maxTempByDistance = 0.3 + distanceFactor * 0.4 + heatProgress * 0.6;
-    baseTemp = min(baseTemp, maxTempByDistance);
-  }
-    
-    // 노이즈 효과들 적용 (줄임)
+    // 노이즈 효과들 적용
     baseTemp += baseNoise + heatNoise + spatialNoise;
     
-    // 온도에 따른 추가 노이즈 (줄임)
+    // 온도에 따른 추가 노이즈
     if (baseTemp > 0.4) {
-      float tempNoise = noise(vUv * 40.0 + time * 2.0) * (baseTemp - 0.4) * 0.03; // 0.03으로 감소
+      float tempNoise = noise(vUv * 40.0 + time * 2.0) * (baseTemp - 0.4) * 0.03;
       baseTemp += tempNoise;
     }
     
-    // 강화된 가장자리 냉각 효과
-    float viewAngle = abs(dot(vNormal, normalize(vPosition)));
-    float edgeCooling = 1.0 - pow(viewAngle, 2.0); // 지수 줄여서 더 넓은 범위에서 냉각
-    baseTemp -= edgeCooling * 0.12; // 냉각 효과 대폭 증가 (0.12)
-    
-    // UV 기반 가장자리 냉각 (추가)
+    // UV 기반 가장자리 냉각 (카메라 독립적)
     float uvEdgeDistance = min(min(vUv.x, 1.0 - vUv.x), min(vUv.y, 1.0 - vUv.y));
-    if (uvEdgeDistance < 0.5) { // 가장자리 30% 영역
-      float uvCoolFactor = (0.5 - uvEdgeDistance) / 0.5; // 0~1
-      baseTemp -= uvCoolFactor * 0.15; // 추가 냉각
+    if (uvEdgeDistance < 0.5) {
+      float uvCoolFactor = (0.5 - uvEdgeDistance) / 0.5;
+      baseTemp -= uvCoolFactor * 0.15;
     }
     
     baseTemp = clamp(baseTemp, 0.0, 1.0);
     
     vec3 color = thermalColor(baseTemp);
     
-    // 높은 온도에서 글로우 효과 (줄임)
+    // 높은 온도에서 글로우 효과
     if (baseTemp > 0.6) {
-      color += vec3(0.2, 0.1, 0.0) * (baseTemp - 0.6) * 1.5; // 글로우 감소
+      color += vec3(0.2, 0.1, 0.0) * (baseTemp - 0.6) * 1.5;
     }
     
     gl_FragColor = vec4(color, 1.0);

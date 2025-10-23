@@ -20,14 +20,14 @@ export function Pan({
 }: PanProps) {
   const { scene } = useGLTF('models/5-2-2/pan.glb')
   const [originalMaterials, setOriginalMaterials] = useState<Map<THREE.Mesh, THREE.Material>>(new Map())
-  const [centerPoint, setCenterPoint] = useState(new THREE.Vector3(0, 0, 0))
+  const [centerPoint, setCenterPoint] = useState(new THREE.Vector3(0, 0, -1))
   const heatingMaterialRef = useRef<THREE.ShaderMaterial>()
   const coldMaterialRef = useRef<THREE.ShaderMaterial>()
 
   useEffect(() => {
     const materials = new Map<THREE.Mesh, THREE.Material>()
     const box = new THREE.Box3()
-    let firstMesh: THREE.Mesh | null = null
+    let targetMesh: THREE.Mesh | null = null
 
     scene.traverse((child) => {
       if (child instanceof THREE.Mesh) {
@@ -41,8 +41,9 @@ export function Pan({
           materials.set(child, child.material)
         }
 
-        if (!firstMesh && child.geometry && child.name.includes('Fry_pan')) {
-          firstMesh = child
+        // Fry_pan1 mesh를 기준으로 설정
+        if (!targetMesh && child.name.includes('Fry_pan1')) {
+          targetMesh = child
           box.expandByObject(child)
         }
       }
@@ -52,9 +53,10 @@ export function Pan({
       setOriginalMaterials(materials)
     }
 
-    if (firstMesh) {
+    if (targetMesh) {
       const center = box.getCenter(new THREE.Vector3())
       setCenterPoint(center)
+      console.log('Center Point from Fry_pan1:', center) // 디버깅용
     }
   }, [scene])
 
