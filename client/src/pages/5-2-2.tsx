@@ -133,7 +133,7 @@ function StatusMessage({
 }) {
   const getMessage = () => {
     if (!foodOnPan) return '고기 또는 생선을 클릭하여 프라이팬에 올려 보세요.'
-    if (!isHeating) return '가스레인지의 손잡이를 클릭하여 불을 켜세요.'
+    if (!isHeating) return '손잡이를 클릭하여 불을 켜세요.'
     if (isHeating && !isHeatingComplete) return '가열 중입니다. 가열이 완료될 때까지 기다려 주세요.'
     return ''
   }
@@ -142,7 +142,7 @@ function StatusMessage({
   if (!message) return null
 
   return (
-    <div className='absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-40'>
+    <div className='absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-40'>
       <CrayonTextBox color={stoveTheme.start.bg} bg='#FFF' animated={true}>
         <p className='text-center font-light'>{message}</p>
       </CrayonTextBox>
@@ -495,9 +495,9 @@ export default function Page() {
           )}
 
           <CrayonTextButton
-            text='처음으로'
+            text='첫 화면으로'
             onClick={handleResetHeating}
-            width={120}
+            width={132}
             bg={stoveTheme.goal.bg}
             color='#fff'
             textcolor='#FFFFFF'
@@ -588,8 +588,8 @@ export default function Page() {
               shadow-bias={-0.0001}
               shadow-normalBias={0.1}
             />
-            <ContactShadows position={[0, -0.6, 0]} scale={7} blur={1.0} opacity={1.0} far={5} />
-            <group position={[0, 0.4, 0]}>
+            <ContactShadows position={[0, -0.3, 0]} scale={7} blur={1.0} opacity={1.0} far={5} />
+            <group position={[0, 0.7, 0]}>
               <SpeechBubble
                 position={[-0.33, -1.7, 0.45]}
                 html={'손잡이'}

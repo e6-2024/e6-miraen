@@ -80,7 +80,7 @@ export const thermalFragmentShader = `
       float p = clamp(heatProgress, 0.0, 1.0);
       
       // 가열 진행을 더 느리게 (지수 곡선 사용)
-      float slowP = pow(p, 1.7);
+      float slowP = pow(p, 1.0);
       
       // 가열 높이를 더 천천히 올라가게
       float headY = mix(bottomY, topY, min(slowP * 0.5, 1.0));
@@ -90,13 +90,13 @@ export const thermalFragmentShader = `
       float belowMask = 1.0 - smoothstep(headY - band, headY + band, vWorldPosition.y);
       
       // 아래쪽으로 갈수록 더 천천히 가열되도록 (지수 증가)
-      float verticalFalloff = pow(1.0 - h, 1.5);
+      float verticalFalloff = pow(1.0 - h, 2.0);
       
       // 중심 가열 강도를 낮춤
       float centerHeat = belowMask * verticalFalloff * 1.2 * slowP;
       
       // 전역 가열 속도를 대폭 낮춤
-      float globalHeat = pow(p, 2.0) * 0.57;
+      float globalHeat = pow(p, 2.0) * 0.37;
 
       baseTemp = 0.15 + globalHeat + centerHeat;
     }
