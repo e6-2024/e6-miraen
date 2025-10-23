@@ -71,6 +71,7 @@ export const thermalFragmentShader = `
     // 초기에는 중앙만 뜨겁고, 시간이 지나면 전체가 뜨거워짐
     float centerHeat = distanceFactor * heatProgress * 0.8;
     
+    
     // 전체적인 베이스 온도 상승 - 중반부터 급격히 증가
     // smoothstep으로 부드럽게 전환
     float earlyHeat = pow(heatProgress, 2.0) * 0.2; // 초반: 천천히 (최대 0.3)
