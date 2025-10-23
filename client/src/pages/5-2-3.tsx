@@ -404,14 +404,12 @@ export default function Page() {
             <CrayonTextButton
               ariaLabel='모드 선택 화면으로 돌아가기'
               text='첫 화면으로'
-              icon='arrow-left'
-              iconPosition='left'
-              width={170}
+              width={140}
               height={75}
               iconSize={30}
-              color='#52AE46'
-              bg='#fff'
-              textcolor='#444'
+              color={BUTTON_THEME.goal.text}
+              bg={BUTTON_THEME.goal.bg}
+              textcolor={BUTTON_THEME.goal.text}
               onClick={handleBackToTimeSelection}
               innerCircleVisible={false}
             />
