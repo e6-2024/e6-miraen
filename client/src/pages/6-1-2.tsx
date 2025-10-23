@@ -55,8 +55,7 @@ function FogController({
   const { scene } = useThree()
 
   useEffect(() => {
-    // 로딩 완료되고, 인트로가 끝나고, result가 아닐 때만 fog 활성화
-    if (isLoaded && !showIntro && !showResult) {
+    if (isLoaded && !showResult) {
       scene.fog = new THREE.FogExp2('#D9E4EB', 0.043)
     } else {
       scene.fog = null
@@ -146,8 +145,8 @@ export default function Home() {
           5000,
         )
         setShowNarrationSubtitle(true)
-      }, 500)
-    }, 300)
+      }, 100)
+    }, 100)
   }
 
   const handleToggleAnimation = () => {
