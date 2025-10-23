@@ -10,9 +10,9 @@ export const VEHICLE_SPEEDS = {
 }
 
 export const VEHICLES: Vehicle[] = [
-  { id: 'train', name: '기차', speed: VEHICLE_SPEEDS.train, meshName: 'Ch33_Body', audioPath: '/sounds/6-1-2/train.MP3' },
-  { id: 'car', name: '자동차', speed: VEHICLE_SPEEDS.car, meshName: 'Wheel001_Non_Metal_0_1', audioPath: '/sounds/6-1-2/car.MP3' },
-  { id: 'horse', name: '말', speed: VEHICLE_SPEEDS.horse, meshName: 'Horse_fur', audioPath: '/sounds/6-1-2/horse.MP3' },
+  { id: 'train', name: '기차', speed: VEHICLE_SPEEDS.train, meshName: 'Ch33_Body', audioPath: '/sounds/6-1-2/train.mp3' },
+  { id: 'car', name: '자동차', speed: VEHICLE_SPEEDS.car, meshName: 'Wheel001_Non_Metal_0_1', audioPath: '/sounds/6-1-2/car.mp3' },
+  { id: 'horse', name: '말', speed: VEHICLE_SPEEDS.horse, meshName: 'Horse_fur', audioPath: '/sounds/6-1-2/horse.mp3' },
   {
     id: 'bicycle',
     name: '자전거',
@@ -25,7 +25,7 @@ export const VEHICLES: Vehicle[] = [
     name: '달리는 사람',
     speed: VEHICLE_SPEEDS.runner,
     meshName: 'female_genericMesh2',
-    audioPath: '/sounds/6-1-2/runner.MP3',
+    audioPath: '/sounds/6-1-2/runner.mp3',
   },
 ]
 
