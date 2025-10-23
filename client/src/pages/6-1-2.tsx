@@ -19,6 +19,7 @@ import { ViewMode, VehicleId, AnimationState } from '@/types/6-1-2/types'
 import { useAudio } from '@/hook/6-1-2/useAudio'
 import { useBgm } from '@/hook/6-1-2/useBgm'
 import { useHelper } from '@react-three/drei'
+import { useThree } from '@react-three/fiber'
 
 type ButtonStyle = { bg: string; border: string; text: string }
 
@@ -40,6 +41,24 @@ function makeRng(seed = 123456789) {
     s = (1664525 * s + 1013904223) >>> 0
     return s / 0xffffffff
   }
+}
+
+function FogController({ showResult }: { showResult: boolean }) {
+  const { scene } = useThree()
+
+  useEffect(() => {
+    if (!showResult) {
+      scene.fog = new THREE.FogExp2('#D9E4EB', 0.043)
+    } else {
+      scene.fog = null
+    }
+
+    return () => {
+      scene.fog = null
+    }
+  }, [showResult, scene])
+
+  return null
 }
 
 function Lights() {
@@ -347,17 +366,20 @@ export default function Home() {
         camera={{ position: [2.078, 0.5, -24.222], fov: 50, far: 100 }}
         dpr={[1, 2]}
         shadows={{ type: THREE.PCFSoftShadowMap }}>
-        <fogExp2 attach='fog' args={['#D9E4EB', 0.043]} />
-        <Sky
-          distance={45000}
-          sunPosition={[100, 120, 80]}
-          inclination={0.001}
-          azimuth={0.25}
-          rayleigh={0.7}
-          turbidity={1.2}
-          mieCoefficient={0.04}
-          mieDirectionalG={0.99}
-        />
+        <FogController showResult={showResult} />
+
+        {!showResult && (
+          <Sky
+            distance={45000}
+            sunPosition={[100, 120, 80]}
+            inclination={0.001}
+            azimuth={0.25}
+            rayleigh={0.7}
+            turbidity={1.2}
+            mieCoefficient={0.04}
+            mieDirectionalG={0.99}
+          />
+        )}
 
         <LoadingTracker onLoadingComplete={handleLoadingComplete} />
         <TiltOnMouse enabled={showIntro} maxDeg={0.7}>
