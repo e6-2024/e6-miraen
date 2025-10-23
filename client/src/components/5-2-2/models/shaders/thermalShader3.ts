@@ -27,8 +27,8 @@ export const thermalFragmentShader = `
   
   vec3 thermalColor(float temp) {
     // 온도에 따른 색상 매핑: black -> blue -> purple -> red -> orange -> yellow -> white
-    if (temp < 0.1) return vec3(0.0, 0.0, 0.0); // Black (very cold)
-    else if (temp < 0.25) return mix(vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), (temp - 0.1) * 6.67); // Black to Deep Blue
+    if (temp < 0.2) return vec3(0.0, 0.0, 0.0); // Black (very cold)
+    else if (temp < 0.28) return mix(vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), (temp - 0.1) * 6.67); // Black to Deep Blue
     else if (temp < 0.3) return mix(vec3(0.0, 0.0, 1.0), vec3(0.0, 1.0, 0.0), (temp - 0.25) * 6.67); // Deep Blue to Green
     else if (temp < 0.45) return mix(vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), (temp - 0.4) * 6.67); // Green to Yellow
     else if (temp < 0.6) return mix(vec3(1.0, 1.0, 0.0), vec3(1.0, 0.5, 0.0), (temp - 0.55) * 6.67); // Yellow to Orange
@@ -62,26 +62,27 @@ export const thermalFragmentShader = `
     float baseTemp = 0.22;
     
     if (isHeating) {
-      // 가열 진행도 (0 ~ 1)
-      float heatProgress = min(heatingTime / 10.0, 1.0);
-      
-      // 거리에 따른 온도 그라데이션 (매우 급격하게)
-      float distanceFactor = exp(-distanceFromCenter * 5.0); // 4.0 -> 5.0
-      
-      // 초기에는 중앙만 뜨겁고, 시간이 지나면 전체가 뜨거워짐
-      // 중앙 집중 가열 (초기에 강함)
-      float centerHeat = distanceFactor * heatProgress * 0.8;
-      
-      // 전체적인 베이스 온도 상승 (시간에 따라 점점 증가)
-      // heatProgress^2를 사용해서 초반에는 천천히, 후반에 빠르게 상승
-      float globalHeat = pow(heatProgress, 1.5) * 0.7;
-      
-      baseTemp = 0.22 + centerHeat + globalHeat;
-      
-      // 시간에 따라 외곽 온도 제한도 점점 풀림
-      float maxTempByDistance = 0.3 + distanceFactor * 0.4 + heatProgress * 0.6;
-      baseTemp = min(baseTemp, maxTempByDistance);
-    }
+    // 가열 진행도 (0 ~ 1)
+    float heatProgress = min(heatingTime / 10.0, 1.0);
+    
+    // 거리에 따른 온도 그라데이션 (매우 급격하게)
+    float distanceFactor = exp(-distanceFromCenter * 10.0);
+    
+    // 초기에는 중앙만 뜨겁고, 시간이 지나면 전체가 뜨거워짐
+    float centerHeat = distanceFactor * heatProgress * 0.8;
+    
+    // 전체적인 베이스 온도 상승 - 중반부터 급격히 증가
+    // smoothstep으로 부드럽게 전환
+    float earlyHeat = pow(heatProgress, 2.0) * 0.2; // 초반: 천천히 (최대 0.3)
+    float lateHeat = pow(max(heatProgress - 0.5, 0.0) * 2.0, 3.0) * 0.6; // 중반 이후: 급격히 (최대 0.6)
+    float globalHeat = earlyHeat + lateHeat;
+    
+    baseTemp = 0.22 + centerHeat + globalHeat;
+    
+    // 시간에 따라 외곽 온도 제한도 점점 풀림
+    float maxTempByDistance = 0.3 + distanceFactor * 0.4 + heatProgress * 0.6;
+    baseTemp = min(baseTemp, maxTempByDistance);
+  }
     
     // 노이즈 효과들 적용 (줄임)
     baseTemp += baseNoise + heatNoise + spatialNoise;

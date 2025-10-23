@@ -80,7 +80,7 @@ export const thermalFragmentShader = `
       float p = clamp(heatProgress, 0.0, 1.0);
       
       // 가열 진행을 더 느리게 (지수 곡선 사용)
-      float slowP = pow(p, 1.0);
+      float slowP = pow(p, 2.0);
       
       // 가열 높이를 더 천천히 올라가게
       float headY = mix(bottomY, topY, min(slowP * 0.5, 1.0));
