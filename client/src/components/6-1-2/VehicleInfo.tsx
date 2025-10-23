@@ -63,7 +63,7 @@ export function VehicleInfo({ viewMode, selectedVehicle, animationState }: Vehic
           bg='#FFF'
           animated={true}
         >
-          <div className='min-w-[200px]'>
+          <div className='min-w-[140px]'>
             <h4 className='text-base font-bold text-gray-700 mb-3 text-center'>
               {vehicle?.name} 정보
             </h4>
@@ -71,19 +71,19 @@ export function VehicleInfo({ viewMode, selectedVehicle, animationState }: Vehic
               <div className='flex justify-between items-center'>
                 <span className='text-gray-600'>이동 시간:</span>
                 <span className='font-semibold text-gray-800'>
-                  {elapsedTime.toFixed(1)}초
+                  {elapsedTime.toFixed(1)} 초
                 </span>
               </div>
               <div className='flex justify-between items-center'>
                 <span className='text-gray-600'>이동 거리:</span>
                 <span className='font-semibold text-gray-800'>
-                  {distance.toFixed(1)}m
+                  {distance.toFixed(1)} m
                 </span>
               </div>
               <div className='flex justify-between items-center'>
                 <span className='text-gray-600'>속력:</span>
                 <span className='font-semibold text-gray-800'>
-                  {speed}m/s
+                  {speed} m/s
                 </span>
               </div>
             </div>

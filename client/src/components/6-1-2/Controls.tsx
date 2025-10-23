@@ -77,7 +77,7 @@ export function Controls({
           <div className='absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 flex gap-4'>
             {!isCompleted && (
               <CrayonTextButton
-                text={isPlaying && !isPaused ? '일시정지' : isPaused ? '재생하기' : '운동 시작하기'}
+                text={isPlaying && !isPaused ? '일시 정지' : isPaused ? '재생하기' : '운동 시작하기'}
                 onClick={onToggleAnimation}
                 width={200}
                 height={70}

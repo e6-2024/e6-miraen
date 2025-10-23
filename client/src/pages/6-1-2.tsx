@@ -20,6 +20,20 @@ import { useAudio } from '@/hook/6-1-2/useAudio'
 import { useBgm } from '@/hook/6-1-2/useBgm'
 import { useHelper } from '@react-three/drei'
 
+type ButtonStyle = { bg: string; border: string; text: string }
+
+type SpeedTheme = {
+  goal: ButtonStyle
+  guide: ButtonStyle
+  start: ButtonStyle
+}
+
+const speedTheme: SpeedTheme = {
+  goal: { bg: '#05A8A4', border: '#7BCACA', text: '#FFFFFF' },
+  guide: { bg: '#05A8A4', border: '#7BCACA', text: '#FFFFFF' },
+  start: { bg: '#9B1CDF', border: '#DFB2FA', text: '#FFFFFF' },
+}
+
 function makeRng(seed = 123456789) {
   let s = seed >>> 0
   return () => {
@@ -27,35 +41,6 @@ function makeRng(seed = 123456789) {
     return s / 0xffffffff
   }
 }
-
-const CLOUD_PRESETS = (() => {
-  const rng = makeRng(42)
-  const count = 5
-  const arr = []
-  for (let i = 0; i < count; i++) {
-    const x = -30 + (rng() * 2 - 1) * 80
-    const z = (rng() * 2 - 1) * 80
-    const y = 40 + rng() * 25
-    const scale = 1 + rng() * 2
-    const opacity = rng() * 0.5
-    const seed = Math.floor(rng() * 1e6)
-    const volume = Math.floor(scale * 10)
-    const bounds = [12 + scale * 6, 4 + scale * 2, 12 + scale * 6] as [number, number, number]
-
-    arr.push({
-      key: `cloud-${i}`,
-      position: [x, y, z] as [number, number, number],
-      scale,
-      opacity,
-      seed,
-      volume,
-      bounds,
-      color: '#fff',
-      segments: 40,
-    })
-  }
-  return arr
-})()
 
 function Lights() {
   const dirLightRef = useRef<THREE.DirectionalLight>(null!)
@@ -227,7 +212,7 @@ export default function Home() {
           setShowNarrationSubtitle(false)
           setNarrationText('')
         },
-        '기차의 속력은 28 m/s, 자동차의 속력은 20 m/s, 자전거를 타는 사람의 속력은 8 m/s, 달리는 사람의 속력은 6 m/s, 말의 속력은 17 m/s이므로 기차, 자동차, 말, 자전거를 탄 사람, 달리는 사람 순으로 빠릅니다.',
+        '기차의 속력은 28 m/s, 자동차의 속력은 초속 20 미터, 자전거를 타는 사람의 속력은 초속 8 미터, 달리는 사람의 속력은 초속 6 미터, 말의 속력은 초속 17 미터이므로 기차, 자동차, 말, 자전거를 탄 사람, 달리는 사람 순으로 빠릅니다.',
       )
       setShowNarrationSubtitle(true)
     }, 500)
@@ -291,15 +276,21 @@ export default function Home() {
     setShowResult(false)
     setViewMode('start')
     stopAllAudio()
+    stopCurrentAudio()
+
     setCameraResetTrigger(true)
     setTimeout(() => {
       setCameraResetTrigger(false)
+    }, 100)
+
+    setTimeout(() => {
+      setAnimationState((prev) => ({ ...prev, resetTrigger: false }))
     }, 100)
   }
 
   return (
     <div className='w-screen h-screen bg-[#78C9C9] relative'>
-      <NarrationSubtitle visible={showNarrationSubtitle} text={narrationText} />
+      {!showIntro && <NarrationSubtitle visible={showNarrationSubtitle} text={narrationText} />}
 
       <VehicleInfo viewMode={viewMode} selectedVehicle={selectedVehicle} animationState={animationState} />
 
@@ -309,13 +300,13 @@ export default function Home() {
         position='absolute'
         iconPosition='left'
         onClick={handleBackToIntro}
-        width={108}
-        height={108}
+        width={96}
+        height={96}
         color='#ffffff'
         textcolor='#ffffff'
-        bg='rgba(255,255,255,0.10)'
-        className='backdrop-blur z-[200] mix-blend-difference'
-        right={138}
+        bg={speedTheme.goal.bg}
+        className='z-[200]'
+        right={120}
         top={16}
         iconSize={40}
         innerCircleVisible={true}
@@ -325,12 +316,12 @@ export default function Home() {
         position='absolute'
         iconPosition='left'
         onClick={toggleBgm}
-        width={108}
-        height={108}
+        width={96}
+        height={96}
         color='#fff'
         textcolor='#fff'
-        bg='rgba(255,255,255,0.10)'
-        className='backdrop-blur z-[200] mix-blend-difference'
+        bg={speedTheme.goal.bg}
+        className='z-[200]'
         right={16}
         top={16}
         iconSize={40}
@@ -356,6 +347,18 @@ export default function Home() {
         camera={{ position: [2.078, 0.5, -24.222], fov: 50, far: 100 }}
         dpr={[1, 2]}
         shadows={{ type: THREE.PCFSoftShadowMap }}>
+        <fogExp2 attach='fog' args={['#D9E4EB', 0.043]} />
+        <Sky
+          distance={45000}
+          sunPosition={[100, 120, 80]}
+          inclination={0.001}
+          azimuth={0.25}
+          rayleigh={0.7}
+          turbidity={1.2}
+          mieCoefficient={0.04}
+          mieDirectionalG={0.99}
+        />
+
         <LoadingTracker onLoadingComplete={handleLoadingComplete} />
         <TiltOnMouse enabled={showIntro} maxDeg={0.7}>
           <Lights />
@@ -391,36 +394,6 @@ export default function Home() {
             animationState={animationState}
             resetTrigger={cameraResetTrigger}
           />
-
-          <Sky
-            distance={45000}
-            sunPosition={[100, 120, 80]}
-            inclination={0.001}
-            azimuth={0.25}
-            rayleigh={0.4}
-            turbidity={8}
-            mieCoefficient={0.05}
-            mieDirectionalG={0.99}
-          />
-
-          {!showResult && (
-            <Clouds key='clouds-fixed' material={THREE.MeshBasicMaterial} rotation={[0, Math.PI / 2 + Math.PI / 4, 0]}>
-              {CLOUD_PRESETS.map((c) => (
-                <Cloud
-                  key={c.key}
-                  seed={c.seed}
-                  segments={c.segments}
-                  bounds={c.bounds}
-                  volume={c.volume}
-                  color={c.color}
-                  opacity={c.opacity}
-                  position={c.position}
-                  scale={c.scale}
-                  fade={90}
-                />
-              ))}
-            </Clouds>
-          )}
         </TiltOnMouse>
         <Environment preset={'apartment'} environmentIntensity={0.75} environmentRotation={[0, Math.PI / 2, 0]} />
       </Scene>
@@ -432,6 +405,7 @@ export default function Home() {
           description={['같은 시간 동안 이동한 물체의 빠르기를 비교해 봅시다.']}
           backgroundSvg='/img/cover/6-1-2.svg'
           descriptionSound='/sounds/6-1-2/narration/6-1-2-Goal.MP3'
+          buttonTheme={speedTheme}
         />
       )}
     </div>

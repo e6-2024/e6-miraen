@@ -171,7 +171,7 @@
 			"componentType":5126,
 			"count":14265,
 			"max":[
-				68.01654815673828,
+				72.06104278564453,
 				257.2080078125,
 				2.5913538932800293
 			],
@@ -202,7 +202,7 @@
 			"count":12457,
 			"max":[
 				50.81398010253906,
-				303.6982421875,
+				308.00982666015625,
 				14.96728515625
 			],
 			"min":[
@@ -231,18 +231,18 @@
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":53344,
+			"byteLength":53320,
 			"byteOffset":0
 		},
 		{
 			"buffer":0,
-			"byteLength":50855,
-			"byteOffset":53344
+			"byteLength":51208,
+			"byteOffset":53320
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":104200,
+			"byteLength":104528,
 			"uri":"Result_Numbers.bin"
 		}
 	]
