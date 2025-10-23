@@ -43,11 +43,20 @@ function makeRng(seed = 123456789) {
   }
 }
 
-function FogController({ showResult }: { showResult: boolean }) {
+function FogController({
+  showResult,
+  isLoaded,
+  showIntro,
+}: {
+  showResult: boolean
+  isLoaded: boolean
+  showIntro: boolean
+}) {
   const { scene } = useThree()
 
   useEffect(() => {
-    if (!showResult) {
+    // 로딩 완료되고, 인트로가 끝나고, result가 아닐 때만 fog 활성화
+    if (isLoaded && !showIntro && !showResult) {
       scene.fog = new THREE.FogExp2('#D9E4EB', 0.043)
     } else {
       scene.fog = null
@@ -56,11 +65,10 @@ function FogController({ showResult }: { showResult: boolean }) {
     return () => {
       scene.fog = null
     }
-  }, [showResult, scene])
+  }, [showResult, isLoaded, showIntro, scene])
 
   return null
 }
-
 function Lights() {
   const dirLightRef = useRef<THREE.DirectionalLight>(null!)
 
@@ -366,7 +374,7 @@ export default function Home() {
         camera={{ position: [2.078, 0.5, -24.222], fov: 50, far: 100 }}
         dpr={[1, 2]}
         shadows={{ type: THREE.PCFSoftShadowMap }}>
-        <FogController showResult={showResult} />
+        <FogController showResult={showResult} isLoaded={isLoaded} showIntro={showIntro} />
 
         {!showResult && (
           <Sky
