@@ -23,6 +23,7 @@ export const useExperiment = () => {
   })
 
   const [cameraTarget, setCameraTarget] = useState<CameraTarget | null>(null)
+  const [pressureExtraAnimation, setPressureExtraAnimation] = useState(false)
   const animationCleanupRef = useRef<(() => void) | null>(null)
 
   const resetExperiment = useCallback(() => {
@@ -44,6 +45,8 @@ export const useExperiment = () => {
       modelAnimationEnabled: false,
     }))
 
+    setPressureExtraAnimation(false)
+
     setCameraTarget({
       position: CAMERA_CONFIGS.initial.position,
       lookAt: CAMERA_CONFIGS.initial.target,
@@ -58,6 +61,7 @@ export const useExperiment = () => {
       temperatures: getInitialTemperatures(),
       pressures: getPressures(timeOfDay),
     }))
+    setPressureExtraAnimation(false)
   }, [])
 
   const startTemperatureAnimation = useCallback(() => {
@@ -88,7 +92,7 @@ export const useExperiment = () => {
         setState((prev) => ({
           ...prev,
           isTemperatureAnimating: false,
-          currentStep: 'ready-for-pressure',
+          currentStep: 'day-selected', // 다시 버튼 선택 가능하도록
           completedSteps: new Set(prev.completedSteps).add('temperature'),
         }))
       },
@@ -99,6 +103,7 @@ export const useExperiment = () => {
 
   const startPressureAnimation = useCallback(() => {
     if (state.completedSteps.has('pressure')) return
+    
     setCameraTarget({
       position: CAMERA_CONFIGS.observation.position,
       lookAt: CAMERA_CONFIGS.observation.target,
@@ -108,32 +113,35 @@ export const useExperiment = () => {
       ...prev,
       currentStep: 'pressure-animation',
       showPressureDisplay: true,
-      completedSteps: new Set(prev.completedSteps).add('pressure'),
     }))
 
+    // 카메라 이동 시간(2초) 후 추가 애니메이션 트리거
     setTimeout(() => {
+      setPressureExtraAnimation(true)
+      
       setState((prev) => ({
         ...prev,
-        currentStep: 'ready-for-wind',
+        currentStep: 'day-selected', // 다시 버튼 선택 가능하도록
+        completedSteps: new Set(prev.completedSteps).add('pressure'),
       }))
-    }, 1500)
+    }, 2000)
   }, [state.completedSteps])
 
   const startWindAnimation = useCallback(() => {
     if (state.completedSteps.has('wind')) return
 
     if (state.timeOfDay === 'day') {
-
-    setCameraTarget({
-      position: CAMERA_CONFIGS.windObservation.position,
-      lookAt: CAMERA_CONFIGS.windObservation.target,
-    })
+      setCameraTarget({
+        position: CAMERA_CONFIGS.windObservation.position,
+        lookAt: CAMERA_CONFIGS.windObservation.target,
+      })
     } else {
       setCameraTarget({
         position: CAMERA_CONFIGS.windObservation.position2,
         lookAt: CAMERA_CONFIGS.windObservation.target2,
       })
     }
+    
     setState((prev) => ({
       ...prev,
       currentStep: 'wind-animation',
@@ -141,24 +149,18 @@ export const useExperiment = () => {
       modelAnimationEnabled: true,
       completedSteps: new Set(prev.completedSteps).add('wind'),
     }))
-  }, [state.completedSteps])
+  }, [state.completedSteps, state.timeOfDay])
 
   const getStepConfig = useCallback(
     (step: string) => {
       const isCompleted = state.completedSteps.has(step)
-      let isEnabled = false
-
-      switch (step) {
-        case 'temperature':
-          isEnabled = !isCompleted && state.currentStep === 'day-selected'
-          break
-        case 'pressure':
-          isEnabled = !isCompleted && state.currentStep === 'ready-for-pressure'
-          break
-        case 'wind':
-          isEnabled = !isCompleted && state.currentStep === 'ready-for-wind'
-          break
-      }
+      // day-selected 이후에는 완료되지 않은 모든 버튼 활성화
+      const isEnabled = !isCompleted && (
+        state.currentStep === 'day-selected' ||
+        state.currentStep === 'temperature-animation' ||
+        state.currentStep === 'pressure-animation' ||
+        state.currentStep === 'wind-animation'
+      )
 
       return {
         id: step,
@@ -170,9 +172,16 @@ export const useExperiment = () => {
     [state.currentStep, state.completedSteps],
   )
 
+  const allStepsCompleted = useCallback(() => {
+    return state.completedSteps.has('temperature') && 
+           state.completedSteps.has('pressure') && 
+           state.completedSteps.has('wind')
+  }, [state.completedSteps])
+
   return {
     state,
     cameraTarget,
+    pressureExtraAnimation,
     setCameraTarget,
     resetExperiment,
     setTimeOfDay,
@@ -180,5 +189,6 @@ export const useExperiment = () => {
     startPressureAnimation,
     startWindAnimation,
     getStepConfig,
+    allStepsCompleted,
   }
 }

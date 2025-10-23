@@ -1,4 +1,3 @@
-// client/src/components/5-2-3/StepControls.tsx
 import React from 'react'
 import { getStepButtonStyle } from '@/utils/5-2-3/utils'
 import { StepConfig } from '@/types/5-2-3/types'
@@ -18,7 +17,7 @@ export const StepControls: React.FC<StepControlsProps> = ({ steps, onStepClick, 
       {steps.map((step) => (
         <CrayonTextButton
           color='#52AE46'
-          textcolor='#000000'
+          textcolor='#333'
           bg='#fff'
           key={step.id}
           text={step.label}

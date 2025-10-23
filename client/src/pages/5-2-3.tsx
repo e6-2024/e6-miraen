@@ -107,6 +107,7 @@ export default function Page() {
   const {
     state,
     cameraTarget,
+    pressureExtraAnimation,
     setCameraTarget,
     resetExperiment,
     setTimeOfDay,
@@ -114,6 +115,7 @@ export default function Page() {
     startPressureAnimation,
     startWindAnimation,
     getStepConfig,
+    allStepsCompleted,
   } = useExperiment()
 
   const { playSound } = useAudio()
@@ -192,13 +194,11 @@ export default function Page() {
       setShowTimeSelectionPopup(false)
       setTimeOfDay(time)
 
-      // 카메라 위치 설정
       setCameraTarget({
         position: CAMERA_CONFIGS.initial.position,
         lookAt: CAMERA_CONFIGS.initial.target,
       })
 
-      // 시간대 선택 후 안내 팝업 표시
       setTimeout(() => {
         setShowPopup(true)
         setPopupContent(getPopupContent(time, 'day-selected'))
@@ -234,16 +234,17 @@ export default function Page() {
           break
         case 'wind':
           startWindAnimation()
-          // 바람 애니메이션이 시작된 후 카메라가 이동하면 팝업 표시
-          setTimeout(() => {
-            setShowPopup(true)
-            setPopupContent(getPopupContent(state.timeOfDay, 'wind-animation'))
-          }, 2500) // 카메라 이동 시간을 고려해서 조금 늦게 표시
           break
       }
     },
-    [playSound, startTemperatureAnimation, startPressureAnimation, startWindAnimation, state.timeOfDay],
+    [playSound, startTemperatureAnimation, startPressureAnimation, startWindAnimation],
   )
+
+  const handleSummaryClick = useCallback(() => {
+    playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3')
+    setShowPopup(true)
+    setPopupContent(getPopupContent(state.timeOfDay, 'wind-animation'))
+  }, [playSound, state.timeOfDay])
 
   const toggleBgm = useCallback(() => {
     setBgmEnabled((v) => !v)
@@ -264,7 +265,7 @@ export default function Page() {
       />
 
       {state.showTemperatureDisplay && (
-        <div className='absolute flex flex-row left-1/2 -translate-x-1/2 top-1/3 -translate-y-1/2 gap-[800px] z-30'>
+        <div className='absolute flex flex-row left-1/2 -translate-x-1/2 top-1/3 -translate-y-1/2 gap-[300px] z-30'>
           <Thermometer
             temperature={state.temperatures.sea}
             label='바다'
@@ -279,13 +280,15 @@ export default function Page() {
       )}
 
       {state.showPressureDisplay && (
-        <div className='absolute flex flex-row left-1/2 -translate-x-1/2 top-1/3 -translate-y-1/2 gap-[200px] z-30'>
+        <div className='absolute flex flex-row left-1/2 -translate-x-1/2 top-1/3 -translate-y-1/2 gap-[600px] z-30'>
           <PressureDisplay
             key={`sea-${pressures.sea}-${state.timeOfDay}`}
             type={pressures.sea}
             label='바다'
             color={state.timeOfDay === 'day' ? '#ef4444' : '#3b82f6'}
             delay={delayFor(pressures.sea, 0.2, 0.6)}
+            extraAnimation={pressureExtraAnimation}
+            side='left'
           />
           <PressureDisplay
             key={`land-${pressures.land}-${state.timeOfDay}`}
@@ -293,11 +296,12 @@ export default function Page() {
             label='육지'
             color={state.timeOfDay === 'day' ? '#3b82f6' : '#ef4444'}
             delay={delayFor(pressures.land, 0.2, 0.6)}
+            extraAnimation={pressureExtraAnimation}
+            side='right'
           />
         </div>
       )}
 
-      {/* 3D Scene */}
       <Scene
         camera={{ position: [0, 1, 3], fov: 50, far: 1000 }}
         shadows={{
@@ -307,7 +311,6 @@ export default function Page() {
         <CameraLogger />
         <LoadingTracker onLoadingComplete={handleLoadingComplete} />
         <TiltOnMouse enabled={showIntro || showTimeSelectionPopup} maxDeg={10} position={[0, 0, 0]}>
-          {/* 조명 설정 */}
           <ambientLight
             intensity={state.timeOfDay === 'day' ? 0.4 : 0.2}
             color={state.timeOfDay === 'day' ? '#ffffff' : '#404080'}
@@ -379,7 +382,6 @@ export default function Page() {
         </TiltOnMouse>
       </Scene>
 
-      {/* 시간 선택기 - 실험 중에만 표시 */}
       <TimeSelector
         timeOfDay={state.timeOfDay}
         onTimeSelect={handleTimeSelect}
@@ -387,6 +389,25 @@ export default function Page() {
       />
 
       <StepControls steps={stepConfigs} onStepClick={handleStepClick} visible={showExperimentUI} />
+
+      {allStepsCompleted() && showExperimentUI && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+          className='absolute bottom-4 right-4 z-30'>
+          <CrayonTextButton
+            text='정리하기'
+            onClick={handleSummaryClick}
+            color='#fff'
+            textcolor='#FFFFFF'
+            bg='#52AE46'
+            width={140}
+            height={70}
+            className='font-bold animate-pulse'
+          />
+        </motion.div>
+      )}
 
       <TimeAnimation
         isAnimating={state.isTemperatureAnimating}

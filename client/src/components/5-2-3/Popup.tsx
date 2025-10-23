@@ -66,8 +66,8 @@ export const Popup: React.FC<PopupProps> = ({ isOpen, onClose, content, onComple
     <div className='fixed inset-0 flex items-center justify-center z-50 transition-all duration-300'>
       <CrayonTextBox color='#52AE46' bg='#fff' width={600} animated={true}>
         <div className='p-6'>
-          <h3 className='text-lg font-bold text-gray-900 mb-3'>{content.title}</h3>
-          <p className='text-gray-600 text-m font-bold leading-relaxed mb-6'>{content.content}</p>
+          <h3 className='text-xl font-bold text-gray-900 mb-3'>{content.title}</h3>
+          <p className='text-gray-600 text-lg font-light leading-relaxed mb-6'>{content.content}</p>
           <div className='flex justify-center'>
             <button
               onClick={handleConfirm}

@@ -13,10 +13,10 @@ export const CAMERA_CONFIGS = {
     target: [-5, -12, -6] as [number, number, number],
   },
   windObservation: {
-    position: [-11, -9.96, 3.5] as [number, number, number],
+    position: [-15, -8, 3.5] as [number, number, number],
     target: [-6, -10, -10] as [number, number, number],
-    position2: [1.52, -9.96, 1.82] as [number, number, number],
-    target2: [-0.5, -10, -10] as [number, number, number],
+    position2: [11, -8, 10] as [number, number, number],
+    target2: [4, -10, -10] as [number, number, number],
   },
 } as const;
 
@@ -80,7 +80,7 @@ export const getStepButtonStyle = (enabled: boolean, completed: boolean): string
   if (completed) {
     return 'cursor-default opacity-90';
   } else if (enabled) {
-    return 'animate-pulse cursor-pointer';
+    return 'cursor-pointer';
   } else {
     return 'cursor-not-allowed opacity-50';
   }
