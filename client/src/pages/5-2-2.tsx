@@ -30,6 +30,8 @@ import { CrayonTextBox } from '@/components/common/CrayonTextBox'
 import { useAudio } from '@/hook/5-2-2/useAudio'
 import { ThermalTemperatureGauge } from '@/components/5-2-2/ThermalTemperatureGauge'
 import { SpeechBubble } from '@/components/5-2-2/SpeechBubble'
+import ActivityGuideModal from '@/components/5-2-2/ActivityGuideModal'
+import AudioManager from '@/components/5-2-2/AudioManager'
 
 type ButtonStyle = { bg: string; border: string; text: string }
 
@@ -221,6 +223,8 @@ export default function Page() {
   const bgmRef = useRef<HTMLAudioElement | null>(null)
   const [bgmEnabled, setBgmEnabled] = useState<boolean>(true)
   const [bgmReady, setBgmReady] = useState(false)
+  const [showActivityGuide, setShowActivityGuide] = useState(false)
+  const audioManager = AudioManager.getInstance()
 
   useEffect(() => {
     if (!mounted) return
@@ -337,6 +341,13 @@ export default function Page() {
     },
     [foodOnPan, isHeating, isHeatingComplete, playSound, playNarration, stopNarration, stopCookingSound],
   )
+
+  const handleShowActivityGuide = () => {
+    audioManager.playGeneralButton()
+    setShowActivityGuide(true)
+  }
+
+  const handleCloseActivityGuide = () => setShowActivityGuide(false)
 
   const handleFoodClick = useCallback(
     (food: 'fish' | 'meat') => {
@@ -484,7 +495,7 @@ export default function Page() {
         <div className='absolute top-4 left-4 z-40 flex flex-col gap-0'>
           {!fireOff && (
             <CrayonTextButton
-              key={isThermalMode ? 'thermal' : 'normal'} 
+              key={isThermalMode ? 'thermal' : 'normal'}
               text={isThermalMode ? '돌아가기' : '열화상 카메라로 보기'}
               onClick={toggleThermalMode}
               width={isThermalMode ? 120 : 200}
@@ -674,9 +685,11 @@ export default function Page() {
           description={['온도가 다른 두 물체가 접촉할 때 두 물체 사이에서 열의 이동을 알아봅시다.']}
           backgroundSvg='/img/cover/5-2-2.svg'
           descriptionSound='/sounds/5-2-2/5-2-2-Goal.MP3'
+          onActivityGuide={handleShowActivityGuide}
           buttonTheme={stoveTheme}
         />
       )}
+      <ActivityGuideModal isOpen={showActivityGuide} onClose={handleCloseActivityGuide} />
     </div>
   )
 }
