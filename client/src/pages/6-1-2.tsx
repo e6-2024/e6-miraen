@@ -1,5 +1,5 @@
 import { Environment, Sky, Clouds, Cloud } from '@react-three/drei'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import * as THREE from 'three'
 
 import Model from '../components/6-1-2/Model'
@@ -14,6 +14,8 @@ import { BackButton } from '@/components/6-1-2/BackButton'
 import { VehicleInfo } from '@/components/6-1-2/VehicleInfo'
 import { CrayonTextButton } from '@/components/common/CrayonUIButton'
 import { TiltOnMouse } from '@/components/common/Tilt'
+import ActivityGuideModal from '@/components/6-1-2/ActivityGuideModal'
+import AudioManager from '@/components/6-1-2/AudioManager'
 
 import { ViewMode, VehicleId, AnimationState } from '@/types/6-1-2/types'
 import { useAudio } from '@/hook/6-1-2/useAudio'
@@ -116,6 +118,15 @@ export default function Home() {
 
   const modelSceneRef = useRef<THREE.Group>(null)
   const resultSceneRef = useRef<THREE.Group>(null)
+
+  const audioManager = AudioManager.getInstance()
+
+  const [showActivityGuide, setShowActivityGuide] = useState(false)
+  const handleCloseActivityGuide = useCallback(() => setShowActivityGuide(false), [])
+  const handleShowActivityGuide = () => {
+    audioManager.playGeneralButton()
+    setShowActivityGuide(true)
+  }
 
   const getCurrentSceneRef = () => {
     return showResult ? resultSceneRef : modelSceneRef
@@ -434,9 +445,11 @@ export default function Home() {
           description={['같은 시간 동안 이동한 물체의 빠르기를 비교해 봅시다.']}
           backgroundSvg='/img/cover/6-1-2.svg'
           descriptionSound='/sounds/6-1-2/narration/6-1-2-Goal.MP3'
+          onActivityGuide={handleShowActivityGuide}
           buttonTheme={speedTheme}
         />
       )}
+      <ActivityGuideModal isOpen={showActivityGuide} onClose={handleCloseActivityGuide} />
     </div>
   )
 }
