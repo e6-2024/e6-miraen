@@ -264,7 +264,7 @@ export default function Page() {
       />
 
       <Scene
-        camera={{ position: [0, 1, 3], fov: 50, far: 1000 }}
+        camera={{ position: [0, 1, 3], fov: 55, far: 1000 }}
         shadows={{
           enabled: true,
           type: 'PCFSoftShadowMap',
@@ -326,10 +326,10 @@ export default function Page() {
 
           {state.showPressureDisplay && (
             <>
-              <PressureDisplay3D position={[-13.5, -10, -20]} type={pressures.sea} label='바다' visible={true} />
-              <PressureSphereBeautiful position={[-13.5, -10, -20]} type='high'  size={2} animated={true} />
-              <PressureDisplay3D position={[3.5, -10, -20]} type={pressures.land} label='육지' visible={true} />
-              <PressureSphereBeautiful position={[3.5, -10, -20]} type='low' size={2} animated={true} />
+              <PressureDisplay3D position={[-14, -10, -20]} type={pressures.sea} label='바다' visible={true} timeOfDay={state.timeOfDay} />
+              <PressureSphereBeautiful position={[-14, -10, -20]} type='high'  size={2} animated={true} />
+              <PressureDisplay3D position={[4, -10, -20]} type={pressures.land} label='육지' visible={true} timeOfDay={state.timeOfDay}/>
+              <PressureSphereBeautiful position={[4, -10, -20]} type='low' size={2} animated={true} />
             </>
           )}
 
