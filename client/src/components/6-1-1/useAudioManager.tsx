@@ -69,14 +69,16 @@ export const useAudioManager = () => {
 
   const playNarration = (path: string) => {
     try {
-      if (!narrationRef.current) narrationRef.current = mkAudio('', { loop: false })
-      const n = narrationRef.current
-      n.pause()
-      n.currentTime = 0
-      n.src = path
-      n.volume = 0.7
-      n.loop = false
-      n.play().catch(() => {})
+      if (narrationRef.current) {
+        const n = narrationRef.current
+        n.pause()
+        n.currentTime = 0
+        n.src = ''
+      }
+      narrationRef.current = mkAudio(path, { loop: false })
+      const newNarration = narrationRef.current
+      newNarration.volume = 0.7
+      newNarration.play().catch(() => {})
     } catch {}
   }
 

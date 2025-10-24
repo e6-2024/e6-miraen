@@ -247,7 +247,7 @@ export default function Home() {
   }
 
   const onSolutionSelect = (solution: any) => {
-    setResetTrigger((t) => t + 1) 
+    setResetTrigger((t) => t + 1)
     handleSolutionSelectBase(solution)
     setIsAudioManagerStarted(true)
   }
@@ -260,12 +260,12 @@ export default function Home() {
   const handleCloseActivityGuide = () => {
     gameActions.setShowActivityGuide(false)
   }
-
   const handleMissionClick = (
     missionId: string,
     position: [number, number, number],
     cameraPosition: [number, number, number],
   ) => {
+    audio.stopAllAudio()
     moveToTarget(position, cameraPosition, missionId as SplashType)
     if (!gameState.completedMissions[missionId as SplashType]) {
       const narrationFiles = {
@@ -280,7 +280,6 @@ export default function Home() {
       }, 1000)
     }
   }
-
   const handleEnterExperience = () => {
     audio.playSound('/sounds/Enter_Cute.mp3')
     setBgmReady(true)
@@ -342,6 +341,7 @@ export default function Home() {
         gamePhase={gameState.gamePhase}
         material={gameState.showClickMessage}
         wipingProgress={gameState.currentMission ? gameState.wipingProgress[gameState.currentMission] : 0}
+        wrongMessageShown={gameState.wrongMessageShown}
       />
 
       <SolutionSelector
@@ -349,14 +349,6 @@ export default function Home() {
         showIntro={gameState.showIntro}
         selectedSolution={gameState.selectedSolution}
         onSolutionSelect={onSolutionSelect}
-      />
-
-      <CleaningProgressUI
-        cleaningProgress={gameState.cleaningProgress}
-        completedMissions={gameState.completedMissions}
-        showIntro={gameState.showIntro}
-        isZoomed={gameState.isZoomed}
-        onReset={resetMission}
       />
 
       <Scene

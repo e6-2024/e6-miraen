@@ -36,15 +36,18 @@ interface WipingProgressUIProps {
   wipingIntensity: number
   gamePhase: GamePhase
   showIntro: boolean
+  wrongMessageShown: boolean
 }
+
 export function WipingProgressUI({
   currentMission,
   wipingProgress,
   wipingIntensity,
   gamePhase,
   showIntro,
+  wrongMessageShown,
 }: WipingProgressUIProps) {
-  if (gamePhase !== 'wiping' || showIntro || !currentMission) return null
+  if (gamePhase !== 'wiping' || showIntro || !currentMission || wrongMessageShown) return null
 
   const mission = missions[currentMission]
 
@@ -127,9 +130,9 @@ export function CleaningProgressUI({
                   height={48}
                   // @ts-ignore
                   textSize={12}
-                  bg='#F3F4F6' 
-                  color='#D1D5DB' 
-                  textcolor='#374151' 
+                  bg='#F3F4F6'
+                  color='#D1D5DB'
+                  textcolor='#374151'
                   className='w-full top-2 active:scale-95 transition-all duration-200'
                   onClick={() => onReset(mission.id)}
                   innerCircleVisible={false}
@@ -216,12 +219,14 @@ export function GameMessages({
   gamePhase,
   wipingProgress,
   material,
+  wrongMessageShown,
 }: {
   showMessage: string
   showIntro: boolean
   gamePhase: GamePhase
   wipingProgress: number
   material: string
+  wrongMessageShown: boolean
 }) {
   if (showIntro) return null
 
@@ -235,7 +240,7 @@ export function GameMessages({
         </div>
       )}
 
-      {gamePhase === 'wiping' && (
+      {gamePhase === 'wiping' && !wrongMessageShown && (
         <div className='absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none'>
           <CrayonTextBox textcolor='#333' textAlign='center' bg='#FFFFFF' color='#01A7A2' padding={20} animated={true}>
             <div className='text-lg font-bold'>
