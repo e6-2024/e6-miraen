@@ -46,7 +46,6 @@ export const useExperiment = () => {
     }))
 
     setPressureExtraAnimation(false)
-
     setCameraTarget({
       position: CAMERA_CONFIGS.initial.position,
       lookAt: CAMERA_CONFIGS.initial.target,
@@ -57,7 +56,7 @@ export const useExperiment = () => {
     setState((prev) => ({
       ...prev,
       timeOfDay,
-      currentStep: 'day-selected', // 시간 선택 완료
+      currentStep: 'day-selected',
       temperatures: getInitialTemperatures(),
       pressures: getPressures(timeOfDay),
     }))
@@ -67,7 +66,6 @@ export const useExperiment = () => {
   const startTemperatureAnimation = useCallback(() => {
     if (state.completedSteps.has('temperature')) return
 
-    // 온도 관찰 시작 시 카메라를 observation 뷰로
     setCameraTarget({
       position: CAMERA_CONFIGS.observation.position,
       lookAt: CAMERA_CONFIGS.observation.target,
@@ -92,7 +90,7 @@ export const useExperiment = () => {
         setState((prev) => ({
           ...prev,
           isTemperatureAnimating: false,
-          currentStep: 'day-selected', // 다시 버튼 선택 가능하도록
+          currentStep: 'day-selected',
           completedSteps: new Set(prev.completedSteps).add('temperature'),
         }))
       },
@@ -109,38 +107,30 @@ export const useExperiment = () => {
       lookAt: CAMERA_CONFIGS.observation.target,
     })
 
+    setPressureExtraAnimation(true)
+    
     setState((prev) => ({
       ...prev,
-      currentStep: 'pressure-animation',
+      currentStep: 'day-selected',
       showPressureDisplay: true,
+      completedSteps: new Set(prev.completedSteps).add('pressure'),
     }))
-
-    // 카메라 이동 시간(2초) 후 추가 애니메이션 트리거
-    setTimeout(() => {
-      setPressureExtraAnimation(true)
-      
-      setState((prev) => ({
-        ...prev,
-        currentStep: 'day-selected', // 다시 버튼 선택 가능하도록
-        completedSteps: new Set(prev.completedSteps).add('pressure'),
-      }))
-    }, 2000)
   }, [state.completedSteps])
 
   const startWindAnimation = useCallback(() => {
     if (state.completedSteps.has('wind')) return
 
-    if (state.timeOfDay === 'day') {
-      setCameraTarget({
-        position: CAMERA_CONFIGS.windObservation.position,
-        lookAt: CAMERA_CONFIGS.windObservation.target,
-      })
-    } else {
-      setCameraTarget({
-        position: CAMERA_CONFIGS.windObservation.position2,
-        lookAt: CAMERA_CONFIGS.windObservation.target2,
-      })
-    }
+    const cameraConfig = state.timeOfDay === 'day' 
+      ? CAMERA_CONFIGS.windObservation 
+      : { 
+          position: CAMERA_CONFIGS.windObservation.position2,
+          target: CAMERA_CONFIGS.windObservation.target2 
+        }
+
+    setCameraTarget({
+      position: cameraConfig.position,
+      lookAt: cameraConfig.target,
+    })
     
     setState((prev) => ({
       ...prev,
@@ -154,17 +144,18 @@ export const useExperiment = () => {
   const getStepConfig = useCallback(
     (step: string) => {
       const isCompleted = state.completedSteps.has(step)
-      // day-selected 이후에는 완료되지 않은 모든 버튼 활성화
-      const isEnabled = !isCompleted && (
-        state.currentStep === 'day-selected' ||
-        state.currentStep === 'temperature-animation' ||
-        state.currentStep === 'pressure-animation' ||
-        state.currentStep === 'wind-animation'
-      )
+      const isInteractable = ['day-selected', 'temperature-animation', 'pressure-animation', 'wind-animation'].includes(state.currentStep)
+      const isEnabled = !isCompleted && isInteractable
+
+      const labels = {
+        temperature: '온도',
+        pressure: '기압',
+        wind: '바람의 방향',
+      }
 
       return {
         id: step,
-        label: step === 'temperature' ? '온도' : step === 'pressure' ? '기압' : '바람의 방향',
+        label: labels[step as keyof typeof labels] || step,
         enabled: isEnabled,
         completed: isCompleted,
       }
@@ -173,9 +164,9 @@ export const useExperiment = () => {
   )
 
   const allStepsCompleted = useCallback(() => {
-    return state.completedSteps.has('temperature') && 
-           state.completedSteps.has('pressure') && 
-           state.completedSteps.has('wind')
+    return ['temperature', 'pressure', 'wind'].every(step => 
+      state.completedSteps.has(step)
+    )
   }, [state.completedSteps])
 
   return {
