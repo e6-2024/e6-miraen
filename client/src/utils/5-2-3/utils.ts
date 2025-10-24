@@ -9,7 +9,7 @@ export const CAMERA_CONFIGS = {
     target: INITIAL_CAMERA_TARGET,
   },
   observation: {
-    position: [-5, -12, -5] as [number, number, number],
+    position: [-5, -12, -3] as [number, number, number],
     target: [-5, -12, -6] as [number, number, number],
   },
   windObservation: {

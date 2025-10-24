@@ -8,14 +8,15 @@ import Intro from '@/components/intro/Intro'
 import { CrayonTextButton } from '@/components/common/CrayonUIButton'
 
 import { TimeSelector } from '@/components/5-2-3/TimeSelector'
-import { Thermometer } from '@/components/5-2-3/Thermometer'
-import { PressureDisplay } from '@/components/5-2-3/PressureDisplay'
+import { Thermometer3D } from '@/components/5-2-3/Thermometer3D'
+import { PressureDisplay3D } from '@/components/5-2-3/Pressuredisplay3D'
 import { StepControls } from '@/components/5-2-3/StepControls'
 import { TimeAnimation } from '@/components/5-2-3/TimeAnimation'
 import { CameraController } from '@/components/5-2-3/CameraController'
 import { Popup } from '@/components/5-2-3/Popup'
 import { LoadingTracker } from '@/components/5-2-3/LoadingTracker'
 import { PressureClouds } from '@/components/5-2-3/Cloud'
+import { PressureSphereBeautiful } from '@/components/5-2-3/Pressuresphere'
 
 import { useExperiment } from '@/hook/5-2-3/useExperiment'
 import { useAudio } from '@/hook/5-2-3/useAudio'
@@ -23,7 +24,6 @@ import { TimeOfDay, PopupContent } from '@/types/5-2-3/types'
 import { getPopupContent, getWindDirection, getPressures, CAMERA_CONFIGS } from '@/utils/5-2-3/utils'
 import { TiltOnMouse } from '@/components/common/Tilt'
 import { CrayonTextBox } from '@/components/common/CrayonTextBox'
-import CameraLogger from '@/hook/CameraLogger'
 
 const BUTTON_THEME = {
   goal: { bg: '#52AE46', border: '#A1CC90', text: '#FFFFFF' },
@@ -255,8 +255,6 @@ export default function Page() {
   const showExperimentUI = !showIntro && !showTimeSelectionPopup && state.currentStep !== 'initial'
   const pressures = getPressures(state.timeOfDay)
 
-  const delayFor = (type: 'high' | 'low', base = 0.2, gap = 0.6) => (type === 'high' ? base : base + gap)
-
   return (
     <div className='w-screen h-screen bg-red flex flex-col relative'>
       <div
@@ -264,44 +262,6 @@ export default function Page() {
           state.timeOfDay === 'night' ? 'bg-black opacity-60' : 'opacity-0'
         } pointer-events-none`}
       />
-
-      {state.showTemperatureDisplay && (
-        <div className='absolute flex flex-row left-1/2 -translate-x-1/2 top-1/3 -translate-y-1/2 gap-[300px] z-30'>
-          <Thermometer
-            temperature={state.temperatures.sea}
-            label='바다'
-            color={state.timeOfDay === 'day' ? '#3b82f6' : '#ef4444'}
-          />
-          <Thermometer
-            temperature={state.temperatures.land}
-            label='육지'
-            color={state.timeOfDay === 'day' ? '#ef4444' : '#3b82f6'}
-          />
-        </div>
-      )}
-
-      {state.showPressureDisplay && (
-        <div className='absolute flex flex-row left-1/2 -translate-x-1/2 top-1/3 -translate-y-1/2 gap-[600px] z-30'>
-          <PressureDisplay
-            key={`sea-${pressures.sea}-${state.timeOfDay}`}
-            type={pressures.sea}
-            label='바다'
-            color={state.timeOfDay === 'day' ? '#ef4444' : '#3b82f6'}
-            delay={delayFor(pressures.sea, 0.2, 0.6)}
-            extraAnimation={pressureExtraAnimation}
-            side='left'
-          />
-          <PressureDisplay
-            key={`land-${pressures.land}-${state.timeOfDay}`}
-            type={pressures.land}
-            label='육지'
-            color={state.timeOfDay === 'day' ? '#3b82f6' : '#ef4444'}
-            delay={delayFor(pressures.land, 0.2, 0.6)}
-            extraAnimation={pressureExtraAnimation}
-            side='right'
-          />
-        </div>
-      )}
 
       <Scene
         camera={{ position: [0, 1, 3], fov: 50, far: 1000 }}
@@ -332,6 +292,7 @@ export default function Page() {
             shadow-normalBias={0.02}
             shadow-radius={10}
           />
+
           {/* 3D 모델 */}
           <Model
             scale={0.2}
@@ -344,7 +305,35 @@ export default function Page() {
             animationEnabled={state.modelAnimationEnabled}
           />
 
+          {state.showTemperatureDisplay && (
+            <>
+              <Thermometer3D
+                position={[-9, -10.15, -20]}
+                temperature={state.temperatures.sea}
+                label='바다'
+                color={state.timeOfDay === 'day' ? '#3b82f6' : '#ef4444'}
+                visible={true}
+              />
+              <Thermometer3D
+                position={[-1, -10.15, -20]}
+                temperature={state.temperatures.land}
+                label='육지'
+                color={state.timeOfDay === 'day' ? '#ef4444' : '#3b82f6'}
+                visible={true}
+              />
+            </>
+          )}
+
           {state.showPressureDisplay && (
+            <>
+              <PressureDisplay3D position={[-13.5, -10, -20]} type={pressures.sea} label='바다' visible={true} />
+              <PressureSphereBeautiful position={[-13.5, -10, -20]} type='high'  size={2} animated={true} />
+              <PressureDisplay3D position={[3.5, -10, -20]} type={pressures.land} label='육지' visible={true} />
+              <PressureSphereBeautiful position={[3.5, -10, -20]} type='low' size={2} animated={true} />
+            </>
+          )}
+
+          {/* {state.showPressureDisplay && (
             <>
               <PressureClouds
                 type={pressures.sea}
@@ -360,6 +349,7 @@ export default function Page() {
               />
             </>
           )}
+           */}
           {cameraTarget ? (
             <CameraController
               targetPosition={cameraTarget.position}
@@ -428,9 +418,9 @@ export default function Page() {
               width={140}
               height={75}
               iconSize={30}
-              color={BUTTON_THEME.goal.text}
-              bg={BUTTON_THEME.goal.bg}
-              textcolor={BUTTON_THEME.goal.text}
+              color={'#999999'}
+              bg={BUTTON_THEME.goal.text}
+              textcolor={'#000'}
               onClick={handleBackToTimeSelection}
               innerCircleVisible={false}
             />

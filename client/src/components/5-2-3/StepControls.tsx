@@ -16,7 +16,7 @@ export const StepControls: React.FC<StepControlsProps> = ({ steps, onStepClick, 
     <div className='absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-30 font-bold'>
       {steps.map((step) => (
         <CrayonTextButton
-          color='#52AE46'
+          color='#999999'
           textcolor='#333'
           bg='#fff'
           key={step.id}
