@@ -15,8 +15,9 @@ import { TimeAnimation } from '@/components/5-2-3/TimeAnimation'
 import { CameraController } from '@/components/5-2-3/CameraController'
 import { Popup } from '@/components/5-2-3/Popup'
 import { LoadingTracker } from '@/components/5-2-3/LoadingTracker'
-import { PressureClouds } from '@/components/5-2-3/Cloud'
 import { PressureSphereBeautiful } from '@/components/5-2-3/Pressuresphere'
+import ActivityGuideModal from '@/components/5-2-3/ActivityGuideModal'
+import AudioManager from '@/components/5-2-3/AudioManager'
 
 import { useExperiment } from '@/hook/5-2-3/useExperiment'
 import { useAudio } from '@/hook/5-2-3/useAudio'
@@ -120,6 +121,8 @@ export default function Page() {
   } = useExperiment()
 
   const { playSound } = useAudio()
+  const [showActivityGuide, setShowActivityGuide] = useState(false)
+  const audioManager = AudioManager.getInstance()
 
   // BGM 관련
   const bgmRef = useRef<HTMLAudioElement | null>(null)
@@ -163,6 +166,13 @@ export default function Page() {
   const handleLoadingComplete = useCallback(() => {
     setIsLoaded(true)
   }, [])
+
+  const handleShowActivityGuide = () => {
+    audioManager.playGeneralButton()
+    setShowActivityGuide(true)
+  }
+
+  const handleCloseActivityGuide = () => setShowActivityGuide(false)
 
   const handleEnterExperience = useCallback(() => {
     playSound('/sounds/Enter_Cute.mp3')
@@ -326,9 +336,21 @@ export default function Page() {
 
           {state.showPressureDisplay && (
             <>
-              <PressureDisplay3D position={[-14, -10, -20]} type={pressures.sea} label='바다' visible={true} timeOfDay={state.timeOfDay} />
-              <PressureSphereBeautiful position={[-14, -10, -20]} type='high'  size={2} animated={true} />
-              <PressureDisplay3D position={[4, -10, -20]} type={pressures.land} label='육지' visible={true} timeOfDay={state.timeOfDay}/>
+              <PressureDisplay3D
+                position={[-14, -10, -20]}
+                type={pressures.sea}
+                label='바다'
+                visible={true}
+                timeOfDay={state.timeOfDay}
+              />
+              <PressureSphereBeautiful position={[-14, -10, -20]} type='high' size={2} animated={true} />
+              <PressureDisplay3D
+                position={[4, -10, -20]}
+                type={pressures.land}
+                label='육지'
+                visible={true}
+                timeOfDay={state.timeOfDay}
+              />
               <PressureSphereBeautiful position={[4, -10, -20]} type='low' size={2} animated={true} />
             </>
           )}
@@ -465,9 +487,11 @@ export default function Page() {
           description={['바닷가에서 바람은 어떻게 부는지 알아봅시다.']}
           backgroundSvg='/img/cover/5-2-3.svg'
           descriptionSound='/sounds/5-2-3/narration/5-2-3-Goal.MP3'
+          onActivityGuide={handleShowActivityGuide}
           buttonTheme={BUTTON_THEME}
         />
       )}
+      <ActivityGuideModal isOpen={showActivityGuide} onClose={handleCloseActivityGuide} />
 
       <TimeSelectionPopup isOpen={showTimeSelectionPopup} onTimeSelect={handleTimeSelectionFromPopup} />
 
