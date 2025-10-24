@@ -360,11 +360,7 @@ export default function Page() {
             <OrbitControls
               enabled={!showIntro && !showTimeSelectionPopup && !showPopup}
               minDistance={0}
-              maxDistance={500}
-              minPolarAngle={0}
-              maxPolarAngle={Math.PI / 2}
-              minAzimuthAngle={-Math.PI / 4}
-              maxAzimuthAngle={Math.PI / 4}
+              maxDistance={0.3}
             />
           )}
 

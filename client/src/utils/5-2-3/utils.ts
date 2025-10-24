@@ -15,7 +15,7 @@ export const CAMERA_CONFIGS = {
   windObservation: {
     position: [-15, -8, 3.5] as [number, number, number],
     target: [-6, -10, -10] as [number, number, number],
-    position2: [11, -8, 10] as [number, number, number],
+    position2: [11, -8, 6] as [number, number, number],
     target2: [4, -10, -10] as [number, number, number],
   },
 } as const;
