@@ -20,7 +20,7 @@ export const Thermometer3D: React.FC<Thermometer3DProps> = ({
 }) => {
   const animatedTempRef = useRef(temperature)
   const mercuryGroupRef = useRef<THREE.Group>(null)
-  
+
   const [displayTemp, setDisplayTemp] = useState(temperature)
   const lastUpdateRef = useRef(0)
   const isInitializedRef = useRef(false)
@@ -33,12 +33,12 @@ export const Thermometer3D: React.FC<Thermometer3DProps> = ({
     }
   }, [temperature])
 
-  if (!visible) return null
+  const maxTemp = 40
+  const minTemp = 5
 
-  const maxTemp = 40 
-  const minTemp = 5 
-  
   useFrame((state) => {
+    if (!visible) return
+
     animatedTempRef.current = THREE.MathUtils.lerp(
       animatedTempRef.current,
       temperature,
@@ -46,13 +46,6 @@ export const Thermometer3D: React.FC<Thermometer3DProps> = ({
     )
 
     const tempRatio = (animatedTempRef.current - minTemp) / (maxTemp - minTemp)
-    
-    // 🎯 변화 폭 조정 (온도 범위는 그대로!)
-    // tempRatio * 0.4: 변화 폭을 40%로 압축
-    // + 0.3: 최소 높이를 30%로 설정
-    // 예: 22도(중간) → 0.486 * 0.4 + 0.3 = 0.494 (약 50%)
-    //     40도(최대) → 1.0 * 0.4 + 0.3 = 0.7 (70%)
-    //     5도(최소)  → 0.0 * 0.4 + 0.3 = 0.3 (30%)
     const compressedRatio = tempRatio * 0.4 + 0.3
     const targetScaleY = Math.max(compressedRatio, 0.04)
 
@@ -64,15 +57,13 @@ export const Thermometer3D: React.FC<Thermometer3DProps> = ({
     const now = state.clock.elapsedTime
     if (now - lastUpdateRef.current > 0.1) {
       const roundedTemp = Math.round(animatedTempRef.current)
-      if (roundedTemp !== displayTemp) {
-        setDisplayTemp(roundedTemp)
-      }
+      if (roundedTemp !== displayTemp) setDisplayTemp(roundedTemp)
       lastUpdateRef.current = now
     }
   })
 
   return (
-    <group position={position}>
+    <group position={position} visible={visible}>
       <mesh position={[0, 1.4, -0.05]}>
         <planeGeometry args={[2.2, 4.5]} />
         <meshBasicMaterial color="#ffffff" opacity={0.95} transparent />
@@ -103,9 +94,9 @@ export const Thermometer3D: React.FC<Thermometer3DProps> = ({
       <group ref={mercuryGroupRef} position={[0, 0, 0]}>
         <mesh position={[0, 1.7, 0.02]}>
           <cylinderGeometry args={[0.16, 0.16, 2.5, 16]} />
-          <meshStandardMaterial 
-            color={color} 
-            emissive={color} 
+          <meshStandardMaterial
+            color={color}
+            emissive={color}
             emissiveIntensity={0.5}
             metalness={0.3}
             roughness={0.4}
@@ -115,9 +106,9 @@ export const Thermometer3D: React.FC<Thermometer3DProps> = ({
 
       <mesh position={[0, -0.05, 0]}>
         <sphereGeometry args={[0.32, 16, 16]} />
-        <meshStandardMaterial 
-          color={color} 
-          emissive={color} 
+        <meshStandardMaterial
+          color={color}
+          emissive={color}
           emissiveIntensity={0.5}
           metalness={0.3}
           roughness={0.4}
