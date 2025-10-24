@@ -37,11 +37,8 @@ interface GameSceneProps {
     splash03: number
     splash04: number
   }
-  isAudioManagerStarted?: boolean
-  // 마우스 위치 정보를 받기 위한 props
   mousePosition?: { x: number; y: number }
   screenSize?: { width: number; height: number }
-  // 추가: 리셋 트리거
   resetTrigger?: number
 }
 
@@ -54,56 +51,10 @@ export const GameScene: React.FC<GameSceneProps> = ({
   onSpray,
   onAnimationComplete,
   splashOpacities,
-  isAudioManagerStarted,
   mousePosition = { x: 0, y: 0 },
   screenSize = { width: window.innerWidth, height: window.innerHeight },
-  resetTrigger = 0 // 추가
+  resetTrigger = 0
 }) => {
-  const currentAudiosRef = useRef<HTMLAudioElement[]>([])
-
-  useEffect(() => {
-    if (isAudioManagerStarted) {
-      currentAudiosRef.current.forEach((audio) => {
-        audio.pause()
-      })
-    }
-  }, [isAudioManagerStarted])
-
-  const playSound = useCallback(
-    (path: string, volume = 0.5) => {
-      if (isAudioManagerStarted) {
-        return
-      }
-
-      try {
-        const audio = new Audio(path)
-        audio.volume = volume
-
-        currentAudiosRef.current.push(audio)
-
-        audio.addEventListener('ended', () => {
-          const index = currentAudiosRef.current.indexOf(audio)
-          if (index > -1) {
-            currentAudiosRef.current.splice(index, 1)
-          }
-        })
-
-        audio.play().catch(() => {})
-      } catch (error) {}
-    },
-    [isAudioManagerStarted],
-  )
-
-  useEffect(() => {
-    return () => {
-      currentAudiosRef.current.forEach((audio) => {
-        audio.pause()
-        audio.src = ''
-      })
-      currentAudiosRef.current = []
-    }
-  }, [])
-
   const activeColorHex = solutionColors[gameState.selectedSolution ?? null]
 
   return (
@@ -127,7 +78,7 @@ export const GameScene: React.FC<GameSceneProps> = ({
         onAnimationComplete={onAnimationComplete}
         mousePosition={mousePosition}
         screenSize={screenSize}
-        resetTrigger={resetTrigger} // 리셋 트리거 전달
+        resetTrigger={resetTrigger}
         sprayColorHex={
           gameState.selectedSolution === 'vinegar'
             ? '#ffa200'
@@ -170,7 +121,6 @@ export const GameScene: React.FC<GameSceneProps> = ({
             html='도마 청소하기'
             onBubbleClick={() => {
               onMissionClick('splash01', missions.splash01.position, missions.splash01.cameraPosition)
-              playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3', 0.5)
             }}
           />
 
@@ -179,7 +129,6 @@ export const GameScene: React.FC<GameSceneProps> = ({
             html='유리창 청소하기'
             onBubbleClick={() => {
               onMissionClick('splash02', missions.splash02.position, missions.splash02.cameraPosition)
-              playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3', 0.5)
             }}
           />
 
@@ -188,7 +137,6 @@ export const GameScene: React.FC<GameSceneProps> = ({
             html='변기 청소하기'
             onBubbleClick={() => {
               onMissionClick('splash03', missions.splash03.position, missions.splash03.cameraPosition)
-              playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3', 0.5)
             }}
           />
 
@@ -197,7 +145,6 @@ export const GameScene: React.FC<GameSceneProps> = ({
             html='욕실 청소하기'
             onBubbleClick={() => {
               onMissionClick('splash04', missions.splash04.position, missions.splash04.cameraPosition)
-              playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3', 0.5)
             }}
           />
         </>

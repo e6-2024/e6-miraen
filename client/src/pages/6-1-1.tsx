@@ -14,6 +14,7 @@ import { useGameHandlers } from '@/components/6-1-1/useGameHandlers'
 import { useAudioManager } from '@/components/6-1-1/useAudioManager'
 import { GameScene } from '@/components/6-1-1/GameScene'
 import { CrayonTextButton } from '@/components/common/CrayonUIButton'
+import AudioManager from '@/components/6-1-1/AudioManager'
 
 type ButtonStyle = { bg: string; border: string; text: string }
 
@@ -99,24 +100,21 @@ function BackButton({
 }
 
 export default function Home() {
-  // 상태 관리
   const [gameState, gameActions] = useGameState()
   const [isLoaded, setIsLoaded] = useState(false)
   const [perfSucks, degrade] = useState(false)
 
-  // 마우스 위치 및 화면 크기 추적
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const [screenSize, setScreenSize] = useState({
     width: typeof window !== 'undefined' ? window.innerWidth : 1920,
     height: typeof window !== 'undefined' ? window.innerHeight : 1080,
   })
 
-  // 오디오 매니저 상태
   const [isAudioManagerStarted, setIsAudioManagerStarted] = useState(false)
 
   const [resetTrigger, setResetTrigger] = useState(0)
+  const [shouldPlayIntroSound, setShouldPlayIntroSound] = useState(true)
 
-  // --- BGM 상태 ---
   const bgmRef = useRef<HTMLAudioElement | null>(null)
   const [bgmEnabled, setBgmEnabled] = useState<boolean>(true)
   const [bgmReady, setBgmReady] = useState(false)
@@ -124,7 +122,6 @@ export default function Home() {
 
   useEffect(() => setMounted(true), [])
 
-  // localStorage -> 상태 동기화 (마운트 후)
   useEffect(() => {
     try {
       const saved = localStorage.getItem('bgmEnabled')
@@ -132,7 +129,6 @@ export default function Home() {
     } catch {}
   }, [])
 
-  // BGM 인스턴스 준비
   useEffect(() => {
     const el = new Audio('/sounds/6-1-1/6-1-1-BGM.mp3')
     el.loop = true
@@ -144,7 +140,6 @@ export default function Home() {
     }
   }, [])
 
-  // 탭 가시성에 따른 일시정지/재개
   useEffect(() => {
     const handleVisibility = () => {
       const el = bgmRef.current
@@ -156,7 +151,6 @@ export default function Home() {
     return () => document.removeEventListener('visibilitychange', handleVisibility)
   }, [bgmEnabled, bgmReady])
 
-  // 상태 반영(저장/재생/일시정지)
   useEffect(() => {
     const el = bgmRef.current
     if (!el) return
@@ -181,7 +175,6 @@ export default function Home() {
     })
   }
 
-  // 커스텀 훅들
   const audio = useAudioManager()
   const { controlsRef, moveToTarget, resetCamera } = useCameraController(gameState, gameActions)
   const {
@@ -198,12 +191,10 @@ export default function Home() {
     restartCurrentMission()
   }
 
-  // 마우스 위치 및 화면 크기 추적
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
       setMousePosition({ x: event.clientX, y: event.clientY })
 
-      // wiping 단계에서의 기존 로직도 유지
       if (gameState.gamePhase === 'wiping') {
         handleWiping(event)
       }
@@ -213,7 +204,6 @@ export default function Home() {
       setScreenSize({ width: window.innerWidth, height: window.innerHeight })
     }
 
-    // 항상 마우스 움직임을 추적 (wiping 도구 애니메이션용)
     window.addEventListener('mousemove', handleMouseMove)
     window.addEventListener('resize', handleResize)
 
@@ -223,7 +213,6 @@ export default function Home() {
     }
   }, [gameState.gamePhase, gameState.currentMission, gameState.mouseVelocity, gameState.lastMousePosition])
 
-  // 계산된 값들
   const splashOpacities = {
     splash01: (100 - gameState.cleaningProgress.splash01) / 100,
     splash02: (100 - gameState.cleaningProgress.splash02) / 100,
@@ -231,19 +220,44 @@ export default function Home() {
     splash04: (100 - gameState.cleaningProgress.splash04) / 100,
   } as const
 
+  const stopAllAudioSystems = useCallback(() => {
+    const audioManager = AudioManager.getInstance()
+    audioManager.stopAll()
+    
+    setTimeout(() => {
+      audioManager.stopAll()
+    }, 50)
+    
+    setTimeout(() => {
+      audioManager.stopAll()
+    }, 150)
+    
+    setTimeout(() => {
+      audioManager.stopAll()
+    }, 300)
+  }, [])
+
   const handleGoBack = () => {
+    stopAllAudioSystems()
     resetCamera()
     setIsAudioManagerStarted(false)
-    audio.stopAllAudio()
   }
 
   const resetToIntro = () => {
+    setShouldPlayIntroSound(false)
+    
+    stopAllAudioSystems()
+    
     resetCamera()
     setIsAudioManagerStarted(false)
-    audio.stopAllAudio()
     setResetTrigger((t) => t + 1)
+    
     gameActions.setShowIntro(true)
     gameActions.setCurrentMission(null)
+    
+    setTimeout(() => {
+      setShouldPlayIntroSound(true)
+    }, 500)
   }
 
   const onSolutionSelect = (solution: any) => {
@@ -252,7 +266,6 @@ export default function Home() {
     setIsAudioManagerStarted(true)
   }
 
-  // 이벤트 핸들러들
   const handleShowActivityGuide = () => {
     gameActions.setShowActivityGuide(true)
   }
@@ -260,13 +273,16 @@ export default function Home() {
   const handleCloseActivityGuide = () => {
     gameActions.setShowActivityGuide(false)
   }
+
   const handleMissionClick = (
     missionId: string,
     position: [number, number, number],
     cameraPosition: [number, number, number],
   ) => {
     audio.stopAllAudio()
+    audio.playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3', 0.5)
     moveToTarget(position, cameraPosition, missionId as SplashType)
+    
     if (!gameState.completedMissions[missionId as SplashType]) {
       const narrationFiles = {
         splash01: '/sounds/6-1-1/narration/6-1-1-A-1.MP3',
@@ -280,6 +296,7 @@ export default function Home() {
       }, 1000)
     }
   }
+
   const handleEnterExperience = () => {
     audio.playSound('/sounds/Enter_Cute.mp3')
     setBgmReady(true)
@@ -380,7 +397,6 @@ export default function Home() {
           onSpray={handleSpray}
           onAnimationComplete={handleAnimationComplete}
           splashOpacities={splashOpacities}
-          isAudioManagerStarted={isAudioManagerStarted}
           mousePosition={mousePosition}
           screenSize={screenSize}
           resetTrigger={resetTrigger}
@@ -393,7 +409,7 @@ export default function Home() {
           title='산성 용액과 염기성 용액을 이용하는 예 알아보기'
           description={['산성 용액과 염기성 용액이 집 안에서 어떻게 이용되는지 알아봅시다.']}
           backgroundSvg='/img/cover/6-1-1.svg'
-          descriptionSound='/sounds/6-1-1/narration/6-1-1-Goal.MP3'
+          descriptionSound={shouldPlayIntroSound ? '/sounds/6-1-1/narration/6-1-1-Goal.MP3' : undefined}
           onActivityGuide={handleShowActivityGuide}
           buttonTheme={roomTheme}
         />

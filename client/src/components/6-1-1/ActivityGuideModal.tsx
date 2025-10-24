@@ -72,7 +72,7 @@ const ActivityGuideModal: React.FC<{
 
   const handleClose = () => {
     audioManager.playGeneralButton()
-    audioManager.stopCurrentAudio()
+    audioManager.stopAll()
     onClose()
   }
 
@@ -110,7 +110,6 @@ const ActivityGuideModal: React.FC<{
             padding={16}
             animated={true}
             className='w-[80vw] flex flex-col'>
-            {/* 상단 닫기 버튼 */}
             <div className='shrink-0 w-full flex justify-end z-20'>
               <CrayonTextButton
                 ariaLabel='닫기'
@@ -127,7 +126,6 @@ const ActivityGuideModal: React.FC<{
               />
             </div>
 
-            {/* 메인 영역 */}
             <div className='relative flex-1 px-2 pb-2'>
               <div className='relative flex items-center justify-center p-2'>
                 <img
@@ -174,7 +172,6 @@ const ActivityGuideModal: React.FC<{
               </div>
             </div>
 
-            {/* 하단 풋터 */}
             <div className='flex-1 pt-2'>
               <div className='flex justify-center mb-3'>
                 {slides.map((_, index) => (

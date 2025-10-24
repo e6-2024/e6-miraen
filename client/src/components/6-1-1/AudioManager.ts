@@ -1,12 +1,29 @@
-// AudioManager.ts - 전역 오디오 관리 클래스
+import { SplashType } from '../../types/6-1-1/types'
+
+type WipeAudios = Record<SplashType, HTMLAudioElement>
+
 class AudioManager {
   private static instance: AudioManager
   private currentAudio: HTMLAudioElement | null = null
   private currentAudioType: 'effect' | 'narration' | 'component' = 'effect'
   private currentComponentId: string | null = null
   private componentAudios: Map<string, HTMLAudioElement> = new Map()
+  
+  private narrationRef: HTMLAudioElement | null = null
+  private wipingMapRef: WipeAudios | null = null
+  private currentWipeKeyRef: SplashType | null = null
+  private lastWipingAtRef: number = 0
+  private unlockedRef: boolean = false
+  private effectSoundsRef: HTMLAudioElement[] = []
+  private isBrowser: boolean = false
 
-  private constructor() {}
+  private constructor() {
+    this.isBrowser = typeof window !== 'undefined'
+    if (this.isBrowser) {
+      this.initializeWipingAudios()
+      this.setupAutoUnlock()
+    }
+  }
 
   static getInstance(): AudioManager {
     if (!AudioManager.instance) {
@@ -15,7 +32,54 @@ class AudioManager {
     return AudioManager.instance
   }
 
-  // 현재 재생 중인 오디오 중지
+  private initializeWipingAudios() {
+    if (!this.isBrowser) return
+
+    const mkAudio = (src: string, opts?: { loop?: boolean }) => {
+      const a = new Audio(src)
+      a.preload = 'auto'
+      a.loop = !!opts?.loop
+      a.volume = 0
+      ;(a as any).playsInline = true
+      return a
+    }
+
+    this.wipingMapRef = {
+      splash01: mkAudio('/sounds/6-1-1/6-1-1-9-1.MP3', { loop: true }),
+      splash02: mkAudio('/sounds/6-1-1/6-1-1-4_Glass.MP3', { loop: true }),
+      splash03: mkAudio('/sounds/6-1-1/6-1-1-8_Scrubbing.MP3', { loop: true }),
+      splash04: mkAudio('/sounds/6-1-1/6-1-1-9-1.MP3', { loop: true }),
+    }
+    this.narrationRef = mkAudio('', { loop: false })
+  }
+
+  private setupAutoUnlock() {
+    if (!this.isBrowser) return
+
+    const unlock = async () => {
+      if (this.unlockedRef) return
+      this.unlockedRef = true
+      const wipes = this.wipingMapRef
+      if (!wipes) return
+      for (const key of Object.keys(wipes) as (keyof WipeAudios)[]) {
+        try {
+          const a = wipes[key]
+          a.currentTime = 0
+          a.volume = 0
+          await a.play().catch(() => {})
+        } catch {}
+      }
+      try {
+        if (this.narrationRef) {
+          this.narrationRef.src = ''
+          this.narrationRef.load()
+        }
+      } catch {}
+    }
+    const onPointer = () => unlock()
+    window.addEventListener('pointerdown', onPointer, { once: true })
+  }
+
   stopCurrentAudio() {
     if (this.currentAudio) {
       this.currentAudio.pause()
@@ -25,19 +89,30 @@ class AudioManager {
     this.currentComponentId = null
   }
 
-  // 효과음 재생 (다른 효과음과 중첩 가능하지만 나레이션/컴포넌트 사운드는 중지)
   playEffect(audioPath: string, volume: number = 0.2): Promise<void> {
+    if (!this.isBrowser) return Promise.resolve()
+
     return new Promise((resolve, reject) => {
       try {
-        // 나레이션이나 컴포넌트 사운드가 재생 중이면 중지하지 않음 (효과음은 짧으므로)
         const audio = new Audio(audioPath)
         audio.volume = volume
+        ;(audio as any).playsInline = true
+
+        this.effectSoundsRef.push(audio)
 
         audio.addEventListener('ended', () => {
+          const index = this.effectSoundsRef.indexOf(audio)
+          if (index > -1) {
+            this.effectSoundsRef.splice(index, 1)
+          }
           resolve()
         })
 
         audio.addEventListener('error', () => {
+          const index = this.effectSoundsRef.indexOf(audio)
+          if (index > -1) {
+            this.effectSoundsRef.splice(index, 1)
+          }
           reject(new Error(`Effect audio failed to load: ${audioPath}`))
         })
 
@@ -48,19 +123,27 @@ class AudioManager {
     })
   }
 
-  // 나레이션 재생 (기존 나레이션 중지 후 재생)
   playNarration(audioPath: string, volume: number = 0.7): Promise<void> {
+    if (!this.isBrowser) return Promise.resolve()
+
     return new Promise((resolve, reject) => {
       try {
-        // 기존 나레이션이 있으면 중지
         if (this.currentAudioType === 'narration') {
           this.stopCurrentAudio()
         }
 
+        if (this.narrationRef) {
+          this.narrationRef.pause()
+          this.narrationRef.currentTime = 0
+          this.narrationRef.src = ''
+        }
+
         const audio = new Audio(audioPath)
         audio.volume = volume
+        ;(audio as any).playsInline = true
         this.currentAudio = audio
         this.currentAudioType = 'narration'
+        this.narrationRef = audio
 
         audio.addEventListener('ended', () => {
           if (this.currentAudio === audio) {
@@ -83,16 +166,16 @@ class AudioManager {
     })
   }
 
-  // 컴포넌트 사운드 재생 (같은 타입의 컴포넌트 사운드만 중지)
   playComponentSound(
     audioPath: string,
     componentId: string,
     volume: number = 0.7,
     loop: boolean = false,
   ): Promise<HTMLAudioElement> {
+    if (!this.isBrowser) return Promise.reject(new Error('Not in browser'))
+
     return new Promise((resolve, reject) => {
       try {
-        // 같은 컴포넌트의 기존 사운드가 있으면 중지
         if (this.componentAudios.has(componentId)) {
           const existingAudio = this.componentAudios.get(componentId)
           if (existingAudio) {
@@ -105,8 +188,8 @@ class AudioManager {
         const audio = new Audio(audioPath)
         audio.volume = volume
         audio.loop = loop
+        ;(audio as any).playsInline = true
 
-        // 컴포넌트 오디오 맵에 저장
         this.componentAudios.set(componentId, audio)
 
         if (loop) {
@@ -142,7 +225,6 @@ class AudioManager {
     })
   }
 
-  // 특정 컴포넌트 사운드 중지
   stopComponentSound(componentId: string) {
     if (this.componentAudios.has(componentId)) {
       const audio = this.componentAudios.get(componentId)
@@ -151,7 +233,6 @@ class AudioManager {
         audio.currentTime = 0
         this.componentAudios.delete(componentId)
 
-        // 현재 오디오가 중지된 컴포넌트의 오디오라면 현재 오디오도 null로 설정
         if (this.currentAudio === audio) {
           this.currentAudio = null
           this.currentComponentId = null
@@ -160,21 +241,149 @@ class AudioManager {
     }
   }
 
-  // 일반 버튼 클릭 효과음 재생 (기본 효과음)
   playGeneralButton(audioPath: string = '/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3'): Promise<void> {
     return this.playEffect(audioPath, 0.5)
   }
 
-  // 모든 오디오 중지
+  playSound(path: string, volume = 0.7) {
+    if (!this.isBrowser) return
+
+    try {
+      const a = new Audio(path)
+      a.volume = volume
+      ;(a as any).playsInline = true
+      
+      this.effectSoundsRef.push(a)
+      
+      a.addEventListener('ended', () => {
+        const index = this.effectSoundsRef.indexOf(a)
+        if (index > -1) {
+          this.effectSoundsRef.splice(index, 1)
+        }
+      })
+      
+      a.play().catch(() => {})
+    } catch {}
+  }
+
+  private liquidMessageNarrations: Record<SplashType, string> = {
+    splash01: '/sounds/6-1-1/narration/6-1-1-J.MP3',
+    splash02: '/sounds/6-1-1/narration/6-1-1-J.MP3',
+    splash03: '/sounds/6-1-1/narration/6-1-1-J.MP3',
+    splash04: '/sounds/6-1-1/narration/6-1-1-J.MP3',
+  }
+
+  private clickMessageNarrations: Record<SplashType, string> = {
+    splash01: '/sounds/6-1-1/narration/6-1-1-A-3.MP3',
+    splash02: '/sounds/6-1-1/narration/6-1-1-C-3.MP3',
+    splash03: '/sounds/6-1-1/narration/6-1-1-E-3.MP3',
+    splash04: '/sounds/6-1-1/narration/6-1-1-G-3.MP3',
+  }
+
+  playLiquidMessageNarration(splashType: SplashType) {
+    if (this.liquidMessageNarrations[splashType]) {
+      setTimeout(() => {
+        this.playNarration(this.liquidMessageNarrations[splashType])
+      }, 800)
+    }
+  }
+
+  playClickMessageNarration(splashType: SplashType) {
+    if (this.clickMessageNarrations[splashType]) {
+      setTimeout(() => {
+        this.playNarration(this.clickMessageNarrations[splashType])
+      }, 800)
+    }
+  }
+
+  private ensureWipeTrack(key: SplashType) {
+    const wipes = this.wipingMapRef
+    if (!wipes) return null
+    const a = wipes[key]
+    if (a.paused) {
+      a.currentTime = 0
+      a.volume = 0
+      a.play().catch(() => {})
+    }
+    return a
+  }
+
+  playWipingSound(currentMission: SplashType, velocity: number) {
+    if (!this.isBrowser) return
+
+    const now = Date.now()
+    this.lastWipingAtRef = now
+
+    const a = this.ensureWipeTrack(currentMission)
+    if (!a) return
+
+    this.currentWipeKeyRef = currentMission
+
+    const targetVol = Math.min(0.75, 0.25 + velocity * 0.02)
+    const targetRate = Math.min(1.6, 0.9 + velocity * 0.03)
+
+    a.playbackRate = targetRate
+    a.volume += (targetVol - a.volume) * 0.35
+  }
+
+  fadeWipingSound() {
+    const key = this.currentWipeKeyRef
+    if (!key || !this.wipingMapRef) return
+    const a = this.wipingMapRef[key]
+    if (!a) return
+    a.volume += (0 - a.volume) * 0.2
+    if (a.volume < 0.01) a.volume = 0
+  }
+
+  stopWipingAudio() {
+    if (!this.wipingMapRef) return
+    for (const k of Object.keys(this.wipingMapRef) as (keyof WipeAudios)[]) {
+      const a = this.wipingMapRef[k]
+      a.pause()
+      a.currentTime = 0
+      a.volume = 0
+    }
+    this.currentWipeKeyRef = null
+  }
+
   stopAll() {
+    if (!this.isBrowser) return
+
     this.stopCurrentAudio()
 
-    // 모든 컴포넌트 오디오 중지
     this.componentAudios.forEach((audio) => {
       audio.pause()
       audio.currentTime = 0
+      audio.src = ''
     })
     this.componentAudios.clear()
+
+    this.effectSoundsRef.forEach((audio) => {
+      audio.pause()
+      audio.currentTime = 0
+      audio.src = ''
+    })
+    this.effectSoundsRef = []
+
+    this.stopWipingAudio()
+
+    if (this.narrationRef) {
+      this.narrationRef.pause()
+      this.narrationRef.currentTime = 0
+      this.narrationRef.src = ''
+    }
+
+    if (typeof document !== 'undefined') {
+      document.querySelectorAll('audio').forEach((el) => {
+        if (!el.paused) {
+          try {
+            el.pause()
+            el.currentTime = 0
+            el.src = ''
+          } catch {}
+        }
+      })
+    }
   }
 }
 
