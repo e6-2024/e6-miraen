@@ -153,47 +153,45 @@ export const useGameHandlers = (gameState: GameState, gameActions: GameActions) 
         ...prev,
         [gameState.currentMission!]: Math.min(100, prev[gameState.currentMission!] + increaseAmount),
       }))
-  } else { 
-    if (!gameState.wrongMessageShown) {
-      gameActions.setWrongMessageShown(true)
-      gameActions.setClickMessage('')
-
-      setTimeout(() => {
-        gameActions.setShowMessage('용액을 다시 고르세요.')
-        audio.playNarration('/sounds/6-1-1/narration/6-1-1-I.MP3')
+    } else {
+      if (!gameState.wrongMessageShown) {
+        gameActions.setWrongMessageShown(true)
 
         setTimeout(() => {
-          audio.stopWipingAudio()
+          gameActions.setShowMessage('용액을 다시 고르세요.')
+          audio.playNarration('/sounds/6-1-1/narration/6-1-1-I.MP3')
 
-          gameActions.setGamePhase('solution_choice')
-          gameActions.setSelectedSolution(null)
-          gameActions.setSprayCount(0)
-          gameActions.setShowMessage(missions[gameState.currentMission!].selectMessage)
-          gameActions.setClickMessage('') // 여기도 명시적으로 추가
-          gameActions.setWrongMessageShown(false)
-          gameActions.setWipingProgress((prev) => ({ ...prev, [gameState.currentMission!]: 0 }))
-
-          gameActions.setSprayEffects((prev) => ({
-            ...prev,
-            [gameState.currentMission!]: false,
-          }))
-
-          // 오답 후 다시 선택 단계로 돌아갈 때도 동일한 내레이션 재생
-          const narrationFiles = {
-            splash01: '/sounds/6-1-1/narration/6-1-1-A-1.MP3',
-            splash02: '/sounds/6-1-1/narration/6-1-1-C-1.MP3',
-            splash03: '/sounds/6-1-1/narration/6-1-1-E-1.MP3',
-            splash04: '/sounds/6-1-1/narration/6-1-1-G-1.MP3',
-          }
-          
           setTimeout(() => {
-            audio.playNarration(narrationFiles[gameState.currentMission!])
-          }, 500)
-        }, 3000)
-      }, 2000)
+            audio.stopWipingAudio()
+
+            gameActions.setGamePhase('solution_choice')
+            gameActions.setSelectedSolution(null)
+            gameActions.setSprayCount(0)
+            gameActions.setShowMessage(missions[gameState.currentMission!].selectMessage)
+            gameActions.setWrongMessageShown(false)
+            gameActions.setWipingProgress((prev) => ({ ...prev, [gameState.currentMission!]: 0 }))
+
+            gameActions.setSprayEffects((prev) => ({
+              ...prev,
+              [gameState.currentMission!]: false,
+            }))
+
+            // 오답 후 다시 선택 단계로 돌아갈 때도 동일한 내레이션 재생
+            const narrationFiles = {
+              splash01: '/sounds/6-1-1/narration/6-1-1-A-1.MP3',
+              splash02: '/sounds/6-1-1/narration/6-1-1-C-1.MP3',
+              splash03: '/sounds/6-1-1/narration/6-1-1-E-1.MP3',
+              splash04: '/sounds/6-1-1/narration/6-1-1-G-1.MP3',
+            }
+            
+            setTimeout(() => {
+              audio.playNarration(narrationFiles[gameState.currentMission!])
+            }, 500)
+          }, 3000)
+        }, 2000)
+      }
     }
   }
-}
 
   const restartCurrentMission = () => {
     if (!gameState.currentMission || gameState.isAnimating) return

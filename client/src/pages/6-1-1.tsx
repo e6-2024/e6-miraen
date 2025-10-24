@@ -1,5 +1,5 @@
 import { Canvas } from '@react-three/fiber'
-import { CleaningProgressUI, GameMessages, SolutionSelector } from '@/components/6-1-1/UI'
+import { GameMessages, SolutionSelector } from '@/components/6-1-1/UI'
 import Scene from '@/components/canvas/Scene'
 import Intro from '@/components/intro/Intro'
 import { useState, useEffect, useRef, useCallback } from 'react'
@@ -341,7 +341,8 @@ export default function Home() {
         gamePhase={gameState.gamePhase}
         material={gameState.showClickMessage}
         wipingProgress={gameState.currentMission ? gameState.wipingProgress[gameState.currentMission] : 0}
-        wrongMessageShown={gameState.wrongMessageShown}
+        selectedSolution={gameState.selectedSolution}
+        currentMission={gameState.currentMission}
       />
 
       <SolutionSelector
