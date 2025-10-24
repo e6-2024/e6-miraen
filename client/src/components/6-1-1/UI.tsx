@@ -3,6 +3,84 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { CrayonTextBox } from '../common/CrayonTextBox'
 import { CrayonTextButton } from '../common/CrayonUIButton'
 
+interface CleaningProgressUIProps {
+  cleaningProgress: Record<SplashType, number>
+  showIntro: boolean
+  isZoomed: boolean
+}
+
+export function CleaningProgressUI({
+  cleaningProgress,
+  completedMissions,
+  showIntro,
+  isZoomed,
+  onReset,
+}: {
+  cleaningProgress: Record<SplashType, number>
+  completedMissions: Record<SplashType, boolean>
+  showIntro: boolean
+  isZoomed: boolean
+  onReset: (missionId: SplashType) => void
+}) {
+  if (showIntro || isZoomed) return null
+
+  const missionList = [
+    { id: 'splash01' as const, name: '도마', color: '#2985ee' },
+    { id: 'splash02' as const, name: '유리창', color: '#25e5c2' },
+    { id: 'splash03' as const, name: '변기', color: '#129d3a' },
+    { id: 'splash04' as const, name: '욕실', color: '#ff6b6b' },
+  ]
+
+  return (
+    <CrayonTextBox color='#01A7A2' bg='#FFF' className='w-[300px] z-[200] bottom-4 left-4' position='absolute'>
+      <h3 className='text-lg font-bold mb-3 text-gray-800'>청소 진행도</h3>
+      <div className='space-y-3 font-light'>
+        {missionList.map((mission) => {
+          const progress = cleaningProgress[mission.id]
+          const isCompleted = completedMissions[mission.id]
+
+          return (
+            <div key={mission.id}>
+              <div className='flex justify-between items-center'>
+                <span className='text-sm text-gray-700'>{mission.name}</span>
+                <span className='text-xs text-gray-500'>{isCompleted ? '완료' : `${Math.round(progress)} %`}</span>
+              </div>
+
+              {/* 프로그레스 바 */}
+              <div className='w-full bg-gray-200 rounded-full h-2 overflow-hidden'>
+                <div
+                  className='h-2 rounded-full transition-all duration-300'
+                  style={{
+                    width: `${progress}%`,
+                    backgroundColor: mission.color,
+                  }}
+                />
+              </div>
+
+              {isCompleted && (
+                <CrayonTextButton
+                  ariaLabel='다시 하기'
+                  text='다시 하기'
+                  width={120}
+                  height={48}
+                  // @ts-ignore
+                  textSize={12}
+                  bg='#F3F4F6'
+                  color='#D1D5DB'
+                  textcolor='#374151'
+                  className='w-full top-2 active:scale-95 transition-all duration-200'
+                  onClick={() => onReset(mission.id)}
+                  innerCircleVisible={false}
+                />
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </CrayonTextBox>
+  )
+}
+
 interface SolutionSelectorProps {
   gamePhase: GamePhase
   showIntro: boolean

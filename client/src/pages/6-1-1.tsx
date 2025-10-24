@@ -1,5 +1,5 @@
 import { Canvas } from '@react-three/fiber'
-import { GameMessages, SolutionSelector } from '@/components/6-1-1/UI'
+import { CleaningProgressUI, GameMessages, SolutionSelector } from '@/components/6-1-1/UI'
 import Scene from '@/components/canvas/Scene'
 import Intro from '@/components/intro/Intro'
 import { useState, useEffect, useRef, useCallback } from 'react'
@@ -350,6 +350,14 @@ export default function Home() {
         showIntro={gameState.showIntro}
         selectedSolution={gameState.selectedSolution}
         onSolutionSelect={onSolutionSelect}
+      />
+
+      <CleaningProgressUI
+        cleaningProgress={gameState.cleaningProgress}
+        completedMissions={gameState.completedMissions}
+        showIntro={gameState.showIntro}
+        isZoomed={gameState.isZoomed}
+        onReset={resetMission}
       />
 
       <Scene
