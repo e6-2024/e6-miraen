@@ -106,6 +106,8 @@ const NavigationUI = forwardRef<
 
   const handlePlayClick = () => {
     setIsPlayButtonPressed(true)
+
+    // 버튼 애니메이션을 위한 짧은 지연
     setTimeout(() => {
       playStepAudio()
       onPlayClick()
@@ -114,7 +116,7 @@ const NavigationUI = forwardRef<
 
   return (
     <>
-      <div className='absolute flex justify-center left-1/2 -translate-x-1/2 items-center top-8  z-[200]'>
+      <div className='absolute flex justify-center left-1/2 -translate-x-1/2 items-center top-4  z-[200]'>
         <CrayonTextBox
           color='#52AE46'
           bg='white'
@@ -200,8 +202,8 @@ const NavigationUI = forwardRef<
         icon={isPlayButtonPressed ? 'replay' : 'play'}
         iconPosition='left'
         iconSize={30}
-        left={32}
-        top={32}
+        left={16}
+        top={16}
         bg='#52AE46'
         color='#A1CC90'
         textcolor='#FFFFFF'

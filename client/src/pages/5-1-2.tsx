@@ -409,6 +409,7 @@ export default function Page() {
       setActiveMode(selectedMode)
       setShowIntro(false)
       setBgmReady(true)
+
       if (selectedMode === 'refraction') {
         setLensType('convex')
       }

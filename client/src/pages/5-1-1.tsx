@@ -402,6 +402,7 @@ export default function Home() {
     })
   }, [])
 
+  // 상태 반영(저장/재생/일시정지)
   useEffect(() => {
     const el = bgmRef.current
     if (!el) return
@@ -423,7 +424,7 @@ export default function Home() {
   const toggleBgm = () => {
     setBgmEnabled((v) => {
       const next = !v
-      if (next) setBgmReady(true)
+      if (next) setBgmReady(true) // 토글로 켜도 바로 준비
       return next
     })
   }
@@ -513,8 +514,8 @@ export default function Home() {
             textcolor='#fff'
             bg={DinosaurTheme.goal.bg}
             className='z-[30]'
-            right={136}
-            top={32}
+            right={120}
+            top={16}
             iconSize={40}
             innerCircleVisible={true}
           />
@@ -530,8 +531,8 @@ export default function Home() {
             textcolor='#fff'
             bg={DinosaurTheme.goal.bg}
             className='z-[30]'
-            right={32}
-            top={32}
+            right={16}
+            top={16}
             iconSize={40}
             innerCircleVisible={true}
           />
@@ -577,7 +578,8 @@ export default function Home() {
             bg='#FFFFFF'
             color='#52AE46'
             textcolor='#333'
-            padding={14}
+            padding={40}
+            paddingY={12}
             text={sceneDescriptions[sceneIndex]}
             animated
           />
