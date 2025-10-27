@@ -334,11 +334,11 @@ export default function Intro<T = string>({
             className='w-[min(92vw,640px)] mx-4 shadow-2xl rounded-2xl'>
             {/* 제목 */}
             <div className='flex flex-row justify-center items-center gap-3 mb-6'>
-              <h3 className='text-2xl font-bold text-gray-800'>활동 목표</h3>
+              <h3 className='text-4xl font-bold text-gray-800'>활동 목표</h3>
             </div>
 
             {/* 내용 */}
-            <div className='text-gray-700 text-lg font-light leading-relaxed mb-8 text-center break-keep'>
+            <div className='text-gray-700 text-[20pt] font-light leading-relaxed mb-8 text-center break-keep'>
               {Array.isArray(description) ? (
                 description.map((line, index) => <p key={index}>{line}</p>)
               ) : (
@@ -351,8 +351,6 @@ export default function Intro<T = string>({
               <CrayonTextButton
                 ariaLabel='확인'
                 text='확인'
-                width={160}
-                height={56}
                 bg={buttonTheme.goal.bg}
                 color={buttonTheme.goal.border}
                 textcolor={buttonTheme.goal.text}

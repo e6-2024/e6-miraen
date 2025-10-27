@@ -195,8 +195,6 @@ const ActivityGuideModal: React.FC<{
                   text={isLastSlide ? '확인' : '다음'}
                   icon={isLastSlide ? 'check' : 'chevron-right'}
                   iconPosition='right'
-                  width={160}
-                  height={60}
                   iconSize={30}
                   color='#A1CC90'
                   bg='#52AE46'
