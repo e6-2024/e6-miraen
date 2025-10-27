@@ -108,6 +108,7 @@ const ActivityGuideModal: React.FC<{
             color='#52AE46'
             textcolor='#A1CC90'
             padding={16}
+            paddingY={16}
             animated={true}
             className='w-[80vw] flex flex-col'>
             <div className='shrink-0 w-full flex justify-end z-20'>

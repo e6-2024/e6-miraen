@@ -277,60 +277,58 @@ export default function Page() {
       {/* 메인 3D 씬 */}
       <div className='flex-1'>
         <Scene shadows camera={{ position: CAMERA_CONFIG.position, fov: 50 }}>
-          <group position={[0, -1, 0]}>
-            <IntroMouseCameraController enabled={showIntro} />
-            <Environment
-              files='/img/cover/hdri.JPG'
-              background={true}
-              ground={{ height: 5, radius: 20, scale: 90 }}
-              backgroundBlurriness={0.8}
-              backgroundIntensity={0.7}
-              environmentIntensity={0.8}
-              backgroundRotation={[0, observation.sunPosition.azimuthRad, 0]}
+          <IntroMouseCameraController enabled={showIntro} />
+          <Environment
+            files='/img/cover/hdri.JPG'
+            background={true}
+            ground={{ height: 5, radius: 20, scale: 90 }}
+            backgroundBlurriness={0.8}
+            backgroundIntensity={0.7}
+            environmentIntensity={0.8}
+            backgroundRotation={[0, observation.sunPosition.azimuthRad, 0]}
+          />
+
+          {/* 조명 */}
+          <ambientLight intensity={0.6} />
+          <SunLight sunPosition={observation.sunPosition} />
+
+          {/* 3D 모델들 */}
+          {!showIntro && <CompassBillboard />}
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+            <planeGeometry args={[100, 100]} />
+            <shadowMaterial transparent opacity={0.5} />
+          </mesh>
+
+          {/* 막대 */}
+          <mesh position={[0, 1.25, 0]} castShadow receiveShadow>
+            <cylinderGeometry args={[0.1, 0.1, 2.5, 32]} />
+            <meshStandardMaterial color='black' envMapIntensity={0} />
+          </mesh>
+
+          {/* 관측선 */}
+          {observation.showObservationLines && !showTimeIntervalImages && (
+            <AngleLines
+              azimuth={observation.currentData.azimuth}
+              altitude={observation.currentData.altitude}
+              shadowLength={observation.currentData.shadowLength}
+              sunPosition={observation.sunPosition}
             />
+          )}
 
-            {/* 조명 */}
-            <ambientLight intensity={0.6} />
-            <SunLight sunPosition={observation.sunPosition} />
+          {/* 온도계 - 항상 표시 */}
+          {!showTimeIntervalImages && !showSummaryPopup && !showIntro && (
+            <ThermometerDisplay temperature={observation.currentData.temperature} position={[0.6, 3.5, 0]} />
+          )}
 
-            {/* 3D 모델들 */}
-            {!showIntro && <CompassBillboard />}
-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-              <planeGeometry args={[100, 100]} />
-              <shadowMaterial transparent opacity={0.5} />
-            </mesh>
-
-            {/* 막대 */}
-            <mesh position={[0, 1.25, 0]} castShadow receiveShadow>
-              <cylinderGeometry args={[0.1, 0.1, 2.5, 32]} />
-              <meshStandardMaterial color='black' envMapIntensity={0} />
-            </mesh>
-
-            {/* 관측선 */}
-            {observation.showObservationLines && !showTimeIntervalImages && (
-              <AngleLines
-                azimuth={observation.currentData.azimuth}
-                altitude={observation.currentData.altitude}
-                shadowLength={observation.currentData.shadowLength}
-                sunPosition={observation.sunPosition}
-              />
-            )}
-
-            {/* 온도계 - 항상 표시 */}
-            {!showTimeIntervalImages && !showSummaryPopup && !showIntro && (
-              <ThermometerDisplay temperature={observation.currentData.temperature} position={[0.6, 3.5, 0]} />
-            )}
-
-            <OrbitControls
-              enabled={!showIntro && !showTimeIntervalImages}
-              minDistance={CAMERA_CONFIG.minDistance}
-              maxDistance={CAMERA_CONFIG.maxDistance}
-              minPolarAngle={CAMERA_CONFIG.minPolarAngle}
-              maxPolarAngle={CAMERA_CONFIG.maxPolarAngle}
-              enableDamping={true}
-              dampingFactor={0.05}
-            />
-          </group>
+          <OrbitControls
+            enabled={!showIntro && !showTimeIntervalImages}
+            minDistance={CAMERA_CONFIG.minDistance}
+            maxDistance={CAMERA_CONFIG.maxDistance}
+            minPolarAngle={CAMERA_CONFIG.minPolarAngle}
+            maxPolarAngle={CAMERA_CONFIG.maxPolarAngle}
+            enableDamping={true}
+            dampingFactor={0.05}
+          />
         </Scene>
       </div>
 
@@ -367,6 +365,7 @@ export default function Page() {
           <div className='fixed top-4 right-4 z-[1001]'>
             <CrayonTextButton
               text='돌아가기'
+              width={120}
               bg={lightTheme.goal.bg}
               color='#FFFFFF'
               textcolor='#FFFFFF'
