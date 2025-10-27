@@ -1376,6 +1376,9 @@
 			]
 		},
 		{
+			"extras":{
+				"currentUVSet":"UVMap"
+			},
 			"mesh":44,
 			"name":"Int_Apt_01_Wall_01__14_1.007",
 			"rotation":[
