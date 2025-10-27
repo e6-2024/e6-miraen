@@ -33,13 +33,8 @@ export default function Model({
   const isPlayingRef = useRef(false)
   const isInitializedRef = useRef(false)
   const prevAnimationKeyRef = useRef(animationKey)
-
-  console.log(`Model Scene ${sceneIndex}: Loaded with ${animations?.length || 0} animations`)
-
   const startFadeAndMoveAnimation = useCallback(() => {
     if (!scene || !scene.children[3]) return
-
-    console.log(`Model Scene ${sceneIndex}: Starting fadeAndMove`)
     isPlayingRef.current = true
 
     const targetObject = scene.children[3]
@@ -73,7 +68,6 @@ export default function Model({
         requestAnimationFrame(animate)
       } else {
         isPlayingRef.current = false
-        console.log(`Model Scene ${sceneIndex}: fadeAndMove completed`)
         onAnimationComplete?.()
       }
     }
@@ -83,8 +77,6 @@ export default function Model({
 
   const startGLTFAnimation = useCallback(() => {
     if (!mixer.current || !actionsRef.current.length) return
-
-    console.log(`Model Scene ${sceneIndex}: Starting GLTF animations`)
     isPlayingRef.current = true
     
     actionsRef.current.forEach((action) => {
@@ -95,9 +87,7 @@ export default function Model({
     })
   }, [animationSpeed])
 
-  useEffect(() => {
-    console.log(`Model Scene ${sceneIndex}: Scene changed - full reset`)
-    
+  useEffect(() => {    
     isPlayingRef.current = false
     isInitializedRef.current = false
     
@@ -142,8 +132,6 @@ export default function Model({
 
     if (isInitializedRef.current) return
 
-    console.log(`Model Scene ${sceneIndex}: Setting up GLTF animations`)
-
     mixer.current = new THREE.AnimationMixer(groupRef.current)
     
     const actions = animations.map((animation: THREE.AnimationClip) => {
@@ -157,32 +145,12 @@ export default function Model({
     
     actionsRef.current = actions
     isInitializedRef.current = true
-    
-    console.log(`Model Scene ${sceneIndex}: GLTF setup complete`)
-  }, [scene, animations, sceneIndex])
+      }, [scene, animations, sceneIndex])
 
   useEffect(() => {
     const keyChanged = prevAnimationKeyRef.current !== animationKey
-    
-    console.log(`Model Scene ${sceneIndex}: Animation trigger - shouldAnimate=${shouldAnimate}, keyChanged=${keyChanged}, animationKey=${animationKey}, prevKey=${prevAnimationKeyRef.current}`)
-    
-    if (!shouldAnimate && !keyChanged) {
-      console.log(`Model Scene ${sceneIndex}: shouldAnimate is false and no key change, stopping`)
-      return
-    }
-
-    if (keyChanged) {
-      prevAnimationKeyRef.current = animationKey
-      console.log(`Model Scene ${sceneIndex}: Animation key changed, updating reference`)
-    }
-
-    if (!shouldAnimate) {
-      console.log(`Model Scene ${sceneIndex}: shouldAnimate is false but key changed, not starting`)
-      return
-    }
 
     if (isPlayingRef.current) {
-      console.log(`Model Scene ${sceneIndex}: Stopping current animation`)
       isPlayingRef.current = false
       
       if (actionsRef.current.length > 0) {
@@ -193,9 +161,6 @@ export default function Model({
         })
       }
     }
-
-    console.log(`Model Scene ${sceneIndex}: Starting new animation`)
-
     if (customAnimation === 'fadeAndMove') {
       startFadeAndMoveAnimation()
     } else if (isInitializedRef.current) {
@@ -225,7 +190,6 @@ export default function Model({
       
       if (allFinished) {
         isPlayingRef.current = false
-        console.log(`Model Scene ${sceneIndex}: All GLTF animations completed`)
         onAnimationComplete?.()
       }
     }

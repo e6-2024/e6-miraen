@@ -26,7 +26,7 @@ export const CrayonTextBox: React.FC<CrayonTextBoxProps> = ({
   height,
   className = '',
   textAlign = 'center',
-  fontSize = '20px',
+  fontSize = '20pt',
   fontWeight = 'light',
   padding = 16,
   animated = false,

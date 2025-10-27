@@ -172,7 +172,7 @@ const NavigationUI = forwardRef<
                     </div>
 
                     {/* 설명 */}
-                    <div className='text-center font-light text-[16px] whitespace-nowrap'>
+                    <div className='text-center font-light text-xl whitespace-nowrap'>
                       <p>{description[stepIdx]}</p>
                     </div>
                   </div>
@@ -201,8 +201,6 @@ const NavigationUI = forwardRef<
         position='absolute'
         icon={isPlayButtonPressed ? 'replay' : 'play'}
         iconPosition='left'
-        width={170}
-        height={75}
         iconSize={30}
         left={16}
         top={16}

@@ -57,8 +57,8 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
   textcolor = '#000000',
   bg = '#dbeafe',
   onClick,
-  width = 180,
-  height = 60,
+  width = 195,
+  height = 75,
   className = '',
   top,
   left,
@@ -71,7 +71,7 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
   iconSize = 50,
   ariaLabel,
   innerCircleVisible,
-  textSize = 18,
+  textSize = '20pt',
 }) => {
   const uniqueId = useId()
 
