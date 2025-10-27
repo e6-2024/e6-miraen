@@ -49,6 +49,8 @@ function ObservationTable({ currentData }) {
           color='#01A7A2'
           textcolor='#333'
           animated={true}
+          padding={12}
+          paddingY={12}
           className='min-w-[280px] max-w-sm z-[10]'>
           {isDisabled && (
             <div className='absolute -top-2 -right-2 w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center'>
@@ -56,8 +58,8 @@ function ObservationTable({ currentData }) {
             </div>
           )}
 
-          <h3 className='font-bold mb-4 text-lg text-gray-800 text-center py-2 px-4 rounded-lg'>관측 자료</h3>
-          <table className='text-base w-full border-collapse min-w-[280px]'>
+          <h3 className='font-bold mb-4 text-2xl text-gray-800 text-center py-2 px-4 rounded-lg'>관측 자료</h3>
+          <table className='text-xl w-full border-collapse min-w-[280px]'>
             <thead>
               <tr>
                 <th className='text-center border-2 border-gray-600 py-3 px-4 bg-sky-100 font-light'>시각</th>

@@ -21,7 +21,6 @@ interface TimeIntervalImagesProps {
   onTimeSelect: (data: any) => void
 }
 
-// 이미지 파일명과 시간 매핑
 const timeImageMap = {
   '09:30': '930.jpg',
   '10:30': '1030.jpg',
@@ -84,7 +83,7 @@ function TimeIntervalImages({ currentData, isVisible, timeData, onTimeSelect }: 
         className='w-screen w-auto max-w-none'
       />
 
-      <div className='absolute left-4 top-4 mt-0 gap-2 flex flex-col'>
+      <div className='absolute left-4 top-4 mt-0 gap-0 flex flex-col'>
         {availableTimes.map((time, index) => (
           <CrayonTextButton
             key={time}
@@ -97,7 +96,8 @@ function TimeIntervalImages({ currentData, isVisible, timeData, onTimeSelect }: 
             textcolor={index === currentImageIndex ? '#FFFFFF' : '#333333'}
             text={time}
             width={120}
-            height={50}
+            height={60}
+            textSize={24}
             ></CrayonTextButton>
         ))}
       </div>

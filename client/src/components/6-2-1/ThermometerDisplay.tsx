@@ -28,7 +28,7 @@ function ThermometerDisplay({
     <Billboard>
       <Html position={position} center distanceFactor={3.5} transform>
         <div className="relative">
-          <CrayonTextBox bg="#fff" color="#01A7A2" textcolor="#333" animated={true}>
+          <CrayonTextBox bg="#fff" color="#01A7A2" textcolor="#333" padding={12} paddingY={12}>
             <div
               className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-all duration-200 ${
                 isHovered ? 'scale-[1.03]' : ''
@@ -64,14 +64,14 @@ function ThermometerDisplay({
               <div className="flex flex-col items-start">
                 <div className="flex items-baseline gap-1">
                   <span
-                    className={`text-3xl font-light tabular-nums transition-colors duration-200`}
+                    className={`text-4xl font-light tabular-nums transition-colors duration-200`}
                   >
                     {temperature}
                   </span>
-                  <span className="text-lg text-gray-500 font-light">°C</span>
+                  <span className="text-xl text-gray-500 font-light">°C</span>
                 </div>
                 <div
-                  className={`text-xs font-light tracking-wide uppercase transition-colors duration-200`}
+                  className={`text-lg font-light tracking-wide uppercase transition-colors duration-200`}
                 >
                   온도계
                 </div>
