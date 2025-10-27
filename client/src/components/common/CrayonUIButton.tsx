@@ -57,7 +57,7 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
   textcolor = '#000000',
   bg = '#dbeafe',
   onClick,
-  width = 195,
+  width = 210,
   height = 75,
   className = '',
   top,

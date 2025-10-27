@@ -479,8 +479,6 @@ export default function Page() {
               text='첫 화면으로'
               icon='arrow-left'
               iconPosition='left'
-              width={170}
-              height={75}
               iconSize={30}
               bg='#D54D50'
               color='#E8AAAB'
@@ -504,8 +502,9 @@ export default function Page() {
               bg='#FFFFFF'
               color='#D54D50'
               textcolor='#333'
-              padding={14}
+              padding={16}
               animated={true}
+              paddingY={16}
               className='rounded-3xl shadow-2xl border border-gray-100'>
               <div className='flex justify-center gap-3 mb-3'>
                 {(['pose', 'walk'] as AnimationState[]).map((state) => {
@@ -571,15 +570,14 @@ export default function Page() {
               bg='#FFFFFF'
               color='#D54D50'
               textcolor='#333'
-              padding={12}
+              padding={16}
+              paddingY={12}
               animated={true}
               className='rounded-2xl shadow-2xl'>
-              <div className='flex flex-col gap-2'>
+              <div className='flex flex-col'>
                 <CrayonTextButton
                   text='팔을 구부릴 때'
                   ariaLabel='팔을 구부릴 때'
-                  width={180}
-                  height={72}
                   bg={isExtendActive ? '#D54D50' : '#9E9E9E'}
                   color={isExtendActive ? '#E8AAAB' : '#666666'}
                   textcolor='#FFFFFF'
@@ -591,8 +589,6 @@ export default function Page() {
                 <CrayonTextButton
                   text='팔을 펼 때'
                   ariaLabel='팔을 펼 때'
-                  width={180}
-                  height={72}
                   bg={isFoldActive ? '#D54D50' : '#9E9E9E'}
                   color={isFoldActive ? '#E8AAAB' : '#666666'}
                   textcolor='#FFFFFF'
@@ -767,10 +763,11 @@ export default function Page() {
               color='#E8AAAB'
               bg='#fff'
               textcolor='#333'
-              fontSize='16px'
+              fontSize='20pt'
               fontWeight='500'
               textAlign='left'
-              padding={20}
+              padding={40}
+              paddingY={12}
               animated={true}
             />
           </motion.div>
@@ -790,10 +787,10 @@ export default function Page() {
               color='#E8AAAB'
               bg='#fff'
               textcolor='#333'
-              fontSize='16px'
               fontWeight='500'
               textAlign='left'
-              padding={20}
+              padding={40}
+              paddingY={12}
               animated={true}
             />
           </motion.div>

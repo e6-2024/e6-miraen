@@ -254,7 +254,7 @@ export default function AnimatedModel2({
                         bottom: '35px',
                         right: '10px',
                         zIndex: 1000,
-                        width: '400px',
+                        width: '560px',
                         transform: 'scale(0.8)',
                         transformOrigin: 'bottom center',
                       }}>
@@ -263,10 +263,11 @@ export default function AnimatedModel2({
                         color={getPointColor(true)}
                         bg={getBubbleBgColor(true)}
                         textcolor='#333'
-                        fontSize='20px'
+                        fontSize='20pt'
                         fontWeight='500'
                         textAlign='center'
-                        padding={12}
+                        padding={40}
+                        paddingY={12}
                         animated={true}
                       />
                     </div>
@@ -341,7 +342,7 @@ export default function AnimatedModel2({
                         bottom: '35px',
                         left: '35px',
                         zIndex: 1000,
-                        width: '400px',
+                        width: '560px',
                         transform: 'scale(0.8)',
                         transformOrigin: 'bottom left',
                       }}>
@@ -350,10 +351,11 @@ export default function AnimatedModel2({
                         color={getPointColor(false)}
                         bg={getBubbleBgColor(false)}
                         textcolor='#333'
-                        fontSize='20px'
+                        padding={40}
+                        paddingY={12}
+                        fontSize='20pt'
                         fontWeight='500'
                         textAlign='center'
-                        padding={12}
                         animated={true}
                       />
                     </div>
