@@ -133,11 +133,10 @@ export function EarthModel({
       const current = groupRef.current.rotation.y
       const ideal = seasonAngles[season] || 0
 
-      // delta를 [-π, π] 범위의 최단각으로 정규화
       const TWO_PI = Math.PI * 2
       const delta = THREE.MathUtils.euclideanModulo(ideal - current + Math.PI, TWO_PI) - Math.PI
 
-      setTargetAngle(current + delta)
+      setTargetAngle(current + delta + Math.PI / 4)
     }
   }, [isSelected, season])
 

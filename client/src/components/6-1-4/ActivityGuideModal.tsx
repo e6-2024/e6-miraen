@@ -41,6 +41,11 @@ const activityGuideSlides: ActivityGuideSlide[] = [
     image: '/img/guide/6-1-4/guide6.jpeg',
     audioPath: '/sounds/6-1-4/intro/6-1-4-Intro-6.MP3',
   },
+  {
+    id: 'slide7',
+    image: '/img/guide/6-1-4/guide7.jpeg',
+    audioPath: '/sounds/6-1-4/intro/6-1-4-Intro-7.MP3',
+  },
 ]
 
 const ActivityGuideModal: React.FC<{
@@ -103,6 +108,7 @@ const ActivityGuideModal: React.FC<{
             color='#05A8A4' // 테두리 색 (그린 톤)
             textcolor='#333333'
             padding={16}
+            paddingY={16}
             animated={true}
             className='w-[80vw] flex flex-col'>
             {/* 상단 닫기 버튼 */}
