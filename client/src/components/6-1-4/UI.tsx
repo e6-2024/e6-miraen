@@ -149,8 +149,6 @@ export function UI({ isLockedToSurface, activeSeason, onReset }: UIProps) {
               iconPosition='left'
               x='10px'
               y='20px'
-              width={170}
-              height={75}
               onClick={handleReset}
               icon={'Arrowleft'}
               iconSize={30}
@@ -177,7 +175,7 @@ export function UI({ isLockedToSurface, activeSeason, onReset }: UIProps) {
             iconPosition='left'
             x='50vw'
             y='87dvh'
-            width={290}
+            width={400}
             height={75}
             iconSize={30}
             text={activeSeason==='spring'? '봄철 대표적인 별자리 알아보기': activeSeason==='summer' ? '겨울철 대표적인 별자리 알아보기': activeSeason==='fall' ? '가을철 대표적인 별자리 알아보기':'여름철 대표적인 별자리 알아보기'}
@@ -204,13 +202,14 @@ export function UI({ isLockedToSurface, activeSeason, onReset }: UIProps) {
             className='absolute flex flex-col justify-center items-center font-bold gap-5 bg-white/85 px-4 py-4 rounded-xl bottom-0 right-0 z-10 w-[40vw]'>
             <CrayonTextBox
               text={seasonExplain[activeSeason].text}
-              color='#333'
+              color='#05A8A4'
               bg='#fff'
               textcolor='#333'
-              fontSize='18px'
+              fontSize='16pt'
               fontWeight='500'
               textAlign='left'
-              padding={20}
+              padding={40}
+              paddingY={12}
               animated={true}></CrayonTextBox>
 
             {/* <CrayonTextButton
