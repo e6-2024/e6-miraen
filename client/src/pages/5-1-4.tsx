@@ -538,7 +538,7 @@ export default function Page() {
                       key={type}
                       text={type === 'boy' ? '겉모습' : type === 'muscle' ? '근육' : '뼈'}
                       ariaLabel={type}
-                      width={96}
+                      width={108}
                       height={64}
                       bg={active ? '#4CAF50' : '#9E9E9E'}
                       color={active ? '#096A2E' : '#666666'}

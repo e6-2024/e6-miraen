@@ -329,7 +329,8 @@ export default function Intro<T = string>({
             bg='#FFFFFF'
             color={buttonTheme.goal.bg}
             textcolor='#333333'
-            padding={24}
+            padding={42}
+            paddingY={32}
             animated={true}
             className='w-[min(92vw,640px)] mx-4 shadow-2xl rounded-2xl'>
             {/* 제목 */}
