@@ -249,31 +249,6 @@ export default function Page() {
         innerCircleVisible={true}
       />
 
-      {/* 뒤로가기 버튼 */}
-      {!showIntro && (
-        <AnimatePresence>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5, ease: 'easeInOut' }}
-            className='absolute top-4 left-4 z-10'>
-            <CrayonTextButton
-              ariaLabel='첫 화면으로 돌아가기'
-              text='첫 화면으로'
-              icon='arrow-left'
-              iconPosition='left'
-              iconSize={30}
-              bg={lightTheme.start.bg}
-              color={lightTheme.start.border}
-              textcolor={lightTheme.start.text}
-              onClick={handleBackToIntro}
-              innerCircleVisible={false}
-            />
-          </motion.div>
-        </AnimatePresence>
-      )}
-
       {/* 메인 3D 씬 */}
       <div className='flex-1'>
         <Scene shadows camera={{ position: CAMERA_CONFIG.position, fov: 50 }}>
