@@ -35,6 +35,11 @@ const activityGuideSlides: ActivityGuideSlide[] = [
     id: 'slide5',
     image: '/img/guide/5-1-2/guide5.jpeg',
     audioPath: '/sounds/5-1-2/intro/5-1-2-Intro-5.MP3',
+  },
+  {
+    id: 'slide6',
+    image: '/img/guide/5-1-2/guide6.jpeg',
+    audioPath: '/sounds/5-1-2/intro/5-1-2-Intro-6.MP3',
   }
 ]
 
@@ -99,6 +104,7 @@ const ActivityGuideModal: React.FC<{
             textcolor='#FFDBB0'
             padding={16}
             animated={true}
+            paddingY={16}
             className='w-[80vw] z-[900] flex flex-col'>
             {/* 상단 닫기 버튼 */}
             <div className='shrink-0 w-full flex justify-end z-20'>
