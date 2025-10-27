@@ -181,7 +181,7 @@ export const GameScene: React.FC<GameSceneProps> = ({
       />
 
       <Environment
-        files='/img/cover/hdri_sky_810.jpg'
+        files='/img/cover/Field_Garden.jpg'
         background={true}
         ground={{ height: 5, radius: 80, scale: 100 }}
         backgroundBlurriness={0.8}
