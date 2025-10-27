@@ -100,7 +100,15 @@ function NarrationText({ mode }: { mode: 'light' | 'buzzer' | 'fan' | null }): J
     text = '스위치를 닫아 전동기 날개의 빠르기를 비교해 보세요.'
   }
   return (
-    <CrayonTextBox bg='#FFFFFF' padding={40} paddingY={12} color={BUTTON_THEME.start.border} className='font-light' animated={true} text={text} />
+    <CrayonTextBox
+      bg='#FFFFFF'
+      padding={40}
+      paddingY={12}
+      color={BUTTON_THEME.start.border}
+      className='font-light'
+      animated={true}
+      text={text}
+    />
   )
 }
 
@@ -138,9 +146,7 @@ export default function Home() {
     }
 
     if (mode) {
-      playNarration(narrationMap[mode], VOLUMES.NARRATION).catch((error) =>
-        console.log('나레이션 재생 실패:', error),
-      )
+      playNarration(narrationMap[mode], VOLUMES.NARRATION).catch((error) => console.log('나레이션 재생 실패:', error))
     }
 
     setTimeout(() => setShowNarrationText(false), 4000)
@@ -190,17 +196,13 @@ export default function Home() {
     setSubtitleText(subtitle)
     setShowSubtitle(true)
 
-    playNarration(audioPath, VOLUMES.NARRATION)
-      .then(() => {
-        setShowSubtitle(false)
-      })
-      .catch((error) => {
-        console.log('나레이션 재생 실패:', error)
-        setShowSubtitle(false)
-      })
+    playNarration(audioPath, VOLUMES.NARRATION).catch((error) => {
+      console.log('나레이션 재생 실패:', error)
+    })
 
     setTimeout(() => {
       setShowSubtitle(false)
+      setSubtitleText('')
     }, duration)
   }, [])
 
@@ -215,8 +217,8 @@ export default function Home() {
       setShowIntro(false)
       setBgmReady(true)
       setTimeout(() => {
-        playAudioWithSubtitle(NARRATIONS.BATTERY_CONNECT, '전기 회로에 전지를 연결해 보세요.', 6000)
-      }, 500)
+        playAudioWithSubtitle(NARRATIONS.BATTERY_CONNECT, '전기 회로에 전지를 연결해 보세요.', 4000)
+      }, 2000)
     },
     [playAudioWithSubtitle],
   )
@@ -483,22 +485,13 @@ export default function Home() {
         />
       )}
       {mode && <SummaryPopup mode={mode} isOpen={showSummaryPopup} onClose={handleCloseSummaryPopup} />}
-      <AnimatePresence>
-        {showSubtitle && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            transition={{ duration: 0.3 }}
-            className='fixed bottom-8 left-0 right-0 z-50 flex justify-center'>
-            <div className='bg-black bg-opacity-80 rounded-xl px-8 py-4 max-w-lg'>
-              <div className='text-white text-xl font-bold text-center leading-relaxed whitespace-pre-line'>
-                {subtitleText}
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {showSubtitle && (
+        <div className='absolute font-light bottom-8 left-1/2 transform -translate-x-1/2'>
+          <CrayonTextBox color={BUTTON_THEME.goal.bg} bg='#FFF' textcolor='#333' width='500px' padding={40} paddingY={12}>
+            {subtitleText}
+          </CrayonTextBox>
+        </div>
+      )}
       <ActivityGuideModal isOpen={showActivityGuide} onClose={handleCloseActivityGuide} />
     </div>
   )
