@@ -152,7 +152,7 @@ function ModeControls({
 
   return (
     <div className='absolute bottom-5 left-5 flex flex-col gap-4 p-0 rounded-lg text-white'>
-      <CrayonTextBox color='#F3921C' bg='#FFF' animated={true}>
+      <CrayonTextBox color='#F3921C' bg='#FFF' animated={true} padding={24} paddingY={18}>
         {/* 모드 선택 */}
         {/* <div className='flex gap-2'>
         {modes.map(({ key, label }) => (
