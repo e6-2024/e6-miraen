@@ -280,7 +280,7 @@ function SubtitleBox({
 
   return (
     <div className='absolute flex w-full font-light justify-center left-1/2 -translate-x-1/2 items-center bottom-24 -translate-y-1/2 pointer-events-none'>
-      <CrayonTextBox color='#F3921C' bg='#FFF'>
+      <CrayonTextBox color='#F3921C' bg='#FFF' padding={40} paddingY={12}>
         {mode === 'direct' ? descriptions[mode] : mode === 'reflection' ? descriptions[mode] : descriptions[lensType]}
       </CrayonTextBox>
     </div>
@@ -299,7 +299,7 @@ function ExplanationBox({ isVisible, mode, lensType }: { isVisible: boolean; mod
 
   return (
     <div className='absolute left-1/2 font-light top-1/2 -translate-x-1/2 -translate-y-1/2'>
-      <CrayonTextBox textcolor='#333' color='#F3921C' bg='#F3921C' fontSize='20pt' width='480px' animated={false}>
+      <CrayonTextBox textcolor='#333' color='#F3921C' bg='#F3921C' fontSize='20pt' width='520px' animated={false} padding={40} paddingY={24}>
         {descriptions[mode]}
       </CrayonTextBox>
     </div>
@@ -311,7 +311,7 @@ function ExplanationBox2({ isVisible }: { isVisible?: boolean }) {
   if (!isVisible) return null
   return (
     <div className='absolute flex w-full font-light justify-center left-1/2 -translate-x-1/2 items-center top-24 -translate-y-1/2 pointer-events-none'>
-      <CrayonTextBox color='#F3921C' bg='#FFF'>
+      <CrayonTextBox color='#F3921C' bg='#FFF' padding={40} paddingY={12}>
         {descriptions}
       </CrayonTextBox>
     </div>
