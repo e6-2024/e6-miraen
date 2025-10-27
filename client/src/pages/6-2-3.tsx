@@ -149,7 +149,7 @@ export default function Home() {
       playNarration(narrationMap[mode], VOLUMES.NARRATION).catch((error) => console.log('나레이션 재생 실패:', error))
     }
 
-    setTimeout(() => setShowNarrationText(false), 4000)
+    setTimeout(() => setShowNarrationText(false), 3000)
   }, [mode])
 
   const handleShowActivityGuide = () => {
@@ -229,6 +229,7 @@ export default function Home() {
     setShowIntro(true)
     setIsBackFromMode(true)
     setShowSubtitle(false)
+    setShowNarrationText(false)
   }, [])
 
   const handleBackToIntro = useCallback(() => {
@@ -238,6 +239,7 @@ export default function Home() {
     setShowIntro(true)
     setIsBackFromMode(false)
     setMode(null)
+    setShowNarrationText(false)
   }, [])
 
   const handleSummaryClick = useCallback(() => {
