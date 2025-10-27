@@ -216,9 +216,7 @@ export default function Home() {
       setMode(selectedMode)
       setShowIntro(false)
       setBgmReady(true)
-      setTimeout(() => {
-        playAudioWithSubtitle(NARRATIONS.BATTERY_CONNECT, '전기 회로에 전지를 연결해 보세요.', 4000)
-      }, 2000)
+      playAudioWithSubtitle(NARRATIONS.BATTERY_CONNECT, '전기 회로에 전지를 연결해 보세요.', 3000)
     },
     [playAudioWithSubtitle],
   )
@@ -486,8 +484,14 @@ export default function Home() {
       )}
       {mode && <SummaryPopup mode={mode} isOpen={showSummaryPopup} onClose={handleCloseSummaryPopup} />}
       {showSubtitle && (
-        <div className='absolute font-light bottom-8 left-1/2 transform -translate-x-1/2'>
-          <CrayonTextBox color={BUTTON_THEME.goal.bg} bg='#FFF' textcolor='#333' width='500px' padding={40} paddingY={12}>
+        <div className='absolute font-light bottom-12 left-1/2 transform -translate-x-1/2'>
+          <CrayonTextBox
+            color={BUTTON_THEME.goal.bg}
+            bg='#FFF'
+            textcolor='#333'
+            width='500px'
+            padding={40}
+            paddingY={12}>
             {subtitleText}
           </CrayonTextBox>
         </div>
