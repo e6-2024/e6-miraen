@@ -68,9 +68,9 @@ function SummaryPopup({
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.8, opacity: 0 }}
           onClick={(e) => e.stopPropagation()}>
-          <CrayonTextBox bg='#FFFFFF' color={BUTTON_THEME.start.border} className='p-8 max-w-lg' animated={true}>
-            <h2 className='text-2xl font-bold text-center mb-6 text-gray-800'>정리하기</h2>
-            <p className='text-lg text-center font-light text-gray-700 leading-relaxed mb-8'>{summaryTexts[mode]}</p>
+          <CrayonTextBox bg='#FFFFFF' color={BUTTON_THEME.start.border} width={600} padding={40} paddingY={12}>
+            <h2 className='text-3xl font-bold text-center m-6 text-gray-800'>정리하기</h2>
+            <p className='text-2xl text-center font-light text-gray-700 leading-relaxed mb-8'>{summaryTexts[mode]}</p>
             <div className='text-center'>
               <CrayonTextButton
                 onClick={() => {
@@ -100,7 +100,7 @@ function NarrationText({ mode }: { mode: 'light' | 'buzzer' | 'fan' | null }): J
     text = '스위치를 닫아 전동기 날개의 빠르기를 비교해 보세요.'
   }
   return (
-    <CrayonTextBox bg='#FFFFFF' color={BUTTON_THEME.start.border} className='font-light' animated={true} text={text} />
+    <CrayonTextBox bg='#FFFFFF' padding={40} paddingY={12} color={BUTTON_THEME.start.border} className='font-light' animated={true} text={text} />
   )
 }
 
@@ -128,10 +128,23 @@ export default function Home() {
   const [showNarrationText, setShowNarrationText] = useState(false)
   const [showActivityGuide, setShowActivityGuide] = useState(false)
 
-  const handleBatteryClick = useCallback(() => {
+  const handleAllBatteriesConnected = useCallback(() => {
     setShowNarrationText(true)
+
+    const narrationMap = {
+      light: NARRATIONS.LIGHT_BATTERY,
+      buzzer: NARRATIONS.BUZZER_BATTERY,
+      fan: NARRATIONS.FAN_BATTERY,
+    }
+
+    if (mode) {
+      playNarration(narrationMap[mode], VOLUMES.NARRATION).catch((error) =>
+        console.log('나레이션 재생 실패:', error),
+      )
+    }
+
     setTimeout(() => setShowNarrationText(false), 4000)
-  }, [])
+  }, [mode])
 
   const handleShowActivityGuide = () => {
     audioManager.playGeneralButton()
@@ -262,7 +275,12 @@ export default function Home() {
     switch (currentMode) {
       case 'light':
         return (
-          <ConnectedLights key='connected-lights' scale={1} position={[0, 0, 0]} onBatteryClick={handleBatteryClick} />
+          <ConnectedLights
+            key='connected-lights'
+            scale={1}
+            position={[0, 0, 0]}
+            onAllBatteriesConnected={handleAllBatteriesConnected}
+          />
         )
       case 'buzzer':
         return (
@@ -270,15 +288,22 @@ export default function Home() {
             key='connected-buzzers'
             scale={1}
             position={[0, 0, 0]}
-            onBatteryClick={handleBatteryClick}
+            onAllBatteriesConnected={handleAllBatteriesConnected}
           />
         )
       case 'fan':
-        return <ConnectedFans key='connected-fans' scale={1} position={[0, 0, 0]} onBatteryClick={handleBatteryClick} />
+        return (
+          <ConnectedFans
+            key='connected-fans'
+            scale={1}
+            position={[0, 0, 0]}
+            onAllBatteriesConnected={handleAllBatteriesConnected}
+          />
+        )
       default:
         return null
     }
-  }, [mode, showIntro, initialRandomMode, handleBatteryClick])
+  }, [mode, showIntro, initialRandomMode, handleAllBatteriesConnected])
 
   const modeButtons = useMemo(
     () => [
@@ -306,7 +331,7 @@ export default function Home() {
 
   return (
     <div className='w-screen h-screen bg-white flex flex-col'>
-      {showNarrationText && (
+      {!showIntro && showNarrationText && (
         <div className='absolute top-24 left-1/2 -translate-x-1/2 z-[300]'>
           <NarrationText mode={mode || initialRandomMode} />
         </div>
@@ -357,8 +382,6 @@ export default function Home() {
               text='첫 화면으로'
               icon='arrow-left'
               iconPosition='left'
-              width={170}
-              height={75}
               iconSize={30}
               bg={BUTTON_THEME.start.bg}
               color={BUTTON_THEME.start.border}
@@ -379,10 +402,8 @@ export default function Home() {
             className='absolute bottom-4 right-4 z-10 w-fit h-fit'>
             <CrayonTextButton
               onClick={handleSummaryClick}
-              width={170}
-              height={75}
               icon={'PencilLine'}
-              iconSize={18}
+              iconSize={30}
               iconPosition='left'
               bg={BUTTON_THEME.goal.bg}
               color={BUTTON_THEME.goal.border}
@@ -450,7 +471,7 @@ export default function Home() {
         <Intro
           onEnter={() => {}}
           title={'전지의 수에 따른\n전기 회로의 특징 비교하기'}
-          description={['전지 1 개를 연결한 전기 회로와 전지 2 개를 직렬연결한', '전기 회로의 특징을 비교해 봅시다.']}
+          description={['전지 1 개를 연결한 전기 회로와 전지 2 개를 직렬연결한 전기 회로의 특징을 비교해 봅시다.']}
           backgroundSvg='/img/cover/6-2-3.svg'
           descriptionSound={NARRATIONS.GOAL}
           showModeSelection={true}

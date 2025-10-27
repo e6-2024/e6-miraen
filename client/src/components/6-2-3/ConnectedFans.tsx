@@ -8,6 +8,7 @@ import { BatteryButton1, BatteryButton2 } from './BatteryButton'
 
 type Props = JSX.IntrinsicElements['group'] & {
   onBatteryClick?: () => void
+  onAllBatteriesConnected?: () => void
 }
 
 function FanComponent({
@@ -33,7 +34,6 @@ function FanComponent({
   const audioManager = AudioManager.getInstance()
   const currentAudioRef = useRef<HTMLAudioElement | null>(null)
 
-  // 회전/배터리 모드에 따른 팬 소리
   useEffect(() => {
     if (currentAudioRef.current) {
       audioManager.stopComponentSound(`fan-${componentName}`)
@@ -54,7 +54,6 @@ function FanComponent({
     }
   }, [isRotating, batteryMode, componentName, audioManager])
 
-  // 언마운트 정리
   useEffect(() => {
     return () => {
       audioManager.stopComponentSound(`fan-${componentName}`)
@@ -62,7 +61,6 @@ function FanComponent({
     }
   }, [audioManager, componentName])
 
-  // 팬 블레이드 찾기
   useEffect(() => {
     if (groupRef.current) {
       groupRef.current.traverse((child) => {
@@ -73,7 +71,6 @@ function FanComponent({
     }
   }, [])
 
-  // 스위치 애니메이션
   useEffect(() => {
     if (!actions || Object.keys(actions).length === 0) return
     const actionName = Object.keys(actions)[0]
@@ -100,7 +97,6 @@ function FanComponent({
     }
   }, [isRotating, actions])
 
-  // 스위치 클릭 → 해당 팬만 토글 (배터리 있어야 작동)
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation()
     e.nativeEvent.stopImmediatePropagation()
@@ -115,7 +111,6 @@ function FanComponent({
     }
   }
 
-  // 배터리 분리
   const handleBatteryDetach = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation()
     if (batteryMode > 0) {
@@ -146,7 +141,6 @@ function FanComponent({
         receiveShadow
       />
 
-      {/* 배터리 모듈 (클릭으로 분리) */}
       {batteryMode === 1 ? (
         <group
           onPointerDown={handleBatteryDetach}
@@ -187,6 +181,7 @@ export default function ConnectedFans(props: Props) {
 
   const [battery1Used, setBattery1Used] = useState(false)
   const [battery2Used, setBattery2Used] = useState(false)
+  const [hasPlayedNarration, setHasPlayedNarration] = useState(false)
 
   const [fan1Source, setFan1Source] = useState<1 | 2 | null>(null)
   const [fan2Source, setFan2Source] = useState<1 | 2 | null>(null)
@@ -194,15 +189,22 @@ export default function ConnectedFans(props: Props) {
   const [nextTargetIsLeft, setNextTargetIsLeft] = useState(true)
 
   const audioManager = AudioManager.getInstance()
-  const playBatteryAudio = () => {
-    audioManager
-      .playNarration('/sounds/6-2-3/narration/6-2-3-D.MP3', 0.7)
-      .catch((e) => console.log('나레이션 재생 실패:', e))
-  }
+
+  useEffect(() => {
+    if (battery1Used && battery2Used && !hasPlayedNarration) {
+      setHasPlayedNarration(true)
+      props.onAllBatteriesConnected?.()
+    }
+  }, [battery1Used, battery2Used, hasPlayedNarration, props])
+
+  useEffect(() => {
+    if (!battery1Used || !battery2Used) {
+      setHasPlayedNarration(false)
+    }
+  }, [battery1Used, battery2Used])
 
   const handleBattery1Click = () => {
     if (battery1Used) return
-    if (!battery1Used && !battery2Used) playBatteryAudio()
     audioManager.playGeneralButton()
     setBattery1Used(true)
     if (props.onBatteryClick) {
@@ -222,7 +224,6 @@ export default function ConnectedFans(props: Props) {
 
   const handleBattery2Click = () => {
     if (battery2Used) return
-    if (!battery1Used && !battery2Used) playBatteryAudio()
     audioManager.playGeneralButton()
     setBattery2Used(true)
 
@@ -275,7 +276,6 @@ export default function ConnectedFans(props: Props) {
         onDetach={detachRight}
       />
 
-      {/* 중앙 배터리 버튼 */}
       <group position={[0, 1, 6.66]}>
         <BatteryButton1 position={[-2.5, 0, 0]} isUsed={battery1Used} onClick={handleBattery1Click} />
         <BatteryButton2 position={[2.5, 0, 0]} isUsed={battery2Used} onClick={handleBattery2Click} />

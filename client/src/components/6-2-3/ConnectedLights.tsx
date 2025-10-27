@@ -8,23 +8,19 @@ import { BatteryButton1, BatteryButton2 } from './BatteryButton'
 
 type Props = JSX.IntrinsicElements['group'] & {
   onBatteryClick?: () => void
+  onAllBatteriesConnected?: () => void
 }
 
-/* =========================
-   Switch Context (Light 전용)
-========================= */
 interface SwitchContextType {
   activeLight: string | null
   setActiveLight: (light: string | null) => void
 }
+
 const SwitchContext = createContext<SwitchContextType>({
   activeLight: null,
   setActiveLight: () => {},
 })
 
-/* =========================
-   LightComponent
-========================= */
 function LightComponent({
   modelPath,
   position,
@@ -47,14 +43,12 @@ function LightComponent({
 
   const audioManager = AudioManager.getInstance()
 
-  // 전역 활성 라이트 변경 시 내 상태 동기화
   useEffect(() => {
     if (activeLight !== componentName) {
       setLightOn(false)
     }
   }, [activeLight, componentName])
 
-  // 스위치 효과음
   useEffect(() => {
     if (lightOn && batteryMode > 0) {
       audioManager
@@ -65,14 +59,12 @@ function LightComponent({
     }
   }, [lightOn, batteryMode, componentName, audioManager])
 
-  // 언마운트 시 오디오 정리
   useEffect(() => {
     return () => {
       audioManager.stopComponentSound(`light-${componentName}`)
     }
   }, [audioManager, componentName])
 
-  // 그림자/머티리얼 설정 + 밝기 반영
   useEffect(() => {
     if (!scene) return
 
@@ -87,10 +79,8 @@ function LightComponent({
           child.receiveShadow = true
         }
 
-        // 발광/투명도 반영 (머티리얼이 표준 머티리얼일 때)
         if (child.material instanceof THREE.MeshStandardMaterial) {
           const mat = child.material
-          // 전구 유리나 광원 메쉬에만 적용되도록 이름 체크(필요 시 이름 조정)
           const isBulbSurface =
             inBulb || /bulb|glass|lamp|light/i.test(child.name) || /bulb|glass|lamp|light/i.test(mat.name)
 
@@ -109,8 +99,7 @@ function LightComponent({
 
             mat.transparent = true
             mat.opacity = opacity
-            mat.emissive = new THREE.Color(1.0, 0.8, 0.4) // 따뜻한 불빛
-            // emissiveIntensity가 별도 프로퍼티로 없으므로 color scale로 근사
+            mat.emissive = new THREE.Color(1.0, 0.8, 0.4)
             mat.emissiveIntensity = 1
             mat.emissive.multiplyScalar(lightOn && batteryMode > 0 ? emissiveIntensity : 0)
           }
@@ -119,7 +108,6 @@ function LightComponent({
     })
   }, [scene, lightOn, batteryMode, componentName])
 
-  // 스위치 애니메이션 (반쯤에서 on/off 정지)
   useEffect(() => {
     if (!actions || Object.keys(actions).length === 0) return
     const actionName = Object.keys(actions)[0]
@@ -160,7 +148,6 @@ function LightComponent({
     }
   }
 
-  // 포인트 라이트 밝기 (배터리/스위치 상태에 비례)
   const pointLightIntensity =
     batteryMode === 0
       ? 0
@@ -172,7 +159,6 @@ function LightComponent({
       ? 20
       : 20
 
-  // 배터리 분리
   const handleBatteryDetach = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation()
     if (batteryMode > 0) {
@@ -193,7 +179,6 @@ function LightComponent({
         }}
       />
 
-      {/* 포인트 라이트 */}
       <pointLight
         position={[0.1, 1.0, -2.0]}
         intensity={lightOn && batteryMode > 0 ? pointLightIntensity : 0}
@@ -202,7 +187,6 @@ function LightComponent({
         color={new THREE.Color(1, 0.8, 0.4)}
       />
 
-      {/* 배터리 모듈 (클릭 시 분리) */}
       {batteryMode === 1 ? (
         <group
           onPointerDown={handleBatteryDetach}
@@ -221,7 +205,6 @@ function LightComponent({
         <BatteryModule1 showBody={false} position={[0, 0, 0]} batteryType='light' />
       )}
 
-      {/* 상태 텍스트 (선택사항) */}
       <Text
         position={[0, -1, 3]}
         fontSize={0.2}
@@ -234,15 +217,13 @@ function LightComponent({
   )
 }
 
-/* =========================
-   ConnectedLights
-========================= */
 export default function ConnectedLights(props: Props) {
   const [light1BatteryMode, setLight1BatteryMode] = useState(0)
   const [light2BatteryMode, setLight2BatteryMode] = useState(0)
 
   const [battery1Used, setBattery1Used] = useState(false)
   const [battery2Used, setBattery2Used] = useState(false)
+  const [hasPlayedNarration, setHasPlayedNarration] = useState(false)
 
   const [light1Source, setLight1Source] = useState<1 | 2 | null>(null)
   const [light2Source, setLight2Source] = useState<1 | 2 | null>(null)
@@ -252,16 +233,21 @@ export default function ConnectedLights(props: Props) {
 
   const audioManager = AudioManager.getInstance()
 
-  const playBatteryAudio = () => {
-    audioManager
-      .playNarration('/sounds/6-2-3/narration/6-2-3-B.MP3', 0.7)
-      .catch((e) => console.log('나레이션 재생 실패:', e))
-  }
+  useEffect(() => {
+    if (battery1Used && battery2Used && !hasPlayedNarration) {
+      setHasPlayedNarration(true)
+      props.onAllBatteriesConnected?.()
+    }
+  }, [battery1Used, battery2Used, hasPlayedNarration, props])
 
-  // 배터리 버튼 1
+  useEffect(() => {
+    if (!battery1Used || !battery2Used) {
+      setHasPlayedNarration(false)
+    }
+  }, [battery1Used, battery2Used])
+
   const handleBattery1Click = () => {
     if (battery1Used) return
-    if (!battery1Used && !battery2Used) playBatteryAudio()
     if (props.onBatteryClick) {
       props.onBatteryClick()
     }
@@ -279,10 +265,8 @@ export default function ConnectedLights(props: Props) {
     }
   }
 
-  // 배터리 버튼 2
   const handleBattery2Click = () => {
     if (battery2Used) return
-    if (!battery1Used && !battery2Used) playBatteryAudio()
     if (props.onBatteryClick) {
       props.onBatteryClick()
     }
@@ -300,7 +284,6 @@ export default function ConnectedLights(props: Props) {
     }
   }
 
-  // 왼쪽 라이트 분리
   const detachLeft = () => {
     if (light1Source === 1) setBattery1Used(false)
     if (light1Source === 2) setBattery2Used(false)
@@ -310,7 +293,6 @@ export default function ConnectedLights(props: Props) {
     setNextTargetIsLeft(true)
   }
 
-  // 오른쪽 라이트 분리
   const detachRight = () => {
     if (light2Source === 1) setBattery1Used(false)
     if (light2Source === 2) setBattery2Used(false)
@@ -323,7 +305,6 @@ export default function ConnectedLights(props: Props) {
   return (
     <SwitchContext.Provider value={{ activeLight, setActiveLight }}>
       <group {...props}>
-        {/* Light1 */}
         <LightComponent
           modelPath='models/6-2-3/Light1-notConnected.glb'
           position={[-5, -0.1, 0]}
@@ -332,7 +313,6 @@ export default function ConnectedLights(props: Props) {
           onDetach={detachLeft}
         />
 
-        {/* Light2 */}
         <LightComponent
           modelPath='models/6-2-3/Light2-notConnected.glb'
           position={[5, -0.1, 0]}
@@ -341,7 +321,6 @@ export default function ConnectedLights(props: Props) {
           onDetach={detachRight}
         />
 
-        {/* 중앙 배터리 버튼 */}
         <group position={[0, 1, 6.66]}>
           <BatteryButton1 position={[-2.5, 0, 0]} isUsed={battery1Used} onClick={handleBattery1Click} />
           <BatteryButton2 position={[2.5, 0, 0]} isUsed={battery2Used} onClick={handleBattery2Click} />
@@ -351,6 +330,5 @@ export default function ConnectedLights(props: Props) {
   )
 }
 
-// 모델 프리로드
 useGLTF.preload('models/6-2-3/Light1-notConnected.glb')
 useGLTF.preload('models/6-2-3/Light2-notConnected.glb')

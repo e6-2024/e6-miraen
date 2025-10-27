@@ -31,6 +31,11 @@ const activityGuideSlides: ActivityGuideSlide[] = [
     image: '/img/guide/6-2-3/guide4.jpeg',
     audioPath: '/sounds/6-2-3/intro/6-2-3-Intro-4.mp3',
   },
+  {
+    id: 'slide5',
+    image: '/img/guide/6-2-3/guide5.jpeg',
+    audioPath: '/sounds/6-2-3/intro/6-2-3-Intro-5.mp3',
+  }
 ]
 
 const ActivityGuideModal: React.FC<{
@@ -93,9 +98,9 @@ const ActivityGuideModal: React.FC<{
             color='#F3921C'
             textcolor='#FFDBB0'
             padding={16}
+            paddingY={16}
             animated={true}
             className='w-[80vw] z-[900] flex flex-col'>
-            {/* 상단 닫기 버튼 */}
             <div className='shrink-0 w-full flex justify-end z-20'>
               <CrayonTextButton
                 ariaLabel='닫기'
