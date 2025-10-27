@@ -169,13 +169,13 @@ function ModeControls({
 
         {activeMode === 'refraction' && (
           <>
-            <h4 className='text-[18px] font-light pb-1.5'>볼록 렌즈와 오목 렌즈가 있어요.</h4>
+            <h4 className='text-[20pt] font-light pb-1.5'>볼록 렌즈와 오목 렌즈가 있어요.</h4>
             <div className='flex gap-2'>
               {lensTypes.map(({ key, label }) => (
                 <button
                   key={key}
                   onClick={() => onLensTypeChange(key)}
-                  className={`px-3 py-1.5 rounded text-[18px] font-light transition-colors ${
+                  className={`px-3 py-1.5 rounded text-[20pt] font-light transition-colors ${
                     lensType === key ? 'bg-[#52AE46] text-white' : 'bg-gray-700 text-white hover:bg-gray-600'
                   }`}>
                   {label}
@@ -188,15 +188,15 @@ function ModeControls({
         {/* 반사 모드일 때 각도 조절 */}
         {activeMode === 'reflection' && (
           <>
-            <h4 className='text-[18px] font-light'>레이저 빛의 각도를 조절해보세요.</h4>
-            <div className='flex items-center gap-2'>
+            <h4 className='text-[20pt] font-light'>레이저 빛의 각도를 조절해 보세요.</h4>
+            <div className='flex items-center gap-4'>
               <input
                 type='range'
                 min='5'
                 max='85'
                 value={laserAngle}
                 onChange={(e) => onAngleChange(Number(e.target.value))}
-                className='w-48 accent-[#52AE46]'
+                className='w-full accent-[#52AE46]'
               />
             </div>
           </>
@@ -225,13 +225,7 @@ function ExplanationToggleButton({
   return (
     <>
       <div className='absolute bottom-4 right-4' onClick={onClick}>
-        <CrayonTextButton
-          text={titles[mode]}
-          width={140}
-          height={75}
-          bg='#F3921C'
-          color='#FFDBB0'
-          textcolor='#FFFFFF'></CrayonTextButton>
+        <CrayonTextButton text={titles[mode]} bg='#F3921C' color='#FFDBB0' textcolor='#FFFFFF'></CrayonTextButton>
       </div>
     </>
   )
@@ -254,7 +248,7 @@ function LensButton({
     <div className='absolute bottom-24 right-4' onClick={onLensClick}>
       <CrayonTextButton
         text={lensType === 'concave' ? '오목 렌즈 둘러 보기' : lensType === 'convex' ? '볼록 렌즈 둘러 보기' : ''}
-        width={200}
+        width={280}
         height={75}
         bg='#52AE46'
         color='#A1CC90'
@@ -285,8 +279,8 @@ function SubtitleBox({
   if (!isVisible) return null
 
   return (
-    <div className='absolute flex w-full font-light justify-center left-1/2 -translate-x-1/2 items-center bottom-4 -translate-y-1/2 pointer-events-none'>
-      <CrayonTextBox color='#F3921C' bg='#FFF' fontSize='18px'>
+    <div className='absolute flex w-full font-light justify-center left-1/2 -translate-x-1/2 items-center bottom-24 -translate-y-1/2 pointer-events-none'>
+      <CrayonTextBox color='#F3921C' bg='#FFF'>
         {mode === 'direct' ? descriptions[mode] : mode === 'reflection' ? descriptions[mode] : descriptions[lensType]}
       </CrayonTextBox>
     </div>
@@ -305,7 +299,7 @@ function ExplanationBox({ isVisible, mode, lensType }: { isVisible: boolean; mod
 
   return (
     <div className='absolute left-1/2 font-light top-1/2 -translate-x-1/2 -translate-y-1/2'>
-      <CrayonTextBox textcolor='#333' color='#F3921C' bg='#F3921C' fontSize='20px' width='380px' animated={false}>
+      <CrayonTextBox textcolor='#333' color='#F3921C' bg='#F3921C' fontSize='20pt' width='480px' animated={false}>
         {descriptions[mode]}
       </CrayonTextBox>
     </div>
@@ -313,11 +307,11 @@ function ExplanationBox({ isVisible, mode, lensType }: { isVisible: boolean; mod
 }
 
 function ExplanationBox2({ isVisible }: { isVisible?: boolean }) {
-  const descriptions = '버튼을 눌러 3구 레이져를 켜고 빛이 나아가는 모습을 관찰해보세요.'
+  const descriptions = '버튼을 눌러 3구 레이저를 켜고 빛이 나아가는 모습을 관찰해 보세요.'
   if (!isVisible) return null
   return (
-    <div className='absolute flex w-full font-light justify-center left-1/2 -translate-x-1/2 items-center top-16 -translate-y-1/2 pointer-events-none'>
-      <CrayonTextBox color='#F3921C' bg='#FFF' fontSize='18px'>
+    <div className='absolute flex w-full font-light justify-center left-1/2 -translate-x-1/2 items-center top-24 -translate-y-1/2 pointer-events-none'>
+      <CrayonTextBox color='#F3921C' bg='#FFF'>
         {descriptions}
       </CrayonTextBox>
     </div>
@@ -415,6 +409,9 @@ export default function Page() {
       setActiveMode(selectedMode)
       setShowIntro(false)
       setBgmReady(true)
+      if (selectedMode === 'refraction') {
+        setLensType('convex')
+      }
 
       playSound('/sounds/Enter_Cute.mp3')
       setTimeout(() => {
@@ -533,32 +530,6 @@ export default function Page() {
         iconSize={40}
         innerCircleVisible={true}
       />
-
-      {!showIntro && hasContent && (
-        <AnimatePresence>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5, ease: 'easeInOut' }}
-            className='absolute top-4 left-4 z-10 w-fit h-fit'>
-            <CrayonTextButton
-              ariaLabel='모드 선택 화면으로 돌아가기'
-              text='첫 화면으로'
-              icon='arrow-left'
-              iconPosition='left'
-              width={170}
-              height={75}
-              iconSize={30}
-              bg='#F3921C'
-              color='#FFDBB0'
-              textcolor='#FFFFFF'
-              onClick={handleBackToModeSelection}
-              innerCircleVisible={false}
-            />
-          </motion.div>
-        </AnimatePresence>
-      )}
 
       <div className='flex-1'>
         <Scene shadows camera={{ position: [0, 0, 20], fov: 50 }}>

@@ -9,7 +9,6 @@ interface UnderwaterEnvironmentProps {
 export default function UnderwaterEnvironment({ sceneIndex }: UnderwaterEnvironmentProps) {
   const groupRef = useRef<THREE.Group>(null)
   
-  // 물 속 광선 효과
   const CausticPlane = () => {
     const planeRef = useRef<THREE.Mesh>(null)
     
@@ -17,7 +16,7 @@ export default function UnderwaterEnvironment({ sceneIndex }: UnderwaterEnvironm
       return new THREE.ShaderMaterial({
         uniforms: {
           time: { value: 0.0 },
-          opacity: { value: 0.1 }
+          opacity: { value: 0.2 } 
         },
         vertexShader: `
           varying vec2 vUv;
@@ -32,16 +31,15 @@ export default function UnderwaterEnvironment({ sceneIndex }: UnderwaterEnvironm
           varying vec2 vUv;
           
           void main() {
-            vec2 uv = vUv * 8.0;
+            vec2 uv = vUv * 4.0;
             
-            // 물의 굴절로 인한 광선 패턴
             float caustic1 = sin(uv.x * 2.0 + time) * sin(uv.y * 2.0 + time * 0.7);
             float caustic2 = sin(uv.x * 1.5 + time * 0.8) * sin(uv.y * 1.8 + time * 1.2);
             
             float pattern = (caustic1 + caustic2) * 0.5 + 0.5;
             pattern = pow(pattern, 3.0);
             
-            vec3 lightColor = vec3(0.1, 0.1, 0.1);
+            vec3 lightColor = vec3(0.3, 0.5, 0.7);  // 파란 톤
             gl_FragColor = vec4(lightColor * pattern, opacity);
           }
         `,
@@ -60,11 +58,11 @@ export default function UnderwaterEnvironment({ sceneIndex }: UnderwaterEnvironm
     return (
       <mesh 
         ref={planeRef}
-        position={[0, 0, 0]} 
+        position={[0, 0.2, 0]}
         rotation={[-Math.PI / 2, 0, 0]}
         material={causticMaterial}
       >
-        <planeGeometry args={[20, 20]} />
+        <planeGeometry args={[25, 25]} /> 
       </mesh>
     )
   }
@@ -73,33 +71,29 @@ export default function UnderwaterEnvironment({ sceneIndex }: UnderwaterEnvironm
   
   return (
     <group ref={groupRef}>
-      {/* 수중 조명 설정 */}
-      <ambientLight intensity={0.2} color={0x004080} />
+      <ambientLight intensity={0.2} color={0x004080} />  
       
-      {/* 주요 방향성 조명 (그림자 생성) */}
       <directionalLight 
         castShadow
         position={[5, 10, 5]} 
-        intensity={0.8}
-        color={0x6699ff}
+        intensity={1.2}   
+        color={0x88ccff}   
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
-        shadow-camera-left={-15}
-        shadow-camera-right={15}
-        shadow-camera-top={15}
-        shadow-camera-bottom={-15}
+        shadow-camera-left={-20}
+        shadow-camera-right={20}
+        shadow-camera-top={20}
+        shadow-camera-bottom={-20}
         shadow-camera-near={0.1}
-        shadow-camera-far={30}
+        shadow-camera-far={50}
         shadow-bias={-0.0005}
       />
-
       
-      {/* 보조 조명 */}
       <pointLight 
         position={[0, 8, 0]} 
         color={0x6699cc} 
-        intensity={0.4}
-        distance={20}
+        intensity={0.6}  
+        distance={25}
         castShadow
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
@@ -108,13 +102,23 @@ export default function UnderwaterEnvironment({ sceneIndex }: UnderwaterEnvironm
       <spotLight
         position={[-10, 5, 10]}
         target-position={[0, 0, 0]}
-        intensity={0.3}
-        angle={Math.PI / 4}
+        intensity={0.5}
+        angle={Math.PI / 3} 
         penumbra={0.5}
         color={0x4488bb}
         castShadow
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
+      />
+      
+      <spotLight
+        position={[10, 5, -10]}
+        target-position={[0, 0, 0]}
+        intensity={0.3}
+        angle={Math.PI / 3}
+        penumbra={0.5}
+        color={0x5599cc}
+        castShadow={false}
       />
       <CausticPlane />
     </group>

@@ -119,6 +119,7 @@ function SceneCameraController({ sceneIndex }: { sceneIndex: number }) {
   return null
 }
 
+
 function useWaterAnimation(sceneIndex: number, shouldAnimate: boolean, animationKey: number) {
   const [waterLevel, setWaterLevel] = useState(-2.0)
   const [waterScale, setWaterScale] = useState(1.0)
@@ -127,13 +128,17 @@ function useWaterAnimation(sceneIndex: number, shouldAnimate: boolean, animation
   useEffect(() => {
     let initialLevel = -2.0
     let initialScale = 1.0
-    if (sceneIndex === 1) initialLevel = 1
-    else if (sceneIndex === 2) {
+    
+    if (sceneIndex === 1) {
+      initialLevel = 1
+    } else if (sceneIndex === 2) {
       initialLevel = 1.0
-      initialScale = 0.9
+      initialScale = 1.0
     }
+    
     setWaterLevel(initialLevel)
     setWaterScale(initialScale)
+    
     if (animationRef.current) {
       clearInterval(animationRef.current)
       animationRef.current = null
@@ -142,63 +147,75 @@ function useWaterAnimation(sceneIndex: number, shouldAnimate: boolean, animation
 
   useEffect(() => {
     if (!shouldAnimate) return
+
     if (animationRef.current) {
       clearInterval(animationRef.current)
       animationRef.current = null
     }
+
     if (sceneIndex === 1) {
       const startLevel = 1
       const targetLevel = 2.5
       const duration = 6000
       const startTime = Date.now()
+      
       animationRef.current = setInterval(() => {
         const elapsed = Date.now() - startTime
         const progress = Math.min(elapsed / duration, 1.0)
-        const eased = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2
+        const eased = progress < 0.5 
+          ? 2 * progress * progress 
+          : 1 - Math.pow(-2 * progress + 2, 2) / 2
+
         const currentLevel = startLevel + (targetLevel - startLevel) * eased
         setWaterLevel(currentLevel)
+
         if (progress >= 1.0) {
           clearInterval(animationRef.current!)
           animationRef.current = null
         }
       }, 50)
+      
     } else if (sceneIndex === 2) {
-      const startLevel = 1
-      const targetLevel = 2.8
-      const duration = 6000
-      const startTime = Date.now()
+      const stage1_startLevel = 1
+      const stage1_targetLevel = 2.8
+      const stage1_duration = 6000
+      const stage1_startTime = Date.now()
+      
       animationRef.current = setInterval(() => {
-        const elapsed = Date.now() - startTime
-        const progress = Math.min(elapsed / duration, 1.0)
-        const eased = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2
+        const elapsed = Date.now() - stage1_startTime
+        const progress = Math.min(elapsed / stage1_duration, 1.0)
+        const eased = progress < 0.5 
+          ? 2 * progress * progress 
+          : 1 - Math.pow(-2 * progress + 2, 2) / 2
 
-        const currentLevel = startLevel + (targetLevel - startLevel) * eased
+        const currentLevel = stage1_startLevel + (stage1_targetLevel - stage1_startLevel) * eased
         setWaterLevel(currentLevel)
 
         if (progress >= 1.0) {
           clearInterval(animationRef.current!)
           animationRef.current = null
-
-          // 🔽 waterLevel 증가 후 scale 줄이기
-          const scaleStart = 1.0
-          const scaleEnd = 0.0
-          const scaleDuration = 2000
-          const scaleStartTime = Date.now()
-
+          const stage2_duration = 6000 
+          const stage2_startTime = Date.now()
+          const baseLevel = 1.0 
+          const maxHeight = 2.8
+          
           animationRef.current = setInterval(() => {
-            const scaleElapsed = Date.now() - scaleStartTime
-            const scaleProgress = Math.min(scaleElapsed / scaleDuration, 1.0)
-            const scaleEased =
-              scaleProgress < 0.5 ? 2 * scaleProgress * scaleProgress : 1 - Math.pow(-2 * scaleProgress + 2, 2) / 2
-
-            const currentScale = scaleStart + (scaleEnd - scaleStart) * scaleEased
+            const scaleElapsed = Date.now() - stage2_startTime
+            const scaleProgress = Math.min(scaleElapsed / stage2_duration, 1.0)
+            
+            const scaleEased = 1 - Math.pow(1 - scaleProgress, 3)
+            
+            const currentScale = 1.0 - scaleEased 
             setWaterScale(currentScale)
+            const currentHeight = (maxHeight - baseLevel) * currentScale
+            const adjustedLevel = baseLevel + currentHeight
+            setWaterLevel(adjustedLevel)
 
             if (scaleProgress >= 1.0) {
               clearInterval(animationRef.current!)
               animationRef.current = null
             }
-          }, 100)
+          }, 50)
         }
       }, 50)
     }
@@ -213,6 +230,7 @@ function useWaterAnimation(sceneIndex: number, shouldAnimate: boolean, animation
 
   return { waterLevel, waterScale }
 }
+
 
 function SceneContent({
   sceneIndex,
@@ -339,7 +357,6 @@ export default function Home() {
 
   useEffect(() => setMounted(true), [])
 
-  // localStorage -> 상태 동기화 (마운트 후)
   useEffect(() => {
     try {
       const saved = localStorage.getItem('bgmEnabled')
@@ -347,9 +364,8 @@ export default function Home() {
     } catch {}
   }, [])
 
-  // 인스턴스 준비
   useEffect(() => {
-    const el = new Audio('/sounds/5-1-1/5-1-1-BGM_romantic-background-128046.mp3') // ★ 프로젝트에 맞는 BGM 경로로 변경
+    const el = new Audio('/sounds/5-1-1/5-1-1-BGM_romantic-background-128046.mp3')
     el.loop = true
     el.volume = 0.05
     bgmRef.current = el
@@ -359,7 +375,6 @@ export default function Home() {
     }
   }, [])
 
-  // 탭 가시성에 따른 일시정지/재개
   useEffect(() => {
     const handleVisibility = () => {
       const el = bgmRef.current
@@ -371,7 +386,6 @@ export default function Home() {
     return () => document.removeEventListener('visibilitychange', handleVisibility)
   }, [bgmEnabled, bgmReady])
 
-  // 페이드 함수
   const fadeTo = useCallback(async (targetVol: number, ms = 400) => {
     const el = bgmRef.current
     if (!el) return
@@ -388,7 +402,6 @@ export default function Home() {
     })
   }, [])
 
-  // 상태 반영(저장/재생/일시정지)
   useEffect(() => {
     const el = bgmRef.current
     if (!el) return
@@ -410,7 +423,7 @@ export default function Home() {
   const toggleBgm = () => {
     setBgmEnabled((v) => {
       const next = !v
-      if (next) setBgmReady(true) // 토글로 켜도 바로 준비
+      if (next) setBgmReady(true)
       return next
     })
   }
@@ -500,8 +513,8 @@ export default function Home() {
             textcolor='#fff'
             bg={DinosaurTheme.goal.bg}
             className='z-[30]'
-            right={120}
-            top={16}
+            right={136}
+            top={32}
             iconSize={40}
             innerCircleVisible={true}
           />
@@ -517,8 +530,8 @@ export default function Home() {
             textcolor='#fff'
             bg={DinosaurTheme.goal.bg}
             className='z-[30]'
-            right={16}
-            top={16}
+            right={32}
+            top={32}
             iconSize={40}
             innerCircleVisible={true}
           />

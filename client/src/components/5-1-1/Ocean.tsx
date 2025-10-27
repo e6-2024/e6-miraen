@@ -4,18 +4,17 @@ import * as THREE from 'three'
 
 export default function Ocean({ 
   sceneIndex,
-  timeSpeed = 0.5,        // 전체 애니메이션 속도 (기본값: 1.0)
-  flowSpeed = 0.5,        // 물 흐름 속도 (기본값: 1.0) 
-  waveSpeed = 0.5,        // 파도 생성 속도 (기본값: 1.0)
-  textureUrl = null,      // 텍스처 URL (선택사항)
-  normalMapUrl = null,    // 노말맵 URL (선택사항)
-  textureScale = 1.0,     // 텍스처 스케일
-  textureOpacity = 1.0,   // 텍스처 투명도
-  waterLevel = 5          // 물의 높이 (새로 추가)
+  timeSpeed = 0.5,
+  flowSpeed = 0.5,
+  waveSpeed = 0.5,
+  textureUrl = null,
+  normalMapUrl = null,
+  textureScale = 1.0,
+  textureOpacity = 1.0,
+  waterLevel = 5
 }) {
   const meshRef = useRef<THREE.Mesh>(null)
   
-  // 텍스처 상태 관리
   const [texture, setTexture] = useState<THREE.Texture | null>(null)
   const [normalMap, setNormalMap] = useState<THREE.Texture | null>(null)
 
@@ -25,7 +24,6 @@ export default function Ocean({
     return [25.42, 25.42]
   }, [sceneIndex])
 
-  // 텍스처 로딩
   useEffect(() => {
     if (textureUrl) {
       const loader = new THREE.TextureLoader()
@@ -48,7 +46,6 @@ export default function Ocean({
     }
   }, [normalMapUrl])
   
-  // 텍스처 설정
   useMemo(() => {
     if (texture) {
       texture.wrapS = texture.wrapT = THREE.RepeatWrapping
@@ -66,11 +63,9 @@ export default function Ocean({
         iTime: { value: 0.0 },
         iResolution: { value: new THREE.Vector3(1920, 1080, 1) },
         opacity: { value: 0.4 },
-        // 속도 조절을 위한 uniform
         uTimeSpeed: { value: timeSpeed },
         uFlowSpeed: { value: flowSpeed },
         uWaveSpeed: { value: waveSpeed },
-        // 텍스처 관련 uniform
         uTexture: { value: texture },
         uNormalMap: { value: normalMap },
         uTextureScale: { value: textureScale },
@@ -94,12 +89,10 @@ export default function Ocean({
         uniform vec3 iResolution;
         uniform float opacity;
         
-        // 속도 조절을 위한 uniform
         uniform float uTimeSpeed;
         uniform float uFlowSpeed;
         uniform float uWaveSpeed;
         
-        // 텍스처 관련 uniform
         uniform sampler2D uTexture;
         uniform sampler2D uNormalMap;
         uniform float uTextureScale;
@@ -110,7 +103,6 @@ export default function Ocean({
         varying vec2 vUv;
         varying vec3 vWorldPos;
         
-        // Shadertoy 원본 코드 - 물 관련 부분만 추출
         float g_fTime;
         
         #define MOD2 vec2(4.438975,3.972973)
@@ -316,10 +308,8 @@ export default function Ocean({
         void main() {
             g_fTime = iTime * uTimeSpeed;
             
-            // 월드 좌표를 UV 좌표로 변환
             vec2 worldUV = vWorldPos.xz * 0.1;
             
-            // Shadertoy 물 효과 계산
             vec3 vFlowRateAndFoam = GetFlowRate( worldUV );
             vec2 vFlowRate = vFlowRateAndFoam.xy;
             float fFoam = vFlowRateAndFoam.z;
@@ -332,7 +322,6 @@ export default function Ocean({
             float fWaterFoamTex = 1.0;
             vec4 vWaterNormalAndHeight = SampleFlowingNormal( worldUV, vFlowRate, fFoam, g_fTime, fWaterFoamTex );
             
-            // 기본 물 색상 계산
             vec3 deepWaterColor = vec3(0.2, 0.6, 0.9);
             vec3 shallowWaterColor = vec3(0.3, 0.9, 0.9);
             vec3 foamColor = vec3(0.9, 0.95, 1.0);
@@ -340,41 +329,31 @@ export default function Ocean({
             float depth = clamp(vWaterNormalAndHeight.w * 2.0, 0.0, 1.0);
             vec3 waterColor = mix(shallowWaterColor, deepWaterColor, depth);
             
-            // 외부 텍스처 적용
             if (uHasTexture > 0.1) {
-                // 흐름에 따라 텍스처 UV 왜곡
                 vec2 textureUV = worldUV * uTextureScale;
-                textureUV += vFlowRate * g_fTime * 0.1; // 흐름 방향으로 텍스처 이동
+                textureUV += vFlowRate * g_fTime * 0.1;
                 
                 vec4 texColor = texture2D(uTexture, textureUV);
-                
-                // 텍스처와 기본 물 색상 블렌딩
                 waterColor = mix(waterColor, texColor.rgb, texColor.a * uTextureOpacity);
             }
             
-            // 노말맵 적용 (있는 경우)
             if (uHasNormalMap > 0.5) {
                 vec2 normalUV = worldUV * uTextureScale;
                 normalUV += vFlowRate * g_fTime * 0.05;
                 
                 vec3 normalMapSample = texture2D(uNormalMap, normalUV).rgb * 2.0 - 1.0;
-                // 기존 노말과 노말맵 블렌딩
                 vWaterNormalAndHeight.xyz = normalize(mix(vWaterNormalAndHeight.xyz, normalMapSample, 0.5));
             }
             
-            // 거품 효과 적용
             float fFoamBlend = 1.0 - pow( fWaterFoamTex, fFoam * 5.0);
             vec3 finalColor = mix(waterColor, foamColor, fFoamBlend * 0.7 );
             
-            // 물결에 따른 밝기 변화
             float brightness = 0.8 + vWaterNormalAndHeight.w * 0.4;
             finalColor *= brightness;
             
-            // 햇빛 반사 효과
             float sunReflection = max(0.0, vWaterNormalAndHeight.y) * 0.1;
             finalColor += vec3(1.0, 0.9, 0.7) * sunReflection;
             
-            // 프레넬 반사
             float fresnel = pow(1.0 - abs(dot(vec3(0.0, 0.0, 1.0), vWaterNormalAndHeight.xyz)), 2.0);
             finalColor = mix(finalColor, vec3(0.6, 0.8, 1.0), fresnel * 0.3);
             
@@ -387,7 +366,6 @@ export default function Ocean({
     })
   }, [timeSpeed, flowSpeed, waveSpeed, texture, normalMap, textureScale, textureOpacity])
 
-  // uniform 값 업데이트
   useMemo(() => {
     if (waterMaterial.uniforms) {
       waterMaterial.uniforms.uTimeSpeed.value = timeSpeed
@@ -408,22 +386,23 @@ export default function Ocean({
     }
   })
 
+  // ✅ 수정: position을 useEffect로만 관리 (중복 제거)
   useEffect(() => {
-  if (meshRef.current) {
-    meshRef.current.position.y = waterLevel
-  }
-}, [waterLevel])
+    if (meshRef.current) {
+      meshRef.current.position.y = waterLevel
+    }
+  }, [waterLevel])
 
   return (
     <mesh 
       ref={meshRef}
-      position={[0, waterLevel, 0]} // waterLevel prop 사용
+      position={[0, 0, 0]}  // ✅ 수정: Y축은 useEffect에서 관리하므로 0으로 초기화
       rotation={[-Math.PI / 2, 0, 0]}
       material={waterMaterial}
       castShadow
       receiveShadow
     >
-    <planeGeometry args={[planeSize[0], planeSize[1], 3, 3]} />
+      <planeGeometry args={[planeSize[0], planeSize[1], 3, 3]} />
     </mesh>
   )
 }

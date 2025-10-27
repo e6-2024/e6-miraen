@@ -161,6 +161,9 @@ export default function Model({
         })
       }
     }
+
+    if (!shouldAnimate) return 
+    
     if (customAnimation === 'fadeAndMove') {
       startFadeAndMoveAnimation()
     } else if (isInitializedRef.current) {
