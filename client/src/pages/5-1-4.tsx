@@ -455,7 +455,7 @@ export default function Page() {
 
   const modeButtons = useMemo(
     () => [
-      { mode: 'bones' as const, label: '뼈와 근육의 생김새 관찰', color: '#f5600a', hoverColor: '#fc835b' },
+      { mode: 'bones' as const, label: '뼈와 근육의 생김새 관찰하기', color: '#f5600a', hoverColor: '#fc835b' },
       { mode: 'arm' as const, label: '팔이 움직이는 원리 알아보기', color: '#2196F3', hoverColor: '#42A5F5' },
     ],
     [],
