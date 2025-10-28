@@ -220,7 +220,7 @@ function NarrationText({ level, onClose }: { level: number; onClose: () => void 
   }
 
   useEffect(() => {
-    const t = setTimeout(onClose, DUR[level] ?? 6000)
+    const t = setTimeout(onClose, DUR[level] ?? 4000)
     return () => clearTimeout(t)
   }, [level, onClose])
 
@@ -288,6 +288,24 @@ export default function Home() {
   const [showActivityGuide, setShowActivityGuide] = useState(false)
   const audioManager = AudioManager.getInstance()
 
+  const timeoutsRef = useRef<number[]>([])
+  const runIdRef = useRef(0)
+
+  const schedule = useCallback((fn: () => void, ms: number) => {
+    const id = window.setTimeout(fn, ms)
+    timeoutsRef.current.push(id)
+    return id
+  }, [])
+
+  const clearAllDelays = useCallback(() => {
+    timeoutsRef.current.forEach((id) => clearTimeout(id))
+    timeoutsRef.current = []
+  }, [])
+
+  const bumpRun = useCallback(() => {
+    runIdRef.current += 1
+  }, [])
+
   useEffect(() => {
     if (!mounted) return
     try {
@@ -308,7 +326,6 @@ export default function Home() {
     }
   }, [mounted])
 
-  // 상태 반영 (재생/일시정지 + 저장)
   useEffect(() => {
     if (!mounted || !bgmRef.current) return
     try {
@@ -327,25 +344,28 @@ export default function Home() {
     setHighlightSpawn(false)
     setHasSpawned(true)
     setTriggerSpawn(true)
-    setTimeout(() => {
+
+    schedule(() => {
       playSound(SOUND_EFFECTS.BALL_SOUND, VOLUMES.BALL_SOUND)
     }, 1000)
 
     const showOverlayWithNarration = (delayMs: number) => {
-      setTimeout(() => {
+      const myRun = runIdRef.current
+      schedule(() => {
+        if (myRun !== runIdRef.current) return
         setOverlayLevel(selectedLevel)
         setShowNarrationOverlay(true)
         playNarration(NARRATIONS.BALL_DROP, VOLUMES.NARRATION)
-        setTimeout(() => setShowNarrationOverlay(false), 10000)
+
+        schedule(() => {
+          if (myRun !== runIdRef.current) return
+          setShowNarrationOverlay(false)
+        }, 10000)
       }, delayMs)
     }
-    if (selectedLevel === 0) {
-      showOverlayWithNarration(5000)
-    }
 
-    if (selectedLevel === 1) {
-      showOverlayWithNarration(5000)
-    }
+    if (selectedLevel === 0) showOverlayWithNarration(5000)
+    if (selectedLevel === 1) showOverlayWithNarration(5000)
   }
 
   const handleSpawnHandled = () => {
@@ -360,7 +380,8 @@ export default function Home() {
     stopNarration()
     stopSound()
     audioManager.stopCurrentAudio()
-
+    setShowNarrationOverlay(false)
+    setOverlayLevel(null)
     setShowIntro(true)
     setShowSieveSelection(false)
     handleReset()
@@ -371,12 +392,16 @@ export default function Home() {
     setShowIntro(false)
     setShowSieveSelection(true)
     setBgmReady(true)
-    setTimeout(() => {
+
+    const myRun = runIdRef.current
+    schedule(() => {
+      if (myRun !== runIdRef.current) return
       playNarration(NARRATIONS.EXPERIMENT_START, VOLUMES.NARRATION)
     }, 1000)
   }
 
   const handleSelectSieve = (selectedLevel: number) => {
+    stopNarration()
     setSelectedLevel(selectedLevel)
     setShowSieveSelection(false)
     setHighlightSpawn(true)
@@ -394,7 +419,7 @@ export default function Home() {
     setPhysicsKey((prev) => prev + 1)
     setShowSummaryButton(false)
   }
-  
+
   const handleLevelChange = (level: number) => {
     stopNarration()
     stopSound()
@@ -473,7 +498,7 @@ export default function Home() {
         </Scene>
       </div>
 
-      {showNarrationOverlay && overlayLevel !== null && (
+      {!showIntro && !showSieveSelection && showNarrationOverlay && overlayLevel !== null && (
         <NarrationText level={overlayLevel} onClose={() => setShowNarrationOverlay(false)} />
       )}
 

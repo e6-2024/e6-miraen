@@ -29,12 +29,12 @@ const activityGuideSlides: ActivityGuideSlide[] = [
   {
     id: 'slide4',
     image: '/img/guide/5-2-1/guide4.jpeg',
-    audioPath: '/sounds/5-2-1/intro/5-2-1-Intro-5.mp3',
+    audioPath: '/sounds/5-2-1/intro/5-2-1-Intro-4.MP3',
   },
   {
     id: 'slide5',
     image: '/img/guide/5-2-1/guide5.jpeg',
-    audioPath: '/sounds/5-2-1/intro/5-2-1-Intro-4-1.MP3',
+    audioPath: '/sounds/5-2-1/intro/5-2-1-Intro-5-1.MP3',
   },
   {
     id: 'slide6',
