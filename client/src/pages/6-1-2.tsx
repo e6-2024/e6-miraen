@@ -314,6 +314,8 @@ export default function Home() {
     setViewMode('start')
     stopAllAudio()
     stopCurrentAudio()
+    setShowNarrationSubtitle(false)
+    setNarrationText('')
 
     setCameraResetTrigger(true)
     setTimeout(() => {
@@ -324,7 +326,7 @@ export default function Home() {
       setAnimationState((prev) => ({ ...prev, resetTrigger: false }))
     }, 100)
   }
-
+  
   return (
     <div className='w-screen h-screen bg-[#78C9C9] relative'>
       {!showIntro && <NarrationSubtitle visible={showNarrationSubtitle} text={narrationText} />}
