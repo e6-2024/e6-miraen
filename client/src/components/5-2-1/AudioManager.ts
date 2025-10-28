@@ -1,4 +1,3 @@
-// AudioManager.ts - 전역 오디오 관리 클래스
 class AudioManager {
   private static instance: AudioManager;
   private currentAudio: HTMLAudioElement | null = null;
@@ -15,7 +14,6 @@ class AudioManager {
     return AudioManager.instance;
   }
 
-  // 현재 재생 중인 오디오 중지
   stopCurrentAudio() {
     if (this.currentAudio) {
       this.currentAudio.pause();

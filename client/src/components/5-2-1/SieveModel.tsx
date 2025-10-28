@@ -1,4 +1,3 @@
-// src/components/5-2-1/SieveModel.tsx
 import { useGLTF } from '@react-three/drei';
 import { useBox } from '@react-three/cannon';
 import { useRef, useMemo, useEffect } from 'react';

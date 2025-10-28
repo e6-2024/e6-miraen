@@ -229,7 +229,6 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
             ry={height / 2}
             fill={bg}
             filter={`url(#${paperStaticId})`}
-            className='transition-all duration-300'
           />
           <rect
             x={0}
@@ -251,7 +250,7 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
             ry={(height - 10) / 2}
             fill={bg}
             filter={`url(#${paperAnimatedId})`}
-            className='transition-all duration-300 opacity-0'
+            className='opacity-0'
           />
           <rect
             x={12}
@@ -265,7 +264,6 @@ export const CrayonTextButton: React.FC<CrayonTextButtonProps> = ({
             strokeWidth='2'
             opacity='0.6'
             filter={`url(#${borderStaticId})`}
-            className='transition-all duration-300'
           />
           {/* {innerCircleVisible && (
             <rect

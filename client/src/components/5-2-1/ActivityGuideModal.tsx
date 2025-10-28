@@ -98,6 +98,7 @@ const ActivityGuideModal: React.FC<{
             color='#9B1CDF'
             textcolor='#DFB2FA'
             padding={16}
+            paddingY={16}
             animated={true}
             className='w-[80vw] z-[900] flex flex-col'>
             {/* 상단 닫기 버튼 */}

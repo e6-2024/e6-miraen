@@ -12,7 +12,6 @@ export const useExperiment = () => {
   const [state, setState] = useState<ExperimentState>({
     timeOfDay: 'day',
     currentStep: 'initial',
-    completedSteps: new Set(),
     temperatures: getInitialTemperatures(),
     pressures: { sea: 'high', land: 'low' },
     showTemperatureDisplay: false,
@@ -20,6 +19,9 @@ export const useExperiment = () => {
     showWind: false,
     isTemperatureAnimating: false,
     modelAnimationEnabled: false,
+    temperatureEnabled: false,
+    pressureEnabled: false,
+    windEnabled: false,
   })
 
   const [cameraTarget, setCameraTarget] = useState<CameraTarget | null>(null)
@@ -35,7 +37,6 @@ export const useExperiment = () => {
     setState((prev) => ({
       timeOfDay: prev.timeOfDay,
       currentStep: 'initial',
-      completedSteps: new Set(),
       temperatures: getInitialTemperatures(),
       pressures: getPressures(prev.timeOfDay),
       showTemperatureDisplay: false,
@@ -43,6 +44,9 @@ export const useExperiment = () => {
       showWind: false,
       isTemperatureAnimating: false,
       modelAnimationEnabled: false,
+      temperatureEnabled: false,
+      pressureEnabled: false,
+      windEnabled: false,
     }))
 
     setPressureExtraAnimation(false)
@@ -59,68 +63,123 @@ export const useExperiment = () => {
       currentStep: 'day-selected',
       temperatures: getInitialTemperatures(),
       pressures: getPressures(timeOfDay),
+      showTemperatureDisplay: false,
+      showPressureDisplay: false,
+      showWind: false,
+      temperatureEnabled: false,
+      pressureEnabled: false,
+      windEnabled: false,
     }))
     setPressureExtraAnimation(false)
   }, [])
 
-  const startTemperatureAnimation = useCallback(() => {
-    if (state.completedSteps.has('temperature')) return
+  const toggleTemperature = useCallback(() => {
+    const currentState = { ...state }
+    const newEnabled = !currentState.temperatureEnabled
+    const timeOfDay = currentState.timeOfDay
 
-    setCameraTarget({
-      position: CAMERA_CONFIGS.observation.position,
-      lookAt: CAMERA_CONFIGS.observation.target,
-    })
+    if (!newEnabled) {
+      if (animationCleanupRef.current) {
+        animationCleanupRef.current()
+        animationCleanupRef.current = null
+      }
+
+      setState({
+        ...currentState,
+        temperatureEnabled: false,
+        showTemperatureDisplay: false,
+        temperatures: getInitialTemperatures(),
+        isTemperatureAnimating: false,
+        currentStep: 'day-selected',
+      })
+      
+      return
+    }
 
     setState((prev) => ({
       ...prev,
-      currentStep: 'temperature-animation',
-      showTemperatureDisplay: true,
-      isTemperatureAnimating: true,
+      temperatureEnabled: true,
     }))
 
-    const cleanup = animateTemperature(
-      state.timeOfDay,
-      (sea, land) => {
-        setState((prev) => ({
-          ...prev,
-          temperatures: { sea, land },
-        }))
-      },
-      () => {
-        setState((prev) => ({
-          ...prev,
-          isTemperatureAnimating: false,
-          currentStep: 'day-selected',
-          completedSteps: new Set(prev.completedSteps).add('temperature'),
-        }))
-      },
-    )
-
-    animationCleanupRef.current = cleanup
-  }, [state.timeOfDay, state.completedSteps])
-
-  const startPressureAnimation = useCallback(() => {
-    if (state.completedSteps.has('pressure')) return
-    
     setCameraTarget({
       position: CAMERA_CONFIGS.observation.position,
       lookAt: CAMERA_CONFIGS.observation.target,
     })
 
-    setPressureExtraAnimation(true)
-    
+    setTimeout(() => {
+      setState((current) => ({
+        ...current,
+        showTemperatureDisplay: true,
+        isTemperatureAnimating: true,
+        currentStep: 'temperature-animation',
+        temperatures: getInitialTemperatures(),
+      }))
+
+      const cleanup = animateTemperature(
+        timeOfDay,
+        (sea, land) => {
+          setState((s) => ({
+            ...s,
+            temperatures: { sea, land },
+          }))
+        },
+        () => {
+          setState((s) => ({
+            ...s,
+            isTemperatureAnimating: false,
+            currentStep: 'day-selected',
+          }))
+        },
+      )
+
+      animationCleanupRef.current = cleanup
+    }, 100)
+  }, [state])
+
+  const togglePressure = useCallback(() => {
+    const currentState = { ...state }
+    const newEnabled = !currentState.pressureEnabled
+
+    if (!newEnabled) {
+      setPressureExtraAnimation(false)
+      setState({
+        ...currentState,
+        pressureEnabled: false,
+        showPressureDisplay: false,
+      })
+      return
+    }
+
     setState((prev) => ({
       ...prev,
-      currentStep: 'day-selected',
+      pressureEnabled: true,
       showPressureDisplay: true,
-      completedSteps: new Set(prev.completedSteps).add('pressure'),
     }))
-  }, [state.completedSteps])
 
-  const startWindAnimation = useCallback(() => {
-    if (state.completedSteps.has('wind')) return
+    setCameraTarget({
+      position: CAMERA_CONFIGS.observation.position,
+      lookAt: CAMERA_CONFIGS.observation.target,
+    })
+    
+    setPressureExtraAnimation(true)
+  }, [state])
 
-    const cameraConfig = state.timeOfDay === 'day' 
+  const toggleWind = useCallback(() => {
+    const currentState = { ...state }
+    const newEnabled = !currentState.windEnabled
+
+    if (!newEnabled) {
+      setState({
+        ...currentState,
+        windEnabled: false,
+        showWind: false,
+        modelAnimationEnabled: false,
+        currentStep: 'day-selected',
+      })
+      return
+    }
+
+    const cameraConfig = currentState.timeOfDay === 'day' 
       ? CAMERA_CONFIGS.windObservation 
       : { 
           position: CAMERA_CONFIGS.windObservation.position2,
@@ -131,21 +190,31 @@ export const useExperiment = () => {
       position: cameraConfig.position,
       lookAt: cameraConfig.target,
     })
-    
+
     setState((prev) => ({
       ...prev,
-      currentStep: 'wind-animation',
+      windEnabled: true,
       showWind: true,
       modelAnimationEnabled: true,
-      completedSteps: new Set(prev.completedSteps).add('wind'),
+      currentStep: 'wind-animation',
     }))
-  }, [state.completedSteps, state.timeOfDay])
+  }, [state])
 
   const getStepConfig = useCallback(
     (step: string) => {
-      const isCompleted = state.completedSteps.has(step)
-      const isInteractable = ['day-selected', 'temperature-animation', 'pressure-animation', 'wind-animation'].includes(state.currentStep)
-      const isEnabled = !isCompleted && isInteractable
+      let enabled = false
+      let completed = false
+
+      if (step === 'temperature') {
+        enabled = true
+        completed = state.temperatureEnabled
+      } else if (step === 'pressure') {
+        enabled = true
+        completed = state.pressureEnabled
+      } else if (step === 'wind') {
+        enabled = true
+        completed = state.windEnabled
+      }
 
       const labels = {
         temperature: '온도',
@@ -156,18 +225,16 @@ export const useExperiment = () => {
       return {
         id: step,
         label: labels[step as keyof typeof labels] || step,
-        enabled: isEnabled,
-        completed: isCompleted,
+        enabled,
+        completed,
       }
     },
-    [state.currentStep, state.completedSteps],
+    [state.temperatureEnabled, state.pressureEnabled, state.windEnabled],
   )
 
   const allStepsCompleted = useCallback(() => {
-    return ['temperature', 'pressure', 'wind'].every(step => 
-      state.completedSteps.has(step)
-    )
-  }, [state.completedSteps])
+    return state.temperatureEnabled && state.pressureEnabled && state.windEnabled
+  }, [state.temperatureEnabled, state.pressureEnabled, state.windEnabled])
 
   return {
     state,
@@ -176,9 +243,9 @@ export const useExperiment = () => {
     setCameraTarget,
     resetExperiment,
     setTimeOfDay,
-    startTemperatureAnimation,
-    startPressureAnimation,
-    startWindAnimation,
+    toggleTemperature,
+    togglePressure,
+    toggleWind,
     getStepConfig,
     allStepsCompleted,
   }

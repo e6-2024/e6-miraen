@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { Physics } from '@react-three/cannon'
 import { useProgress, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
+import { AnimatePresence, motion } from 'framer-motion'
 import Scene from '@/components/canvas/Scene'
 import SieveSimulation from '@/scenes/SieveSimulation'
 import Intro from '@/components/intro/Intro'
@@ -91,7 +92,7 @@ function SieveSelectionPage({ onSelectSieve }: { onSelectSieve: (selectedLevel: 
 
   return (
     <div className='fixed inset-0 bg-[#78C9C9] flex items-center justify-center z-30'>
-      <CrayonTextBox color='#374151' bg='#e5e5e5' padding={32} animated={true}>
+      <CrayonTextBox color='#374151' bg='#e5e5e5' padding={32} paddingY={32} animated={true}>
         <h1 className='text-2xl font-bold text-black mb-2'>
           구슬과 체의 눈 크기를 비교한 뒤, 눈의 크기가 알맞은 체를 골라 구슬 혼합물을 분리해 보세요.
         </h1>
@@ -132,8 +133,7 @@ function SieveSelectionPage({ onSelectSieve }: { onSelectSieve: (selectedLevel: 
           bg={selectedSieve !== null ? particleTheme.start.bg : '#666'}
           color={'#fff'}
           textcolor={'#fff'}
-          width={220}
-          height={64}
+          width={290}
           className='mt-6'
           onClick={handleStartExperiment}
         />
@@ -147,11 +147,11 @@ function SummaryPopup({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 50)
-    return () => clearTimeout(timer)
-  }, [])
-
-  useEffect(() => {
     playNarration(NARRATIONS.SUMMARY, VOLUMES.NARRATION)
+    return () => {
+      clearTimeout(timer)
+      stopNarration()
+    }
   }, [])
 
   const handleClose = () => {
@@ -162,29 +162,48 @@ function SummaryPopup({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
-      <CrayonTextBox color='#374151' bg='#fff' padding={32} animated={true}>
-        <h2 className='text-2xl font-bold mb-4 text-center text-gray-800'>실험 정리</h2>
-        <div className='space-y-2 text-gray-700'>
-          <div className='flex items-start space-x-2'>
-            <span className='font-light'>•</span>
-            <p className='text-s font-light'>
-              알갱이의 크기가 다른 고체 혼합물은 알갱이의 크기 차이를 이용해 체로 분리할 수 있습니다.
-            </p>
-          </div>
-          <div className='flex items-start space-x-2'>
-            <span className='font-light'>•</span>
-            <p className='text-s font-light'>
-              체를 사용할 때에는 알갱이의 크기와 체의 눈 크기를 비교해 알맞은 것을 골라야 합니다.
-            </p>
-          </div>
-        </div>
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          key='summary-overlay'
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'
+          onClick={handleClose}>
+          <motion.div
+            key='summary-content'
+            initial={{ scale: 0.88, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.88, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+            onClick={(e) => e.stopPropagation()}>
+            <CrayonTextBox color='#374151' bg='#fff' width={720} padding={32} paddingY={32} animated={true}>
+              <h2 className='text-2xl font-bold mb-8 text-center text-gray-800'>실험 정리</h2>
 
-        <div className='mt-6 flex justify-center'>
-          <CrayonTextButton onClick={handleClose} text='확인' bg='#444' color='#fff' textcolor='#fff' />
-        </div>
-      </CrayonTextBox>
-    </div>
+              <div className='space-y-8 text-left text-gray-700'>
+                <div className='flex items-start space-x-2'>
+                  <span className='font-light'>•</span>
+                  <p className='text-s font-light'>
+                    알갱이의 크기가 다른 고체 혼합물은 알갱이의 크기 차이를 이용해 체로 분리할 수 있습니다.
+                  </p>
+                </div>
+                <div className='flex items-start space-x-2'>
+                  <span className='font-light'>•</span>
+                  <p className='text-s font-light'>
+                    체를 사용할 때에는 알갱이의 크기와 체의 눈 크기를 비교해 알맞은 것을 골라야 합니다.
+                  </p>
+                </div>
+              </div>
+
+              <div className='mt-8 flex justify-center'>
+                <CrayonTextButton onClick={handleClose} text='확인' bg='#444' color='#fff' textcolor='#fff' />
+              </div>
+            </CrayonTextBox>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }
 
@@ -207,8 +226,8 @@ function NarrationText({ level, onClose }: { level: number; onClose: () => void 
 
   return (
     <div className='fixed inset-0 flex items-center justify-center z-50' onClick={onClose}>
-      <CrayonTextBox color='#444' bg='#fff' padding={32} animated={true}>
-        <p className='text-xl font-bold text-gray-800'>{messages[level] ?? messages[0]}</p>
+      <CrayonTextBox color='#444' bg='#fff' padding={40} paddingY={12} animated={true}>
+        <p className='text-3xl font-bold text-gray-800'>{messages[level] ?? messages[0]}</p>
       </CrayonTextBox>
     </div>
   )
@@ -452,13 +471,11 @@ export default function Home() {
             {[0, 2, 1].map((level) => (
               <CrayonTextButton
                 key={level}
-                width={430}
-                height={72}
-                textSize={18}
+                width={590}
                 color={selectedLevel === level ? '#000' : '#444'}
                 textcolor={selectedLevel === level ? '#000' : '#444'}
                 icon={selectedLevel === level ? 'arrow-right' : undefined}
-                iconSize={22}
+                iconSize={30}
                 iconPosition='left'
                 bg={selectedLevel === level ? '#fff' : '#e5e5e5'}
                 text={SIEVE_CONFIG.LEVELS.find((s) => s.level === level)?.title || ''}
@@ -478,9 +495,8 @@ export default function Home() {
               bg='#78C9C9'
               textcolor='#333'
               icon={hasSpawned ? 'refresh' : 'plus'}
-              iconSize={18}
-              width={180}
-              height={72}
+              iconSize={30}
+              width={hasSpawned ? 210 : 290}
               iconPosition='left'
               text={hasSpawned ? '다시 하기' : '구슬 혼합물 넣기'}
               className={highlightSpawn ? 'animate-pulse' : ''}
@@ -500,10 +516,8 @@ export default function Home() {
                 color='#9B1CDF'
                 icon={'PencilLine'}
                 textcolor='#333'
-                iconSize={18}
+                iconSize={30}
                 iconPosition='left'
-                width={180}
-                height={72}
                 onClick={handleSummaryClick}
                 text='정리하기'
               />

@@ -15,7 +15,6 @@ export interface PressureData {
 export interface ExperimentState {
   timeOfDay: TimeOfDay;
   currentStep: ExperimentStep;
-  completedSteps: Set<string>;
   temperatures: TemperatureData;
   pressures: PressureData;
   showTemperatureDisplay: boolean;
@@ -23,6 +22,9 @@ export interface ExperimentState {
   showWind: boolean;
   isTemperatureAnimating: boolean;
   modelAnimationEnabled: boolean;
+  temperatureEnabled: boolean;
+  pressureEnabled: boolean;
+  windEnabled: boolean;
 }
 
 export interface PopupContent {

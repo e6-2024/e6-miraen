@@ -113,9 +113,9 @@ export default function Page() {
     setCameraTarget,
     resetExperiment,
     setTimeOfDay,
-    startTemperatureAnimation,
-    startPressureAnimation,
-    startWindAnimation,
+    toggleTemperature,
+    togglePressure,
+    toggleWind,
     getStepConfig,
     allStepsCompleted,
   } = useExperiment()
@@ -124,7 +124,6 @@ export default function Page() {
   const [showActivityGuide, setShowActivityGuide] = useState(false)
   const audioManager = AudioManager.getInstance()
 
-  // BGM 관련
   const bgmRef = useRef<HTMLAudioElement | null>(null)
   const [bgmEnabled, setBgmEnabled] = useState<boolean>(true)
   const [bgmReady, setBgmReady] = useState(false)
@@ -238,17 +237,17 @@ export default function Page() {
 
       switch (stepId) {
         case 'temperature':
-          startTemperatureAnimation()
+          toggleTemperature()
           break
         case 'pressure':
-          startPressureAnimation()
+          togglePressure()
           break
         case 'wind':
-          startWindAnimation()
+          toggleWind()
           break
       }
     },
-    [playSound, startTemperatureAnimation, startPressureAnimation, startWindAnimation],
+    [playSound, toggleTemperature, togglePressure, toggleWind],
   )
 
   const handleSummaryClick = useCallback(() => {
@@ -303,8 +302,8 @@ export default function Page() {
             shadow-radius={10}
           />
 
-          {/* 3D 모델 */}
           <Model
+            key={`model-${state.windEnabled}`}
             scale={0.2}
             rotation={[0, -Math.PI / 2, 0]}
             position={[0, -15, 0]}
@@ -318,6 +317,7 @@ export default function Page() {
           {state.showTemperatureDisplay && (
             <>
               <Thermometer3D
+                key={`thermometer-sea-${state.temperatureEnabled}`}
                 position={[-9, -10.15, -20]}
                 temperature={state.temperatures.sea}
                 label='바다'
@@ -325,6 +325,7 @@ export default function Page() {
                 visible={true}
               />
               <Thermometer3D
+                key={`thermometer-land-${state.temperatureEnabled}`}
                 position={[-1, -10.15, -20]}
                 temperature={state.temperatures.land}
                 label='육지'
@@ -337,41 +338,38 @@ export default function Page() {
           {state.showPressureDisplay && (
             <>
               <PressureDisplay3D
+                key={`pressure-display-sea-${state.pressureEnabled}`}
                 position={[-14, -10, -20]}
                 type={pressures.sea}
                 label='바다'
                 visible={true}
                 timeOfDay={state.timeOfDay}
               />
-              <PressureSphereBeautiful position={[-14, -10, -20]} type='high' size={2} animated={true} />
+              <PressureSphereBeautiful 
+                key={`pressure-sphere-sea-${state.pressureEnabled}`}
+                position={[-14, -10, -20]} 
+                type='high' 
+                size={2} 
+                animated={true} 
+              />
               <PressureDisplay3D
+                key={`pressure-display-land-${state.pressureEnabled}`}
                 position={[4, -10, -20]}
                 type={pressures.land}
                 label='육지'
                 visible={true}
                 timeOfDay={state.timeOfDay}
               />
-              <PressureSphereBeautiful position={[4, -10, -20]} type='low' size={2} animated={true} />
+              <PressureSphereBeautiful 
+                key={`pressure-sphere-land-${state.pressureEnabled}`}
+                position={[4, -10, -20]} 
+                type='low' 
+                size={2} 
+                animated={true} 
+              />
             </>
           )}
 
-          {/* {state.showPressureDisplay && (
-            <>
-              <PressureClouds
-                type={pressures.sea}
-                position={[-18, -6.0, -19]}
-                visible={true}
-                timeOfDay={state.timeOfDay}
-              />
-              <PressureClouds
-                type={pressures.land}
-                position={[2, -5.7, -19]}
-                visible={true}
-                timeOfDay={state.timeOfDay}
-              />
-            </>
-          )}
-           */}
           {cameraTarget ? (
             <CameraController
               targetPosition={cameraTarget.position}

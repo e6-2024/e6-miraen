@@ -78,7 +78,7 @@ export const getPopupContent = (timeOfDay: TimeOfDay, step: ExperimentStep) => {
 
 export const getStepButtonStyle = (enabled: boolean, completed: boolean): string => {
   if (completed) {
-    return 'cursor-default opacity-90';
+    return 'cursor-pointer opacity-100';
   } else if (enabled) {
     return 'cursor-pointer';
   } else {
