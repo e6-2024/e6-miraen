@@ -203,8 +203,7 @@ const ActivityGuideModal: React.FC<{
                 <CrayonTextButton
                   ariaLabel={isLastSlide ? '확인' : '다음'}
                   text={isLastSlide ? '확인' : '다음'}
-                  icon={isLastSlide ? 'check' : 'chevron-right'}
-                  iconPosition='right'
+
                   width={160}
                   height={60}
                   iconSize={30}
