@@ -65,8 +65,7 @@ export function Controls({
           <CrayonTextButton
             text='다시 돌아가기'
             onClick={onBackToAnimation}
-            width={170}
-            height={60}
+            width={230}
             bg='#6B7280'
             color='#D1D5DB'
             textcolor='#FFFFFF'
@@ -79,8 +78,6 @@ export function Controls({
               <CrayonTextButton
                 text={isPlaying && !isPaused ? '일시 정지' : isPaused ? '재생하기' : '운동 시작하기'}
                 onClick={onToggleAnimation}
-                width={200}
-                height={70}
                 bg={isPlaying && !isPaused ? '#EAB308' : '#10B981'}
                 color={isPlaying && !isPaused ? '#FEF3C7' : '#D1FAE5'}
                 textcolor='#FFFFFF'
@@ -91,8 +88,7 @@ export function Controls({
               <CrayonTextButton
                 text='처음으로'
                 onClick={handleResetInCurrentView}
-                width={150}
-                height={70}
+                width={160}
                 bg='#6B7280'
                 color='#D1D5DB'
                 textcolor='#FFFFFF'
@@ -103,8 +99,7 @@ export function Controls({
               <CrayonTextButton
                 text='빠르기 비교하기'
                 onClick={onShowResult}
-                width={200}
-                height={70}
+                width={230}
                 bg='#8B5CF6'
                 color='#DDD6FE'
                 textcolor='#FFFFFF'
@@ -114,16 +109,15 @@ export function Controls({
 
           <div className='absolute flex flex-col top-6 left-6 z-10 gap-3'>
             {
-              <CrayonTextBox color='#F3921C' bg='#FFF' animated={true}>
-                <h3 className='text-base font-bold text-gray-700 mb-3'>관찰 시점을 고르세요.</h3>
+              <CrayonTextBox color='#F3921C' bg='#ffffff85'>
+                <h3 className='text-xl font-bold text-gray-700 m-3'>관찰 시점을 고르세요.</h3>
                 <div className='flex flex-col'>
                   {VIEW_BUTTONS.map((button, idx) => (
                     <CrayonTextButton
                       key={idx}
                       text={button.name}
                       onClick={() => onViewChange(button.mode)}
-                      width={220}
-                      height={60}
+                      width={320}
                       bg={viewMode === button.mode ? '#F97316' : '#F3F4F6'}
                       color={viewMode === button.mode ? '#FED7AA' : '#E5E7EB'}
                       textcolor={viewMode === button.mode ? '#FFFFFF' : '#374151'}
@@ -148,16 +142,15 @@ export function Controls({
                     duration: prefersReduced ? 0.45 : 0.45,
                     ease: [0.8, 1, 0.8, 1], 
                   }}>
-                  <CrayonTextBox color='#10B981' bg='#FFF' animated={true}>
-                    <h4 className='text-base font-bold text-gray-700 mb-3'>관찰하기</h4>
-                    <div className='grid grid-cols-1 gap-2 min-w-[160px]'>
+                  <CrayonTextBox color='#10B981' bg='#FFFFFF85' animated={true}>
+                    <h4 className='text-xl font-bold text-gray-700 m-3'>관찰하기</h4>
+                    <div className='grid grid-cols-2 gap-2 min-w-[160px]'>
                       {VEHICLES.map((vehicle) => (
                         <CrayonTextButton
                           key={vehicle.id}
                           text={vehicle.name}
+                          width={170}
                           onClick={() => onVehicleSelect(vehicle.id)}
-                          width={160}
-                          height={60}
                           bg={selectedVehicle === vehicle.id ? '#10B981' : '#F3F4F6'}
                           color={selectedVehicle === vehicle.id ? '#DBEAFE' : '#E5E7EB'}
                           textcolor={selectedVehicle === vehicle.id ? '#FFFFFF' : '#374151'}

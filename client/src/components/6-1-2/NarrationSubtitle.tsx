@@ -14,7 +14,9 @@ export function NarrationSubtitle({ visible, text }: NarrationSubtitleProps) {
         color='#10B981' 
         bg='#FFF'
         textcolor='#333'
-        fontSize='16px'
+        padding={40}
+        width={200}
+        paddingY={12}
         animated={true}
       >
         {text}
