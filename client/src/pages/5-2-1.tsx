@@ -357,6 +357,10 @@ export default function Home() {
   }
 
   const handleBackToIntro = () => {
+    stopNarration()
+    stopSound()
+    audioManager.stopCurrentAudio()
+
     setShowIntro(true)
     setShowSieveSelection(false)
     handleReset()
@@ -365,9 +369,11 @@ export default function Home() {
   const handleEnterExperience = () => {
     playSound(SOUND_EFFECTS.CLICK, VOLUMES.SOUND_EFFECT)
     setShowIntro(false)
-    playNarration(NARRATIONS.EXPERIMENT_START, VOLUMES.NARRATION)
     setShowSieveSelection(true)
     setBgmReady(true)
+    setTimeout(() => {
+      playNarration(NARRATIONS.EXPERIMENT_START, VOLUMES.NARRATION)
+    }, 1000)
   }
 
   const handleSelectSieve = (selectedLevel: number) => {
@@ -378,21 +384,27 @@ export default function Home() {
   }
 
   const handleReset = () => {
+    stopNarration()
+    stopSound()
+    audioManager.stopCurrentAudio()
+    setShowNarrationOverlay(false)
+    setOverlayLevel(null)
     setHasSpawned(false)
     setGravity(PHYSICS_CONFIG.gravity)
     setPhysicsKey((prev) => prev + 1)
     setShowSummaryButton(false)
+  }
+  
+  const handleLevelChange = (level: number) => {
+    stopNarration()
+    stopSound()
+    audioManager.stopCurrentAudio()
     setShowNarrationOverlay(false)
     setOverlayLevel(null)
-  }
-
-  const handleLevelChange = (level: number) => {
     setHasSpawned(false)
     setSelectedLevel(level)
     setPhysicsKey((prev) => prev + 1)
     setShowSummaryButton(false)
-    setShowNarrationOverlay(false)
-    setOverlayLevel(null)
   }
 
   const handleSeparationComplete = () => {
@@ -482,8 +494,6 @@ export default function Home() {
                 onClick={() => {
                   playSound(SOUND_EFFECTS.BUTTON, VOLUMES.SOUND_EFFECT)
                   handleLevelChange(level)
-                  stopNarration()
-                  stopSound()
                 }}
               />
             ))}

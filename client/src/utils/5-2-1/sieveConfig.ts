@@ -33,8 +33,8 @@ export const PARTICLE_CONFIG = {
     count: 40,
     batchSize: 10,
     interval: 10,
-    spread: 1.2,
-    height: 8,
+    spread: 1.1,
+    height: 5,
   },
 } as const;
 
