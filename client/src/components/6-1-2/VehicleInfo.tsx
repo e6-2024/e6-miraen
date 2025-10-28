@@ -18,14 +18,13 @@ export function VehicleInfo({ viewMode, selectedVehicle, animationState }: Vehic
   const speed = vehicle?.speed || 0
   const speed2 = 0
 
-  // 애니메이션 시간 추적
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null
 
     if (animationState.isPlaying && !animationState.isPaused) {
       interval = setInterval(() => {
         setElapsedTime((prev) => prev + 0.1)
-      }, 100) // 0.1초마다 업데이트
+      }, 100)
     }
 
     if (animationState.resetTrigger) {
@@ -40,12 +39,10 @@ export function VehicleInfo({ viewMode, selectedVehicle, animationState }: Vehic
     }
   }, [animationState.isPlaying, animationState.isPaused, animationState.resetTrigger])
 
-  // 거리 계산 (거리 = 속력 × 시간)
   useEffect(() => {
     setDistance(speed * elapsedTime)
   }, [speed, elapsedTime])
 
-  // firstPerson 모드일 때만 표시
   if (viewMode !== 'firstPerson') {
     return null
   }
