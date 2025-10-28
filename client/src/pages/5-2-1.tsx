@@ -377,6 +377,8 @@ export default function Home() {
   }
 
   const handleBackToIntro = () => {
+    clearAllDelays()
+    bumpRun()
     stopNarration()
     stopSound()
     audioManager.stopCurrentAudio()
