@@ -339,8 +339,7 @@ export default function Page() {
         <>
           <div className='fixed top-4 right-4 z-[1001]'>
             <CrayonTextButton
-              text='돌아가기'
-              width={120}
+              text='첫 화면으로'
               bg={lightTheme.goal.bg}
               color='#FFFFFF'
               textcolor='#FFFFFF'

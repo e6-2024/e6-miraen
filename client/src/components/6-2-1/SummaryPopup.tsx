@@ -13,7 +13,7 @@ const SummaryPopup = ({ isOpen, onClose }) => {
 
   const toggleGraph = async (graphType) => {
     stopNarration()
-    
+
     const wasActive = activeGraphs[graphType]
 
     const newActiveGraphs = {
@@ -33,7 +33,6 @@ const SummaryPopup = ({ isOpen, onClose }) => {
     })
     onClose()
   }
-
 
   useEffect(() => {
     if (!isOpen) {
@@ -67,11 +66,7 @@ const SummaryPopup = ({ isOpen, onClose }) => {
 
   return (
     <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
-      <CrayonTextBox
-        bg='#fff'
-        color='#01A7A2'
-        textcolor='#333'
-        animated={false}>
+      <CrayonTextBox bg='#fff' color='#01A7A2' textcolor='#333' animated={false} padding={40} paddingY={16}>
         <div className='rounded-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto'>
           <div className='flex justify-between items-center mb-6'>
             <h2 className='text-2xl font-bold text-gray-800'>정리하기</h2>
@@ -142,7 +137,7 @@ const SummaryPopup = ({ isOpen, onClose }) => {
             </button>
           </div>
 
-          <div className='bg-green-50 rounded-lg p-4 min-h-[100px]'>
+          <div className='bg-green-50 rounded-lg text-left p-4 min-h-[100px]'>
             {getExplanationText().length > 0 ? (
               <div className='space-y-3'>
                 {getExplanationText().map((text, index) => (
