@@ -59,7 +59,7 @@ const TimeSelectionPopup: React.FC<TimeSelectionPopupProps> = ({ isOpen, onTimeS
     <div className='fixed inset-0 flex items-center justify-center z-50 bg-white bg-opacity-50 transition-all duration-300'>
       <CrayonTextBox width={900} height={600} bg='#fff' color='#52AE46' animated={true}>
         <div className='p-8 blur-none'>
-          <h3 className='text-2xl font-bold text-gray-900 mb-8 text-center'>시간대를 선택해 보세요</h3>
+          <h3 className='text-3xl font-bold text-gray-900 mb-8 text-center'>시간대를 선택해 보세요</h3>
 
           <div className='flex gap-4 justify-center'>
             <button onClick={() => handleTimeSelect('day')} className='flex flex-col items-center rounded-xl font-bold'>
@@ -71,7 +71,7 @@ const TimeSelectionPopup: React.FC<TimeSelectionPopupProps> = ({ isOpen, onTimeS
                   e.currentTarget.style.display = 'none'
                 }}
               />
-              <span className='text-xl text-black'>낮</span>
+              <span className='text-2xl text-black'>낮</span>
             </button>
 
             <button
@@ -85,7 +85,7 @@ const TimeSelectionPopup: React.FC<TimeSelectionPopupProps> = ({ isOpen, onTimeS
                   e.currentTarget.style.display = 'none'
                 }}
               />
-              <span className='text-xl text-black'>밤</span>
+              <span className='text-2xl text-black'>밤</span>
             </button>
           </div>
         </div>
@@ -403,15 +403,16 @@ export default function Page() {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-          className='absolute bottom-4 right-4 z-30'>
+          className='absolute bottom-2 right-4 z-30'>
           <CrayonTextButton
             text='정리하기'
             onClick={handleSummaryClick}
             color='#fff'
+            icon={'PencilLine'}
+            iconSize={30}
+            iconPosition='left'
             textcolor='#FFFFFF'
             bg='#52AE46'
-            width={140}
-            height={70}
             className='font-bold animate-pulse'
           />
         </motion.div>
@@ -433,9 +434,6 @@ export default function Page() {
             <CrayonTextButton
               ariaLabel='모드 선택 화면으로 돌아가기'
               text='첫 화면으로'
-              width={140}
-              height={75}
-              iconSize={30}
               color={'#999999'}
               bg={BUTTON_THEME.goal.text}
               textcolor={'#000'}

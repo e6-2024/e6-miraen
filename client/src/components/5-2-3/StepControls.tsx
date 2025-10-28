@@ -13,7 +13,7 @@ export const StepControls: React.FC<StepControlsProps> = ({ steps, onStepClick, 
   if (!visible) return null
 
   return (
-    <div className='absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-30 font-bold'>
+    <div className='absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-2 z-30 font-bold'>
       {steps.map((step) => (
         <CrayonTextButton
           color='#999999'

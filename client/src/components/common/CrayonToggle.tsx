@@ -174,7 +174,7 @@ export const CrayonToggle: React.FC<CrayonToggleButtonProps> = ({
           }`}
         >
           <Sun size={iconSize} style={{ color: textColorDay }} />
-          <span className="font-bold text-[18px]" style={{ color: textColorDay }}>
+          <span className="font-bold text-[20pt]" style={{ color: textColorDay }}>
             {labelDay}
           </span>
         </div>
@@ -183,7 +183,7 @@ export const CrayonToggle: React.FC<CrayonToggleButtonProps> = ({
             !checked ? 'opacity-90' : 'opacity-40'
           }`}
         >
-          <span className="font-bold text-[18px]" style={{ color: textColorNight }}>
+          <span className="font-bold text-[20pt]" style={{ color: textColorNight }}>
             {labelNight}
           </span>
           <Moon size={iconSize} style={{ color: textColorNight }} />

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { PopupContent } from '@/types/5-2-3/types'
 import { CrayonTextBox } from '../common/CrayonTextBox'
+import { CrayonTextButton } from '@/components/common/CrayonUIButton'
 
 interface PopupProps {
   isOpen: boolean
@@ -10,31 +12,26 @@ interface PopupProps {
 }
 
 export const Popup: React.FC<PopupProps> = ({ isOpen, onClose, content, onComplete }) => {
-  const [isVisible, setIsVisible] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
-
   useEffect(() => {
-    if (isOpen) {
-      setIsVisible(true)
+    if (!isOpen) return
 
-      if (content.narrationPath) {
-        audioRef.current = new Audio(content.narrationPath)
-        audioRef.current.volume = 0.5
+    if (content.narrationPath) {
+      audioRef.current = new Audio(content.narrationPath)
+      audioRef.current.volume = 0.5
+      audioRef.current.load()
+      const playPromise = audioRef.current.play()
 
-        audioRef.current.load()
-        const playPromise = audioRef.current.play()
-
-        if (playPromise !== undefined) {
-          playPromise.catch((error) => {
-            const playOnClick = () => {
-              if (audioRef.current) {
-                audioRef.current.play().catch(console.error)
-              }
-              document.removeEventListener('click', playOnClick)
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          const playOnClick = () => {
+            if (audioRef.current) {
+              audioRef.current.play().catch(console.error)
             }
-            document.addEventListener('click', playOnClick)
-          })
-        }
+            document.removeEventListener('click', playOnClick)
+          }
+          document.addEventListener('click', playOnClick)
+        })
       }
     }
 
@@ -52,31 +49,55 @@ export const Popup: React.FC<PopupProps> = ({ isOpen, onClose, content, onComple
       audioRef.current.pause()
       audioRef.current.currentTime = 0
     }
-
-    setIsVisible(false)
-    setTimeout(() => {
-      onClose()
-      onComplete?.()
-    }, 300)
+    onClose()
+    onComplete?.()
   }
 
-  if (!isOpen) return null
-
   return (
-    <div className='fixed inset-0 flex items-center justify-center z-50 transition-all duration-300'>
-      <CrayonTextBox color='#52AE46' bg='#fff' width={600} animated={true}>
-        <div className='p-6'>
-          <h3 className='text-xl font-bold text-gray-900 mb-3'>{content.title}</h3>
-          <p className='text-gray-600 text-lg font-light leading-relaxed mb-6'>{content.content}</p>
-          <div className='flex justify-center'>
-            <button
-              onClick={handleConfirm}
-              className='px-6 py-2 bg-[#52AE46] text-white rounded-lg font-light transition-all duration-200'>
-              확인
-            </button>
-          </div>
-        </div>
-      </CrayonTextBox>
-    </div>
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          key="popup-overlay"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+          onClick={handleConfirm}
+        >
+          <motion.div
+            key="popup-content"
+            initial={{ scale: 0.88, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.88, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <CrayonTextBox
+              bg="#FFFFFF"
+              color="#52AE46"
+              width={600}
+              padding={40}
+              paddingY={12}
+              animated={true}
+            >
+              <h3 className="text-3xl font-bold text-center m-6 text-gray-800">{content.title}</h3>
+              <p className="text-2xl text-center font-light text-gray-700 leading-relaxed mb-8">
+                {content.content}
+              </p>
+              <div className="text-center">
+                <CrayonTextButton
+                  onClick={handleConfirm}
+                  bg="#52AE46"
+                  color="#52AE46"
+                  textcolor="#FFFFFF"
+                  text="확인"
+                  innerCircleVisible={false}
+                />
+              </div>
+            </CrayonTextBox>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }

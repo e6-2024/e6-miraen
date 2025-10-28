@@ -18,7 +18,7 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({ timeOfDay, onTimeSel
       <CrayonToggle
         checked={checked}
         onChange={(next) => onTimeSelect(next ? 'day' : 'night')}
-        width={180}
+        width={210}
         height={80}
         aria-label='낮/밤 전환'
         dayBg='#fff'
