@@ -16,6 +16,7 @@ export function VehicleInfo({ viewMode, selectedVehicle, animationState }: Vehic
 
   const vehicle = findVehicleById(selectedVehicle)
   const speed = vehicle?.speed || 0
+  const speed2 = 0
 
   // 애니메이션 시간 추적
   useEffect(() => {
@@ -70,7 +71,9 @@ export function VehicleInfo({ viewMode, selectedVehicle, animationState }: Vehic
             </div>
             <div className='flex justify-between items-center'>
               <span className='text-gray-600'>속력:</span>
-              <span className='font-semibold text-gray-800'>{speed} m/s</span>
+              <span className='font-semibold text-gray-800'>
+                {elapsedTime === 0 || animationState.isPaused ? 0 : speed} m/s
+              </span>
             </div>
           </div>
         </CrayonTextBox>
