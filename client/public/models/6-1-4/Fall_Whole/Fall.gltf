@@ -45,14 +45,14 @@
 			"mesh":1,
 			"name":"Sphere.002",
 			"rotation":[
-				-0.07894215732812881,
-				-0.0666627511382103,
-				0.5253492593765259,
-				0.8445900678634644
+				-0.07613822817802429,
+				-0.06984809041023254,
+				0.5595872402191162,
+				0.8223055005073547
 			],
 			"scale":[
 				207.33265686035156,
-				207.33262634277344,
+				207.3326416015625,
 				207.3325653076172
 			],
 			"translation":[
@@ -332,18 +332,18 @@
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":3954,
+			"byteLength":3795,
 			"byteOffset":0
 		},
 		{
 			"buffer":0,
-			"byteLength":3806,
-			"byteOffset":3956
+			"byteLength":3847,
+			"byteOffset":3796
 		},
 		{
 			"buffer":0,
-			"byteLength":3807,
-			"byteOffset":7764
+			"byteLength":3847,
+			"byteOffset":7644
 		}
 	],
 	"samplers":[
@@ -354,7 +354,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":11572,
+			"byteLength":11492,
 			"uri":"Fall.bin"
 		}
 	]
