@@ -8,6 +8,7 @@ import Scene from '@/components/canvas/Scene'
 import Intro from '@/components/intro/Intro'
 import { LoadingTracker } from '@/components/6-1-2/LoadingTracker'
 import { NarrationSubtitle } from '@/components/6-1-2/NarrationSubtitle'
+import { InformationSubtitle } from '@/components/6-1-2/InformationTitle'
 import { Controls } from '@/components/6-1-2/Controls'
 import { CameraController } from '@/components/6-1-2/CameraController'
 import { BackButton } from '@/components/6-1-2/BackButton'
@@ -109,7 +110,7 @@ export default function Home() {
   })
   const [showResult, setShowResult] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>('start')
-  const [selectedVehicle, setSelectedVehicle] = useState<VehicleId>('train')
+  const [selectedVehicle, setSelectedVehicle] = useState<VehicleId>('horse')
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
   const [showNarrationSubtitle, setShowNarrationSubtitle] = useState(false)
@@ -261,7 +262,6 @@ export default function Home() {
     setShowNarrationSubtitle(false)
     setNarrationText('')
     stopAllAudio()
-
     setAnimationState({
       isPlaying: false,
       isPaused: false,
@@ -312,6 +312,8 @@ export default function Home() {
     })
     setShowResult(false)
     setViewMode('start')
+    setSelectedVehicle('horse')
+
     stopAllAudio()
     stopCurrentAudio()
     setShowNarrationSubtitle(false)
@@ -326,10 +328,11 @@ export default function Home() {
       setAnimationState((prev) => ({ ...prev, resetTrigger: false }))
     }, 100)
   }
-  
+
   return (
     <div className='w-screen h-screen bg-[#78C9C9] relative'>
       {!showIntro && <NarrationSubtitle visible={showNarrationSubtitle} text={narrationText} />}
+      {!showIntro && <InformationSubtitle visible={showResult} />}
 
       <VehicleInfo viewMode={viewMode} selectedVehicle={selectedVehicle} animationState={animationState} />
 

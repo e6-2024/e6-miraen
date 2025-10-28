@@ -63,38 +63,14 @@ function ExperimentStatus({
   if (currentPhase === 'readyToCover') {
     return (
       <div className='absolute bottom-5 left-1/2 transform -translate-x-1/2'>
-        <CrayonTextButton
-          text='촛불 덮기'
-          onClick={onCoverCandles}
-          width={180}
-          height={60}
-          bg='#ff6600'
-          color='#ffaa66'
-          textcolor='#FFFFFF'
-        />
+        <CrayonTextButton text='촛불 덮기' onClick={onCoverCandles} bg='#ff6600' color='#ffaa66' textcolor='#FFFFFF' />
       </div>
     )
   } else if (currentPhase === 'finished') {
     return (
       <div className='absolute flex gap-2 bottom-5 left-1/2 transform -translate-x-1/2'>
-        <CrayonTextButton
-          text='다시 실험하기'
-          onClick={onReset}
-          width={180}
-          height={60}
-          bg='#9B1CDF'
-          color='#DFB2FA'
-          textcolor='#FFFFFF'
-        />
-        <CrayonTextButton
-          text='정리하기'
-          onClick={showPopup}
-          width={180}
-          height={60}
-          bg='#01A7A2'
-          color='#78C9C9'
-          textcolor='#FFFFFF'
-        />
+        <CrayonTextButton text='다시 실험하기' onClick={onReset} bg='#9B1CDF' color='#DFB2FA' textcolor='#FFFFFF' />
+        <CrayonTextButton text='정리하기' onClick={showPopup} bg='#01A7A2' color='#78C9C9' textcolor='#FFFFFF' />
       </div>
     )
   }
@@ -121,12 +97,14 @@ function ExperimentInstructions({
         return '산소를 공급하지 않은 촛불은 먼저 꺼집니다.'
       case 'rightOut':
         return '산소를 공급한 촛불은 더 오래 탑니다.'
+      case 'finished':
+        return '산소를 공급한 촛불은 더 오래 탑니다.'
     }
   }
 
   return (
     <div className='absolute font-light top-5 left-1/2 transform -translate-x-1/2'>
-      <CrayonTextBox color='#01A7A2' bg='#FFF' textcolor='#333' width='500px' animated={true}>
+      <CrayonTextBox color='#01A7A2' bg='#FFF' textcolor='#333' padding={40} paddingY={12} animated={true}>
         {getInstructionText()}
       </CrayonTextBox>
     </div>
@@ -343,7 +321,8 @@ export default function Page() {
           currentPhase === 'oxygenSupply' ||
           currentPhase === 'burning' ||
           currentPhase === 'leftOut' ||
-          currentPhase === 'rightOut') && (
+          currentPhase === 'rightOut' ||
+          currentPhase === 'finished') && (
           <AnimatePresence>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -384,8 +363,8 @@ export default function Page() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={(e) => e.stopPropagation()}>
-              <CrayonTextBox color={particleTheme.goal.bg} bg={'#FFF'} width={400} animated={true}>
-                <p className='font-bold text-[#333] text-xl p-4'>물질이 타려면 산소가 필요합니다.</p>
+              <CrayonTextBox color={particleTheme.goal.bg} bg={'#FFF'} padding={40} paddingY={40} animated={true}>
+                <p className='font-bold text-[#333] text-3xl p-4'>물질이 타려면 산소가 필요합니다.</p>
                 <div className='text-center pt-4'>
                   <CrayonTextButton
                     onClick={() => {
