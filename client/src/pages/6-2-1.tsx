@@ -334,7 +334,6 @@ export default function Page() {
         </>
       )}
 
-      {/* 시간 간격 이미지 */}
       {showTimeIntervalImages && (
         <>
           <div className='fixed top-4 right-4 z-[1001]'>

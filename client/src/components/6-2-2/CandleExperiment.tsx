@@ -9,7 +9,6 @@ import { EXPERIMENT_CONFIG } from '@/utils/6-2-2/utils'
 import CameraLogger from '@/hook/CameraLogger'
 import { SpeechBubble } from '@/components/6-2-2/SpeechBubble'
 import { SpeechBubble2 } from '@/components/6-2-2/SpeechBubble2'
-import { CMSMode } from 'three-stdlib'
 
 interface CandleExperimentProps {
   experimentStarted: boolean
@@ -44,6 +43,7 @@ export function CandleExperiment({
   const oxygenCanRef = useRef<THREE.Object3D>(null)
   const mixerRef = useRef<THREE.AnimationMixer | null>(null)
   const orbitControlsRef = useRef<any>(null)
+  const specialMeshesRef = useRef<THREE.Object3D[]>([])
 
   const [showFlame, setShowFlame] = useState(true)
   const [leftFlameOpacity, setLeftFlameOpacity] = useState(1)
@@ -105,7 +105,55 @@ export function CandleExperiment({
       setHovered(false)
       setCurrentModel(model0)
       setOxygenCanOpacity(1)
+      
+      // oxygen_spray와 oxygen_spray_button 복구
+      if (oxygenCanRef.current) {
+        oxygenCanRef.current.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            const mesh = child as THREE.Mesh
+            mesh.castShadow = true
+            mesh.receiveShadow = true
+            mesh.visible = true
+            
+            // Material 복구
+            const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+            mats.forEach((m: any) => {
+              if (m && m.userData?.__orig) {
+                m.transparent = m.userData.__orig.transparent
+                m.opacity = m.userData.__orig.opacity
+                m.depthWrite = m.userData.__orig.depthWrite
+                m.needsUpdate = true
+              }
+            })
+          }
+        })
+      }
+      
+      if (oxygenButtonRef.current) {
+        oxygenButtonRef.current.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            const mesh = child as THREE.Mesh
+            mesh.castShadow = true
+            mesh.receiveShadow = true
+            mesh.visible = true
+            
+            // Material 복구
+            const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+            mats.forEach((m: any) => {
+              if (m && m.userData?.__orig) {
+                m.transparent = m.userData.__orig.transparent
+                m.opacity = m.userData.__orig.opacity
+                m.depthWrite = m.userData.__orig.depthWrite
+                m.needsUpdate = true
+              }
+            })
+          }
+        })
+      }
+      
       oxygenCanRef.current = null
+      oxygenButtonRef.current = null
+      specialMeshesRef.current = []
       camera.position.set(...EXPERIMENT_CONFIG.cameraPositions.initial)
       camera.lookAt(0, 0, 0)
     }
@@ -127,12 +175,25 @@ export function CandleExperiment({
   }, [currentModel, model0, model1])
 
   useEffect(() => {
+    // Clear previous special meshes
+    specialMeshesRef.current = []
+
     currentModel.scene.traverse((child) => {
+      // Find special meshes that should be hidden initially
+      if (
+        child.name === 'st_set_Hatthylla_ljus_penna_bok_matta_vaskapolySurface170' ||
+        child.name === 'polySurface170'
+      ) {
+        specialMeshesRef.current.push(child)
+        child.visible = false
+      }
+
       if (child.name === 'Plane') {
         child.scale.set(200, 20, 20)
       }
       if (child.name === 'Acryl_Cup1') {
         rightCupRef.current = child
+        child.renderOrder = 1
         child.traverse((obj) => {
           if ((obj as THREE.Mesh).isMesh) {
             const mesh = obj as THREE.Mesh
@@ -167,6 +228,7 @@ export function CandleExperiment({
         })
       } else if (child.name === 'Acryl_Cup') {
         leftCupRef.current = child
+        child.renderOrder = 1
         child.traverse((obj) => {
           if ((obj as THREE.Mesh).isMesh) {
             const mesh = obj as THREE.Mesh
@@ -201,6 +263,7 @@ export function CandleExperiment({
         })
       } else if (child.name === 'Oxygen_spray_button') {
         oxygenButtonRef.current = child
+        child.renderOrder = 10
         child.traverse((obj) => {
           if ((obj as THREE.Mesh).isMesh) {
             const mesh = obj as THREE.Mesh
@@ -237,6 +300,7 @@ export function CandleExperiment({
         })
       } else if (child.name === 'Oxygen_spray') {
         oxygenCanRef.current = child
+        child.renderOrder = 5
         if (currentModel === model3) {
           child.visible = false
         }
@@ -483,6 +547,20 @@ export function CandleExperiment({
   useFrame((state) => {
     const t = state.clock.getElapsedTime()
 
+    // Control visibility of special meshes based on experimentPhase
+    const shouldShowSpecialMeshes =
+      experimentPhase === 'cameraTrackOut' ||
+      experimentPhase === 'readyToCover' ||
+      experimentPhase === 'covering' ||
+      experimentPhase === 'burning' ||
+      experimentPhase === 'leftOut' ||
+      experimentPhase === 'rightOut' ||
+      experimentPhase === 'finished'
+
+    specialMeshesRef.current.forEach((mesh) => {
+      mesh.visible = shouldShowSpecialMeshes
+    })
+
     const applyBlink = (mesh: THREE.Mesh, v: number) => {
       const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
       mats.forEach((m: any) => {
@@ -518,10 +596,11 @@ export function CandleExperiment({
         if (!o) return
         m.transparent = true
         m.opacity = THREE.MathUtils.clamp((o.opacity ?? 1) * opacity, 0, 1)
-        m.depthWrite = false // ★ 추가
+        m.depthWrite = false
         m.needsUpdate = true
       })
     }
+
     if (experimentPhase === 'selectingCup' && hovered && leftCupRef.current) {
       const blink = 0.8 + Math.sin(t * 6) * 0.2
       leftCupRef.current.traverse((child) => {
@@ -540,27 +619,16 @@ export function CandleExperiment({
       })
     }
 
-    if (experimentPhase === 'oxygenSupplying' && oxygenCanRef.current) {
-      oxygenCanRef.current.traverse((child) => {
-        if ((child as THREE.Mesh).isMesh) {
-          const mesh = child as THREE.Mesh
-          const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
-          mats.forEach((m: any) => {
-            if (!m) return
-            m.opacity = 1
-            m.visible = true
-            m.needsUpdate = true
-          })
-        }
-      })
+    // oxygenSupplying 단계에서는 버튼만 흐리게 처리
+    if (experimentPhase === 'oxygenSupplying' && oxygenButtonRef.current) {
       oxygenButtonRef.current.traverse((child) => {
         if ((child as THREE.Mesh).isMesh) {
           const mesh = child as THREE.Mesh
           const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
           mats.forEach((m: any) => {
             if (!m) return
+            m.transparent = true
             m.opacity = 0.3
-            m.visible = true
             m.needsUpdate = true
           })
         }
@@ -570,18 +638,50 @@ export function CandleExperiment({
     if (experimentPhase === 'oxygenCanDisappearing' || experimentPhase === 'readyToCover') {
       if (oxygenCanRef.current) {
         oxygenCanRef.current.traverse((child) => {
-          if ((child as THREE.Mesh).isMesh) applyOpacity(child as THREE.Mesh, oxygenCanOpacity)
+          if ((child as THREE.Mesh).isMesh) {
+            applyOpacity(child as THREE.Mesh, oxygenCanOpacity)
+            // 그림자 제어: opacity가 낮으면 그림자도 끄기
+            const mesh = child as THREE.Mesh
+            if (oxygenCanOpacity < 0.5) {
+              mesh.castShadow = false
+              mesh.receiveShadow = false
+            }
+          }
+        })
+      }
+      
+      // 버튼도 동일하게 처리
+      if (oxygenButtonRef.current) {
+        oxygenButtonRef.current.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            applyOpacity(child as THREE.Mesh, oxygenCanOpacity)
+            const mesh = child as THREE.Mesh
+            if (oxygenCanOpacity < 0.5) {
+              mesh.castShadow = false
+              mesh.receiveShadow = false
+            }
+          }
         })
       }
     }
   })
+
+  // Determine if Flame should be visible based on experimentPhase
+  const shouldShowFlame =
+    showFlame &&
+    (experimentPhase === 'cameraTrackOut' ||
+      experimentPhase === 'readyToCover' ||
+      experimentPhase === 'covering' ||
+      experimentPhase === 'burning' ||
+      experimentPhase === 'leftOut' ||
+      experimentPhase === 'rightOut')
 
   return (
     <group>
       <primitive object={currentModel.scene} scale={5.0} position={[0, 0, 0]} />
 
       <Environment preset='city' />
-      {showFlame && (
+      {shouldShowFlame && (
         <>
           <Flame
             position={EXPERIMENT_CONFIG.flamePositions.right}
@@ -611,7 +711,6 @@ export function CandleExperiment({
 
       <OrbitControls
         ref={orbitControlsRef}
-        enabled={experimentPhase !== 'selectingCup'}
         maxDistance={40}
         minDistance={3}
         minAzimuthAngle={-Math.PI / 6}
