@@ -1,5 +1,5 @@
 import React from 'react'
-import { Html, Billboard } from '@react-three/drei'
+import { Html, Billboard, Line } from '@react-three/drei'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface SpeechBubbleProps {
@@ -9,6 +9,10 @@ interface SpeechBubbleProps {
   bubbleOffset?: [number, number, number]
   visible?: boolean
   delay?: number
+  showLine?: boolean
+  lineStart?: [number, number, number]
+  lineEnd?: [number, number, number]
+  lineColor?: string
 }
 
 export const SpeechBubble = ({
@@ -18,9 +22,21 @@ export const SpeechBubble = ({
   bubbleOffset = [0.2, 0.8, 0],
   visible = true,
   delay = 0,
+  showLine = false,
+  lineStart = [0, 0, 0],
+  lineEnd = [0.2, 0.8, 0],
+  lineColor = '#ffffff',
 }: SpeechBubbleProps) => {
   return (
     <group position={position}>
+      {visible && showLine && (
+        <Line
+          points={[lineStart, lineEnd]}
+          color={lineColor}
+          lineWidth={2}
+        />
+      )}
+
       <AnimatePresence>
         {visible && (
           <Billboard position={bubbleOffset}>

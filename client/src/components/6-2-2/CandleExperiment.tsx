@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { useGLTF, useCursor, Environment, OrbitControls } from '@react-three/drei'
 import { useThree, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
@@ -21,6 +21,68 @@ interface CandleExperimentProps {
 interface GLBModel {
   scene: THREE.Object3D
   animations: THREE.AnimationClip[]
+}
+
+const applyBlink = (mesh: THREE.Mesh, v: number) => {
+  const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+  mats.forEach((m: any) => {
+    if (!m) return
+    const o = m.userData?.__orig
+    if (!o) return
+    m.transparent = true
+    m.opacity = THREE.MathUtils.clamp((o.opacity ?? 1) * v, 0, 1)
+    m.depthWrite = false
+    m.needsUpdate = true
+  })
+}
+
+const restore = (mesh: THREE.Mesh) => {
+  const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+  mats.forEach((m: any) => {
+    const o = m?.userData?.__orig
+    if (!o) return
+    m.transparent = o.transparent
+    m.opacity = o.opacity
+    m.depthWrite = o.depthWrite
+    m.depthTest = o.depthTest
+    m.side = o.side
+    m.needsUpdate = true
+  })
+}
+
+const applyOpacity = (mesh: THREE.Mesh, opacity: number) => {
+  const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+  mats.forEach((m: any) => {
+    if (!m) return
+    const o = m.userData?.__orig
+    if (!o) return
+    m.transparent = true
+    m.opacity = THREE.MathUtils.clamp((o.opacity ?? 1) * opacity, 0, 1)
+    m.depthWrite = false
+    m.needsUpdate = true
+  })
+}
+
+const restoreMaterials = (obj: THREE.Object3D | null) => {
+  if (!obj) return
+  obj.traverse((child) => {
+    if ((child as THREE.Mesh).isMesh) {
+      const mesh = child as THREE.Mesh
+      mesh.castShadow = true
+      mesh.receiveShadow = true
+      mesh.visible = true
+
+      const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+      mats.forEach((m: any) => {
+        if (m && m.userData?.__orig) {
+          m.transparent = m.userData.__orig.transparent
+          m.opacity = m.userData.__orig.opacity
+          m.depthWrite = m.userData.__orig.depthWrite
+          m.needsUpdate = true
+        }
+      })
+    }
+  })
 }
 
 export function CandleExperiment({
@@ -56,10 +118,57 @@ export function CandleExperiment({
   const [currentModel, setCurrentModel] = useState<GLBModel>(model0)
   const [oxygenCanOpacity, setOxygenCanOpacity] = useState(1)
 
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const rafRef = useRef<number | null>(null)
+  const activeTimersRef = useRef<Set<NodeJS.Timeout>>(new Set())
+  const activeIntervalsRef = useRef<Set<NodeJS.Timeout>>(new Set())
 
   useCursor(hovered)
+
+  const addTimeout = useCallback((timeout: NodeJS.Timeout) => {
+    activeTimersRef.current.add(timeout)
+    return timeout
+  }, [])
+
+  const removeTimeout = useCallback((timeout: NodeJS.Timeout) => {
+    activeTimersRef.current.delete(timeout)
+    clearTimeout(timeout)
+  }, [])
+
+  const addInterval = useCallback((interval: NodeJS.Timeout) => {
+    activeIntervalsRef.current.add(interval)
+    return interval
+  }, [])
+
+  const removeInterval = useCallback((interval: NodeJS.Timeout) => {
+    activeIntervalsRef.current.delete(interval)
+    clearInterval(interval)
+  }, [])
+
+  const cleanupAllAsyncOperations = useCallback(() => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current)
+      rafRef.current = null
+    }
+
+    activeTimersRef.current.forEach(clearTimeout)
+    activeTimersRef.current.clear()
+
+    activeIntervalsRef.current.forEach(clearInterval)
+    activeIntervalsRef.current.clear()
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      cleanupAllAsyncOperations()
+      
+      if (mixerRef.current) {
+        mixerRef.current.stopAllAction()
+        mixerRef.current = null
+      }
+
+      delete (window as any).handleCoverCandles
+    }
+  }, [cleanupAllAsyncOperations])
 
   useEffect(() => {
     if (currentModel.animations && currentModel.animations.length > 0) {
@@ -72,6 +181,10 @@ export function CandleExperiment({
         const action = mixerRef.current!.clipAction(clip)
         action.setLoop(THREE.LoopOnce, 1)
         action.clampWhenFinished = true
+
+        if (currentModel === model2) {
+          action.time = clip.duration * 0.3
+        }
         action.play()
       })
     }
@@ -80,93 +193,40 @@ export function CandleExperiment({
         mixerRef.current.stopAllAction()
       }
     }
-  }, [currentModel])
-
-  useEffect(() => {
-    const clock = new THREE.Clock()
-    const animate = () => {
-      if (mixerRef.current) mixerRef.current.update(clock.getDelta())
-      requestAnimationFrame(animate)
-    }
-    animate()
-  }, [])
+  }, [currentModel, model2])
 
   useEffect(() => {
     if (!experimentStarted) {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current)
-      if (intervalRef.current) clearInterval(intervalRef.current)
+      cleanupAllAsyncOperations()
+      
       setShowFlame(true)
       setLeftFlameOpacity(1)
       setLeftFlameScale(1)
-
       setRightFlameOpacity(1)
       setRightFlameScale(1)
       setExperimentPhase('selectingCup')
       setHovered(false)
       setCurrentModel(model0)
       setOxygenCanOpacity(1)
-      
-      // oxygen_spray와 oxygen_spray_button 복구
-      if (oxygenCanRef.current) {
-        oxygenCanRef.current.traverse((child) => {
-          if ((child as THREE.Mesh).isMesh) {
-            const mesh = child as THREE.Mesh
-            mesh.castShadow = true
-            mesh.receiveShadow = true
-            mesh.visible = true
-            
-            // Material 복구
-            const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
-            mats.forEach((m: any) => {
-              if (m && m.userData?.__orig) {
-                m.transparent = m.userData.__orig.transparent
-                m.opacity = m.userData.__orig.opacity
-                m.depthWrite = m.userData.__orig.depthWrite
-                m.needsUpdate = true
-              }
-            })
-          }
-        })
-      }
-      
-      if (oxygenButtonRef.current) {
-        oxygenButtonRef.current.traverse((child) => {
-          if ((child as THREE.Mesh).isMesh) {
-            const mesh = child as THREE.Mesh
-            mesh.castShadow = true
-            mesh.receiveShadow = true
-            mesh.visible = true
-            
-            // Material 복구
-            const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
-            mats.forEach((m: any) => {
-              if (m && m.userData?.__orig) {
-                m.transparent = m.userData.__orig.transparent
-                m.opacity = m.userData.__orig.opacity
-                m.depthWrite = m.userData.__orig.depthWrite
-                m.needsUpdate = true
-              }
-            })
-          }
-        })
-      }
-      
+
+      restoreMaterials(oxygenCanRef.current)
+      restoreMaterials(oxygenButtonRef.current)
+
       oxygenCanRef.current = null
       oxygenButtonRef.current = null
       specialMeshesRef.current = []
+      
       camera.position.set(...EXPERIMENT_CONFIG.cameraPositions.initial)
       camera.lookAt(0, 0, 0)
-    }
-  }, [experimentStarted, camera, model0])
+      
+      if (orbitControlsRef.current) {
+        orbitControlsRef.current.target.set(0, 0, 0)
+        orbitControlsRef.current.update()
+      }
 
-  useEffect(() => {
-    if (experimentStarted && experimentPhase === 'selectingCup') {
-      setCurrentModel(model0)
-      onPhaseChange('selectingCup')
-      camera.position.set(...EXPERIMENT_CONFIG.cameraPositions.initial)
-      camera.lookAt(0, 0, 0)
+      delete (window as any).handleCoverCandles
     }
-  }, [experimentStarted, experimentPhase, onPhaseChange, model0, currentModel])
+  }, [experimentStarted, camera, model0, cleanupAllAsyncOperations])
 
   useEffect(() => {
     if (currentModel === model0 || currentModel === model1) {
@@ -175,11 +235,9 @@ export function CandleExperiment({
   }, [currentModel, model0, model1])
 
   useEffect(() => {
-    // Clear previous special meshes
     specialMeshesRef.current = []
 
     currentModel.scene.traverse((child) => {
-      // Find special meshes that should be hidden initially
       if (
         child.name === 'st_set_Hatthylla_ljus_penna_bok_matta_vaskapolySurface170' ||
         child.name === 'polySurface170'
@@ -345,60 +403,62 @@ export function CandleExperiment({
     })
 
     currentModel.scene.position.set(0, -1, 0)
-  }, [currentModel])
+  }, [currentModel, model3])
 
-  const handleLeftCupClick = () => {
+  const handleLeftCupClick = useCallback(() => {
     if (experimentPhase !== 'selectingCup') return
     setExperimentPhase('oxygenCanAppearing')
     setCurrentModel(model1)
     onPhaseChange('oxygenCanAppearing')
 
-    timeoutRef.current = setTimeout(() => {
+    const timeout1 = addTimeout(setTimeout(() => {
       setExperimentPhase('oxygenSupply')
       onPhaseChange('oxygenSupply')
-    }, 2000)
-  }
+    }, 1000))
+  }, [experimentPhase, model1, onPhaseChange, addTimeout])
 
-  const handleOxygenButtonClick = () => {
+  const handleOxygenButtonClick = useCallback(() => {
     if (experimentPhase !== 'oxygenSupply') return
     setExperimentPhase('oxygenSupplying')
     setCurrentModel(model2)
     onPhaseChange('oxygenSupplying')
     setOxygenCanOpacity(1)
 
-    timeoutRef.current = setTimeout(() => {
+    addTimeout(setTimeout(() => {
       setExperimentPhase('oxygenCanDisappearing')
       onPhaseChange('oxygenCanDisappearing')
 
       let startTime = Date.now()
       const fadeDuration = 1000
 
-      intervalRef.current = setInterval(() => {
+      const interval1 = addInterval(setInterval(() => {
         const elapsed = Date.now() - startTime
         const progress = Math.min(elapsed / fadeDuration, 1)
         const remaining = 1 - progress
         setOxygenCanOpacity(remaining)
 
         if (progress === 1) {
-          if (intervalRef.current) clearInterval(intervalRef.current)
+          removeInterval(interval1)
 
-          timeoutRef.current = setTimeout(() => {
+          addTimeout(setTimeout(() => {
             setExperimentPhase('cameraTrackOut')
             onPhaseChange('cameraTrackOut')
 
             const startPos = camera.position.clone()
             const targetPos = new THREE.Vector3(...EXPERIMENT_CONFIG.cameraPositions.trackOut)
-
             const startLookAt = new THREE.Vector3(0, 0, 0)
             const targetLookAt = new THREE.Vector3(-5.8, -0.45, -2.5)
-
             let cameraProgress = 0
 
             const trackOut = () => {
+              if (!experimentStarted) {
+                rafRef.current = null
+                return
+              }
+
               cameraProgress += 0.02
               if (cameraProgress <= 1) {
                 camera.position.lerpVectors(startPos, targetPos, cameraProgress)
-
                 const currentLookAt = new THREE.Vector3()
                 currentLookAt.lerpVectors(startLookAt, targetLookAt, cameraProgress)
 
@@ -407,38 +467,39 @@ export function CandleExperiment({
                   orbitControlsRef.current.update()
                 }
 
-                requestAnimationFrame(trackOut)
+                rafRef.current = requestAnimationFrame(trackOut)
               } else {
+                rafRef.current = null
                 setExperimentPhase('readyToCover')
                 onPhaseChange('readyToCover')
               }
             }
-            trackOut()
-          }, 500)
+            rafRef.current = requestAnimationFrame(trackOut)
+          }, 500))
         }
-      }, 16)
-    }, 3000)
-  }
+      }, 16))
+    }, 3000))
+  }, [experimentPhase, model2, onPhaseChange, camera, experimentStarted, addTimeout, addInterval, removeInterval])
 
-  const handleCoverCandles = () => {
+  const handleCoverCandles = useCallback(() => {
     if (experimentPhase !== 'readyToCover') return
     setExperimentPhase('covering')
     setCurrentModel(model3)
     onPhaseChange('covering')
 
-    timeoutRef.current = setTimeout(() => {
+    addTimeout(setTimeout(() => {
       setExperimentPhase('burning')
       setShowFlame(true)
       onPhaseChange('burning')
 
-      timeoutRef.current = setTimeout(() => {
+      addTimeout(setTimeout(() => {
         setExperimentPhase('leftOut')
         onPhaseChange('leftOut')
 
         let startTime = Date.now()
         const fadeDuration = 1000
 
-        intervalRef.current = setInterval(() => {
+        const interval2 = addInterval(setInterval(() => {
           const elapsed = Date.now() - startTime
           const progress = Math.min(elapsed / fadeDuration, 1)
           const remaining = 1 - progress
@@ -446,16 +507,16 @@ export function CandleExperiment({
           setLeftFlameScale(remaining)
 
           if (progress === 1) {
-            if (intervalRef.current) clearInterval(intervalRef.current)
+            removeInterval(interval2)
 
-            timeoutRef.current = setTimeout(() => {
+            addTimeout(setTimeout(() => {
               setExperimentPhase('rightOut')
               onPhaseChange('rightOut')
 
               let rightStartTime = Date.now()
               const rightFadeDuration = 1000
 
-              intervalRef.current = setInterval(() => {
+              const interval3 = addInterval(setInterval(() => {
                 const rightElapsed = Date.now() - rightStartTime
                 const rightProgress = Math.min(rightElapsed / rightFadeDuration, 1)
                 const rightRemaining = 1 - rightProgress
@@ -463,24 +524,24 @@ export function CandleExperiment({
                 setRightFlameScale(rightRemaining)
 
                 if (rightProgress === 1) {
-                  if (intervalRef.current) clearInterval(intervalRef.current)
+                  removeInterval(interval3)
                   setExperimentPhase('finished')
                   onPhaseChange('finished')
                   onExperimentFinished()
                 }
-              }, 16)
-            }, 15000)
+              }, 16))
+            }, 15000))
           }
-        }, 16)
-      }, 15000)
-    }, 1000)
-  }
+        }, 16))
+      }, 15000))
+    }, 1000))
+  }, [experimentPhase, model3, onPhaseChange, onExperimentFinished, addTimeout, addInterval, removeInterval])
 
   const handleCoverFromParent = useCallback(() => {
     if (experimentPhase === 'readyToCover') {
       handleCoverCandles()
     }
-  }, [experimentPhase])
+  }, [experimentPhase, handleCoverCandles])
 
   useEffect(() => {
     ;(window as any).handleCoverCandles = handleCoverFromParent
@@ -542,12 +603,17 @@ export function CandleExperiment({
       window.removeEventListener('pointerdown', handlePointerDown)
       window.removeEventListener('pointermove', handlePointerMove)
     }
-  }, [camera, gl, currentModel, experimentPhase, showIntro])
+  }, [camera, gl, experimentPhase, showIntro, handleLeftCupClick, handleOxygenButtonClick])
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
+    if (mixerRef.current) {
+      mixerRef.current.update(delta)
+    }
+
+    if (!experimentStarted) return
+
     const t = state.clock.getElapsedTime()
 
-    // Control visibility of special meshes based on experimentPhase
     const shouldShowSpecialMeshes =
       experimentPhase === 'cameraTrackOut' ||
       experimentPhase === 'readyToCover' ||
@@ -561,52 +627,12 @@ export function CandleExperiment({
       mesh.visible = shouldShowSpecialMeshes
     })
 
-    const applyBlink = (mesh: THREE.Mesh, v: number) => {
-      const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
-      mats.forEach((m: any) => {
-        if (!m) return
-        const o = m.userData?.__orig
-        if (!o) return
-        m.transparent = true
-        m.opacity = THREE.MathUtils.clamp((o.opacity ?? 1) * v, 0, 1)
-        m.depthWrite = false
-        m.needsUpdate = true
-      })
-    }
-
-    const restore = (mesh: THREE.Mesh) => {
-      const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
-      mats.forEach((m: any) => {
-        const o = m?.userData?.__orig
-        if (!o) return
-        m.transparent = o.transparent
-        m.opacity = o.opacity
-        m.depthWrite = o.depthWrite
-        m.depthTest = o.depthTest
-        m.side = o.side
-        m.needsUpdate = true
-      })
-    }
-
-    const applyOpacity = (mesh: THREE.Mesh, opacity: number) => {
-      const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
-      mats.forEach((m: any) => {
-        if (!m) return
-        const o = m.userData?.__orig
-        if (!o) return
-        m.transparent = true
-        m.opacity = THREE.MathUtils.clamp((o.opacity ?? 1) * opacity, 0, 1)
-        m.depthWrite = false
-        m.needsUpdate = true
-      })
-    }
-
     if (experimentPhase === 'selectingCup' && hovered && leftCupRef.current) {
       const blink = 0.8 + Math.sin(t * 6) * 0.2
       leftCupRef.current.traverse((child) => {
         if ((child as THREE.Mesh).isMesh) applyBlink(child as THREE.Mesh, blink)
       })
-    } else if (leftCupRef.current) {
+    } else if (leftCupRef.current && experimentPhase === 'selectingCup') {
       leftCupRef.current.traverse((child) => {
         if ((child as THREE.Mesh).isMesh) restore(child as THREE.Mesh)
       })
@@ -619,7 +645,6 @@ export function CandleExperiment({
       })
     }
 
-    // oxygenSupplying 단계에서는 버튼만 흐리게 처리
     if (experimentPhase === 'oxygenSupplying' && oxygenButtonRef.current) {
       oxygenButtonRef.current.traverse((child) => {
         if ((child as THREE.Mesh).isMesh) {
@@ -635,12 +660,19 @@ export function CandleExperiment({
       })
     }
 
+    if (experimentPhase === 'oxygenSupplying' && oxygenCanRef.current) {
+      oxygenCanRef.current.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          restore(child as THREE.Mesh)
+        }
+      })
+    }
+
     if (experimentPhase === 'oxygenCanDisappearing' || experimentPhase === 'readyToCover') {
       if (oxygenCanRef.current) {
         oxygenCanRef.current.traverse((child) => {
           if ((child as THREE.Mesh).isMesh) {
             applyOpacity(child as THREE.Mesh, oxygenCanOpacity)
-            // 그림자 제어: opacity가 낮으면 그림자도 끄기
             const mesh = child as THREE.Mesh
             if (oxygenCanOpacity < 0.5) {
               mesh.castShadow = false
@@ -649,8 +681,7 @@ export function CandleExperiment({
           }
         })
       }
-      
-      // 버튼도 동일하게 처리
+
       if (oxygenButtonRef.current) {
         oxygenButtonRef.current.traverse((child) => {
           if ((child as THREE.Mesh).isMesh) {
@@ -666,7 +697,6 @@ export function CandleExperiment({
     }
   })
 
-  // Determine if Flame should be visible based on experimentPhase
   const shouldShowFlame =
     showFlame &&
     (experimentPhase === 'cameraTrackOut' ||
@@ -693,7 +723,16 @@ export function CandleExperiment({
           <CandleLight position={EXPERIMENT_CONFIG.flamePositions.left} opacity={leftFlameOpacity} />
         </>
       )}
-      {experimentPhase === 'oxygenSupply' && <SpeechBubble position={[10.2, 9.3, -2]} html='----- 버튼' />}
+      {experimentPhase === 'oxygenSupply' && (
+        <SpeechBubble
+          position={[10.2, 9.6, -1.5]}
+          html='버튼'
+          showLine={true}
+          lineStart={[-0.3, 0.8, 0]}
+          lineEnd={[-1.2, 0.8, 0]}
+          lineColor='#ffffff'
+        />
+      )}
       {(experimentPhase === 'readyToCover' ||
         experimentPhase === 'covering' ||
         experimentPhase === 'burning' ||
