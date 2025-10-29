@@ -82,7 +82,7 @@ function HeatingGauge({
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.3 }}
         className='absolute inset-x-0 top-4 flex justify-center z-[20]'>
-        <CrayonTextBox color={stoveTheme.start.bg} bg='#FFF' width={320} animated={true}>
+        <CrayonTextBox color={stoveTheme.start.bg} bg='#FFF' width={320} padding={40} paddingY={12}>
           <div className='text-center mb-3'>
             <h3 className='text-lg font-bold text-gray-800'>
               {foodName} {progress >= 100 ? '가열 완료' : '가열 중'}
@@ -145,22 +145,20 @@ function StatusMessage({
 
   return (
     <div className='absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-40'>
-      <CrayonTextBox color={stoveTheme.start.bg} bg='#FFF' animated={true}>
+      <CrayonTextBox color={stoveTheme.start.bg} bg='#FFF' padding={40} paddingY={12}>
         <p className='text-center font-light'>{message}</p>
       </CrayonTextBox>
     </div>
   )
 }
 
-function SummaryPopup({
-  isVisible,
-  selectedFood,
-  onClose,
-}: {
+interface SummaryPopupProps {
   isVisible: boolean
   selectedFood: 'fish' | 'meat' | null
   onClose: () => void
-}) {
+}
+
+export function SummaryPopup({ isVisible, selectedFood, onClose }: SummaryPopupProps) {
   if (!isVisible || !selectedFood) return null
 
   const message =
@@ -168,29 +166,51 @@ function SummaryPopup({
       ? '프라이팬이 가열되면 뜨거운 프라이팬에서 생선으로 열이 이동하여 생선이 익습니다.'
       : '프라이팬이 가열되면 뜨거운 프라이팬에서 고기로 열이 이동하여 고기가 익습니다.'
 
+  const handleConfirm = () => {
+    onClose()
+  }
+
   return (
-    <div className='fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center'>
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        transition={{ duration: 0.3 }}>
-        <CrayonTextBox color={stoveTheme.start.bg} bg='#FFF' width={500} animated={true}>
-          <div className='text-center p-4'>
-            <h3 className='text-2xl font-bold mb-4 text-gray-800'>정리하기</h3>
-            <p className='text-gray-700 font-light mb-6 leading-relaxed'>{message}</p>
-            <CrayonTextButton
-              text='확인'
-              onClick={onClose}
-              width={120}
-              bg={stoveTheme.start.bg}
-              color='#fff'
-              textcolor='#fff'
-            />
-          </div>
-        </CrayonTextBox>
-      </motion.div>
-    </div>
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          key='summary-overlay'
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50'
+          onClick={handleConfirm}>
+          <motion.div
+            key='summary-content'
+            initial={{ scale: 0.88, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.88, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+            onClick={(e) => e.stopPropagation()}>
+            <CrayonTextBox
+              bg='#FFFFFF'
+              color={stoveTheme.start.bg}
+              width={600}
+              padding={40}
+              paddingY={12}
+              animated={true}>
+              <h3 className='text-3xl font-bold text-center m-6 text-gray-800'>정리하기</h3>
+              <p className='text-2xl text-center font-light text-gray-700 leading-relaxed mb-8'>{message}</p>
+              <div className='text-center'>
+                <CrayonTextButton
+                  onClick={handleConfirm}
+                  bg={stoveTheme.start.bg}
+                  color={stoveTheme.start.text}
+                  textcolor='#FFFFFF'
+                  text='확인'
+                  innerCircleVisible={false}
+                />
+              </div>
+            </CrayonTextBox>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }
 
@@ -495,10 +515,9 @@ export default function Page() {
         <div className='absolute top-4 left-4 z-40 flex flex-col gap-0'>
           {!fireOff && (
             <CrayonTextButton
-              key={isThermalMode ? 'thermal' : 'normal'}
               text={isThermalMode ? '돌아가기' : '열화상 카메라로 보기'}
               onClick={toggleThermalMode}
-              width={isThermalMode ? 120 : 200}
+              width={isThermalMode ? 160 : 300}
               bg={stoveTheme.start.bg}
               color='#fff'
               textcolor='#FFFFFF'
@@ -508,7 +527,6 @@ export default function Page() {
           <CrayonTextButton
             text='첫 화면으로'
             onClick={handleResetHeating}
-            width={132}
             bg={stoveTheme.goal.bg}
             color='#fff'
             textcolor='#FFFFFF'
@@ -530,7 +548,7 @@ export default function Page() {
           <CrayonTextButton
             text='정리하기'
             onClick={handleSummaryClick}
-            width={140}
+            width={160}
             bg={stoveTheme.goal.bg}
             color='#FFF'
             textcolor='#FFFFFF'
@@ -587,8 +605,8 @@ export default function Page() {
             <fogExp2 attach='fog' color={'#ffffffff'} density={0.3} />
             <directionalLight
               castShadow
-              position={[12, 6, 5]}
-              intensity={isThermalMode ? 0.1 : 2.0}
+              position={[2, 6, 2]}
+              intensity={isThermalMode ? 0.1 : 0.4}
               shadow-mapSize-width={4096}
               shadow-mapSize-height={4096}
               shadow-camera-far={50}
@@ -600,12 +618,11 @@ export default function Page() {
               shadow-normalBias={0.1}
             />
             <ContactShadows position={[0, -0.3, 0]} scale={7} blur={1.0} opacity={1.0} far={5} />
-            <group position={[0, 0.7, 0]}>
+            <group position={[0, 0.8, 0]}>
               <SpeechBubble
-                position={[-0.33, -1.7, 0.45]}
-                html={'손잡이'}
+                position={[-0.14,-0.9, 0.45]}
+                text='손잡이'
                 visible={!isHeating && !showIntro && !isHeatingComplete}
-                delay={0.5}
               />
 
               <mesh receiveShadow position={[0, -3.1, 0]} rotation={[-Math.PI / 2, 0, 0]} visible={!isThermalMode}>

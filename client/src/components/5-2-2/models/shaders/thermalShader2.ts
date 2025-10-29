@@ -84,8 +84,6 @@ export const thermalFragmentShader2 = `
     float heatNoise    = noise(vUv * 15.0 + time * 0.8) * 0.06; // 0.07 -> 0.06
     float spatialNoise = noise(vWorldPosition.xz * 4.0 + time * 0.25) * 0.06; // 0.07 -> 0.06
 
-    // ✅ z축으로 앞쪽( +Z )으로 30% 이동한 가열 중심
-    //   카메라 쪽이 -Z인 씬이면 아래의 + 를 -로 바꿔줘.
     vec3 heatCenter = centerPoint - vec3(0.0, 0.0, modelDepth * zShiftFactor);
 
     // 중앙 버너로부터의 거리

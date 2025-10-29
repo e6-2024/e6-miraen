@@ -26,8 +26,8 @@ export const ThermalTemperatureGauge: React.FC<ThermalTemperatureGaugeProps> = (
       <CrayonTextBox bg='rgb(0,0,0,0)' color='rgb(0,0,0,0)' height={520} animated={true}>
         <div className='flex flex-col items-center relative'>
           <div className='flex flex-col items-center mb-0'>
-            <span className='text-white font-light text-base drop-shadow-lg bg-opacity-50'>온도</span>
-            <span className='text-white font-light text-base drop-shadow-lg bg-opacity-50 mb-2'>높음</span>
+            <span className='text-white font-light text-lg drop-shadow-lg bg-opacity-50'>온도</span>
+            <span className='text-white font-light text-lg drop-shadow-lg bg-opacity-50 mb-2'>높음</span>
           </div>
           <div
             className='w-8 h-96 rounded-lg shadow-lg'
@@ -36,8 +36,8 @@ export const ThermalTemperatureGauge: React.FC<ThermalTemperatureGaugeProps> = (
             }}></div>
 
           <div className='flex flex-col items-center mb-0'>
-            <span className='text-white font-light text-base drop-shadow-lg bg-opacity-50'>온도</span>
-            <span className='text-white font-light text-base drop-shadow-lg bg-opacity-50'>낮음</span>
+            <span className='text-white font-light text-lg drop-shadow-lg bg-opacity-50'>온도</span>
+            <span className='text-white font-light text-lg drop-shadow-lg bg-opacity-50'>낮음</span>
           </div>
         </div>
       </CrayonTextBox>

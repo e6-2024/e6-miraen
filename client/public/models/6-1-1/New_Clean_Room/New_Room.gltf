@@ -4152,16 +4152,21 @@
 			"alphaMode":"BLEND",
 			"doubleSided":true,
 			"emissiveFactor":[
-				0.02383953146636486,
-				0.07991038262844086,
-				0.06514060497283936
+				0,
+				0.21057266330347915,
+				1
 			],
+			"extensions":{
+				"KHR_materials_emissive_strength":{
+					"emissiveStrength":1.4383856153915815
+				}
+			},
 			"name":"Spread",
 			"pbrMetallicRoughness":{
 				"baseColorFactor":[
-					0.2383953034877777,
-					0.7991037964820862,
-					0.6514060497283936,
+					0,
+					0.16826927661895752,
+					0.7991031408309937,
 					1
 				],
 				"baseColorTexture":{
@@ -4292,23 +4297,17 @@
 			"alphaMode":"BLEND",
 			"doubleSided":true,
 			"emissiveFactor":[
-				0.28402361273765564,
-				0.10824665427207947,
+				1,
+				1,
 				1
 			],
 			"extensions":{
 				"KHR_materials_emissive_strength":{
-					"emissiveStrength":1.5982061624526978
+					"emissiveStrength":1.3982062339782715
 				}
 			},
 			"name":"Decal.001",
 			"pbrMetallicRoughness":{
-				"baseColorFactor":[
-					0.22696414589881897,
-					0.08650023490190506,
-					0.7991030812263489,
-					1
-				],
 				"baseColorTexture":{
 					"index":53
 				},
@@ -4397,14 +4396,18 @@
 		{
 			"alphaMode":"BLEND",
 			"doubleSided":true,
+			"emissiveFactor":[
+				1,
+				1,
+				1
+			],
+			"extensions":{
+				"KHR_materials_emissive_strength":{
+					"emissiveStrength":1.5
+				}
+			},
 			"name":"Decal2",
 			"pbrMetallicRoughness":{
-				"baseColorFactor":[
-					0.22696414589881897,
-					0.08650023490190506,
-					0.7991030812263489,
-					1
-				],
 				"baseColorTexture":{
 					"index":60
 				},
@@ -4591,23 +4594,17 @@
 			"alphaMode":"BLEND",
 			"doubleSided":true,
 			"emissiveFactor":[
-				0.28402361273765564,
-				0.10824665427207947,
+				1,
+				1,
 				1
 			],
 			"extensions":{
 				"KHR_materials_emissive_strength":{
-					"emissiveStrength":1.2771327495574951
+					"emissiveStrength":2.799999713897705
 				}
 			},
 			"name":"Decal.005",
 			"pbrMetallicRoughness":{
-				"baseColorFactor":[
-					0.22696414589881897,
-					0.08650023490190506,
-					0.7991030812263489,
-					1
-				],
 				"baseColorTexture":{
 					"index":69
 				},
@@ -4861,16 +4858,21 @@
 			"alphaMode":"BLEND",
 			"doubleSided":true,
 			"emissiveFactor":[
-				0.02383953146636486,
-				0.07991038262844086,
-				0.06514060497283936
+				0,
+				0.21057266330347915,
+				1
 			],
+			"extensions":{
+				"KHR_materials_emissive_strength":{
+					"emissiveStrength":1.7580267574113577
+				}
+			},
 			"name":"Spread.001",
 			"pbrMetallicRoughness":{
 				"baseColorFactor":[
-					0.2383953034877777,
-					0.7991037964820862,
-					0.6514060497283936,
+					0,
+					0.16826927661895752,
+					0.7991031408309937,
 					1
 				],
 				"baseColorTexture":{
@@ -4920,15 +4922,15 @@
 			"doubleSided":true,
 			"emissiveFactor":[
 				0,
-				0.5509648086940473,
-				0.4312455609429975
+				0.2019231600257143,
+				0.9589239023619172
 			],
 			"name":"Spread.002",
 			"pbrMetallicRoughness":{
 				"baseColorFactor":[
 					0,
-					0.7994900941848755,
-					0.5698436498641968,
+					0.16826927661895752,
+					0.7991031408309937,
 					1
 				],
 				"baseColorTexture":{
@@ -5041,14 +5043,13 @@
 		{
 			"alphaMode":"BLEND",
 			"doubleSided":true,
+			"emissiveFactor":[
+				0.9999999403953552,
+				0.9999999403953552,
+				0.9999999403953552
+			],
 			"name":"Decal2.005",
 			"pbrMetallicRoughness":{
-				"baseColorFactor":[
-					0.22696414589881897,
-					0.08650023490190506,
-					0.7991030812263489,
-					1
-				],
 				"baseColorTexture":{
 					"index":92
 				},
@@ -5170,16 +5171,21 @@
 			"alphaMode":"BLEND",
 			"doubleSided":true,
 			"emissiveFactor":[
-				0.02383953146636486,
-				0.07991038262844086,
-				0.06514060497283936
+				0,
+				0.21057266330347915,
+				1
 			],
+			"extensions":{
+				"KHR_materials_emissive_strength":{
+					"emissiveStrength":1.7580267574113577
+				}
+			},
 			"name":"Spread.004",
 			"pbrMetallicRoughness":{
 				"baseColorFactor":[
-					0.2383953034877777,
-					0.7991037964820862,
-					0.6514060497283936,
+					0,
+					0.16826927661895752,
+					0.7991031408309937,
 					1
 				],
 				"baseColorTexture":{
