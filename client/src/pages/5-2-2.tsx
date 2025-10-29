@@ -620,7 +620,7 @@ export default function Page() {
             <ContactShadows position={[0, -0.3, 0]} scale={7} blur={1.0} opacity={1.0} far={5} />
             <group position={[0, 0.8, 0]}>
               <SpeechBubble
-                position={[-0.14,-0.9, 0.45]}
+                position={[-0.14, -0.9, 0.45]}
                 text='손잡이'
                 visible={!isHeating && !showIntro && !isHeatingComplete}
               />
@@ -629,7 +629,16 @@ export default function Page() {
                 <planeGeometry args={[20, 20]} />
                 <shadowMaterial opacity={0.3} />
               </mesh>
-              <group onClick={() => handleFoodClick('fish')}>
+              <group
+                onClick={() => handleFoodClick('fish')}
+                onPointerOver={() => {
+                  if (!(isHeating && !isHeatingComplete) && !showIntro) {
+                    document.body.style.cursor = 'pointer'
+                  }
+                }}
+                onPointerOut={() => {
+                  document.body.style.cursor = 'default'
+                }}>
                 <Fish
                   scale={1}
                   position={foodOnPan === 'fish' ? [0.0, -0.87, -0.15] : [1.07, -1.01, 0.25]}
@@ -639,7 +648,16 @@ export default function Page() {
                   heatingProgress={foodOnPan === 'fish' ? heatingProgress : 0}
                 />
               </group>
-              <group onClick={() => handleFoodClick('meat')}>
+              <group
+                onClick={() => handleFoodClick('meat')}
+                onPointerOver={() => {
+                  if (!(isHeating && !isHeatingComplete) && !showIntro) {
+                    document.body.style.cursor = 'pointer'
+                  }
+                }}
+                onPointerOut={() => {
+                  document.body.style.cursor = 'default'
+                }}>
                 <Meat
                   scale={1}
                   position={foodOnPan === 'meat' ? [0.02, -0.87, -0.13] : [-1, -1.03, 0.3]}

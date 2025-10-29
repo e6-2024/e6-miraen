@@ -76,9 +76,9 @@ export const thermalFragmentShader = `
     float h = clamp((vWorldPosition.y - bottomY) / max(topY - bottomY, 1e-5), 0.0, 1.0);
     float baseTemp = 0.15;
 
-    if (isHeating) {
-      float p = clamp(heatProgress, 0.0, 1.0);
-      
+    // heatProgress 값이 있으면 가열 상태를 유지 (isHeating 대신 heatProgress 기반)
+    float p = clamp(heatProgress, 0.0, 1.0);
+    if (p > 0.01) {
       // 가열 진행을 더 느리게 (지수 곡선 사용)
       float slowP = pow(p, 1.0);
       

@@ -61,7 +61,8 @@ export const thermalFragmentShader = `
     // 기본 온도 (파란색 시작점)
     float baseTemp = 0.2;
     
-    if (isHeating) {
+    // isHeating이 한 번이라도 true였거나 heatingTime이 있으면 가열 상태 유지
+    if (heatingTime > 0.01) {
       // 가열 진행도 (0 ~ 1)
       float heatProgress = min(heatingTime / 10.0, 1.0);
       

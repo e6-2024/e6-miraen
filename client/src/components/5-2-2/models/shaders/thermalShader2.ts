@@ -80,9 +80,9 @@ export const thermalFragmentShader2 = `
   }
 
   void main() {
-    float baseNoise    = multiNoise(vUv, time) * 0.08; // 살짝 약화 (0.1 -> 0.08)
-    float heatNoise    = noise(vUv * 15.0 + time * 0.8) * 0.06; // 0.07 -> 0.06
-    float spatialNoise = noise(vWorldPosition.xz * 4.0 + time * 0.25) * 0.06; // 0.07 -> 0.06
+    float baseNoise    = multiNoise(vUv, time) * 0.08;
+    float heatNoise    = noise(vUv * 15.0 + time * 0.8) * 0.06;
+    float spatialNoise = noise(vWorldPosition.xz * 4.0 + time * 0.25) * 0.06;
 
     vec3 heatCenter = centerPoint - vec3(0.0, 0.0, modelDepth * zShiftFactor);
 
@@ -92,13 +92,14 @@ export const thermalFragmentShader2 = `
     // 기본 온도를 조금 높여 흰색 접근성 향상
     float baseTemp = 0.20;
 
-    if (isHeating) {
+    // heatingTime이 있으면 가열 상태 유지 (isHeating 대신 heatingTime 기반)
+    if (heatingTime > 0.01) {
       float heatProgress = clamp(heatingTime / 5.0, 0.0, 1.0);
 
-      // 퍼짐 완화 지수 감쇠(사용자 값 유지: 3.0)
+      // 퍼짐 완화 지수 감쇠
       float burnerHeat = exp(-distanceFromBurner * 3.0) * heatProgress * 0.9;
 
-      // 전체가 함께 올라가는 양 (사용자 값 유지: 0.05)
+      // 전체가 함께 올라가는 양
       float globalHeat = heatProgress * 0.05;
 
       baseTemp = baseTemp + globalHeat + burnerHeat;
@@ -121,14 +122,14 @@ export const thermalFragmentShader2 = `
     vec3 color = thermalColorStove(baseTemp);
 
     // 고온(흰색 근처)에서 색 노이즈를 줄여 흰색 보존
-    float whiteAtten = 1.0 - smoothstep(0.65, 0.85, baseTemp); // baseTemp가 높을수록 0에 가깝게
+    float whiteAtten = 1.0 - smoothstep(0.65, 0.85, baseTemp);
     float colorNoise = multiNoise(vUv * 20.0, time * 0.6) * 0.06 * whiteAtten;
     color += vec3(colorNoise * 0.3, colorNoise * 0.15, colorNoise * 0.4);
 
     // 글로우: 흰색을 더 살리는 방향
     if (baseTemp > 0.5) {
       float glowNoise = noise(vUv * 25.0 + time * 1.0) * 0.08;
-      vec3 glowCol = vec3(1.0); // 주황톤 대신 백색으로
+      vec3 glowCol = vec3(1.0);
       color += glowCol * (baseTemp - 0.5) * 1.0 * (1.0 + glowNoise);
     }
 
