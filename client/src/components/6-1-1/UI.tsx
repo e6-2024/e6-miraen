@@ -32,7 +32,13 @@ export function CleaningProgressUI({
   ]
 
   return (
-    <CrayonTextBox color='#01A7A2' bg='#FFF' className='w-[300px] z-[200] bottom-4 left-4' position='absolute'>
+    <CrayonTextBox
+      color='#01A7A2'
+      bg='#FFF'
+      className='w-[300px] z-[200] bottom-4 left-4'
+      padding={12}
+      paddingY={20}
+      position='absolute'>
       <h3 className='text-lg font-bold mb-3 text-gray-800'>청소 진행도</h3>
       <div className='space-y-3 font-light'>
         {missionList.map((mission) => {
@@ -109,34 +115,30 @@ export function SolutionSelector({
 
   return (
     <motion.div
-      className='absolute top-[400px] left-0 z-10'
+      className='absolute top-[110px] left-4 z-10'
       initial={{ opacity: 0, y: 0 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 0 }}
       transition={{ duration: 1, ease: 'easeOut' }}>
-      <div className='absolute bottom-4 left-4 z-10'>
-        <CrayonTextBox textcolor='#333' textAlign='center' bg='#FFFFFF' color='#01A7A2' padding={20} animated={true}>
-          <div className='text-lg font-bold mb-3 text-center text-gray-800'>용액 선택</div>
-          <div className='flex w-[380px] font-light gap-3 text-black whitespace-nowrap'>
-            {solutions.map((solution) => (
-              <button
-                key={solution.id}
-                onClick={() => {
-                  if (!isDisabled) {
-                    onSolutionSelect(solution.id as CleaningToolType)
-                    onButtonClick?.()
-                  }
-                }}
-                disabled={isDisabled}>
-                <div className='flex items-center justify-center'>
-                  {<img className='h-[130px]' src={solution.img} alt={solution.name} />}
-                </div>
-                {solution.name}
-              </button>
-            ))}
-          </div>
-        </CrayonTextBox>
-      </div>
+      <CrayonTextBox textcolor='#333' textAlign='center' bg='#FFFFFF' color='#01A7A2' width={430} padding={20} paddingY={20}>
+        <div className='text-lg font-bold mb-3 text-center text-gray-800'>용액 선택</div>
+        <div className='flex font-light gap-3 text-black whitespace-nowrap text-lg'>
+          {solutions.map((solution) => (
+            <button
+              key={solution.id}
+              onClick={() => {
+                if (!isDisabled) {
+                  onSolutionSelect(solution.id as CleaningToolType)
+                  onButtonClick?.()
+                }
+              }}
+              disabled={isDisabled}>
+              {<img src={solution.img} alt={solution.name} />}
+              {solution.name}
+            </button>
+          ))}
+        </div>
+      </CrayonTextBox>
     </motion.div>
   )
 }
@@ -167,25 +169,35 @@ export function GameMessages({
 }) {
   if (showIntro) return null
 
-  // 정답인지 확인 (오답이면 게이지 안 보임)
-  const isCorrectSolution = !currentMission || !selectedSolution || 
-    selectedSolution === missions[currentMission].correctSolution
+  const isCorrectSolution =
+    !currentMission || !selectedSolution || selectedSolution === missions[currentMission].correctSolution
 
   return (
     <>
       {showMessage && (
         <div className='absolute bottom-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none'>
-          <CrayonTextBox textcolor='#333' textAlign='center' bg='#FFFFFF' color='#01A7A2' padding={20} animated={true}>
-            <div className='text-xl font-bold'>{showMessage}</div>
+          <CrayonTextBox
+            textcolor='#333'
+            textAlign='center'
+            bg='#FFFFFF'
+            color='#01A7A2'
+            padding={40}
+            paddingY={12}>
+            <div className='text-2xl font-bold'>{showMessage}</div>
           </CrayonTextBox>
         </div>
       )}
 
-      {/* 정답일 때만 게이지 표시 */}
       {gamePhase === 'wiping' && isCorrectSolution && (
         <div className='absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none'>
-          <CrayonTextBox textcolor='#333' textAlign='center' bg='#FFFFFF' color='#01A7A2' padding={20} animated={true}>
-            <div className='text-lg font-bold'>
+          <CrayonTextBox
+            textcolor='#333'
+            textAlign='center'
+            bg='#FFFFFF'
+            color='#01A7A2'
+            padding={40}
+            paddingY={12}>
+            <div className='text-2xl font-bold'>
               {material} ({Math.round(wipingProgress)} %)
             </div>
           </CrayonTextBox>

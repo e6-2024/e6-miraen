@@ -65,23 +65,57 @@ const WIPING_TOOL_CONFIG = {
   },
 }
 
-const ANIMATION_INDEX_MAP: Record<string, number[]> = {
-  splash01_vinegar: [18, 19, 20, 21, 22],
-  splash01_spray: [29, 30],
-  splash01_toilet_cleaner: [12, 13],
-  splash01_bleach: [14, 15, 16, 17],
-  splash02_vinegar: [4, 5, 6],
-  splash02_spray: [0, 1, 2, 3],
-  splash02_toilet_cleaner: [7, 8],
-  splash02_bleach: [9, 10, 11],
-  splash03_vinegar: [24, 25, 26],
-  splash03_spray: [42, 43, 44],
-  splash03_toilet_cleaner: [21, 22, 23],
-  splash03_bleach: [27, 28, 45, 46],
-  splash04_vinegar: [33, 34, 35],
-  splash04_spray: [31, 32],
-  splash04_toilet_cleaner: [37, 38, 39],
-  splash04_bleach: [36, 40, 41, 42, 43, 44, 45],
+const ANIMATION_NAME_MAP: Record<string, string[]> = {
+  // splash01 - 도마 (CuttingBoard)
+  splash01_vinegar: [
+    'Vinager_cutting_board',
+    'Vinagar_opener_Cutting_board',
+    'Vinager_splash_cutting_board',
+  ],
+  splash01_spray: [
+    'Trigger_Cutting_Board',
+    'Window_cleaning_spray_splash_cutting_board',
+  ],
+  splash01_toilet_cleaner: [
+    'Toilet_Bleach_Cutting_board',
+    'Toilet_Bleach_Drip_Cutting_Board',
+    'Toilet_bleach_splash_cutting_board',
+  ],
+  splash01_bleach: [
+    'Bleach_body_Cutting_board',
+    'Bleach_Drip_Cutting_board',
+    'Bleach_opener_Cutting_board',
+  ],
+
+  // splash02 - 창문 (Window)
+  splash02_vinegar: ['Vinager_window', 'Vinager_splash_window', 'Vinagar_Opener_Window'],
+  splash02_spray: [
+    'Window_cleaning_Spray_window',
+    'Window_cleaning_Spray_splash_window',
+    'Spray_Window',
+    'Spray_trigger_Window',
+  ],
+  splash02_toilet_cleaner: ['Toilet_Bleach_window', 'Toilet_Bleach_splash_Window'],
+  splash02_bleach: ['Bleach_body_window', 'Bleach_opener_window', 'Bleach_splash_window'],
+
+  // splash03 - 변기 (Toilet)
+  splash03_vinegar: ['Vinager_toilet','Vinager_splash_Toilet'],
+  splash03_spray: ['Window_cleaning_spray_splash_toilet', 'Spray_Toilet'],
+  splash03_toilet_cleaner: ['Toilet_Bleach_Toilet', 'Toilet_Bleach_splash_Toilet', 'Toilet_Bleach_Drip_Toilet'],
+  splash03_bleach: ['Bleach_body_toilet', 'Bleach_opener_toilet', 'Bleach_splash_toilet'],
+
+  // splash04 - 욕실 바닥 (BathroomFloor)
+  splash04_vinegar: ['Vinager_BathroomFloor', 'Vinagar_Opener_BathroomFloor', 'Vinager_Splash_BathroomFloor'],
+  splash04_spray: [
+    'Trigger_BathroomFloor',
+    'Window_cleaning_spray_splash_BathroomFloor',
+  ],
+  splash04_toilet_cleaner: [
+    'Toilet_Bleach_BathroomFloor',
+    'Toilet_Bleach_Drip_BathroomFloor',
+    'Toilet_bleach_splash_BathroomFloor',
+  ],
+  splash04_bleach: ['Bleach_body_bathroom_floor','Bleach_splash_BathroomFloor'],
 }
 
 const SOLUTION_BOTTLE_MAPPING = {
@@ -610,44 +644,57 @@ export const Model = ({
     })
   }, [gltf.scene])
 
+  // 애니메이션 이름으로 직접 재생
   const playAnimationSequence = useCallback(
-    (animationIndices: number[]) => {
-      if (!actions || animationIndices.length === 0) return
+    (animationNames: string[]) => {
+      if (!actions || animationNames.length === 0) return
+
+      // 기존 실행 중인 애니메이션 정지
       runningActionsRef.current.forEach((action) => action.stop())
       runningActionsRef.current = []
+
       const runningActions: THREE.AnimationAction[] = []
       let completedCount = 0
-      animationIndices.forEach((currentIndex) => {
-        const animationName = names[currentIndex]
-        if (animationName && actions[animationName]) {
-          const action = actions[animationName]
+
+      // 애니메이션 이름으로 직접 액션 가져오기
+      animationNames.forEach((animationName) => {
+        const action = actions[animationName]
+
+        if (action) {
           action.reset()
           action.setLoop(THREE.LoopOnce, 1)
           action.clampWhenFinished = true
           action.play()
           runningActions.push(action)
+
           const onFinished = () => {
             action.getMixer().removeEventListener('finished', onFinished)
             completedCount += 1
-            if (completedCount >= animationIndices.length) {
+            if (completedCount >= animationNames.length) {
               runningActionsRef.current = []
               onAnimationComplete?.()
             }
           }
           action.getMixer().addEventListener('finished', onFinished)
+        } else {
+          console.warn(`Animation "${animationName}" not found in actions`)
         }
       })
+
       runningActionsRef.current = runningActions
       currentAnimationRef.current = runningActions[0]
     },
-    [actions, names, onAnimationComplete],
+    [actions, onAnimationComplete],
   )
 
   useEffect(() => {
     if (triggerSpray && !lastTriggerRef.current && animationKey && actions) {
-      const animationIndices = ANIMATION_INDEX_MAP[animationKey]
-      if (animationIndices && animationIndices.length > 0) {
-        playAnimationSequence(animationIndices)
+      const animationNames = ANIMATION_NAME_MAP[animationKey]
+      if (animationNames && animationNames.length > 0) {
+        console.log(`Playing animations for ${animationKey}:`, animationNames)
+        playAnimationSequence(animationNames)
+      } else {
+        console.warn(`No animations defined for ${animationKey}`)
       }
     }
     lastTriggerRef.current = triggerSpray

@@ -62,8 +62,6 @@ function BackButton({
             text='첫 화면으로'
             icon='arrow-left'
             iconPosition='left'
-            width={170}
-            height={75}
             iconSize={30}
             bg='#01A7A2'
             color='#78C9C9'
@@ -83,8 +81,6 @@ function BackButton({
               text='다시하기'
               icon='replay'
               iconPosition='left'
-              width={170}
-              height={75}
               iconSize={30}
               bg='#01A7A2'
               color='#78C9C9'
