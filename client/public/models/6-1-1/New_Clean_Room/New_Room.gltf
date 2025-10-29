@@ -4461,13 +4461,13 @@
 			"alphaMode":"BLEND",
 			"doubleSided":true,
 			"emissiveFactor":[
-				0.13392752052169393,
-				0.9902345737099744,
-				1
+				0,
+				1,
+				0.9052603223082138
 			],
 			"extensions":{
 				"KHR_materials_emissive_strength":{
-					"emissiveStrength":2.3174097110118623
+					"emissiveStrength":1.0389739847559554
 				}
 			},
 			"name":"Decal2.001",
