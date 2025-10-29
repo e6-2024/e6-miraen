@@ -85,6 +85,7 @@ const ANIMATION_NAME_MAP: Record<string, string[]> = {
     'Bleach_body_Cutting_board',
     'Bleach_Drip_Cutting_board',
     'Bleach_opener_Cutting_board',
+    'Bleach_splash_cutting_board'
   ],
 
   // splash02 - 창문 (Window)
