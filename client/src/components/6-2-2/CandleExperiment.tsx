@@ -16,6 +16,7 @@ interface CandleExperimentProps {
   onExperimentFinished: () => void
   onPhaseChange: (phase: ExperimentPhase) => void
   showIntro: boolean
+  showPopup: boolean
 }
 
 interface GLBModel {
@@ -91,6 +92,7 @@ export function CandleExperiment({
   onExperimentFinished,
   onPhaseChange,
   showIntro,
+  showPopup
 }: CandleExperimentProps) {
   const model0 = useGLTF('/models/6-2-2/0.glb') as GLBModel
   const model1 = useGLTF('/models/6-2-2/1.glb') as GLBModel
@@ -738,15 +740,15 @@ export function CandleExperiment({
         experimentPhase === 'burning' ||
         experimentPhase === 'leftOut' ||
         experimentPhase === 'finished' ||
-        experimentPhase === 'rightOut') && (
-        <SpeechBubble2 position={[-11, 5, 5]} html='산소를 공급하지 않은 아크릴 통' />
-      )}
+        experimentPhase === 'rightOut') &&
+        !showPopup && <SpeechBubble2 position={[-11, 5, 5]} html='산소를 공급하지 않은 아크릴 통' />}
       {(experimentPhase === 'readyToCover' ||
         experimentPhase === 'covering' ||
         experimentPhase === 'burning' ||
         experimentPhase === 'leftOut' ||
         experimentPhase === 'finished' ||
-        experimentPhase === 'rightOut') && <SpeechBubble2 position={[-3.5, 5, 5]} html='산소를 공급한 아크릴 통' />}
+        experimentPhase === 'rightOut') &&
+        !showPopup && <SpeechBubble2 position={[-3.5, 5, 5]} html='산소를 공급한 아크릴 통' />}
 
       <OrbitControls
         ref={orbitControlsRef}
