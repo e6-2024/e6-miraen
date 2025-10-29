@@ -50,6 +50,11 @@ const activityGuideSlides: ActivityGuideSlide[] = [
     id: 'slide8',
     image: '/img/guide/5-2-3/guide8.jpeg',
     audioPath: '/sounds/5-2-3/intro/5-2-3-Intro-8.MP3',
+  },
+  {
+    id: 'slide9',
+    image: '/img/guide/5-2-3/guide9.jpeg',
+    audioPath: '/sounds/5-2-3/intro/5-2-3-Intro-9.MP3',
   }
 ]
 
