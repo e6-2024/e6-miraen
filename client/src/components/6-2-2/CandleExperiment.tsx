@@ -92,7 +92,7 @@ export function CandleExperiment({
   onExperimentFinished,
   onPhaseChange,
   showIntro,
-  showPopup
+  showPopup,
 }: CandleExperimentProps) {
   const model0 = useGLTF('/models/6-2-2/0.glb') as GLBModel
   const model1 = useGLTF('/models/6-2-2/1.glb') as GLBModel
@@ -162,7 +162,7 @@ export function CandleExperiment({
   useEffect(() => {
     return () => {
       cleanupAllAsyncOperations()
-      
+
       if (mixerRef.current) {
         mixerRef.current.stopAllAction()
         mixerRef.current = null
@@ -200,7 +200,7 @@ export function CandleExperiment({
   useEffect(() => {
     if (!experimentStarted) {
       cleanupAllAsyncOperations()
-      
+
       setShowFlame(true)
       setLeftFlameOpacity(1)
       setLeftFlameScale(1)
@@ -217,10 +217,10 @@ export function CandleExperiment({
       oxygenCanRef.current = null
       oxygenButtonRef.current = null
       specialMeshesRef.current = []
-      
+
       camera.position.set(...EXPERIMENT_CONFIG.cameraPositions.initial)
       camera.lookAt(0, 0, 0)
-      
+
       if (orbitControlsRef.current) {
         orbitControlsRef.current.target.set(0, 0, 0)
         orbitControlsRef.current.update()
@@ -413,10 +413,12 @@ export function CandleExperiment({
     setCurrentModel(model1)
     onPhaseChange('oxygenCanAppearing')
 
-    const timeout1 = addTimeout(setTimeout(() => {
-      setExperimentPhase('oxygenSupply')
-      onPhaseChange('oxygenSupply')
-    }, 1000))
+    const timeout1 = addTimeout(
+      setTimeout(() => {
+        setExperimentPhase('oxygenSupply')
+        onPhaseChange('oxygenSupply')
+      }, 1000),
+    )
   }, [experimentPhase, model1, onPhaseChange, addTimeout])
 
   const handleOxygenButtonClick = useCallback(() => {
@@ -426,23 +428,16 @@ export function CandleExperiment({
     onPhaseChange('oxygenSupplying')
     setOxygenCanOpacity(1)
 
-    addTimeout(setTimeout(() => {
-      setExperimentPhase('oxygenCanDisappearing')
-      onPhaseChange('oxygenCanDisappearing')
+    addTimeout(
+      setTimeout(() => {
+        setExperimentPhase('oxygenCanDisappearing')
+        onPhaseChange('oxygenCanDisappearing')
 
-      let startTime = Date.now()
-      const fadeDuration = 1000
+        //바로 사라지게 하기
+        setOxygenCanOpacity(0)
 
-      const interval1 = addInterval(setInterval(() => {
-        const elapsed = Date.now() - startTime
-        const progress = Math.min(elapsed / fadeDuration, 1)
-        const remaining = 1 - progress
-        setOxygenCanOpacity(remaining)
-
-        if (progress === 1) {
-          removeInterval(interval1)
-
-          addTimeout(setTimeout(() => {
+        addTimeout(
+          setTimeout(() => {
             setExperimentPhase('cameraTrackOut')
             onPhaseChange('cameraTrackOut')
 
@@ -477,11 +472,11 @@ export function CandleExperiment({
               }
             }
             rafRef.current = requestAnimationFrame(trackOut)
-          }, 500))
-        }
-      }, 16))
-    }, 3000))
-  }, [experimentPhase, model2, onPhaseChange, camera, experimentStarted, addTimeout, addInterval, removeInterval])
+          }, 500),
+        )
+      }, 3000),
+    )
+  }, [experimentPhase, model2, onPhaseChange, camera, experimentStarted, addTimeout])
 
   const handleCoverCandles = useCallback(() => {
     if (experimentPhase !== 'readyToCover') return
@@ -489,54 +484,64 @@ export function CandleExperiment({
     setCurrentModel(model3)
     onPhaseChange('covering')
 
-    addTimeout(setTimeout(() => {
-      setExperimentPhase('burning')
-      setShowFlame(true)
-      onPhaseChange('burning')
+    addTimeout(
+      setTimeout(() => {
+        setExperimentPhase('burning')
+        setShowFlame(true)
+        onPhaseChange('burning')
 
-      addTimeout(setTimeout(() => {
-        setExperimentPhase('leftOut')
-        onPhaseChange('leftOut')
+        addTimeout(
+          setTimeout(() => {
+            setExperimentPhase('leftOut')
+            onPhaseChange('leftOut')
 
-        let startTime = Date.now()
-        const fadeDuration = 1000
+            let startTime = Date.now()
+            const fadeDuration = 1000
 
-        const interval2 = addInterval(setInterval(() => {
-          const elapsed = Date.now() - startTime
-          const progress = Math.min(elapsed / fadeDuration, 1)
-          const remaining = 1 - progress
-          setLeftFlameOpacity(remaining)
-          setLeftFlameScale(remaining)
+            const interval2 = addInterval(
+              setInterval(() => {
+                const elapsed = Date.now() - startTime
+                const progress = Math.min(elapsed / fadeDuration, 1)
+                const remaining = 1 - progress
+                setLeftFlameOpacity(remaining)
+                setLeftFlameScale(remaining)
 
-          if (progress === 1) {
-            removeInterval(interval2)
+                if (progress === 1) {
+                  removeInterval(interval2)
 
-            addTimeout(setTimeout(() => {
-              setExperimentPhase('rightOut')
-              onPhaseChange('rightOut')
+                  addTimeout(
+                    setTimeout(() => {
+                      setExperimentPhase('rightOut')
+                      onPhaseChange('rightOut')
 
-              let rightStartTime = Date.now()
-              const rightFadeDuration = 1000
+                      let rightStartTime = Date.now()
+                      const rightFadeDuration = 1000
 
-              const interval3 = addInterval(setInterval(() => {
-                const rightElapsed = Date.now() - rightStartTime
-                const rightProgress = Math.min(rightElapsed / rightFadeDuration, 1)
-                const rightRemaining = 1 - rightProgress
-                setRightFlameOpacity(rightRemaining)
-                setRightFlameScale(rightRemaining)
+                      const interval3 = addInterval(
+                        setInterval(() => {
+                          const rightElapsed = Date.now() - rightStartTime
+                          const rightProgress = Math.min(rightElapsed / rightFadeDuration, 1)
+                          const rightRemaining = 1 - rightProgress
+                          setRightFlameOpacity(rightRemaining)
+                          setRightFlameScale(rightRemaining)
 
-                if (rightProgress === 1) {
-                  removeInterval(interval3)
-                  setExperimentPhase('finished')
-                  onPhaseChange('finished')
-                  onExperimentFinished()
+                          if (rightProgress === 1) {
+                            removeInterval(interval3)
+                            setExperimentPhase('finished')
+                            onPhaseChange('finished')
+                            onExperimentFinished()
+                          }
+                        }, 16),
+                      )
+                    }, 15000),
+                  )
                 }
-              }, 16))
-            }, 15000))
-          }
-        }, 16))
-      }, 15000))
-    }, 1000))
+              }, 16),
+            )
+          }, 15000),
+        )
+      }, 1000),
+    )
   }, [experimentPhase, model3, onPhaseChange, onExperimentFinished, addTimeout, addInterval, removeInterval])
 
   const handleCoverFromParent = useCallback(() => {

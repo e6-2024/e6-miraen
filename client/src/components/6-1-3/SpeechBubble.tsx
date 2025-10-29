@@ -23,7 +23,7 @@ export const SpeechBubble = ({
     <group position={position}>
       <Html prepend={true} transform={false} position={bubbleOffset}>
         <div onClick={() => onBubbleClick?.()} className='cursor-pointer'>
-          <CrayonTextButton text={text} bg={'#fff'} color='#DFB2FA' textcolor='#222' width={120} height={60} className='text-base font-light text-white whitespace-nowrap' />
+          <CrayonTextButton text={text} bg={'#fff'} color='#7BCACA' textcolor='#222' width={150} height={70}/>
         </div>
       </Html>
     </group>

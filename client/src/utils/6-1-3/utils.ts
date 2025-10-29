@@ -72,8 +72,8 @@ export const getBasePathPoints = (): THREE.Vector3[] => [
 export const getNarrationTexts = () => ({
   root: '뿌리는 식물에 필요한 물을 흡수합니다.',
   stem: '뿌리에서 흡수한 물은 줄기를 통해 잎으로 이동합니다.',
-  leaf: '잎에 도달한 물이 수증기가 되어 기공을 통해 잎 밖으로 빠져나갑니다.',
-  water: '뿌리에서 흡수된 물은 줄기를 통해 잎에 도달합니다. 잎에 도달한 물은 기공을 통해 잎 밖으로 빠져나갑니다.',
+  leaf: '잎에 도달한 물이 수증기 형태로 기공을 통해 잎 밖으로 빠져나갑니다.',
+  water: '뿌리에서 흡수된 물은 줄기를 통해 잎에 도달합니다.\n잎에 도달한 물은 기공을 통해 잎 밖으로 빠져나갑니다.',
 })
 
 export const getNarrationFiles = () => ({

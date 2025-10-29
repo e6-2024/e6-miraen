@@ -14,8 +14,8 @@ interface SubtitleBoxProps {
 export function SubtitleBox({ text, isVisible }: SubtitleBoxProps) {
   if (!isVisible) return null
   return (
-    <div className='absolute bottom-4 right-4 pointer-events-none font-light'>
-      <CrayonTextBox color='#F3921C' bg='#FFF'>{text}</CrayonTextBox>
+    <div className='absolute bottom-4 right-4 pointer-events-none font-light whitespace-pre-line'>
+      <CrayonTextBox color='#F3921C' bg='#FFF' padding={40} paddingY={12}>{text}</CrayonTextBox>
     </div>
   )
 }
@@ -31,7 +31,7 @@ export function WaterFlowButton({ isVisible, onClick }: WaterFlowButtonProps) {
     <div className='absolute top-32 right-4'>
       <CrayonTextButton
         text='뿌리에서 흡수된 물의 이동'
-        width={240}
+        width={340}
         bg='#05A8A4'
         color='#7BCACA'
         textcolor='#FFFFFF'
@@ -52,8 +52,7 @@ export function ViewControls({ currentView, onViewChange, stopAll }: ViewControl
     return (
       <div className='absolute top-4 left-4'>
         <CrayonTextButton
-          text='이전으로 돌아가기'
-          width={180}
+          text='첫 화면으로'
           bg='#F3921C'
           color='#FFDBB0'
           textcolor='#FFFFFF'
@@ -85,6 +84,8 @@ export function LeafAnimation({
         bg='#FFFFFF' 
         color='#05A8A4' 
         className='shadow-2xl'
+        padding={20}
+        paddingY={20}
       >
         <img 
           src={imagePath}

@@ -105,9 +105,10 @@ const ActivityGuideModal: React.FC<{
           onClick={(e) => e.stopPropagation()}>
           <CrayonTextBox
             bg='#FFFFFF'
-            color='#05A8A4' // 테두리 색 (그린 톤)
+            color='#05A8A4'
             textcolor='#333333'
             padding={16}
+            paddingY={16}
             animated={true}
             className='w-[80vw] flex flex-col'>
             {/* 상단 닫기 버튼 */}
