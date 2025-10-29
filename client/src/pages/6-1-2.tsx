@@ -244,13 +244,13 @@ export default function Home() {
 
     setTimeout(() => {
       playNarrationAudio(
-        '/sounds/6-1-2/narration/6-1-2-C.MP3',
+        '/sounds/6-1-2/narration/6-1-2-C-2.MP3',
         setNarrationText,
         () => {
           setShowNarrationSubtitle(false)
           setNarrationText('')
         },
-        '기차의 속력은 28 m/s, 자동차의 속력은 20 m/s, 자전거를 타는 사람의 속력은 8 m/s, 달리는 사람의 속력은 6 m/s, 말의 속력은 17 m/s이므로 기차, 자동차, 말, 자전거를 탄 사람, 달리는 사람 순으로 빠릅니다.',
+        '기차의 속력은 28 m/s, 자동차의 속력은 20 m/s, 자전거를 타는 사람의 속력은 8 m/s, 달리는 사람의 속력은 6 m/s, 말의 속력은 17 m/s이므로 기차, 자동차, 말, 자전거를 타는 사람, 달리는 사람 순으로 빠릅니다.',
       )
       setShowNarrationSubtitle(true)
     }, 500)

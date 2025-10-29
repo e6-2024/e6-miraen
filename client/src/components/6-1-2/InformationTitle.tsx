@@ -22,7 +22,7 @@ export function InformationSubtitle({ visible }: InformationSubtitleProps) {
           padding={20}
           paddingY={12}
           animated={true}
-          text='여러 가지 물체가 10초 동안 이동한 거리'></CrayonTextBox>
+          text='10초 동안 물체가 이동한 거리 비교'></CrayonTextBox>
       </motion.div>
     </div>
   )
