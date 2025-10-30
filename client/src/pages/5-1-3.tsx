@@ -415,8 +415,10 @@ export default function Page() {
               color='#01A7A2'
               bg='#FFF'
               textcolor='#333'
+              padding={40}
+              width={700}
+              paddingY={12}
               className='font-light'
-              width={420}
               text='같은 양의 물에 설탕의 양을 다르게 용해하여 진하기가 다른 두 용액을 만들어 보세요.'
             />
           )}
@@ -425,10 +427,10 @@ export default function Page() {
               color='#01A7A2'
               bg='#FFF'
               textcolor='#333'
+              padding={40}
+              paddingY={12}
               className='font-light'
-              width={600}
-              fontSize='18px'
-              text='용액에 방울 토마토를 드래그하여 넣어보세요.'
+              text='용액에 방울토마토를 드래그하여 넣어보세요.'
             />
           )}
         </div>

@@ -277,7 +277,7 @@ export function GlassStickManager({
         <primitive 
           ref={leftStickRef} 
           object={leftSceneRef.current} 
-          scale={0.5} 
+          scale={0.4} 
           position={[-2.15, -1.3, -0.2]} 
         />
       )}
@@ -285,7 +285,7 @@ export function GlassStickManager({
         <primitive 
           ref={rightStickRef} 
           object={rightSceneRef.current} 
-          scale={0.5} 
+          scale={0.4} 
           position={[2.34, -1.3, -0.2]} 
         />
       )}
