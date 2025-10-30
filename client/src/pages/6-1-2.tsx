@@ -59,7 +59,7 @@ function FogController({
 
   useEffect(() => {
     if (isLoaded && !showResult) {
-      scene.fog = new THREE.FogExp2('#D9E4EB', 0.043)
+      scene.fog = new THREE.FogExp2('#D9E4EB', 0.053)
     } else {
       scene.fog = null
     }
