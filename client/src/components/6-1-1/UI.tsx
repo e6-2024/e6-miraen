@@ -188,7 +188,7 @@ export function GameMessages({
         </div>
       )}
 
-      {gamePhase === 'wiping' && isCorrectSolution && (
+      {gamePhase === 'wiping' && (
         <div className='absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none'>
           <CrayonTextBox
             textcolor='#333'
