@@ -8,7 +8,7 @@ class AudioManager {
   private currentAudioType: 'effect' | 'narration' | 'component' = 'effect'
   private currentComponentId: string | null = null
   private componentAudios: Map<string, HTMLAudioElement> = new Map()
-  
+
   private narrationRef: HTMLAudioElement | null = null
   private wipingMapRef: WipeAudios | null = null
   private currentWipeKeyRef: SplashType | null = null
@@ -252,16 +252,16 @@ class AudioManager {
       const a = new Audio(path)
       a.volume = volume
       ;(a as any).playsInline = true
-      
+
       this.effectSoundsRef.push(a)
-      
+
       a.addEventListener('ended', () => {
         const index = this.effectSoundsRef.indexOf(a)
         if (index > -1) {
           this.effectSoundsRef.splice(index, 1)
         }
       })
-      
+
       a.play().catch(() => {})
     } catch {}
   }
@@ -290,9 +290,7 @@ class AudioManager {
 
   playClickMessageNarration(splashType: SplashType) {
     if (this.clickMessageNarrations[splashType]) {
-      setTimeout(() => {
-        this.playNarration(this.clickMessageNarrations[splashType])
-      }, 800)
+      this.playNarration(this.clickMessageNarrations[splashType])
     }
   }
 
