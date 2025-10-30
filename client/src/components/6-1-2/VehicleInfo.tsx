@@ -80,6 +80,9 @@ export function VehicleInfo({ viewMode, selectedVehicle, animationState }: Vehic
   // 표시용 값 계산 (반올림 일관성 유지)
   const displayTime = Number(elapsedTime.toFixed(1))
   const displayDistance = Number((speed * displayTime).toFixed(1))
+  
+  // 현재 속력 (일시 정지 시 무조건 0)
+  const currentSpeed = (elapsedTime === 0 || animationState.isPaused) ? 0 : speed
 
   if (viewMode !== 'firstPerson') {
     return null
@@ -106,7 +109,7 @@ export function VehicleInfo({ viewMode, selectedVehicle, animationState }: Vehic
             </div>
             <div className='flex justify-between items-center'>
               <span className='text-gray-600'>속력:</span>
-              <span className='font-semibold text-gray-800'>{speed} m/s</span>
+              <span className='font-semibold text-gray-800'>{currentSpeed} m/s</span>
             </div>
           </div>
         </CrayonTextBox>
