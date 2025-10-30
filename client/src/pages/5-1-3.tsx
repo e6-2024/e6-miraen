@@ -89,6 +89,10 @@ export default function Page() {
   const [showPickupReminder, setShowPickupReminder] = useState(false)
   const pickupReminderAudioRef = useRef<HTMLAudioElement | null>(null)
 
+  // 토마토 드래그 안내 관련
+  const [showTomatoDragGuide, setShowTomatoDragGuide] = useState(false)
+  const tomatoDragGuideAudioRef = useRef<HTMLAudioElement | null>(null)
+
   const showResultUI = (leftTomatoExperimentDone || rightTomatoExperimentDone) && !!lastTomatoResult
   const resultDepKey = lastTomatoResult ? (lastTomatoResult === 'left' ? 'LT' : 'RT') : 'NONE'
 
@@ -236,6 +240,39 @@ export default function Page() {
     }
   }, [showCompletionPopup])
 
+  // 토마토 드래그 안내 표시 조건 체크
+  useEffect(() => {
+    const bothSticksComplete = leftStickComplete && rightStickComplete
+    const noTomatoInBeakers = !leftTomatoDropped && !rightTomatoDropped
+    const notWiping = !showTomatoWiping
+    const notExperimentDone = !leftTomatoExperimentDone && !rightTomatoExperimentDone
+
+    if (bothSticksComplete && noTomatoInBeakers && notWiping && notExperimentDone) {
+      // 3초 후에 안내 표시
+      const timer = setTimeout(() => {
+        setShowTomatoDragGuide(true)
+        const audio = new Audio('/sounds/5-1-3/narration/5-1-3-Tomato-Drag-Guide.MP3')
+        audio.volume = 0.8
+        tomatoDragGuideAudioRef.current = audio
+        audio.play().catch(() => {})
+      }, 3000)
+
+      return () => clearTimeout(timer)
+    } else {
+      setShowTomatoDragGuide(false)
+      tomatoDragGuideAudioRef.current?.pause()
+      tomatoDragGuideAudioRef.current = null
+    }
+  }, [
+    leftStickComplete,
+    rightStickComplete,
+    leftTomatoDropped,
+    rightTomatoDropped,
+    showTomatoWiping,
+    leftTomatoExperimentDone,
+    rightTomatoExperimentDone,
+  ])
+
   // showTomatoWiping이 true가 되면 타이머 정리 및 오디오 정지
   useEffect(() => {
     if (showTomatoWiping) {
@@ -273,6 +310,8 @@ export default function Page() {
     }
     pickupReminderAudioRef.current?.pause()
     pickupReminderAudioRef.current = null
+    tomatoDragGuideAudioRef.current?.pause()
+    tomatoDragGuideAudioRef.current = null
 
     setShowCompletionPopup(false)
     setShowSubtitle(true)
@@ -291,6 +330,7 @@ export default function Page() {
     setRightChoiceUsed(false)
     setRunningSide(null)
     setShowPickupReminder(false)
+    setShowTomatoDragGuide(false)
 
     setResetToken((t) => t + 1)
   }, [])
@@ -312,6 +352,8 @@ export default function Page() {
     }
     pickupReminderAudioRef.current?.pause()
     pickupReminderAudioRef.current = null
+    tomatoDragGuideAudioRef.current?.pause()
+    tomatoDragGuideAudioRef.current = null
 
     setShowCompletionPopup(false)
     setShowSubtitle(true)
@@ -330,6 +372,7 @@ export default function Page() {
     setRightChoiceUsed(false)
     setRunningSide(null)
     setShowPickupReminder(false)
+    setShowTomatoDragGuide(false)
 
     setResetToken((t) => t + 1)
 
@@ -422,17 +465,33 @@ export default function Page() {
               text='같은 양의 물에 설탕의 양을 다르게 용해하여 진하기가 다른 두 용액을 만들어 보세요.'
             />
           )}
-          {showTomatoInstruction && !leftTomatoExperimentDone && !rightTomatoExperimentDone && (
-            <CrayonTextBox
-              color='#01A7A2'
-              bg='#FFF'
-              textcolor='#333'
-              padding={40}
-              paddingY={12}
-              className='font-light'
-              text='용액에 방울토마토를 드래그하여 넣어보세요.'
-            />
-          )}
+          {(showTomatoInstruction && !leftTomatoExperimentDone) ||
+            (!rightTomatoExperimentDone && (
+              <CrayonTextBox
+                color='#01A7A2'
+                bg='#FFF'
+                textcolor='#333'
+                padding={40}
+                paddingY={12}
+                className='font-light'
+                text='용액에 방울토마토를 드래그하여 넣어보세요.'
+              />
+            ))}
+        </div>
+      )}
+
+      {/* 토마토 드래그 안내 */}
+      {!showIntro && showTomatoDragGuide && (
+        <div className='fixed top-5 left-1/2 -translate-x-1/2 z-10'>
+          <CrayonTextBox
+            color='#01A7A2'
+            bg='#FFF'
+            textcolor='#333'
+            padding={40}
+            paddingY={12}
+            className='font-light'
+            text='용액에 방울토마토를 드래그하여 넣어보세요.'
+          />
         </div>
       )}
 
@@ -450,19 +509,18 @@ export default function Page() {
                   ariaLabel='왼쪽 비커 설탕 실험'
                   position='relative'
                   text='왼쪽 비커: 설탕 한 숟가락 용해하기'
-                  width={360}
-                  height={72}
+                  width={460}
                   color={leftChoiceUsed ? '#64748B' : '#9ED6E9'}
                   textcolor='#fff'
                   bg={leftChoiceUsed ? 'rgba(100,116,139,0.95)' : '#009BF5'}
                   iconPosition='left'
                   iconSize={20}
-                  textSize={20}
                   innerCircleVisible
                   onClick={() => {
                     if (disabled) return
                     handleStartSugarExperiment('left')
                   }}
+                  className={disabled ? 'cursor-default' : ''}
                   aria-disabled={disabled}
                 />
               )
@@ -483,19 +541,18 @@ export default function Page() {
                   ariaLabel='오른쪽 비커 설탕 실험'
                   position='relative'
                   text='오른쪽 비커: 설탕 다섯 숟가락 용해하기'
-                  width={360}
-                  height={72}
+                  width={460}
                   color={rightChoiceUsed ? '#64748B' : '#7BCACA'}
                   textcolor='#fff'
                   bg={rightChoiceUsed ? 'rgba(100,116,139,0.95)' : '#05A8A4'}
                   iconPosition='left'
                   iconSize={20}
-                  textSize={20}
                   innerCircleVisible
                   onClick={() => {
                     if (disabled) return
                     handleStartSugarExperiment('right')
                   }}
+                  className={disabled ? 'cursor-default' : ''}
                   aria-disabled={disabled}
                 />
               )
@@ -506,7 +563,7 @@ export default function Page() {
         {!showIntro && leftStickComplete && (
           <div className='fixed top-52 left-4 font-light z-[150]'>
             <TimedFade active showMs={2000} fadeMs={500} depKey='L'>
-              <CrayonTextBox bg='#fff' color='rgba(100,116,139,0.95)' textcolor='#333' fontSize='18px'>
+              <CrayonTextBox bg='#fff' color='rgba(100,116,139,0.95)' textcolor='#333' padding={12} paddingY={12}>
                 설탕이 모두 용해되었어요!
               </CrayonTextBox>
             </TimedFade>
@@ -515,7 +572,7 @@ export default function Page() {
         {!showIntro && rightStickComplete && (
           <div className='fixed top-52 right-4 font-light z-[150]'>
             <TimedFade active showMs={2000} fadeMs={500} depKey='R'>
-              <CrayonTextBox bg='#fff' color='rgba(100,116,139,0.95)' textcolor='#333' fontSize='18px'>
+              <CrayonTextBox bg='#fff' color='rgba(100,116,139,0.95)' textcolor='#333' padding={12} paddingY={12}>
                 설탕이 모두 용해되었어요!
               </CrayonTextBox>
             </TimedFade>
@@ -526,7 +583,7 @@ export default function Page() {
           <>
             <div className='fixed bottom-32 left-1/2 -translate-x-1/2 z-[150] font-light'>
               <TimedFade active showMs={8000} fadeMs={500} depKey={resultDepKey}>
-                <CrayonTextBox bg='#fff' color={tomatoTheme.start.bg} textcolor='#333' fontSize='18px'>
+                <CrayonTextBox bg='#fff' color={tomatoTheme.start.bg} textcolor='#333' padding={20} paddingY={12}>
                   {lastTomatoResult === 'left'
                     ? '설탕 한 숟가락을 용해한 용액에서 방울토마토가 가라앉습니다.'
                     : '설탕 다섯 숟가락을 용해한 용액에서 방울토마토가 높이 떠오릅니다.'}
@@ -544,9 +601,8 @@ export default function Page() {
               bg='#FFF'
               textcolor='#333'
               className='font-light'
-              width={400}
-              padding={12}
-              fontSize='18px'
+              paddingY={12}
+              padding={40}
               text='방울토마토를 드래그하여 꺼내보세요.'
             />
           </div>
@@ -558,8 +614,6 @@ export default function Page() {
               ariaLabel='정리하기'
               position='relative'
               text='정리하기'
-              width={160}
-              height={64}
               color={tomatoTheme.start.border}
               textcolor='#fff'
               bg={tomatoTheme.start.bg}
@@ -573,11 +627,9 @@ export default function Page() {
               ariaLabel='다시 하기'
               position='relative'
               text='다시 하기'
-              width={160}
-              height={64}
-              color='#ffffff20'
+              color='#FFB84D'
               textcolor='#fff'
-              bg='#64748B'
+              bg='#FF8C00'
               className='shadow-lg'
               iconPosition='left'
               iconSize={20}
@@ -588,24 +640,40 @@ export default function Page() {
         )}
       </AnimatePresence>
 
-      {!showIntro && showCompletionPopup && (
-        <div className='fixed inset-0 bg-black/50 z-[300] flex text-center items-center justify-center'>
-          <div className='bg-white rounded-2xl p-8 shadow-2xl max-w-md'>
-            <h3 className='text-2xl font-bold text-gray-800 mb-4'>실험 완료</h3>
-            <p className='text-lg text-gray-700 font-light mb-6 leading-relaxed'>
-              같은 물체를 넣었을 때 물체가 높이 떠오른 용액이
-              <br />더 진한 용액입니다.
-            </p>
-            <CrayonTextButton
-              onClick={() => setShowCompletionPopup(false)}
-              color={tomatoTheme.start.border}
-              textcolor='#fff'
-              bg={tomatoTheme.start.bg}
-              text='확인'
-            />
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {!showIntro && showCompletionPopup && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className='fixed inset-0 z-[300] flex items-center justify-center bg-black bg-opacity-50'
+            onClick={() => setShowCompletionPopup(false)}>
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}>
+              <CrayonTextBox bg='#FFFFFF' color={tomatoTheme.start.border} width={600} padding={40} paddingY={12}>
+                <h2 className='text-3xl font-bold text-center m-6 text-gray-800'>정리하기</h2>
+                <p className='text-2xl text-center font-light text-gray-700 leading-relaxed mb-8'>
+                  같은 물체를 넣었을 때 물체가 높이 떠오른 용액이
+                  <br />더 진한 용액입니다.
+                </p>
+                <div className='text-center'>
+                  <CrayonTextButton
+                    onClick={() => setShowCompletionPopup(false)}
+                    bg={tomatoTheme.start.bg}
+                    color={tomatoTheme.start.border}
+                    textcolor='#fff'
+                    text='확인'
+                    innerCircleVisible={false}
+                  />
+                </div>
+              </CrayonTextBox>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Scene shadows camera={{ position: CAMERA_CONFIG.position, fov: CAMERA_CONFIG.fov }}>
         <group scale={2}></group>

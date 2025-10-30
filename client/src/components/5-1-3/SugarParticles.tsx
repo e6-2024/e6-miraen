@@ -227,7 +227,11 @@ export function SugarParticles({
       }
 
       if (p.state === 'sinking') {
-        const speedMultiplier = spoonCount ? Math.min(2, 1 + (spoonCount - 1) * 0.3) : 1
+        // 오른쪽 비커(5숟가락)일 때 용해 속도를 더욱 빠르게
+        const isRightBeaker = beakerId === 'RIGHT'
+        const baseSpeedMultiplier = spoonCount ? Math.min(2, 1 + (spoonCount - 1) * 0.3) : 1
+        const speedMultiplier = isRightBeaker ? baseSpeedMultiplier * 2.5 : baseSpeedMultiplier
+        
         const dissolveSpeed = 0.08 * (1 + sugarAmount * 0.1) * speedMultiplier
         p.pos.y -= dissolveSpeed * clampedDelta
 
@@ -246,7 +250,7 @@ export function SugarParticles({
 
         const fadeSpeed = 0.3 * (1 / sugarAmount) * speedMultiplier
         p.opacity = Math.max(0, p.opacity - fadeSpeed * clampedDelta)
-        p.scale = Math.max(0, p.scale - 0.15 * clampedDelta)
+        p.scale = Math.max(0, p.scale - 0.15 * clampedDelta * speedMultiplier)
 
         if (p.opacity <= 0 || p.scale <= 0) {
           p.state = 'removed'
