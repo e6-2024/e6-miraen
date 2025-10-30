@@ -49,11 +49,8 @@ export function DiscRotationManager({
 
   const startActualDiscRotation = () => {
     if (!discRef.current) {
-      console.log('discRef.current가 없음!')
       return
     }
-
-    console.log('실제 disc rotation 시작!, 현재 rotation.x:', discRef.current.rotation.x)
     setDiscRotating(true)
     rotationRef.current = 0
     initialRotationRef.current = discRef.current.rotation.x

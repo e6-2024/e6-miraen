@@ -14,7 +14,6 @@ const MAX_TIME = 10.0
 
 export function VehicleInfo({ viewMode, selectedVehicle, animationState }: VehicleInfoProps) {
   const [elapsedTime, setElapsedTime] = useState(0)
-  const [distance, setDistance] = useState(0)
   const startTimeRef = useRef<number | null>(null)
   const accumulatedTimeRef = useRef(0)
   const animationFrameRef = useRef<number | null>(null)
@@ -54,7 +53,6 @@ export function VehicleInfo({ viewMode, selectedVehicle, animationState }: Vehic
 
     if (animationState.resetTrigger) {
       setElapsedTime(0)
-      setDistance(0)
       accumulatedTimeRef.current = 0
       startTimeRef.current = null
       if (animationFrameRef.current !== null) {
@@ -79,9 +77,9 @@ export function VehicleInfo({ viewMode, selectedVehicle, animationState }: Vehic
     }
   }, [animationState.isPlaying, animationState.isPaused, animationState.resetTrigger, animationState.isCompleted])
 
-  useEffect(() => {
-    setDistance(speed * elapsedTime)
-  }, [speed, elapsedTime])
+  // 표시용 값 계산 (반올림 일관성 유지)
+  const displayTime = Number(elapsedTime.toFixed(1))
+  const displayDistance = Number((speed * displayTime).toFixed(1))
 
   if (viewMode !== 'firstPerson') {
     return null
@@ -100,17 +98,15 @@ export function VehicleInfo({ viewMode, selectedVehicle, animationState }: Vehic
           <div className='space-y-2 text-xl font-light'>
             <div className='flex justify-between items-center'>
               <span className='text-gray-600'>이동 시간:</span>
-              <span className='font-semibold text-gray-800'>{elapsedTime.toFixed(1)} 초</span>
+              <span className='font-semibold text-gray-800'>{displayTime} 초</span>
             </div>
             <div className='flex justify-between items-center'>
               <span className='text-gray-600'>이동 거리:</span>
-              <span className='font-semibold text-gray-800'>{distance.toFixed(1)} m</span>
+              <span className='font-semibold text-gray-800'>{displayDistance} m</span>
             </div>
             <div className='flex justify-between items-center'>
               <span className='text-gray-600'>속력:</span>
-              <span className='font-semibold text-gray-800'>
-                {elapsedTime === 0 || animationState.isPaused ? 0 : speed} m/s
-              </span>
+              <span className='font-semibold text-gray-800'>{speed} m/s</span>
             </div>
           </div>
         </CrayonTextBox>

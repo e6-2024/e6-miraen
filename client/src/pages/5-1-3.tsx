@@ -692,7 +692,7 @@ export default function Page() {
                         f.play().catch(() => {})
                         setShowPickupReminder(true)
                       }
-                    }, 2000)
+                    }, 1000)
 
                     if (rightTomatoExperimentDone) {
                       setShowActionButtons(true)

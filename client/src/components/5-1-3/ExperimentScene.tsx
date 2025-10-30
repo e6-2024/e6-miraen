@@ -112,7 +112,7 @@ export function ExperimentScene({
     }, 300)
     return () => clearTimeout(t)
   }, [experimentStarted, model0, onNarrationComplete])
-  console.log(currentModel)
+  // console.log(currentModel)
 
   useEffect(() => {
     const scenes: (THREE.Object3D | undefined)[] = [

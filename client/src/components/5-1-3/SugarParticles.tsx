@@ -107,7 +107,6 @@ export function SugarParticles({
 
     if (currentShouldDrop && !prevShouldDrop) {
       currentSpoonRef.current += 1
-      console.log(`${beakerId}: 설탕 드롭 시작! (${currentSpoonRef.current}번째 스푼)`)
       active.current = true
       remaining.current = instanceData.numParticles
       hasCalledCallback.current = false
