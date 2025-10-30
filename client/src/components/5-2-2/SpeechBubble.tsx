@@ -1,6 +1,6 @@
 import React from 'react'
-import { Html, Billboard } from '@react-three/drei'
-import { motion, AnimatePresence } from 'framer-motion'
+import { Text, Billboard } from '@react-three/drei'
+import { AnimatePresence } from 'framer-motion'
 
 interface SpeechBubbleProps {
   position: [number, number, number]
@@ -13,23 +13,27 @@ export const SpeechBubble = ({
   text,
   visible = true,
 }: SpeechBubbleProps) => {
+  if (!visible) return null
+
   return (
     <group position={position}>
-      <AnimatePresence>
-        {visible && (
-          <Html
-            center
-            distanceFactor={1.7}
-            transform
-            style={{
-              pointerEvents: 'auto',
-              userSelect: 'none',
-              zIndex: -1,
-            }}>
-            <div className='font-light text-white'>{text}</div>
-          </Html>
-        )}
-      </AnimatePresence>
+      <Billboard
+      follow={false}
+      >
+        <Text
+          color="white"
+          fontSize={0.07}
+          maxWidth={3}
+          lineHeight={1.2}
+          letterSpacing={0.02}
+          textAlign="center"
+          anchorX="center"
+          anchorY="middle"
+          font='/fonts/Maplestory Bold.ttf'
+        >
+          {text}
+        </Text>
+      </Billboard>
     </group>
   )
 }
