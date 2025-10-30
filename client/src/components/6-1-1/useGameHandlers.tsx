@@ -61,6 +61,9 @@ export const useGameHandlers = (gameState: GameState, gameActions: GameActions) 
         [gameState.currentMission!]: true,
       }))
       gameActions.setGamePhase('wiping')
+      
+      // wiping 단계로 전환될 때 clickMessage 나레이션 재생
+      audio.playClickMessageNarration(gameState.currentMission)
     }
   }
 
@@ -211,7 +214,6 @@ export const useGameHandlers = (gameState: GameState, gameActions: GameActions) 
     gameActions.setSprayEffects((prev) => ({ ...prev, [gameState.currentMission!]: false }))
 
     setTimeout(() => {
-      // handleMissionClick과 동일한 내레이션 파일 사용 (-1 버전)
       const narrationFiles = {
         splash01: '/sounds/6-1-1/narration/6-1-1-A-1.MP3',
         splash02: '/sounds/6-1-1/narration/6-1-1-C-1.MP3',
