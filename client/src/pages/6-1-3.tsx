@@ -167,6 +167,7 @@ export default function Page() {
   const handleViewChange = useCallback(
     (view: ViewType) => {
       setCurrentView(view)
+      setShowFullscreenEvaporation(false)
 
       if (view !== 'default' && view !== 'water') {
         playNarration(view as 'root' | 'stem' | 'leaf')
@@ -262,6 +263,7 @@ export default function Page() {
     setCurrentView('default')
     setWaterPhase(1)
     setShowLeafPulse(false)
+    setShowFullscreenEvaporation(false)
 
     stopAll()
     setShowSubtitle(false)
@@ -455,7 +457,7 @@ export default function Page() {
           <LeafAnimation isVisible={currentView === 'leaf'} />
           
           <FullscreenEvaporation 
-            isVisible={showFullscreenEvaporation} 
+            isVisible={showFullscreenEvaporation && currentView === 'water'} 
             onClose={handleCloseFullscreenEvaporation}
             autoCloseDuration={6000}
           />

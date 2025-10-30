@@ -90,38 +90,33 @@ interface FullscreenEvaporationProps {
   isVisible: boolean
   onClose: () => void
   imagePath?: string
-  autoCloseDuration?: number // ms
+  autoCloseDuration?: number 
 }
 
 export function FullscreenEvaporation({
   isVisible,
   onClose,
   imagePath = '/img/evaporation.webp',
-  autoCloseDuration = 5000,
 }: FullscreenEvaporationProps) {
-  React.useEffect(() => {
-    if (!isVisible) return
-
-    // 자동으로 닫기
-    const timer = setTimeout(() => {
-      onClose()
-    }, autoCloseDuration)
-
-    return () => clearTimeout(timer)
-  }, [isVisible, onClose, autoCloseDuration])
 
   if (!isVisible) return null
 
   return (
-    <div className='fixed inset-0 z-[1000] bg-black/80 flex items-center justify-center' onClick={onClose}>
-      <CrayonTextBox padding={2} paddingY={2} color='#7BCACA' bg='#FFF'>
-        <div className='absolute top-4 right-4 z-10'>
+    <div className='absolute bottom-32 right-4 z-[100]'>
+      <CrayonTextBox 
+        bg='#FFFFFF' 
+        color='#05A8A4' 
+        className='shadow-2xl relative' 
+        padding={20} 
+        paddingY={20}
+      >
+        <div className='absolute -top-2 -right-2 z-10'>
           <CrayonTextButton
             ariaLabel='닫기'
             icon='x'
             iconPosition='left'
-            width={64}
-            height={64}
+            width={48}
+            height={48}
             bg='#FF6B6B'
             color='#B63A3A'
             textcolor='#FFFFFF'
@@ -130,14 +125,12 @@ export function FullscreenEvaporation({
             innerCircleVisible={false}
           />
         </div>
-        <div className='relative w-full h-full flex items-center justify-center p-8'>
-          <img
-            src={imagePath}
-            alt='잎에서 물의 증발'
-            className='max-w-full max-h-full object-contain'
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
+        
+        <img 
+          src={imagePath} 
+          alt='잎에서 물의 증발' 
+          className='w-[400px] h-auto rounded-lg'
+        />
       </CrayonTextBox>
     </div>
   )
