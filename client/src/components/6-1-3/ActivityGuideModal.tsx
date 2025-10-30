@@ -34,7 +34,7 @@ const activityGuideSlides: ActivityGuideSlide[] = [
   {
     id: 'slide5',
     image: '/img/guide/6-1-3/guide5.jpeg',
-    audioPath: '/sounds/6-1-3/intro/6-1-3-Intro-5.MP3'
+    audioPath: '/sounds/6-1-3/intro/6-1-3-Intro-5-1.MP3'
   }
 ]
 

@@ -74,6 +74,8 @@ type ModelProps = JSX.IntrinsicElements['group'] & {
   showStempipes?: boolean        // Moisture_flow 표시+스크롤
   showLeafArrow?: boolean        // Frame_7 표시
   Showleavearrow?: boolean       // (오타 호환)
+  enableLeafClick?: boolean      // Mesh0 클릭 가능 여부
+  onLeafClick?: () => void       // Mesh0 클릭 콜백
 }
 
 export function Model({
@@ -83,6 +85,8 @@ export function Model({
   showStempipes = false,
   showLeafArrow = false,
   Showleavearrow = false,
+  enableLeafClick = false,
+  onLeafClick,
   ...props
 }: ModelProps) {
   const { nodes, materials } = useGLTF('/models/6-1-3/tree.gltf') as GLTFResult
@@ -99,9 +103,24 @@ export function Model({
     if (m.map) { m.map.wrapS = THREE.RepeatWrapping; m.map.wrapT = THREE.RepeatWrapping; m.map.needsUpdate = true }
     return m
   }, [materials])
+  
+  // 잎 화살표 펄스용 머티리얼 복제
+  const leafArrowMat = useMemo(() => {
+    const m = materials['Frame 7'].clone()
+    m.transparent = true
+    return m
+  }, [materials])
+  
+  // Mesh0 (Material_0.002) 펄스용 머티리얼 복제
+  const leafMat = useMemo(() => {
+    const m = materials['Material_0.002'].clone()
+    m.transparent = true
+    return m
+  }, [materials])
 
-  // 보이는 것만 텍스처 스크롤
-  useFrame((_, delta) => {
+  // 보이는 것만 텍스처 스크롤 + 잎 화살표 펄스 + Mesh0 펄스
+  useFrame((state, delta) => {
+    // 파이프 스크롤
     const mats: THREE.MeshStandardMaterial[] = []
     if (showWaterPipes) mats.push(pipeMat)
     if (showStempipes) mats.push(moistureMat)
@@ -109,6 +128,28 @@ export function Model({
       const map = m.map
       if (map) map.offset.y = (map.offset.y + pipeDirection * pipeScrollSpeed * delta) % 1
     })
+    
+    // 잎 화살표 펄스 효과
+    if (leafArrowFlag && leafArrowMat) {
+      const time = state.clock.elapsedTime
+      // 0.6 ~ 1.0 사이를 부드럽게 펄스
+      leafArrowMat.opacity = 0.6 + Math.sin(time * 2.5) * 0.2
+    }
+    
+    // Mesh0 (잎 기공) 펄스 효과
+    if (enableLeafClick && leafMat) {
+      const time = state.clock.elapsedTime
+      // 0.5 ~ 1.0 사이를 빠르게 펄스 (클릭 유도)
+      leafMat.opacity = 0.5 + Math.sin(time * 4) * 0.25
+      // emissive도 함께 펄스
+      const emissiveIntensity = 0.3 + Math.sin(time * 4) * 0.3
+      leafMat.emissive = new THREE.Color(0xffff00) // 노란색 빛
+      leafMat.emissiveIntensity = emissiveIntensity
+    } else if (leafMat) {
+      // 펄스 비활성화 시 원래대로
+      leafMat.opacity = 1.0
+      leafMat.emissiveIntensity = 0
+    }
   })
 
   // 단면 재질(오타/버전 차이 대비)
@@ -175,11 +216,11 @@ export function Model({
       {/* 구체 */}
       <mesh castShadow receiveShadow geometry={nodes.Sphere.geometry} material={materials['Material.002']} scale={0.071} />
 
-      {/* 잎 화살표 프레임: leaf 토글 */}
+      {/* 잎 화살표 프레임: leaf 토글 + 펄스 효과 */}
       <mesh
         castShadow receiveShadow
         geometry={nodes.Frame_7.geometry}
-        material={materials['Frame 7']}
+        material={leafArrowFlag ? leafArrowMat : materials['Frame 7']}
         position={[-1.731, 5.561, -3.708]}
         rotation={[1.534, -0.013, -1.785]}
         scale={0.193}
@@ -216,14 +257,30 @@ export function Model({
         <mesh castShadow receiveShadow geometry={nodes.Mesh003_1.geometry} material={materials['lambert2SG.008']} />
       </group>
 
-      {/* 새로 보이는 Mesh0 */}
+      {/* 새로 보이는 Mesh0 - 클릭 가능한 잎 기공 */}
       <mesh
         castShadow receiveShadow
         geometry={nodes.Mesh0.geometry}
-        material={materials['Material_0.002']}
+        material={enableLeafClick ? leafMat : materials['Material_0.002']}
         position={[-1.667, 5.601, -3.679]}
         rotation={[-1.294, -0.475, -3.117]}
         scale={[0.244, 0.253, 0.106]}
+        onClick={(e) => {
+          if (enableLeafClick && onLeafClick) {
+            e.stopPropagation()
+            onLeafClick()
+          }
+        }}
+        onPointerOver={(e) => {
+          if (enableLeafClick) {
+            document.body.style.cursor = 'pointer'
+          }
+        }}
+        onPointerOut={(e) => {
+          if (enableLeafClick) {
+            document.body.style.cursor = 'auto'
+          }
+        }}
       />
 
       {/* 추가 러프 그라스 (0001) */}

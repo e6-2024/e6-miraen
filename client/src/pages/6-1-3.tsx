@@ -5,14 +5,14 @@ import * as THREE from 'three'
 
 import { Model } from '../components/6-1-3/Model'
 import { SpeechBubble } from '../components/6-1-3/SpeechBubble'
-import { RootWaterAbsorption, LeafEvaporation, StemWaterMovement } from '../components/6-1-3/WaterFlowEffects'
-import { SubtitleBox, WaterFlowButton, ViewControls, LeafAnimation } from '../components/6-1-3/PlantUI'
+import { RootWaterAbsorption, LeafEvaporation } from '../components/6-1-3/WaterFlowEffects'
+import { SubtitleBox, WaterFlowButton, ViewControls, LeafAnimation, FullscreenEvaporation } from '../components/6-1-3/PlantUI'
 import Scene from '../components/canvas/Scene'
 import Intro from '../components/intro/Intro'
 import { CrayonTextButton } from '@/components/common/CrayonUIButton'
 import { TiltOnMouse } from '@/components/common/Tilt'
 import { usePlantAudio } from '@/hook/6-1-3/useAudio'
-import { CAMERA_CONFIGS, getBasePathPoints, getNarrationTexts, ViewType, InfoPanelType } from '@/utils/6-1-3/utils'
+import { CAMERA_CONFIGS, getNarrationTexts, ViewType, InfoPanelType } from '@/utils/6-1-3/utils'
 import ActivityGuideModal from '@/components/6-1-3/ActivityGuideModal'
 import AudioManager from '@/components/6-1-3/AudioManager'
 
@@ -100,7 +100,7 @@ export default function Page() {
   const [isLoaded, setIsLoaded] = useState(false)
   const [showIntro, setShowIntro] = useState(true)
 
-  const [pathPoints, setPathPoints] = useState<THREE.Vector3[]>(() => getBasePathPoints())
+  const [showFullscreenEvaporation, setShowFullscreenEvaporation] = useState(false)
 
   const orbitControlsRef = useRef<any>(null)
   const narrationTexts = useMemo(() => getNarrationTexts(), [])
@@ -163,9 +163,13 @@ export default function Page() {
     (view: ViewType) => {
       setCurrentView(view)
 
-      if (view !== 'default') {
-        playNarration(view as 'root' | 'stem' | 'leaf' | 'water')
+      if (view !== 'default' && view !== 'water') {
+        playNarration(view as 'root' | 'stem' | 'leaf')
         showSubtitleWithDelay(view as keyof typeof narrationTexts)
+      } else if (view === 'water') {
+        // water 뷰일 때는 나레이션과 자막 표시
+        playNarration('water')
+        showSubtitleWithDelay('water')
       } else {
         setShowSubtitle(false)
       }
@@ -179,13 +183,14 @@ export default function Page() {
       }
       playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3')
     },
-    [playNarration, showSubtitleWithDelay, playBackgroundSound, stopBackgroundSound, playSound, narrationTexts],
+    [playNarration, showSubtitleWithDelay, stopBackgroundSound, playSound, narrationTexts],
   )
 
   const handleWaterFlowClick = useCallback(() => {
     handleViewChange('water')
     playBackgroundSound()
-  }, [handleViewChange, playBackgroundSound])
+    playNarration('water')
+  }, [handleViewChange, playBackgroundSound, playNarration])
 
   const handleBackToIntro = useCallback(() => {
     setShowIntro(true)
@@ -207,6 +212,15 @@ export default function Page() {
 
   const handleCloseInfoPanel = useCallback(() => {
     setShowInfoPanel(false)
+  }, [])
+
+  const handleLeafClick = useCallback(() => {
+    playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3')
+    setShowFullscreenEvaporation(true)
+  }, [playSound])
+
+  const handleCloseFullscreenEvaporation = useCallback(() => {
+    setShowFullscreenEvaporation(false)
   }, [])
 
   const hasContent = !showIntro
@@ -272,29 +286,33 @@ export default function Page() {
                 showWaterPipes={currentView === 'water'}
                 showStempipes={currentView === 'stem'}
                 showLeafArrow={currentView === 'leaf'}
+                enableLeafClick={currentView === 'water'}
+                onLeafClick={handleLeafClick}
               />
+              
+              {/* 뿌리 물 흡수 */}
               <RootWaterAbsorption
-                isActive={currentView === 'root'}
+                isActive={currentView === 'root' || currentView === 'water'}
                 rootPosition={new THREE.Vector3(6.0, -3.3, 1.42)}
               />
-
               <RootWaterAbsorption
-                isActive={currentView === 'root'}
+                isActive={currentView === 'root' || currentView === 'water'}
                 rootPosition={new THREE.Vector3(6.0, -3.4, 1.42)}
               />
-
               <RootWaterAbsorption
-                isActive={currentView === 'root'}
+                isActive={currentView === 'root' || currentView === 'water'}
                 rootPosition={new THREE.Vector3(6.28, -3.7, 1.42)}
                 ringRadiusMin={0.2}
                 ringRadiusMax={2.0}
                 swirl={1.0}
               />
-              <group position={[0.7, 0, -0.45]} scale={[1, 1, -1]}>
-                <StemWaterMovement isActive={currentView === 'stem'} pathPoints={pathPoints} />
-              </group>
 
-              <LeafEvaporation isActive={currentView === 'leaf'} leafPosition={new THREE.Vector3(-1.7, 5.8, -3.7)} />
+              {/* 잎 증발 */}
+              <LeafEvaporation 
+                isActive={currentView === 'leaf' || currentView === 'water'} 
+                leafPosition={new THREE.Vector3(-1.7, 5.8, -3.7)}
+              />
+
               {!showIntro && currentView === 'default' && (
                 <>
                   <SpeechBubble
@@ -360,6 +378,12 @@ export default function Page() {
           <SubtitleBox text={subtitleText} isVisible={showSubtitle} />
           
           <LeafAnimation isVisible={currentView === 'leaf'} />
+          
+          <FullscreenEvaporation 
+            isVisible={showFullscreenEvaporation} 
+            onClose={handleCloseFullscreenEvaporation}
+            autoCloseDuration={6000}
+          />
         </>
       )}
 
