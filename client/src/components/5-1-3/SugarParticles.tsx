@@ -70,7 +70,7 @@ export function SugarParticles({
         pos: base.clone(),
         vel: new THREE.Vector3((Math.random() - 0.5) * 0.05, Math.random() * 0.4 + 0.1, (Math.random() - 0.5) * 0.05),
         age: 0,
-        delay: Math.random() * 0.4,
+        delay: Math.random() * 0.8,
         state: 'waiting',
         opacity: 1,
         scale: 0.5 + Math.random() * 0.4,
@@ -230,9 +230,9 @@ export function SugarParticles({
         // 오른쪽 비커(5숟가락)일 때 용해 속도를 더욱 빠르게
         const isRightBeaker = beakerId === 'RIGHT'
         const baseSpeedMultiplier = spoonCount ? Math.min(2, 1 + (spoonCount - 1) * 0.3) : 1
-        const speedMultiplier = isRightBeaker ? baseSpeedMultiplier * 2.5 : baseSpeedMultiplier
+        const speedMultiplier = isRightBeaker ? baseSpeedMultiplier * 1.75 : baseSpeedMultiplier
         
-        const dissolveSpeed = 0.08 * (1 + sugarAmount * 0.1) * speedMultiplier
+        const dissolveSpeed = 0.05 * (1 + sugarAmount * 0.1) * speedMultiplier
         p.pos.y -= dissolveSpeed * clampedDelta
 
         const radialSpeed = 0.06 * (1 - p.opacity)
