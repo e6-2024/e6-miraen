@@ -101,6 +101,11 @@ export default function Page() {
   const [showIntro, setShowIntro] = useState(true)
 
   const [showFullscreenEvaporation, setShowFullscreenEvaporation] = useState(false)
+  
+  // Water 뷰 전용 상태
+  const [waterPhase, setWaterPhase] = useState<1 | 2>(1)
+  const [showLeafPulse, setShowLeafPulse] = useState(false)
+  const waterAudioRef = useRef<HTMLAudioElement | null>(null)
 
   const orbitControlsRef = useRef<any>(null)
   const narrationTexts = useMemo(() => getNarrationTexts(), [])
@@ -167,9 +172,8 @@ export default function Page() {
         playNarration(view as 'root' | 'stem' | 'leaf')
         showSubtitleWithDelay(view as keyof typeof narrationTexts)
       } else if (view === 'water') {
-        // water 뷰일 때는 나레이션과 자막 표시
-        playNarration('water')
-        showSubtitleWithDelay('water')
+        // water 뷰는 handleWaterFlowClick에서 처리
+        setShowSubtitle(false)
       } else {
         setShowSubtitle(false)
       }
@@ -186,15 +190,78 @@ export default function Page() {
     [playNarration, showSubtitleWithDelay, stopBackgroundSound, playSound, narrationTexts],
   )
 
+  // Water 뷰 진입 시 오디오 재생 시작
+  useEffect(() => {
+    if (currentView !== 'water') {
+      // water 뷰가 아니면 상태 초기화
+      setWaterPhase(1)
+      setShowLeafPulse(false)
+      if (waterAudioRef.current) {
+        waterAudioRef.current.pause()
+        waterAudioRef.current = null
+      }
+      return
+    }
+
+    // water 뷰 진입 시 오디오 한 번만 재생 시작
+    if (waterPhase === 1 && !waterAudioRef.current) {
+      setShowLeafPulse(false)
+      setSubtitleText(narrationTexts.waterPhase1)
+      setShowSubtitle(true)
+      
+      // 오디오 재생
+      const audio = new Audio('/sounds/6-1-3/narration/6-1-3-D-1.mp3')
+      audio.volume = 0.8
+      waterAudioRef.current = audio
+      
+      // 오디오 메타데이터 로드 후 중간 지점 계산
+      audio.addEventListener('loadedmetadata', () => {
+        const transitionTime = audio.duration * 0.45 // 중간 지점에서 Phase 2로 전환
+        
+        let hasTransitioned = false
+        audio.addEventListener('timeupdate', () => {
+          if (!hasTransitioned && audio.currentTime >= transitionTime) {
+            hasTransitioned = true
+            setWaterPhase(2)
+          }
+        })
+      })
+      
+      audio.play().catch((error) => {
+        console.log('Water narration playback failed:', error)
+      })
+    }
+
+    return () => {
+      // 뷰가 변경될 때만 오디오 정리
+      if (currentView !== 'water' && waterAudioRef.current) {
+        waterAudioRef.current.pause()
+        waterAudioRef.current = null
+      }
+    }
+  }, [currentView, narrationTexts])
+
+  // Phase 2: 잎 증발 + pulse (오디오는 계속 재생)
+  useEffect(() => {
+    if (currentView === 'water' && waterPhase === 2) {
+      setSubtitleText(narrationTexts.waterPhase2)
+      setShowSubtitle(true)
+      setShowLeafPulse(true)
+    }
+  }, [currentView, waterPhase, narrationTexts])
+
   const handleWaterFlowClick = useCallback(() => {
-    handleViewChange('water')
+    setCurrentView('water')
+    setWaterPhase(1)
     playBackgroundSound()
-    playNarration('water')
-  }, [handleViewChange, playBackgroundSound, playNarration])
+    playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3')
+  }, [playBackgroundSound, playSound])
 
   const handleBackToIntro = useCallback(() => {
     setShowIntro(true)
     setCurrentView('default')
+    setWaterPhase(1)
+    setShowLeafPulse(false)
 
     stopAll()
     setShowSubtitle(false)
@@ -286,11 +353,11 @@ export default function Page() {
                 showWaterPipes={currentView === 'water'}
                 showStempipes={currentView === 'stem'}
                 showLeafArrow={currentView === 'leaf'}
-                enableLeafClick={currentView === 'water'}
+                enableLeafClick={currentView === 'water' && showLeafPulse}
                 onLeafClick={handleLeafClick}
               />
               
-              {/* 뿌리 물 흡수 */}
+              {/* 뿌리 물 흡수 - water 뷰의 모든 phase에서 표시 */}
               <RootWaterAbsorption
                 isActive={currentView === 'root' || currentView === 'water'}
                 rootPosition={new THREE.Vector3(6.0, -3.3, 1.42)}
@@ -307,9 +374,9 @@ export default function Page() {
                 swirl={1.0}
               />
 
-              {/* 잎 증발 */}
+              {/* 잎 증발 - water 뷰의 phase 2부터 표시 */}
               <LeafEvaporation 
-                isActive={currentView === 'leaf' || currentView === 'water'} 
+                isActive={currentView === 'leaf' || (currentView === 'water' && waterPhase === 2)} 
                 leafPosition={new THREE.Vector3(-1.7, 5.8, -3.7)}
               />
 
@@ -371,7 +438,15 @@ export default function Page() {
 
       {hasContent && isLoaded && (
         <>
-          <ViewControls currentView={currentView} onViewChange={handleViewChange} stopAll={stopAll} />
+          <ViewControls 
+            currentView={currentView} 
+            onViewChange={handleViewChange} 
+            stopAll={() => {
+              stopAll()
+              setWaterPhase(1)
+              setShowLeafPulse(false)
+            }} 
+          />
 
           <WaterFlowButton isVisible={currentView === 'default'} onClick={handleWaterFlowClick} />
 
