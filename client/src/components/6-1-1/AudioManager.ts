@@ -275,7 +275,7 @@ class AudioManager {
 
   private clickMessageNarrations: Record<SplashType, string> = {
     splash01: '/sounds/6-1-1/narration/6-1-1-A-3.MP3',
-    splash02: '/sounds/6-1-1/narration/6-1-1-C-3.MP3',
+    splash02: '/sounds/6-1-1/narration/6-1-1-C-2.MP3',
     splash03: '/sounds/6-1-1/narration/6-1-1-E-3.MP3',
     splash04: '/sounds/6-1-1/narration/6-1-1-G-3.MP3',
   }
