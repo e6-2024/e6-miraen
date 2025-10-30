@@ -10,6 +10,8 @@ interface VehicleInfoProps {
   animationState: AnimationState
 }
 
+const MAX_TIME = 10.0
+
 export function VehicleInfo({ viewMode, selectedVehicle, animationState }: VehicleInfoProps) {
   const [elapsedTime, setElapsedTime] = useState(0)
   const [distance, setDistance] = useState(0)
@@ -24,23 +26,24 @@ export function VehicleInfo({ viewMode, selectedVehicle, animationState }: Vehic
     const updateTime = () => {
       if (startTimeRef.current !== null) {
         const currentTime = performance.now()
-        const deltaTime = (currentTime - startTimeRef.current) / 1000 // Convert to seconds
-        const totalTime = accumulatedTimeRef.current + deltaTime
+        const deltaTime = (currentTime - startTimeRef.current) / 1000
+        const totalTime = Math.min(accumulatedTimeRef.current + deltaTime, MAX_TIME)
         setElapsedTime(totalTime)
-        animationFrameRef.current = requestAnimationFrame(updateTime)
+        
+        if (totalTime < MAX_TIME) {
+          animationFrameRef.current = requestAnimationFrame(updateTime)
+        }
       }
     }
 
     if (animationState.isPlaying && !animationState.isPaused) {
-      // Start or resume timing
       startTimeRef.current = performance.now()
       animationFrameRef.current = requestAnimationFrame(updateTime)
     } else if (animationState.isPaused) {
-      // Pause: save accumulated time
       if (startTimeRef.current !== null) {
         const currentTime = performance.now()
         const deltaTime = (currentTime - startTimeRef.current) / 1000
-        accumulatedTimeRef.current += deltaTime
+        accumulatedTimeRef.current = Math.min(accumulatedTimeRef.current + deltaTime, MAX_TIME)
         startTimeRef.current = null
       }
       if (animationFrameRef.current !== null) {
@@ -60,12 +63,21 @@ export function VehicleInfo({ viewMode, selectedVehicle, animationState }: Vehic
       }
     }
 
+    if (animationState.isCompleted) {
+      setElapsedTime(MAX_TIME)
+      accumulatedTimeRef.current = MAX_TIME
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current)
+        animationFrameRef.current = null
+      }
+    }
+
     return () => {
       if (animationFrameRef.current !== null) {
         cancelAnimationFrame(animationFrameRef.current)
       }
     }
-  }, [animationState.isPlaying, animationState.isPaused, animationState.resetTrigger])
+  }, [animationState.isPlaying, animationState.isPaused, animationState.resetTrigger, animationState.isCompleted])
 
   useEffect(() => {
     setDistance(speed * elapsedTime)

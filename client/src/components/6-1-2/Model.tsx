@@ -54,7 +54,6 @@ export default function Model({
       child.castShadow = castShadow
       child.receiveShadow = receiveShadow
 
-      //Crabapple 메쉬만 컷아웃 섀도우 적용
       if (child.name.startsWith('Crabapple')) {
         const mats: THREE.Material[] = Array.isArray(child.material) ? child.material : [child.material]
         mats.forEach((mat) => {
@@ -115,13 +114,19 @@ export default function Model({
         if (action && action.getClip()) {
           const clipDuration = action.getClip().duration
 
-          if (animationTimeRef.current >= clipDuration && !hasCompletedOnce) {
-            setHasCompletedOnce(true)
-            action.time = clipDuration
-            action.paused = true
-            if (onAnimationComplete) {
-              onAnimationComplete()
+          if (animationTimeRef.current >= clipDuration) {
+            animationTimeRef.current = clipDuration
+            
+            if (!hasCompletedOnce) {
+              setHasCompletedOnce(true)
+              action.time = clipDuration
+              action.paused = true
+              if (onAnimationComplete) {
+                onAnimationComplete()
+              }
             }
+          } else {
+            action.time = animationTimeRef.current
           }
         }
       })
