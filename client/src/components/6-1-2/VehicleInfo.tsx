@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { CrayonTextBox } from '@/components/common/CrayonTextBox'
 import { ViewMode, VehicleId, AnimationState } from '@/types/6-1-2/types'
 import { findVehicleById } from '@/utils/6-1-2/utils'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 
 interface VehicleInfoProps {
   viewMode: ViewMode
@@ -13,28 +13,56 @@ interface VehicleInfoProps {
 export function VehicleInfo({ viewMode, selectedVehicle, animationState }: VehicleInfoProps) {
   const [elapsedTime, setElapsedTime] = useState(0)
   const [distance, setDistance] = useState(0)
+  const startTimeRef = useRef<number | null>(null)
+  const accumulatedTimeRef = useRef(0)
+  const animationFrameRef = useRef<number | null>(null)
 
   const vehicle = findVehicleById(selectedVehicle)
   const speed = vehicle?.speed || 0
-  const speed2 = 0
 
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null
+    const updateTime = () => {
+      if (startTimeRef.current !== null) {
+        const currentTime = performance.now()
+        const deltaTime = (currentTime - startTimeRef.current) / 1000 // Convert to seconds
+        const totalTime = accumulatedTimeRef.current + deltaTime
+        setElapsedTime(totalTime)
+        animationFrameRef.current = requestAnimationFrame(updateTime)
+      }
+    }
 
     if (animationState.isPlaying && !animationState.isPaused) {
-      interval = setInterval(() => {
-        setElapsedTime((prev) => prev + 0.1)
-      }, 100)
+      // Start or resume timing
+      startTimeRef.current = performance.now()
+      animationFrameRef.current = requestAnimationFrame(updateTime)
+    } else if (animationState.isPaused) {
+      // Pause: save accumulated time
+      if (startTimeRef.current !== null) {
+        const currentTime = performance.now()
+        const deltaTime = (currentTime - startTimeRef.current) / 1000
+        accumulatedTimeRef.current += deltaTime
+        startTimeRef.current = null
+      }
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current)
+        animationFrameRef.current = null
+      }
     }
 
     if (animationState.resetTrigger) {
       setElapsedTime(0)
       setDistance(0)
+      accumulatedTimeRef.current = 0
+      startTimeRef.current = null
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current)
+        animationFrameRef.current = null
+      }
     }
 
     return () => {
-      if (interval) {
-        clearInterval(interval)
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current)
       }
     }
   }, [animationState.isPlaying, animationState.isPaused, animationState.resetTrigger])
