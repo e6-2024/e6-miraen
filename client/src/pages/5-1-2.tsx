@@ -467,11 +467,12 @@ export default function Page() {
   }, [playSound])
 
   const handleBackToIntro = useCallback(() => {
+    stopNarration()
     setShowIntro(true)
     setIsBackFromMode(false)
     setActiveMode('direct')
     setIntroResetKey((prev) => prev + 1)
-  }, [])
+  }, [stopNarration])
 
   const handleRayToggle = useCallback(
     (buttonIndex: number) => {
