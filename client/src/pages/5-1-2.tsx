@@ -424,11 +424,12 @@ export default function Page() {
       }
 
       playSound('/sounds/Enter_Cute.mp3')
+      stopNarration()
       setTimeout(() => {
         playNarration('/sounds/5-1-2/5-1-2-A.MP3')
-      }, 1000)
+      }, 500)
     },
-    [playSound, playNarration],
+    [playSound, playNarration, stopNarration],
   )
   const handleBackToModeSelection = useCallback(() => {
     playSound('/sounds/5-1-1-0-0_click-tap-computer-mouse-352734.mp3')
@@ -467,12 +468,12 @@ export default function Page() {
   }, [playSound])
 
   const handleBackToIntro = useCallback(() => {
-    stopNarration()
     setShowIntro(true)
     setIsBackFromMode(false)
     setActiveMode('direct')
+    setRayStates([false, false, false])
     setIntroResetKey((prev) => prev + 1)
-  }, [stopNarration])
+  }, [])
 
   const handleRayToggle = useCallback(
     (buttonIndex: number) => {

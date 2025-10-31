@@ -1,4 +1,4 @@
-// Meat.tsx
+// Meat.tsx - 구워지는 방향을 조절할 수 있는 버전
 import { useGLTF } from '@react-three/drei'
 import { GroupProps, useFrame } from '@react-three/fiber'
 import { useEffect, useRef, useState } from 'react'
@@ -13,6 +13,10 @@ interface MeatProps extends Omit<GroupProps, 'position'> {
   heatSourcePosition?: [number, number, number]
   position?: [number, number, number]
 }
+
+// ⭐ 구워지는 방향 설정 (여기를 변경하세요!)
+type CookingDirection = 'Y_BOTTOM_TO_TOP' | 'Y_TOP_TO_BOTTOM' | 'X_LEFT_TO_RIGHT' | 'X_RIGHT_TO_LEFT' | 'DIAGONAL'
+const COOKING_DIRECTION: CookingDirection = 'X_RIGHT_TO_LEFT' // 기본값: 아래에서 위로
 
 export function Meat({
   thermalMode = false,
@@ -49,6 +53,29 @@ export function Meat({
     groupRef.current.updateWorldMatrix(true, true)
     box.setFromObject(groupRef.current)
     return box.getCenter(new THREE.Vector3())
+  }
+
+  // 방향에 따라 그라디언트 설정을 반환하는 함수
+  const getGradientConfig = (direction: CookingDirection) => {
+    switch (direction) {
+      case 'Y_BOTTOM_TO_TOP': // 아래에서 위로 (UV의 V축 기준)
+        return { x0: 0, y0: 512, x1: 0, y1: 0 }
+      
+      case 'Y_TOP_TO_BOTTOM': // 위에서 아래로
+        return { x0: 0, y0: 0, x1: 0, y1: 512 }
+      
+      case 'X_LEFT_TO_RIGHT': // 왼쪽에서 오른쪽으로 (UV의 U축 기준)
+        return { x0: 0, y0: 0, x1: 512, y1: 0 }
+      
+      case 'X_RIGHT_TO_LEFT': // 오른쪽에서 왼쪽으로
+        return { x0: 512, y0: 0, x1: 0, y1: 0 }
+      
+      case 'DIAGONAL': // 대각선 (왼쪽 아래에서 오른쪽 위로)
+        return { x0: 0, y0: 512, x1: 512, y1: 0 }
+      
+      default:
+        return { x0: 0, y0: 512, x1: 0, y1: 0 }
+    }
   }
 
   useEffect(() => {
@@ -169,13 +196,54 @@ export function Meat({
                     | HTMLImageElement
                     | HTMLCanvasElement
                   if (originalImg) {
+                    // 원본 이미지 그리기
                     ctx.drawImage(originalImg as CanvasImageSource, 0, 0, canvas.width, canvas.height)
 
-                    ctx.globalAlpha = blendFactor
-                    ctx.globalCompositeOperation = 'source-over'
-                    const cookedImg = cookedTexture.image as HTMLImageElement | HTMLCanvasElement
-                    if (cookedImg) {
-                      ctx.drawImage(cookedImg as CanvasImageSource, 0, 0, canvas.width, canvas.height)
+                    // ⭐ 설정된 방향에 따라 그라디언트 생성
+                    const gradConfig = getGradientConfig(COOKING_DIRECTION)
+                    const gradient = ctx.createLinearGradient(
+                      gradConfig.x0, 
+                      gradConfig.y0, 
+                      gradConfig.x1, 
+                      gradConfig.y1
+                    )
+                    
+                    // blendFactor에 따라 그라디언트의 진행도 조절
+                    const cookProgress = blendFactor * 1.5 // 속도 조절 (더 크면 빨리, 작으면 느리게)
+                    
+                    if (cookProgress < 1.0) {
+                      // 진행 중: 점진적으로
+                      gradient.addColorStop(0, `rgba(255, 255, 255, 1)`)
+                      gradient.addColorStop(Math.min(cookProgress, 0.99), `rgba(255, 255, 255, 1)`)
+                      gradient.addColorStop(Math.min(cookProgress + 0.15, 1.0), `rgba(255, 255, 255, 0)`) // 0.15는 전환 영역 크기
+                      gradient.addColorStop(1, `rgba(255, 255, 255, 0)`)
+                    } else {
+                      // 완료: 전체에 적용
+                      gradient.addColorStop(0, `rgba(255, 255, 255, 1)`)
+                      gradient.addColorStop(1, `rgba(255, 255, 255, 1)`)
+                    }
+
+                    // 임시 캔버스에 cooked 텍스처 + 그라디언트 마스크 적용
+                    const tempCanvas = document.createElement('canvas')
+                    tempCanvas.width = canvas.width
+                    tempCanvas.height = canvas.height
+                    const tempCtx = tempCanvas.getContext('2d')
+                    
+                    if (tempCtx) {
+                      const cookedImg = cookedTexture.image as HTMLImageElement | HTMLCanvasElement
+                      if (cookedImg) {
+                        // cooked 이미지 그리기
+                        tempCtx.drawImage(cookedImg as CanvasImageSource, 0, 0, canvas.width, canvas.height)
+                        
+                        // 그라디언트 마스크 적용
+                        tempCtx.globalCompositeOperation = 'destination-in'
+                        tempCtx.fillStyle = gradient
+                        tempCtx.fillRect(0, 0, canvas.width, canvas.height)
+                      }
+                      
+                      // 마스크 적용된 cooked 이미지를 원본 위에 합성
+                      ctx.globalCompositeOperation = 'source-over'
+                      ctx.drawImage(tempCanvas, 0, 0)
                     }
 
                     const blendedTexture = new THREE.CanvasTexture(canvas)
