@@ -379,7 +379,7 @@ export default function Page() {
               {/* 잎 증발 - water 뷰의 phase 2부터 표시 */}
               <LeafEvaporation 
                 isActive={currentView === 'leaf' || (currentView === 'water' && waterPhase === 2)} 
-                leafPosition={new THREE.Vector3(-1.7, 5.8, -3.7)}
+                leafPosition={new THREE.Vector3(-1.7, 5.85, -3.7)}
               />
 
               {!showIntro && currentView === 'default' && (
