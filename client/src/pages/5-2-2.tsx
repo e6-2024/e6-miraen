@@ -96,8 +96,8 @@ function HeatingGauge({
             />
           </div>
 
-          <div className='flex justify-center text-xs text-gray-600'>
-            <span>{Math.round(progress)}%</span>
+          <div className='flex justify-center text-base text-gray-600'>
+            <span>{Math.round(progress)} %</span>
           </div>
         </CrayonTextBox>
       </motion.div>
