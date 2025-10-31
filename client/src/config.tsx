@@ -1,7 +1,7 @@
 import Head from 'next/head'
 
 const titleDefault = 'MIRAEN'
-const url = 'https://sejinoh.live'
+const url = 'https://e6-miraen.vercel.app'
 const description = 'React Three Fiber Starter Kit with Twin'
 const author = 'Author'
 
