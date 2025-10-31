@@ -78,10 +78,8 @@ export function VehicleInfo({ viewMode, selectedVehicle, animationState }: Vehic
   }, [animationState.isPlaying, animationState.isPaused, animationState.resetTrigger, animationState.isCompleted])
 
   // 표시용 값 계산 (반올림 일관성 유지)
-  const roundedTime = Math.round(elapsedTime * 10) / 10
-  const roundedDistance = Math.round(speed * elapsedTime * 10) / 10
-  const displayTime = Number.isInteger(roundedTime) ? `${roundedTime}.0` : roundedTime.toString()
-  const displayDistance = Number.isInteger(roundedDistance) ? `${roundedDistance}.0` : roundedDistance.toString()
+  const displayTime = elapsedTime.toFixed(1)
+  const displayDistance = (speed * Number(displayTime)).toFixed(1)
 
   // 현재 속력 (일시 정지 시 무조건 0)
   const currentSpeed = elapsedTime === 0 || animationState.isPaused ? 0 : speed
