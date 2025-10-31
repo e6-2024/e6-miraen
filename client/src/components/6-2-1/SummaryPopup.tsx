@@ -150,7 +150,7 @@ const SummaryPopup = ({ isOpen, onClose }) => {
             ) : (
               <div className='flex items-center justify-center h-full'>
                 <p className='text-gray-500 font-light text-center'>
-                  위의 그래프 버튼을 클릭하여 그래프를 확인해보세요.
+                  위의 그래프 버튼을 클릭하여 그래프를 확인해 보세요.
                 </p>
               </div>
             )}
