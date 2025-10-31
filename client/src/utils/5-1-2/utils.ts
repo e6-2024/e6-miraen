@@ -89,7 +89,7 @@ export const getStandRotation = (mode: OpticalMode, angle: number): [number, num
 
 export const getAudioPath = (mode: OpticalMode, lensType?: LensType): string => {
   const paths = {
-    direct: '/sounds/5-1-2/5-1-2-B.mp3',
+    direct: '/sounds/5-1-2/5-1-2-B.MP3',
     reflection: '/sounds/5-1-2/5-1-2-C.MP3',
     'refraction-convex': '/sounds/5-1-2/5-1-2-D.MP3',
     'refraction-concave': '/sounds/5-1-2/5-1-2-E.MP3',
