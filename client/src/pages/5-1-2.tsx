@@ -469,6 +469,7 @@ export default function Page() {
 
   const handleBackToIntro = useCallback(() => {
     setShowIntro(true)
+    stopNarration()
     setIsBackFromMode(false)
     setActiveMode('direct')
     setRayStates([false, false, false])
