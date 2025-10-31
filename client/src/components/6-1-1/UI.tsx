@@ -35,25 +35,23 @@ export function CleaningProgressUI({
     <CrayonTextBox
       color='#01A7A2'
       bg='#FFF'
-      className='w-[300px] z-[200] bottom-4 left-4'
+      className='w-fit z-[200] bottom-4 left-4'
       padding={12}
       paddingY={20}
       position='absolute'>
-      <h3 className='text-lg font-bold mb-3 text-gray-800'>청소 진행도</h3>
-      <div className='space-y-3 font-light'>
+      <h3 className='text-2xl font-bold mb-3 text-gray-800'>청소 진행도</h3>
+
+      <div className='flex flex-row space-x-6 font-light'>
         {missionList.map((mission) => {
           const progress = cleaningProgress[mission.id]
           const isCompleted = completedMissions[mission.id]
 
           return (
-            <div key={mission.id}>
-              <div className='flex justify-between items-center'>
-                <span className='text-sm text-gray-700'>{mission.name}</span>
-                <span className='text-xs text-gray-500'>{isCompleted ? '완료' : `${Math.round(progress)} %`}</span>
-              </div>
+            <div key={mission.id} className='flex flex-col items-start w-[140px]'>
+              <span className='text-lg text-gray-700 mb-1'>{mission.name}</span>
 
               {/* 프로그레스 바 */}
-              <div className='w-full bg-gray-200 rounded-full h-2 overflow-hidden'>
+              <div className='w-full bg-gray-200 rounded-full h-2 mb-1 overflow-hidden'>
                 <div
                   className='h-2 rounded-full transition-all duration-300'
                   style={{
@@ -63,18 +61,22 @@ export function CleaningProgressUI({
                 />
               </div>
 
+              <span className='text-sm text-gray-500 mb-2'>
+                {isCompleted ? '완료' : `${Math.round(progress)} %`}
+              </span>
+
               {isCompleted && (
                 <CrayonTextButton
                   ariaLabel='다시 하기'
                   text='다시 하기'
                   width={120}
-                  height={48}
+                  height={50}
                   // @ts-ignore
-                  textSize={12}
+                  textSize={16}
                   bg='#F3F4F6'
                   color='#D1D5DB'
                   textcolor='#374151'
-                  className='w-full top-2 active:scale-95 transition-all duration-200'
+                  className='active:scale-95 transition-all duration-200'
                   onClick={() => onReset(mission.id)}
                   innerCircleVisible={false}
                 />
@@ -86,6 +88,7 @@ export function CleaningProgressUI({
     </CrayonTextBox>
   )
 }
+
 
 interface SolutionSelectorProps {
   gamePhase: GamePhase
@@ -120,9 +123,9 @@ export function SolutionSelector({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 0 }}
       transition={{ duration: 1, ease: 'easeOut' }}>
-      <CrayonTextBox textcolor='#333' textAlign='center' bg='#FFFFFF' color='#01A7A2' width={430} padding={20} paddingY={20}>
-        <div className='text-lg font-bold mb-3 text-center text-gray-800'>용액 선택</div>
-        <div className='flex font-light gap-3 text-black whitespace-nowrap text-lg'>
+      <CrayonTextBox textcolor='#333' textAlign='center' bg='#FFFFFF' color='#01A7A2' width={460} padding={20} paddingY={20}>
+        <div className='text-2xl font-bold text-center text-gray-800'>용액 선택</div>
+        <div className='flex justify-center items-end font-light gap-3 text-black whitespace-nowrap text-xl'>
           {solutions.map((solution) => (
             <button
               key={solution.id}

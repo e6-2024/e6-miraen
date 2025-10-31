@@ -345,6 +345,7 @@ export default function Page() {
   const { playSound, playNarration, stopNarration } = useAudio()
   const [showActivityGuide, setShowActivityGuide] = useState(false)
   const audioManager = AudioManager.getInstance()
+  const [introResetKey, setIntroResetKey] = useState(0)
 
   const modeButtons = useMemo(
     () => [
@@ -469,6 +470,7 @@ export default function Page() {
     setShowIntro(true)
     setIsBackFromMode(false)
     setActiveMode('direct')
+    setIntroResetKey((prev) => prev + 1)
   }, [])
 
   const handleRayToggle = useCallback(
@@ -653,6 +655,7 @@ export default function Page() {
       {isLoaded && showIntro && (
         <Intro
           onEnter={() => {}}
+          key={introResetKey}
           title='빛의 직진, 반사, 굴절 관찰하기'
           description={[
             '빛이 공기 중에서 나아갈 때, 거울과 같은 물체에 부딪쳤을 때, 렌즈를 통과할 때 어떻게 나아가는지 알아봅시다.',

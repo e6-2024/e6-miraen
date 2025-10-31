@@ -129,6 +129,7 @@ export default function Home() {
   const [isBackFromMode, setIsBackFromMode] = useState(false)
   const [showSubtitle, setShowSubtitle] = useState(false)
   const [subtitleText, setSubtitleText] = useState('')
+  const [introResetKey, setIntroResetKey] = useState(0)
 
   const bgmRef = useRef<HTMLAudioElement | null>(null)
   const [bgmEnabled, setBgmEnabled] = useState<boolean>(true)
@@ -240,6 +241,7 @@ export default function Home() {
     setIsBackFromMode(false)
     setMode(null)
     setShowNarrationText(false)
+    setIntroResetKey(prev => prev + 1)
   }, [])
 
   const handleSummaryClick = useCallback(() => {
@@ -472,6 +474,7 @@ export default function Home() {
       {isLoaded && showIntro && (
         <Intro
           onEnter={() => {}}
+          key={introResetKey}
           title={'전지의 수에 따른\n전기 회로의 특징 비교하기'}
           description={['전지 1 개를 연결한 전기 회로와 전지 2 개를 직렬연결한 전기 회로의 특징을 비교해 봅시다.']}
           backgroundSvg='/img/cover/6-2-3.svg'
@@ -485,7 +488,7 @@ export default function Home() {
         />
       )}
       {mode && <SummaryPopup mode={mode} isOpen={showSummaryPopup} onClose={handleCloseSummaryPopup} />}
-      {showSubtitle && (
+      {!showIntro && showSubtitle && (
         <div className='absolute font-light bottom-12 left-1/2 transform -translate-x-1/2'>
           <CrayonTextBox
             color={BUTTON_THEME.goal.bg}

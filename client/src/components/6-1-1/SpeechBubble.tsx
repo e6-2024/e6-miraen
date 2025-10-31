@@ -48,7 +48,7 @@ export const SpeechBubble = ({
                   border: '2px solid #ddd',
                   boxShadow: '0 4px 8px rgba(0,0,0,0.15)',
                   maxWidth: '200px',
-                  fontSize: '10px',
+                  fontSize: '12pt',
                   cursor: onBubbleClick ? 'pointer' : 'default',
                   position: 'relative',
                   transition: 'transform 0.2s ease',

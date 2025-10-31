@@ -127,6 +127,7 @@ export default function Page() {
   const isFoldActive = action === 'fold'
 
   const orbitControlsRef = useRef<any>(null)
+  const [introResetKey, setIntroResetKey] = useState(0)
 
   // === BGM ===
   const bgmRef = useRef<HTMLAudioElement | null>(null)
@@ -269,9 +270,9 @@ export default function Page() {
     setMode(null)
     setShowIntro(true)
     setIsBackFromMode(false)
+    setIntroResetKey((prev) => prev + 1)
   }, [playClickSound, currentNarration, resetCamera])
 
-  // 모델 사전 로딩
   const loadModels = async () => {
     setIsModelsLoading(true)
     try {
@@ -691,6 +692,7 @@ export default function Page() {
 
       {mounted && isLoaded && showIntro && (
         <Intro
+          key={introResetKey}
           onEnter={handleEnterExperience}
           title={'뼈와 근육을 관찰하고, \n우리 몸이 움직이는 원리 알아보기'}
           description={[
