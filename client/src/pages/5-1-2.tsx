@@ -299,7 +299,15 @@ function ExplanationBox({ isVisible, mode, lensType }: { isVisible: boolean; mod
 
   return (
     <div className='absolute left-1/2 font-light top-1/2 -translate-x-1/2 -translate-y-1/2'>
-      <CrayonTextBox textcolor='#333' color='#F3921C' bg='#F3921C' fontSize='20pt' width='520px' animated={false} padding={40} paddingY={24}>
+      <CrayonTextBox
+        textcolor='#333'
+        color='#F3921C'
+        bg='#F3921C'
+        fontSize='20pt'
+        width='520px'
+        animated={false}
+        padding={40}
+        paddingY={24}>
         {descriptions[mode]}
       </CrayonTextBox>
     </div>
@@ -502,7 +510,7 @@ export default function Page() {
         icon={'home'}
         position='absolute'
         iconPosition='left'
-        onClick={handleBackToModeSelection}
+        onClick={handleBackToIntro}
         width={96}
         height={96}
         color={lightTheme.start.border}
@@ -531,6 +539,30 @@ export default function Page() {
         iconSize={40}
         innerCircleVisible={true}
       />
+
+      <AnimatePresence>
+        {!showIntro && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5, ease: 'easeInOut' }}
+            className='absolute top-4 left-4 z-10 w-fit h-fit'>
+            <CrayonTextButton
+              ariaLabel='모드 선택 화면으로 돌아가기'
+              text='첫 화면으로'
+              icon='arrow-left'
+              iconPosition='left'
+              iconSize={30}
+              bg={lightTheme.start.bg}
+              color={lightTheme.start.border}
+              textcolor='#FFFFFF'
+              onClick={handleBackToModeSelection}
+              innerCircleVisible={false}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className='flex-1'>
         <Scene shadows camera={{ position: [0, 0, 20], fov: 50 }}>
