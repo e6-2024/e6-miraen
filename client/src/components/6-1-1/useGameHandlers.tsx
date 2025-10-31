@@ -120,7 +120,7 @@ export const useGameHandlers = (gameState: GameState, gameActions: GameActions) 
             if (Object.values(newCompleted).every((completed) => completed)) {
               setTimeout(() => {
                 audio.playSound('/sounds/6-1-1/6-1-1-6_goodresult-82807.mp3', 0.2)
-              }, 1000)
+              }, 3000)
             }
 
             return newCompleted
