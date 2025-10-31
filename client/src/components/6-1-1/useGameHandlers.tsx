@@ -191,7 +191,7 @@ export const useGameHandlers = (gameState: GameState, gameActions: GameActions) 
               audio.playNarration(narrationFiles[gameState.currentMission!])
             }, 500)
           }, 3000)
-        }, 2000)
+        }, 4000)
       }
     }
   }
